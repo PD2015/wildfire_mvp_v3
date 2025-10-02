@@ -30,24 +30,82 @@ import 'utils/geo_utils.dart';
 /// 3. Cache - Previously successful data
 /// 4. Mock - Guaranteed fallback that never fails
 ///
-/// Timing budgets within 8-second default deadline:
+/// **Timing budgets within 8-second default deadline**:
 /// - EFFIS: 3 seconds maximum
 /// - SEPA: 2 seconds maximum (Scotland only)
 /// - Cache: 1 second maximum
 /// - Mock: <100ms guaranteed
 ///
-/// Example usage:
+/// **Geographic routing**:
+/// - Scotland bounds: 54.6-60.9°N, -9.0-1.0°E (includes all Scottish territory)
+/// - SEPA attempted only for coordinates within Scotland boundaries
+/// - Uses `GeographicUtils.isInScotland()` for routing decisions
+///
+/// **Error handling patterns**:
 /// ```dart
+/// final result = await service.getCurrent(lat: lat, lon: lon);
+/// result.fold(
+///   (error) => {
+///     // Only validation errors (NaN, out-of-range coordinates)
+///     // All service failures trigger fallback, never return Left()
+///   },
+///   (fireRisk) => {
+///     // Always succeeds with one of: effis, sepa, cache, mock
+///     // Check fireRisk.source and fireRisk.freshness for data quality
+///   },
+/// );
+/// ```
+///
+/// **Usage examples**:
+/// ```dart
+/// // Basic usage with defaults
 /// final service = FireRiskServiceImpl(
-///   effisService: effisService,
-///   sepaService: sepaService,
-///   cacheService: cacheService,
+///   effisService: effisService,  // A1 EffisService implementation
 ///   mockService: MockService.defaultStrategy(),
 /// );
 ///
-/// final result = await service.getCurrent(lat: 55.9533, lon: -3.1883);
-/// // Always returns Right(FireRisk) - never fails completely
+/// // Edinburgh coordinates (Scotland - will try SEPA if EFFIS fails)
+/// final edinburgh = await service.getCurrent(lat: 55.9533, lon: -3.1883);
+///
+/// // New York coordinates (non-Scotland - skips SEPA)
+/// final newYork = await service.getCurrent(lat: 40.7128, lon: -74.0060);
+///
+/// // Custom deadline (shorter timeout)
+/// final urgent = await service.getCurrent(
+///   lat: 55.9533,
+///   lon: -3.1883,
+///   deadline: Duration(seconds: 5),
+/// );
+///
+/// // Full configuration with all services
+/// final fullService = FireRiskServiceImpl(
+///   effisService: effisService,
+///   sepaService: sepaService,        // Optional
+///   cacheService: cacheService,      // Optional
+///   mockService: MockService.deterministicStrategy(), // Required
+///   telemetry: SpyTelemetry(),       // Optional, NoOpTelemetry() default
+/// );
 /// ```
+///
+/// **Telemetry integration**:
+/// ```dart
+/// final telemetry = SpyTelemetry();
+/// final service = FireRiskServiceImpl(..., telemetry: telemetry);
+///
+/// await service.getCurrent(lat: lat, lon: lon);
+///
+/// // Inspect fallback sequence
+/// final attempts = telemetry.eventsOfType<AttemptStartEvent>();
+/// final fallbacks = telemetry.eventsOfType<FallbackDepthEvent>();
+/// // Verify: attempts = [effis, sepa?, cache?, mock]
+/// // Verify: fallbacks track depth progression: 0 → 1 → 2 → 3
+/// ```
+///
+/// **A1 Integration points**:
+/// - Requires A1's `EffisService` implementation for primary data source
+/// - Reuses A1's `EffisFwiResult` and `ApiError` types for consistency
+/// - Converts EFFIS FWI data to normalized `FireRisk` objects
+/// - Preserves A1's coordinate validation and error handling patterns
 class FireRiskServiceImpl implements FireRiskService {
   final EffisService _effisService;
   final SepaService? _sepaService;
