@@ -17,7 +17,7 @@ void main() {
     setUp(() {
       fakeGeolocator = FakeGeolocator();
       fakeTimer = FakeTimer();
-      locationResolver = LocationResolverImpl();
+      locationResolver = LocationResolverImpl(geolocatorService: fakeGeolocator);
       
       // Reset SharedPreferences
       SharedPreferences.setMockInitialValues({});

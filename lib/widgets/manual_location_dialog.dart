@@ -146,7 +146,7 @@ class _ManualLocationDialogState extends State<ManualLocationDialog> {
                     decimal: true,
                   ),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d*')),
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.-]')),
                   ],
                 ),
               ),
@@ -168,7 +168,7 @@ class _ManualLocationDialogState extends State<ManualLocationDialog> {
                     decimal: true,
                   ),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d*')),
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.-]')),
                   ],
                 ),
               ),

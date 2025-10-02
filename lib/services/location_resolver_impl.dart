@@ -7,12 +7,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/location_models.dart';
 import '../utils/location_utils.dart';
 import 'location_resolver.dart';
+import 'geolocator_service.dart';
 
 /// Concrete implementation of LocationResolver with 5-tier fallback strategy
 ///
 /// Provides headless location resolution with privacy-compliant logging
 /// and graceful handling of platform limitations and permission changes.
 class LocationResolverImpl implements LocationResolver {
+  final GeolocatorService _geolocatorService;
+
+  /// Create LocationResolver with optional geolocator service dependency
+  /// Uses production GeolocatorServiceImpl by default
+  LocationResolverImpl({GeolocatorService? geolocatorService})
+      : _geolocatorService = geolocatorService ?? GeolocatorServiceImpl();
   /// Scotland centroid - rural central location to avoid city bias
   static const LatLng _scotlandCentroid = LatLng(56.5, -4.2);
 
@@ -105,9 +112,7 @@ class LocationResolverImpl implements LocationResolver {
   /// Attempts to get last known position (Tier 1)
   Future<Either<LocationError, LatLng>> _tryLastKnownPosition() async {
     try {
-      final position = await Geolocator.getLastKnownPosition(
-        forceAndroidLocationManager: false,
-      );
+      final position = await _geolocatorService.getLastKnownPosition();
 
       if (position != null) {
         final coords = LatLng(position.latitude, position.longitude);
@@ -127,14 +132,14 @@ class LocationResolverImpl implements LocationResolver {
   Future<Either<LocationError, LatLng>> _tryGpsFix(Duration timeout) async {
     try {
       // Check location services
-      if (!await Geolocator.isLocationServiceEnabled()) {
+      if (!await _geolocatorService.isLocationServiceEnabled()) {
         return const Left(LocationError.gpsUnavailable);
       }
 
       // Check and request permissions
-      var permission = await Geolocator.checkPermission();
+      var permission = await _geolocatorService.checkPermission();
       if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
+        permission = await _geolocatorService.requestPermission();
       }
 
       if (permission == LocationPermission.denied ||
@@ -143,7 +148,7 @@ class LocationResolverImpl implements LocationResolver {
       }
 
       // Get current position with timeout
-      final position = await Geolocator.getCurrentPosition(
+      final position = await _geolocatorService.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.medium,
         timeLimit: timeout,
       );
@@ -206,7 +211,8 @@ class LocationResolverImpl implements LocationResolver {
       return const Right(_scotlandCentroid);
     }
 
-    return const Left(LocationError.gpsUnavailable);
+    // When GPS is unavailable due to platform restrictions and manual entry needed
+    return const Left(LocationError.permissionDenied);
   }
 
   @override

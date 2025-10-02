@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../lib/models/location_models.dart';
+import '../../lib/services/geolocator_service.dart';
 
 /// Fake timer for controlling time-dependent operations in tests
 class FakeTimer {
@@ -33,7 +34,7 @@ class FakeTimer {
 }
 
 /// Fake Geolocator for testing GPS operations without real hardware
-class FakeGeolocator {
+class FakeGeolocator implements GeolocatorService {
   bool _isLocationServiceEnabled = true;
   LocationPermission _permission = LocationPermission.whileInUse;
   Position? _lastKnownPosition;
@@ -72,18 +73,21 @@ class FakeGeolocator {
   }
   
   /// Mock implementation of isLocationServiceEnabled
+  @override
   Future<bool> isLocationServiceEnabled() async {
     await Future.delayed(Duration(milliseconds: 10));
     return _isLocationServiceEnabled;
   }
   
   /// Mock implementation of checkPermission
+  @override
   Future<LocationPermission> checkPermission() async {
     await Future.delayed(Duration(milliseconds: 10));
     return _permission;
   }
   
   /// Mock implementation of requestPermission
+  @override
   Future<LocationPermission> requestPermission() async {
     await Future.delayed(Duration(milliseconds: 50));
     // Simulate user interaction delay
@@ -91,6 +95,7 @@ class FakeGeolocator {
   }
   
   /// Mock implementation of getLastKnownPosition
+  @override
   Future<Position?> getLastKnownPosition() async {
     await Future.delayed(Duration(milliseconds: 5));
     if (_exception != null) throw _exception!;
@@ -98,6 +103,7 @@ class FakeGeolocator {
   }
   
   /// Mock implementation of getCurrentPosition
+  @override
   Future<Position> getCurrentPosition({
     LocationAccuracy desiredAccuracy = LocationAccuracy.best,
     Duration? timeLimit,
