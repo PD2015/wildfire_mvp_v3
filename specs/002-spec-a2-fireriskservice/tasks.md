@@ -77,7 +77,7 @@ abstract class CacheService {
 ## Phase 2: Scotland Boundary & Decision Logic
 **Target**: Geographic routing and orchestration logic
 
-### T003 Implement geographic utilities and fallback orchestration (spec:A2, gate:C2, gate:C5)
+### [X] T003 Implement geographic utilities and fallback orchestration (spec:A2, gate:C2, gate:C5)
 **File**: `lib/services/utils/geo_utils.dart`
 - Implement GeographicUtils.isInScotland(lat, lon)
 - Scotland boundary: 54.6°N-60.9°N, 9.0°W-1.0°E (includes St Kilda)

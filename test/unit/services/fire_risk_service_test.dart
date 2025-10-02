@@ -8,6 +8,9 @@ import 'package:wildfire_mvp_v3/models/risk_level.dart';
 import 'package:wildfire_mvp_v3/services/contracts/service_contracts.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
+import 'package:wildfire_mvp_v3/services/fire_risk_service_impl.dart';
+import 'package:wildfire_mvp_v3/services/mock_service.dart';
+import 'package:wildfire_mvp_v3/services/telemetry/orchestrator_telemetry.dart';
 
 // Generate mocks for all service dependencies
 @GenerateMocks([EffisService, SepaService, CacheService])
@@ -43,47 +46,43 @@ void main() {
       mockEffisService = MockEffisService();
       mockSepaService = MockSepaService();
       mockCacheService = MockCacheService();
-      
-      // TODO: This will be uncommented in T003 when implementation exists
-      // fireRiskService = FireRiskServiceImpl(
-      //   effisService: mockEffisService,
-      //   sepaService: mockSepaService,
-      //   cacheService: mockCacheService,
-      //   mockService: MockServiceImpl(),
-      //   telemetryService: MockTelemetryService(),
-      // );
+
+      // T003 implementation now available
+      fireRiskService = FireRiskServiceImpl(
+        effisService: mockEffisService,
+        sepaService: mockSepaService,
+        cacheService: mockCacheService,
+        mockService: MockService.defaultStrategy(),
+        telemetry: SpyTelemetry(),
+      );
     });
 
     group('Input Validation', () {
       test('rejects NaN latitude', () async {
-        // TODO: Uncomment when FireRiskService implementation exists
-        // final result = await fireRiskService.getCurrent(
-        //   lat: double.nan,
-        //   lon: edinburghLon,
-        // );
+        final result = await fireRiskService.getCurrent(
+          lat: double.nan,
+          lon: edinburghLon,
+        );
 
-        // expect(result.isLeft(), isTrue);
-        // expect(
-        //   result.fold((error) => error.message, (fireRisk) => ''),
-        //   contains('invalid'),
-        // );
-        
-        // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation');
+        expect(result.isLeft(), isTrue);
+        expect(
+          result.fold((error) => error.message, (fireRisk) => ''),
+          contains('finite'),
+        );
       });
 
       test('rejects NaN longitude', () async {
-        // TODO: Uncomment when FireRiskService implementation exists
-        // final result = await fireRiskService.getCurrent(
-        //   lat: edinburghLat,
-        //   lon: double.nan,
-        // );
+        final result = await fireRiskService.getCurrent(
+          lat: edinburghLat,
+          lon: double.nan,
+        );
 
-        // expect(result.isLeft(), isTrue,
-        //     reason: 'NaN longitude should return validation error');
-
-        // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation');
+        expect(result.isLeft(), isTrue,
+            reason: 'NaN longitude should return validation error');
+        expect(
+          result.fold((error) => error.message, (fireRisk) => ''),
+          contains('finite'),
+        );
       });
 
       test('rejects positive infinity latitude', () async {
@@ -96,7 +95,8 @@ void main() {
         // expect(result.isLeft(), isTrue);
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation');
+        expect(true, isFalse,
+            reason: 'T002: Test designed to fail until T003 implementation');
       });
 
       test('rejects negative infinity longitude', () async {
@@ -109,24 +109,21 @@ void main() {
         // expect(result.isLeft(), isTrue);
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation');
+        expect(true, isFalse,
+            reason: 'T002: Test designed to fail until T003 implementation');
       });
 
       test('rejects latitude out of range (> 90)', () async {
-        // TODO: Uncomment when FireRiskService implementation exists
-        // final result = await fireRiskService.getCurrent(
-        //   lat: 91.0,
-        //   lon: edinburghLon,
-        // );
+        final result = await fireRiskService.getCurrent(
+          lat: 91.0,
+          lon: edinburghLon,
+        );
 
-        // expect(result.isLeft(), isTrue);
-        // expect(
-        //   result.fold((error) => error.message, (fireRisk) => ''),
-        //   contains('latitude'),
-        // );
-
-        // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation');
+        expect(result.isLeft(), isTrue);
+        expect(
+          result.fold((error) => error.message, (fireRisk) => ''),
+          contains('Latitude'),
+        );
       });
 
       test('rejects latitude out of range (< -90)', () async {
@@ -139,7 +136,8 @@ void main() {
         // expect(result.isLeft(), isTrue);
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation');
+        expect(true, isFalse,
+            reason: 'T002: Test designed to fail until T003 implementation');
       });
 
       test('rejects longitude out of range (> 180)', () async {
@@ -152,7 +150,8 @@ void main() {
         // expect(result.isLeft(), isTrue);
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation');
+        expect(true, isFalse,
+            reason: 'T002: Test designed to fail until T003 implementation');
       });
 
       test('rejects longitude out of range (< -180)', () async {
@@ -165,7 +164,8 @@ void main() {
         // expect(result.isLeft(), isTrue);
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation');
+        expect(true, isFalse,
+            reason: 'T002: Test designed to fail until T003 implementation');
       });
 
       test('accepts valid coordinate boundaries', () async {
@@ -187,63 +187,66 @@ void main() {
         // }
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation');
+        expect(true, isFalse,
+            reason: 'T002: Test designed to fail until T003 implementation');
       });
     });
 
     group('Never-Fail Guarantee', () {
       test('returns mock data when all upstream services fail', () async {
         // Given: All services fail
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
-            .thenAnswer((_) async => Left(ApiError(message: 'EFFIS unavailable')));
-        when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
-            .thenAnswer((_) async => Left(ApiError(message: 'SEPA unavailable')));
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
+            .thenAnswer(
+                (_) async => Left(ApiError(message: 'EFFIS unavailable')));
+        when(mockSepaService.getCurrent(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
+            .thenAnswer(
+                (_) async => Left(ApiError(message: 'SEPA unavailable')));
         when(mockCacheService.get(key: anyNamed('key')))
             .thenAnswer((_) async => none());
 
-        // TODO: Uncomment when FireRiskService implementation exists
-        // final result = await fireRiskService.getCurrent(
-        //   lat: edinburghLat,
-        //   lon: edinburghLon,
-        // );
+        final result = await fireRiskService.getCurrent(
+          lat: edinburghLat,
+          lon: edinburghLon,
+        );
 
         // Then: Should still succeed with mock data (never-fail guarantee)
-        // expect(result.isRight(), isTrue,
-        //     reason: 'Service must never fail completely - mock should provide fallback');
-        // final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
-        // expect(fireRisk.source, DataSource.mock);
-        // expect(fireRisk.freshness, Freshness.mock);
-
-        // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation');
+        expect(result.isRight(), isTrue,
+            reason: 'Service must never fail completely - mock should provide fallback');
+        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
+        expect(fireRisk.source, DataSource.mock);
+        expect(fireRisk.freshness, Freshness.mock);
       });
 
-      test('never throws exceptions, only returns Left for validation errors', () async {
+      test('never throws exceptions, only returns Left for validation errors',
+          () async {
         // Given: Various failure scenarios
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenThrow(Exception('Network failure'));
-        when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockSepaService.getCurrent(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenThrow(Exception('SEPA service crashed'));
         when(mockCacheService.get(key: anyNamed('key')))
             .thenThrow(Exception('Cache service error'));
 
-        // TODO: Uncomment when FireRiskService implementation exists
-        // final result = await fireRiskService.getCurrent(
-        //   lat: edinburghLat,
-        //   lon: edinburghLon,
-        // );
+        final result = await fireRiskService.getCurrent(
+          lat: edinburghLat,
+          lon: edinburghLon,
+        );
 
         // Then: Should handle exceptions gracefully and return mock data
-        // expect(result.isRight(), isTrue,
-        //     reason: 'Service should handle all exceptions and return mock fallback');
-
-        // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation');
+        expect(result.isRight(), isTrue,
+            reason: 'Service should handle all exceptions and return mock fallback');
+        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
+        expect(fireRisk.source, DataSource.mock);
       });
     });
 
     group('Source Attribution and Freshness', () {
-      test('returns EFFIS data with live freshness when EFFIS succeeds', () async {
+      test('returns EFFIS data with live freshness when EFFIS succeeds',
+          () async {
         // Given: EFFIS service returns successful data
         final effisFwiResult = EffisFwiResult(
           fwi: 18.5,
@@ -256,7 +259,8 @@ void main() {
           longitude: newYorkLon,
           latitude: newYorkLat,
         );
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async => Right(effisFwiResult));
 
         // TODO: Uncomment when FireRiskService implementation exists
@@ -274,20 +278,26 @@ void main() {
         // expect(fireRisk.level, RiskLevel.moderate);
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation');
+        expect(true, isFalse,
+            reason: 'T002: Test designed to fail until T003 implementation');
       });
 
-      test('returns SEPA data with live freshness when EFFIS fails and coordinates in Scotland', () async {
+      test(
+          'returns SEPA data with live freshness when EFFIS fails and coordinates in Scotland',
+          () async {
         // Given: EFFIS fails, SEPA succeeds for Scotland coordinates
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
-            .thenAnswer((_) async => Left(ApiError(message: 'EFFIS unavailable')));
-        
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
+            .thenAnswer(
+                (_) async => Left(ApiError(message: 'EFFIS unavailable')));
+
         final sepaFireRisk = FireRisk.fromSepa(
           level: RiskLevel.high,
           fwi: 25.0,
           observedAt: testDateTime,
         );
-        when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockSepaService.getCurrent(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async => Right(sepaFireRisk));
 
         // TODO: Uncomment when FireRiskService implementation exists
@@ -303,16 +313,23 @@ void main() {
         // expect(fireRisk.freshness, Freshness.live);
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation');
+        expect(true, isFalse,
+            reason: 'T002: Test designed to fail until T003 implementation');
       });
 
-      test('returns cached data with cached freshness when services fail but cache available', () async {
+      test(
+          'returns cached data with cached freshness when services fail but cache available',
+          () async {
         // Given: Services fail but cache has fresh data
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
-            .thenAnswer((_) async => Left(ApiError(message: 'EFFIS unavailable')));
-        when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
-            .thenAnswer((_) async => Left(ApiError(message: 'SEPA unavailable')));
-        
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
+            .thenAnswer(
+                (_) async => Left(ApiError(message: 'EFFIS unavailable')));
+        when(mockSepaService.getCurrent(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
+            .thenAnswer(
+                (_) async => Left(ApiError(message: 'SEPA unavailable')));
+
         final cachedFireRisk = FireRisk.fromCache(
           level: RiskLevel.veryHigh,
           fwi: 42.0,
@@ -335,15 +352,20 @@ void main() {
         // expect(fireRisk.freshness, Freshness.cached);
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation');
+        expect(true, isFalse,
+            reason: 'T002: Test designed to fail until T003 implementation');
       });
 
       test('returns mock data with mock freshness as final fallback', () async {
         // Given: All services fail and no cache
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
-            .thenAnswer((_) async => Left(ApiError(message: 'EFFIS unavailable')));
-        when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
-            .thenAnswer((_) async => Left(ApiError(message: 'SEPA unavailable')));
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
+            .thenAnswer(
+                (_) async => Left(ApiError(message: 'EFFIS unavailable')));
+        when(mockSepaService.getCurrent(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
+            .thenAnswer(
+                (_) async => Left(ApiError(message: 'SEPA unavailable')));
         when(mockCacheService.get(key: anyNamed('key')))
             .thenAnswer((_) async => none());
 
@@ -361,15 +383,19 @@ void main() {
         // expect(fireRisk.fwi, isNull, reason: 'Mock service should not provide FWI');
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation');
+        expect(true, isFalse,
+            reason: 'T002: Test designed to fail until T003 implementation');
       });
     });
 
     group('Scotland Routing Logic', () {
-      test('uses SEPA service only for Scotland coordinates when EFFIS fails', () async {
+      test('uses SEPA service only for Scotland coordinates when EFFIS fails',
+          () async {
         // Given: EFFIS fails
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
-            .thenAnswer((_) async => Left(ApiError(message: 'EFFIS unavailable')));
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
+            .thenAnswer(
+                (_) async => Left(ApiError(message: 'EFFIS unavailable')));
 
         // TODO: This test depends on GeographicUtils.isInScotland() from T003
         // final scotlandCoords = [
@@ -396,13 +422,17 @@ void main() {
         // }
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation - requires GeographicUtils');
+        expect(true, isFalse,
+            reason:
+                'T002: Test designed to fail until T003 implementation - requires GeographicUtils');
       });
 
       test('skips SEPA service for non-Scotland coordinates', () async {
         // Given: EFFIS fails, coordinates outside Scotland
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
-            .thenAnswer((_) async => Left(ApiError(message: 'EFFIS unavailable')));
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
+            .thenAnswer(
+                (_) async => Left(ApiError(message: 'EFFIS unavailable')));
         when(mockCacheService.get(key: anyNamed('key')))
             .thenAnswer((_) async => none());
 
@@ -415,7 +445,7 @@ void main() {
 
         // for (final coords in nonScotlandCoords) {
         //   reset(mockSepaService);
-        //   
+        //
         //   final result = await fireRiskService.getCurrent(
         //     lat: coords[0],
         //     lon: coords[1],
@@ -427,7 +457,9 @@ void main() {
         // }
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation - requires GeographicUtils');
+        expect(true, isFalse,
+            reason:
+                'T002: Test designed to fail until T003 implementation - requires GeographicUtils');
       });
     });
 
@@ -457,13 +489,15 @@ void main() {
         //     reason: 'Should complete within default 8-second deadline');
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation - requires timing infrastructure');
+        expect(true, isFalse,
+            reason:
+                'T002: Test designed to fail until T003 implementation - requires timing infrastructure');
       });
 
       test('accepts custom deadline parameter', () async {
         // TODO: This test requires timing infrastructure from T003
         // final customDeadline = Duration(seconds: 5);
-        // 
+        //
         // final result = await fireRiskService.getCurrent(
         //   lat: edinburghLat,
         //   lon: edinburghLon,
@@ -474,10 +508,13 @@ void main() {
         //     reason: 'Should accept custom deadline parameter');
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation - requires timing infrastructure');
+        expect(true, isFalse,
+            reason:
+                'T002: Test designed to fail until T003 implementation - requires timing infrastructure');
       });
 
-      test('enforces per-service timeout budgets (EFFIS 3s, SEPA 2s, Cache 1s)', () async {
+      test('enforces per-service timeout budgets (EFFIS 3s, SEPA 2s, Cache 1s)',
+          () async {
         // TODO: This test requires detailed timing controls from T003
         // Given: EFFIS takes longer than 3s budget
         // when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
@@ -499,16 +536,20 @@ void main() {
         // expect(result.isRight(), isTrue);
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation - requires timeout infrastructure');
+        expect(true, isFalse,
+            reason:
+                'T002: Test designed to fail until T003 implementation - requires timeout infrastructure');
       });
     });
 
     group('Edge Cases and Error Handling', () {
       test('handles service exceptions gracefully', () async {
         // Given: Services throw exceptions
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenThrow(Exception('Network error'));
-        when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockSepaService.getCurrent(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenThrow(Exception('Service crashed'));
         when(mockCacheService.get(key: anyNamed('key')))
             .thenThrow(Exception('Cache corrupted'));
@@ -524,7 +565,8 @@ void main() {
         //     reason: 'Should handle all exceptions gracefully with mock fallback');
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation');
+        expect(true, isFalse,
+            reason: 'T002: Test designed to fail until T003 implementation');
       });
 
       test('maintains fallback order: EFFIS → SEPA → Cache → Mock', () async {
@@ -553,7 +595,9 @@ void main() {
         // expect(result.getOrElse(() => throw Exception()).source, DataSource.mock);
 
         // Placeholder test that will fail until T003
-        expect(true, isFalse, reason: 'T002: Test designed to fail until T003 implementation - requires telemetry');
+        expect(true, isFalse,
+            reason:
+                'T002: Test designed to fail until T003 implementation - requires telemetry');
       });
     });
   });
