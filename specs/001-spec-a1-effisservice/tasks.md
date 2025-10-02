@@ -21,75 +21,74 @@
 - [ ] T003 [P] Add dev dependencies: mockito ^5.4.2, build_runner ^2.4.7 (C1: Code Quality)
 - [ ] T004 [P] Configure flutter analyze and dart format in existing CI (C1: Code Quality)
 
-## Phase 3.2: Test Fixtures & Golden Tests (TDD Setup)
+## Phase 3.2: Test Fixtures & Contract Tests (TDD Setup)
 **CRITICAL: Create test fixtures BEFORE implementation to enable TDD**
 - [ ] T005 [P] Create test fixtures directory `test/fixtures/effis/`
 - [ ] T006 [P] Create EFFIS success response fixture `test/fixtures/effis/edinburgh_success.json`
 - [ ] T007 [P] Create EFFIS error fixtures: `404.json`, `503.json`, `malformed.json`, `empty_features.json`
-- [ ] T008 [P] Create golden test file `test/golden/effis_responses_test.dart` with failing tests
+- [ ] T008 [P] Create fixture-based contract test file `test/contract/effis_responses_contract_test.dart` with failing tests
 
 ## Phase 3.3: Models & Value Objects (TDD)
 **CRITICAL: Write failing tests BEFORE implementing models**
 - [ ] T009 [P] Create failing unit tests `test/unit/models/risk_level_test.dart` for FWI mapping boundaries
-- [ ] T010 [P] Create failing unit tests `test/unit/models/api_error_test.dart` for error categorization  
-- [ ] T011 [P] Create failing unit tests `test/unit/models/effis_fwi_result_test.dart` for validation
-- [ ] T012 [P] Create failing unit tests `test/unit/models/coordinate_test.dart` for bounds checking
+- [ ] T010 [P] Create failing unit tests `test/unit/models/api_error_test.dart` for error categorization with reason codes
+- [ ] T011 [P] Create failing unit tests `test/unit/models/effis_fwi_result_test.dart` for validation and timezone handling
 
 ## Phase 3.4: Model Implementation (After Tests Fail)
-- [ ] T013 [P] Implement `lib/models/risk_level.dart` with fromFwi() mapping (spec:A1)
-- [ ] T014 [P] Implement `lib/models/api_error.dart` with error types and categorization (spec:A1)
-- [ ] T015 [P] Implement `lib/models/effis_fwi_result.dart` with validation rules (spec:A1)
-- [ ] T016 [P] Implement `lib/models/coordinate.dart` with bounds validation (spec:A1)
+- [ ] T012 [P] Implement `lib/models/risk_level.dart` with fromFwi() mapping (spec:A1)
+- [ ] T013 [P] Implement `lib/models/api_error.dart` with error types, categorization, and reason codes (timeout, rateLimited, serverError, malformed) (spec:A1)
+- [ ] T014 [P] Implement `lib/models/effis_fwi_result.dart` with validation rules and UTC timezone parsing (spec:A1)
 
 ## Phase 3.5: Service Interface & Tests (TDD)
 **CRITICAL: Service tests must fail before implementation**
-- [ ] T017 Create failing contract tests `test/unit/services/effis_service_test.dart` using fixtures (C5: Resilience)
-- [ ] T018 Create failing integration tests `test/integration/effis_service_integration_test.dart` for HTTP scenarios (C5: Resilience)
+- [ ] T015 Create failing contract tests `test/unit/services/effis_service_test.dart` using mocked http.Client and fixtures (C5: Resilience)
+- [ ] T016 Create failing unit tests for retry/backoff behavior with deterministic mocked http.Client (C5: Resilience)
 
 ## Phase 3.6: Service Implementation
-- [ ] T019 Implement `lib/services/effis_service.dart` abstract interface (spec:A1)
-- [ ] T020 Implement `lib/services/effis_service_impl.dart` with HTTP client (spec:A1, gate:C5)
-  - URL template construction for EFFIS WMS GetFeatureInfo
-  - 30-second timeout implementation 
+- [ ] T017 Implement `lib/services/effis_service.dart` abstract interface with constructor injection (spec:A1)
+- [ ] T018 Implement `lib/services/effis_service_impl.dart` with injected http.Client (spec:A1, gate:C5)
+  - Constructor injection of http.Client for testability
+  - URL template construction for EFFIS WMS GetFeatureInfo with correct lat/lon order
+  - Required WMS params: layer, info_format, query point validation
+  - HTTP headers: User-Agent and Accept: application/json
+  - 30-second timeout implementation
   - Exponential backoff retry logic with jitter (max 3 retries)
   - JSON parsing with schema validation
-  - Coordinate precision limiting for logs (gate:C2)
-  - Error categorization and ApiError mapping
+  - UTC timezone parsing for observedAt
+  - Error categorization with reason codes and ApiError mapping
 
 ## Phase 3.7: Integration & Validation
-- [ ] T021 [P] Update `docs/data_sources.md` with implemented EFFIS endpoint details (spec:A1)
-- [ ] T022 [P] Add usage examples in service code comments for integration guidance
-- [ ] T023 Run `flutter analyze` and `flutter test` to ensure CI compliance (gate:C1)
-- [ ] T024 Validate all constitutional gates: C1 (tests pass), C2 (safe logging), C5 (error handling)
+- [ ] T019 [P] Update `docs/DATA-SOURCES.md` with implemented EFFIS endpoint details (spec:A1)
+- [ ] T020 [P] Add usage examples in service code comments for integration guidance
+- [ ] T021 Run `flutter analyze` and `flutter test` to ensure CI compliance (gate:C1)
+- [ ] T022 Validate all constitutional gates: C1 (tests pass), C2 (safe logging), C5 (error handling)
 
 ---
 
 ## Dependencies
 - Setup (T001-T004) before everything
 - Fixtures (T005-T008) before tests and implementation  
-- Model tests (T009-T012) before model implementation (T013-T016)
-- Model implementation (T013-T016) before service tests (T017-T018)
-- Service tests (T017-T018) before service implementation (T019-T020)
-- Implementation before integration and validation (T021-T024)
+- Model tests (T009-T011) before model implementation (T012-T014)
+- Model implementation (T012-T014) before service tests (T015-T016)
+- Service tests (T015-T016) before service implementation (T017-T018)
+- Implementation before integration and validation (T019-T022)
 
 ## Parallel Execution Examples
 ```bash
 # Phase 3.2: Create all fixtures simultaneously
 Task: "Create EFFIS success response fixture test/fixtures/effis/edinburgh_success.json"
 Task: "Create EFFIS error fixtures: 404.json, 503.json, malformed.json, empty_features.json"
-Task: "Create golden test file test/golden/effis_responses_test.dart with failing tests"
+Task: "Create fixture-based contract test file test/contract/effis_responses_contract_test.dart with failing tests"
 
 # Phase 3.3: Write all model tests simultaneously  
 Task: "Create failing unit tests test/unit/models/risk_level_test.dart for FWI mapping boundaries"
-Task: "Create failing unit tests test/unit/models/api_error_test.dart for error categorization"
-Task: "Create failing unit tests test/unit/models/effis_fwi_result_test.dart for validation"
-Task: "Create failing unit tests test/unit/models/coordinate_test.dart for bounds checking"
+Task: "Create failing unit tests test/unit/models/api_error_test.dart for error categorization with reason codes"
+Task: "Create failing unit tests test/unit/models/effis_fwi_result_test.dart for validation and timezone handling"
 
 # Phase 3.4: Implement all models simultaneously
 Task: "Implement lib/models/risk_level.dart with fromFwi() mapping"  
-Task: "Implement lib/models/api_error.dart with error types and categorization"
-Task: "Implement lib/models/effis_fwi_result.dart with validation rules"
-Task: "Implement lib/models/coordinate.dart with bounds validation"
+Task: "Implement lib/models/api_error.dart with error types, categorization, and reason codes"
+Task: "Implement lib/models/effis_fwi_result.dart with validation rules and UTC timezone parsing"
 ```
 
 ## Constitutional Compliance Checkpoints
@@ -101,13 +100,13 @@ Task: "Implement lib/models/coordinate.dart with bounds validation"
 - **T023**: CI compliance validation
 
 ### Gate C2 (Secrets & Logging)
-- **T020**: Coordinate precision limited to 3dp in logs
-- **T024**: No hardcoded secrets (EFFIS requires no API keys)
+- **T018**: Safe logging practices with no sensitive data
+- **T022**: No hardcoded secrets (EFFIS requires no API keys)
 
 ### Gate C5 (Resilience & Test Coverage)  
-- **T017-T018**: Error handling and timeout tests
-- **T020**: Network timeout, retry logic, error categorization
-- **T024**: All failure modes tested and handled
+- **T015-T016**: Error handling, timeout, and retry tests with mocked HTTP
+- **T018**: Network timeout, retry logic, error categorization with reason codes
+- **T022**: All failure modes tested and handled deterministically
 
 ## Acceptance Criteria
 
@@ -116,26 +115,30 @@ Task: "Implement lib/models/coordinate.dart with bounds validation"
 **Tests**: Dependencies resolve, linting passes
 
 ### T005-T008 (Fixtures)  
-**Files Created**: `test/fixtures/effis/*.json`, `test/golden/effis_responses_test.dart`
-**Tests**: Golden test file exists and fails appropriately
+**Files Created**: `test/fixtures/effis/*.json`, `test/contract/effis_responses_contract_test.dart`
+**Tests**: Contract test file exists and fails appropriately with fixture data
 
-### T009-T016 (Models)
+### T009-T014 (Models)
 **Files Created**: `lib/models/*.dart`, `test/unit/models/*.dart`  
-**Tests**: All model unit tests pass, FWI boundaries (4,5,12,21,38,50) validated
+**Tests**: All model unit tests pass, FWI boundaries (4,5,12,21,38,50) validated, reason codes tested, UTC timezone handling verified
 
-### T017-T020 (Service)
-**Files Created**: `lib/services/effis_service*.dart`, `test/*/services/*.dart`
-**Tests**: Contract tests pass, integration tests with real HTTP scenarios pass
-**API**: `EffisService.getFwi({lat, lon, timeout, maxRetries})` working with Either<ApiError, EffisFwiResult>
+### T015-T018 (Service)
+**Files Created**: `lib/services/effis_service*.dart`, `test/unit/services/*.dart`
+**Tests**: Contract tests pass with mocked HTTP client, retry/backoff behavior tested deterministically
+**API**: `EffisService.getFwi(lat, lon, {timeout, maxRetries})` with constructor-injected http.Client and Either<ApiError, EffisFwiResult>
+**HTTP**: Correct WMS params, headers (User-Agent, Accept), lat/lon order validation
 
-### T021-T024 (Integration)
-**Files Updated**: `docs/data_sources.md`
-**Tests**: `flutter analyze` clean, `flutter test` 100% pass rate
+### T019-T022 (Integration)
+**Files Updated**: `docs/DATA-SOURCES.md`
+**Tests**: `flutter analyze` clean, `flutter test` 100% pass rate (no live HTTP in CI)
 **Validation**: All constitutional gates verified
 
 ## Notes
-- Scope strictly limited to A1 EffisService - no caching, UI, or fallback orchestration
-- Uses `lib/theme/risk_palette.dart` color constants if any color references needed (though service layer should avoid UI concerns)
-- All network errors return structured ApiError, never throw exceptions
-- FWI mapping follows official thresholds per docs/data_sources.md
+- Scope strictly limited to A1 EffisService - no caching, UI, fallback orchestration, or coordinate validation (moved to A4)
+- Service accepts raw double lat, lon parameters for simplicity
+- Constructor injection of http.Client enables deterministic testing without live HTTP
+- All network errors return structured ApiError with reason codes, never throw exceptions  
+- FWI mapping follows official thresholds per docs/DATA-SOURCES.md
 - Test-driven development: tests must fail before implementation
+- No live HTTP integration tests in CI - use mocked http.Client for deterministic results
+- Manual live sanity checks can be done outside CI pipeline
