@@ -178,13 +178,13 @@ Implement manual coordinate entry dialog with validation and SharedPreferences p
    - Cache checked by service before returning Left to trigger manual entry
 
 **Acceptance Criteria**:
-- [ ] Dialog accepts valid coordinates (55.9533, -3.1883) with proper input formatters
-- [ ] Dialog rejects invalid ranges (999, 999) with clear error messages
-- [ ] All touch targets (fields, buttons) meet 44dp minimum (C3)
-- [ ] Proper Semantics labels for screen readers, not semanticCounterText (C3)
-- [ ] Manual location persists across app restart with version compatibility
-- [ ] SharedPreferences corruption handled without crash (C5)
-- [ ] Dialog is triggered by A6/Home on Left(LocationError), not by service itself
+- [x] Dialog accepts valid coordinates (55.9533, -3.1883) with proper input formatters
+- [x] Dialog rejects invalid ranges (999, 999) with clear error messages
+- [x] All touch targets (fields, buttons) meet 44dp minimum (C3)
+- [x] Proper Semantics labels for screen readers, not semanticCounterText (C3)
+- [x] Manual location persists across app restart with version compatibility
+- [x] SharedPreferences corruption handled without crash (C5)
+- [x] Dialog is triggered by A6/Home on Left(LocationError), not by service itself
 
 ---
 

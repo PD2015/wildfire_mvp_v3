@@ -78,7 +78,8 @@ class LocationResolverImpl implements LocationResolver {
 
       // Tier 4: Manual entry (caller responsibility)
       if (!allowDefault) {
-        debugPrint('Location resolution requires manual entry (allowDefault=false)');
+        debugPrint(
+            'Location resolution requires manual entry (allowDefault=false)');
         return const Left(LocationError.permissionDenied);
       }
 
