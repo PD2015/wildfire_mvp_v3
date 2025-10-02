@@ -67,10 +67,28 @@
   - Error categorization with reason codes and ApiError mapping
 
 ## Phase 3.7: Integration & Validation
-- [ ] T019 [P] Update `docs/DATA-SOURCES.md` with implemented EFFIS endpoint details (spec:A1)
-- [ ] T020 [P] Add usage examples in service code comments for integration guidance
-- [ ] T021 Run `flutter analyze` and `flutter test` to ensure CI compliance (gate:C1)
-- [ ] T022 Validate all constitutional gates: C1 (tests pass), C2 (safe logging), C5 (error handling)
+- [X] T019 [P] Update `docs/DATA-SOURCES.md` with implemented EFFIS endpoint details (spec:A1)
+- [X] T020 [P] Add usage examples in service code comments for integration guidance
+- [X] T021 Run `flutter analyze` and `flutter test` to ensure CI compliance (gate:C1)
+- [X] T022 Validate all constitutional gates: C1 (tests pass), C2 (safe logging), C5 (error handling)
+
+## Phase 3.8: Test Coverage Analysis & Documentation
+**CRITICAL: Coverage analysis ensures production readiness and replicability**
+- [X] T023 Generate test coverage report using `flutter test --coverage` command
+- [X] T024 [P] Install lcov tools for coverage analysis (`brew install lcov` on macOS)
+- [X] T025 [P] Generate detailed coverage summary using `lcov --summary coverage/lcov.info`
+- [X] T026 [P] Create HTML coverage report using `genhtml coverage/lcov.info -o coverage/html`
+- [X] T027 [P] Document coverage analysis in `docs/TEST_COVERAGE.md` with:
+  - Overall coverage percentage and line counts
+  - File-by-file coverage breakdown
+  - Coverage thresholds and production readiness assessment
+  - Instructions for generating and viewing coverage reports
+  - Recommendations for improving coverage
+- [X] T028 [P] Update README.md with coverage tooling section documenting:
+  - Required tools (lcov/genhtml)
+  - Coverage generation commands
+  - How to access HTML reports
+  - Link to detailed coverage documentation
 
 ---
 
@@ -152,6 +170,19 @@ Task: "Implement lib/models/effis_fwi_result.dart with validation rules and UTC 
 **Files Updated**: `docs/DATA-SOURCES.md`
 **Tests**: `flutter analyze` clean, `flutter test` 100% pass rate (no live HTTP in CI)
 **Validation**: All constitutional gates verified
+
+### T023-T028 (Coverage Analysis)
+**Tools Required**: lcov/genhtml (install via `brew install lcov` on macOS)
+**Files Created**: `docs/TEST_COVERAGE.md`, HTML coverage report at `coverage/html/index.html`
+**Coverage Generated**: 
+- `flutter test --coverage`: Generate lcov.info file
+- `lcov --summary coverage/lcov.info`: Display coverage summary
+- `genhtml coverage/lcov.info -o coverage/html`: Create browsable HTML report
+**Documentation**: 
+- Detailed coverage analysis with file-by-file breakdown
+- Production readiness assessment (target: >80% coverage)
+- Tooling instructions for replication in other projects
+- README.md updated with coverage workflow and commands
 
 ## Notes
 - **CRITICAL T001**: Must run `flutter create` command to generate complete project structure before any other tasks
