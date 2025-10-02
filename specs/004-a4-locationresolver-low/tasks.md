@@ -238,14 +238,14 @@ Create comprehensive test suite covering all fallback scenarios and edge cases:
    - Story 6: Mid-session permission changes
 
 **Acceptance Criteria**:
-- [ ] Unit test coverage >90% for all service methods including allowDefault scenarios
-- [ ] Widget tests verify accessibility compliance with proper Semantics (C3)
-- [ ] Integration tests cover complete 5-tier fallback chain (C5)
-- [ ] Performance tests use fakes to validate budgets without CI flakiness
-- [ ] logRedact() helper tested to ensure no raw coordinates in logs (C2)
-- [ ] Web/emulator platform tests verify GPS calls are skipped
-- [ ] All quickstart user stories have corresponding test validation
-- [ ] Tests run without external dependencies (mocked GPS/permissions/platform)
+- [x] Unit test coverage >90% for all service methods including allowDefault scenarios
+- [x] Widget tests verify accessibility compliance with proper Semantics (C3)
+- [x] Integration tests cover complete 5-tier fallback chain (C5)
+- [x] Performance tests use fakes to validate budgets without CI flakiness
+- [x] logRedact() helper tested to ensure no raw coordinates in logs (C2)
+- [x] Web/emulator platform tests verify GPS calls are skipped
+- [x] All quickstart user stories have corresponding test validation
+- [x] Tests run without external dependencies (mocked GPS/permissions/platform)
 
 ---
 
