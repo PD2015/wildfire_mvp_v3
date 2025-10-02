@@ -39,14 +39,14 @@ class RiskBannerError extends RiskBannerState {
 }
 
 /// RiskBanner widget that displays wildfire risk information
-/// 
+///
 /// This is a pure StatelessWidget that consumes RiskBannerState without
 /// performing any data fetching. It handles all UI states: loading, success,
 /// and error with proper accessibility support.
 class RiskBanner extends StatelessWidget {
   /// Current state of the risk banner
   final RiskBannerState state;
-  
+
   /// Optional callback for retry action in error states
   final VoidCallback? onRetry;
 
@@ -59,11 +59,13 @@ class RiskBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 44.0), // A11y minimum touch target
+      constraints:
+          const BoxConstraints(minHeight: 44.0), // A11y minimum touch target
       child: switch (state) {
         RiskBannerLoading() => _buildLoadingState(),
         RiskBannerSuccess(:final data) => _buildSuccessState(data),
-        RiskBannerError(:final message, :final cached) => _buildErrorState(message, cached),
+        RiskBannerError(:final message, :final cached) =>
+          _buildErrorState(message, cached),
       },
     );
   }
@@ -109,12 +111,13 @@ class RiskBanner extends StatelessWidget {
     final backgroundColor = _getRiskLevelColor(data.level);
     final textColor = _getTextColor(backgroundColor);
     final sourceName = _getSourceName(data.source);
-    
+
     // For now, we'll show a placeholder for relative time until T002 is implemented
     final timeText = 'Updated ${_formatTimePlaceholder(data.observedAt)}';
-    
+
     return Semantics(
-      label: 'Current wildfire risk $levelName, $timeText, data from $sourceName',
+      label:
+          'Current wildfire risk $levelName, $timeText, data from $sourceName',
       child: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
@@ -134,14 +137,15 @@ class RiskBanner extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8.0),
-            
+
             // Source and timestamp row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Source chip
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0, vertical: 4.0),
                   decoration: BoxDecoration(
                     color: textColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12.0),
@@ -155,11 +159,12 @@ class RiskBanner extends StatelessWidget {
                     ),
                   ),
                 ),
-                
+
                 // Cached badge if applicable
                 if (data.freshness == Freshness.cached)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0, vertical: 4.0),
                     decoration: BoxDecoration(
                       color: RiskPalette.midGray.withValues(alpha: 0.8),
                       borderRadius: BorderRadius.circular(12.0),
@@ -175,9 +180,9 @@ class RiskBanner extends StatelessWidget {
                   ),
               ],
             ),
-            
+
             const SizedBox(height: 4.0),
-            
+
             // Timestamp
             Text(
               timeText,
@@ -206,13 +211,15 @@ class RiskBanner extends StatelessWidget {
   /// Builds error state when cached data is available
   Widget _buildErrorWithCachedData(String message, FireRisk cached) {
     final levelName = _getRiskLevelName(cached.level);
-    final backgroundColor = _getRiskLevelColor(cached.level).withValues(alpha: 0.6);
+    final backgroundColor =
+        _getRiskLevelColor(cached.level).withValues(alpha: 0.6);
     final textColor = _getTextColor(backgroundColor);
     final sourceName = _getSourceName(cached.source);
     final timeText = 'Updated ${_formatTimePlaceholder(cached.observedAt)}';
-    
+
     return Semantics(
-      label: 'Error loading current data, showing cached $levelName wildfire risk from $timeText',
+      label:
+          'Error loading current data, showing cached $levelName wildfire risk from $timeText',
       child: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
@@ -247,9 +254,9 @@ class RiskBanner extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 8.0),
-            
+
             // Cached risk level
             Text(
               'Wildfire Risk: ${levelName.toUpperCase()}',
@@ -259,15 +266,16 @@ class RiskBanner extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            
+
             const SizedBox(height: 8.0),
-            
+
             // Source and cached badge row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0, vertical: 4.0),
                   decoration: BoxDecoration(
                     color: textColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12.0),
@@ -282,7 +290,8 @@ class RiskBanner extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0, vertical: 4.0),
                   decoration: BoxDecoration(
                     color: RiskPalette.midGray.withValues(alpha: 0.8),
                     borderRadius: BorderRadius.circular(12.0),
@@ -298,9 +307,9 @@ class RiskBanner extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 4.0),
-            
+
             Text(
               timeText,
               style: TextStyle(
@@ -308,9 +317,9 @@ class RiskBanner extends StatelessWidget {
                 fontSize: 14.0,
               ),
             ),
-            
+
             const SizedBox(height: 12.0),
-            
+
             // Retry button
             if (onRetry != null)
               SizedBox(
@@ -368,9 +377,9 @@ class RiskBanner extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 8.0),
-            
+
             Text(
               message,
               style: const TextStyle(
@@ -378,9 +387,9 @@ class RiskBanner extends StatelessWidget {
                 fontSize: 14.0,
               ),
             ),
-            
+
             const SizedBox(height: 12.0),
-            
+
             // Retry button
             if (onRetry != null)
               SizedBox(
@@ -446,7 +455,7 @@ class RiskBanner extends StatelessWidget {
   String _formatTimePlaceholder(DateTime observedAt) {
     final now = DateTime.now().toUtc();
     final difference = now.difference(observedAt);
-    
+
     if (difference.inMinutes < 60) {
       return '${difference.inMinutes} min ago';
     } else if (difference.inHours < 24) {
