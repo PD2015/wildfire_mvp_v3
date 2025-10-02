@@ -121,7 +121,7 @@ abstract class CacheService {
 ## Phase 3: Integration Tests & Fallback Scenarios
 **Target**: Validate end-to-end fallback behavior
 
-### T004 [P] Create comprehensive integration tests (spec:A2, gate:C5)
+### T004 [X] Create comprehensive integration tests (spec:A2, gate:C5)
 **File**: `test/integration/fire_risk_service_integration_test.dart`
 - **Scenario 1**: EFFIS success (non-Scotland) -> should skip SEPA
 - **Scenario 2**: EFFIS fail -> SEPA success (Scotland) -> should use SEPA
