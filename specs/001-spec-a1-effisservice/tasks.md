@@ -32,10 +32,10 @@
 
 ## Phase 3.2: Test Fixtures & Contract Tests (TDD Setup)
 **CRITICAL: Create test fixtures BEFORE implementation to enable TDD**
-- [ ] T005 [P] Create test fixtures directory `test/fixtures/effis/`
-- [ ] T006 [P] Create EFFIS success response fixture `test/fixtures/effis/edinburgh_success.json`
-- [ ] T007 [P] Create EFFIS error fixtures: `404.json`, `503.json`, `malformed.json`, `empty_features.json`
-- [ ] T008 [P] Create fixture-based contract test file `test/contract/effis_responses_contract_test.dart` with failing tests
+- [X] T005 [P] Create test fixtures directory `test/fixtures/effis/`
+- [X] T006 [P] Create EFFIS success response fixture `test/fixtures/effis/edinburgh_success.json`
+- [X] T007 [P] Create EFFIS error fixtures: `404.json`, `503.json`, `malformed.json`, `empty_features.json`
+- [X] T008 [P] Create fixture-based contract test file `test/contract/effis_responses_contract_test.dart` with failing tests
 
 ## Phase 3.3: Models & Value Objects (TDD)
 **CRITICAL: Write failing tests BEFORE implementing models**
