@@ -4,6 +4,8 @@ Auto-generated from all feature plans. Last updated: 2025-10-02
 
 ## Active Technologies
 - Dart 3.0+ with Flutter SDK + http package, dartz (Either type), equatable (value objects) (001-spec-a1-effisservice)
+- Dart 3.0+ with Flutter SDK + flutter_bloc, equatable, http (inherited from A2), dartz (Either type from A2) (003-a3-riskbanner-home)
+- N/A (widget consumes A2 FireRiskService data) (003-a3-riskbanner-home)
 
 ## Project Structure
 ```
@@ -18,6 +20,7 @@ tests/
 Dart 3.0+ with Flutter SDK: Follow standard conventions
 
 ## Recent Changes
+- 003-a3-riskbanner-home: Added Dart 3.0+ with Flutter SDK + flutter_bloc, equatable, http (inherited from A2), dartz (Either type from A2)
 - 001-spec-a1-effisservice: Added Dart 3.0+ with Flutter SDK + http package, dartz (Either type), equatable (value objects)
 - 002-spec-a2-fireriskservice: Added FireRiskService orchestration with fallback chain, geographic utilities, telemetry, privacy compliance
 
