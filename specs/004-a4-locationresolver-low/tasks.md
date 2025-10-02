@@ -61,11 +61,11 @@ Create privacy-compliant logging helper to prove Gate C2 compliance:
    - Test edge cases: negative coordinates, extreme values, precision boundaries
 
 **Acceptance Criteria**:
-- [ ] logRedact() always outputs exactly 2 decimal places
-- [ ] No raw coordinates (>2 decimal precision) appear in any logs
-- [ ] Edge cases tested: (-90.123456, 180.987654) → "-90.12,180.99"
-- [ ] All LocationResolver logging uses logRedact() helper
-- [ ] Tests verify log output contains no PII coordinate exposure
+- [x] logRedact() always outputs exactly 2 decimal places
+- [x] No raw coordinates (>2 decimal precision) appear in any logs
+- [x] Edge cases tested: (-90.123456, 180.987654) → "-90.12,180.99"
+- [x] All LocationResolver logging uses logRedact() helper
+- [x] Tests verify log output contains no PII coordinate exposure
 
 ---
 
