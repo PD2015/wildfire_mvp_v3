@@ -1,7 +1,7 @@
-# Research: FireRiskService Architecture
+# Research: FireRiskService Technical Implementation
 
 ## Problem Statement
-Users need reliable fire risk information that's always available, even when individual data sources fail. The challenge is creating a resilient orchestration system that balances data quality, availability, and user trust while respecting privacy constraints.
+Users need reliable fire risk information that's always available, even when individual data sources fail. The implementation challenge is creating a resilient orchestration system that balances data quality, availability, and user trust while respecting privacy constraints and constitutional requirements.
 
 ## Key Research Areas
 
