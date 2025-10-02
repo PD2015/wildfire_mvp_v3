@@ -47,7 +47,41 @@
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+Based on WildFire MVP Constitution v1.0:
+
+### C1. Code Quality & Tests
+- [ ] Plan includes flutter analyze and dart format requirements
+- [ ] Testing strategy covers unit/widget tests for applicable components
+- [ ] CI enforcement approach specified
+
+### C2. Secrets & Logging
+- [ ] No hardcoded secrets in design (use .env/runtime config)
+- [ ] Logging design excludes PII, coordinates limited to 2-3 dp precision
+- [ ] Secret scanning integrated into CI plan
+
+### C3. Accessibility (UI features only)
+- [ ] Interactive elements designed as ≥44dp touch targets
+- [ ] Semantic labels planned for screen readers
+- [ ] A11y verification included in testing approach
+
+### C4. Trust & Transparency
+- [ ] Only official Scottish wildfire risk colors specified
+- [ ] "Last Updated" timestamp visible in all data displays
+- [ ] Source labeling (EFFIS/SEPA/Cache/Mock) included in UI design
+- [ ] Color validation approach planned
+
+### C5. Resilience & Test Coverage
+- [ ] Network calls include timeout and error handling
+- [ ] Services expose clear error states (no silent failures)
+- [ ] Retry/backoff strategies specified where needed
+- [ ] Integration tests planned for error/fallback flows
+
+### Development Principles Alignment
+- [ ] "Fail visible, not silent" - loading/error/cached states planned
+- [ ] "Fallbacks, not blanks" - cached/mock fallbacks with clear labels
+- [ ] "Keep logs clean" - structured logging, no PII
+- [ ] "Single source of truth" - colors/thresholds in constants with tests
+- [ ] "Mock-first dev" - UI components support mock data injection
 
 ## Project Structure
 
@@ -216,4 +250,4 @@ directories captured above]
 - [ ] Complexity deviations documented
 
 ---
-*Based on Constitution v2.1.1 - See `/memory/constitution.md`*
+*Based on WildFire MVP Constitution v1.0.0 - See `.specify/memory/constitution.md`*

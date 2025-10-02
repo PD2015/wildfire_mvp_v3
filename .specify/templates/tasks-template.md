@@ -45,39 +45,54 @@
 ## Phase 3.1: Setup
 - [ ] T001 Create project structure per implementation plan
 - [ ] T002 Initialize [language] project with [framework] dependencies
-- [ ] T003 [P] Configure linting and formatting tools
+- [ ] T003 [P] Configure linting and formatting tools (C1: Code Quality)
+- [ ] T004 [P] Configure flutter analyze and dart format in CI (C1: Code Quality)
+- [ ] T005 [P] Set up secret scanning with gitleaks (C2: Secrets & Logging)
+- [ ] T006 [P] Configure .env template for runtime secrets (C2: Secrets & Logging)
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
-- [ ] T004 [P] Contract test POST /api/users in tests/contract/test_users_post.py
-- [ ] T005 [P] Contract test GET /api/users/{id} in tests/contract/test_users_get.py
-- [ ] T006 [P] Integration test user registration in tests/integration/test_registration.py
-- [ ] T007 [P] Integration test auth flow in tests/integration/test_auth.py
+- [ ] T007 [P] Contract test POST /api/users in tests/contract/test_users_post.py
+- [ ] T008 [P] Contract test GET /api/users/{id} in tests/contract/test_users_get.py
+- [ ] T009 [P] Integration test user registration in tests/integration/test_registration.py
+- [ ] T010 [P] Integration test auth flow in tests/integration/test_auth.py
+- [ ] T011 [P] Widget tests with ≥44dp touch target validation (C3: Accessibility)
+- [ ] T012 [P] Integration tests for error/fallback flows (C5: Resilience)
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
-- [ ] T008 [P] User model in src/models/user.py
-- [ ] T009 [P] UserService CRUD in src/services/user_service.py
-- [ ] T010 [P] CLI --create-user in src/cli/user_commands.py
-- [ ] T011 POST /api/users endpoint
-- [ ] T012 GET /api/users/{id} endpoint
-- [ ] T013 Input validation
-- [ ] T014 Error handling and logging
+- [ ] T013 [P] User model in src/models/user.py
+- [ ] T014 [P] UserService CRUD in src/services/user_service.py
+- [ ] T015 [P] CLI --create-user in src/cli/user_commands.py
+- [ ] T016 POST /api/users endpoint
+- [ ] T017 GET /api/users/{id} endpoint
+- [ ] T018 Input validation
+- [ ] T019 Error handling with visible error states (C5: Resilience)
+- [ ] T020 [P] Official color constants from risk palette (C4: Trust & Transparency)
+- [ ] T021 [P] Timestamp and source labeling components (C4: Trust & Transparency)
+- [ ] T022 [P] Structured logging without PII (C2: Secrets & Logging)
 
 ## Phase 3.4: Integration
-- [ ] T015 Connect UserService to DB
-- [ ] T016 Auth middleware
-- [ ] T017 Request/response logging
-- [ ] T018 CORS and security headers
+- [ ] T023 Connect UserService to DB
+- [ ] T024 Auth middleware
+- [ ] T025 Request/response logging with coordinate precision limits (C2: Secrets & Logging)
+- [ ] T026 CORS and security headers
+- [ ] T027 [P] Network timeout and retry/backoff implementation (C5: Resilience)
+- [ ] T028 [P] Semantic labels for screen readers (C3: Accessibility)
 
 ## Phase 3.5: Polish
-- [ ] T019 [P] Unit tests for validation in tests/unit/test_validation.py
-- [ ] T020 Performance tests (<200ms)
-- [ ] T021 [P] Update docs/api.md
-- [ ] T022 Remove duplication
-- [ ] T023 Run manual-testing.md
+- [ ] T029 [P] Unit tests for validation in tests/unit/test_validation.py
+- [ ] T030 Performance tests (<200ms)
+- [ ] T031 [P] Update docs/api.md
+- [ ] T032 Remove duplication
+- [ ] T033 Run manual-testing.md
+- [ ] T034 [P] Color guard script validation (C4: Trust & Transparency)
+- [ ] T035 [P] Mock data injection support for UI components (Principle: Mock-first dev)
+- [ ] T036 [P] Fallback state UI with clear labeling (Principle: Fallbacks, not blanks)
 
 ## Dependencies
-- Tests (T004-T007) before implementation (T008-T014)
+- Setup (T001-T006) before everything
+- Tests (T007-T012) before implementation (T013-T022)
+- Constitutional compliance tasks (C1-C5) integrated throughout phases
 - T008 blocks T009, T015
 - T016 blocks T018
 - Implementation before polish (T019-T023)
