@@ -40,7 +40,7 @@ void main() {
     const edinburghLon = -3.1883;
     const newYorkLat = 40.7128; // Non-Scotland
     const newYorkLon = -74.0060;
-    
+
     final testDateTime = DateTime.utc(2025, 10, 2, 14, 30);
 
     setUp(() {
@@ -49,7 +49,7 @@ void main() {
       mockCacheService = MockCacheService();
       mockService = MockService.defaultStrategy();
       spyTelemetry = SpyTelemetry();
-      
+
       fireRiskService = FireRiskServiceImpl(
         effisService: mockEffisService,
         sepaService: mockSepaService,
@@ -60,7 +60,9 @@ void main() {
     });
 
     group('Scenario Tests', () {
-      test('S1: EFFIS success outside Scotland → SEPA skipped → source=effis, freshness=live', () async {
+      test(
+          'S1: EFFIS success outside Scotland → SEPA skipped → source=effis, freshness=live',
+          () async {
         // Given: EFFIS succeeds for non-Scotland coordinates
         final effisFwiResult = EffisFwiResult(
           fwi: 15.2,
@@ -73,9 +75,11 @@ void main() {
           longitude: newYorkLon,
           latitude: newYorkLat,
         );
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
-          await Future.delayed(const Duration(milliseconds: 500)); // Simulate network delay
+          await Future.delayed(
+              const Duration(milliseconds: 500)); // Simulate network delay
           return Right(effisFwiResult);
         });
 
@@ -87,8 +91,9 @@ void main() {
 
         // Then: Should succeed with EFFIS data
         expect(result.isRight(), isTrue);
-        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
-        
+        final fireRisk =
+            result.getOrElse(() => throw Exception('Expected Right'));
+
         // Validate source attribution and freshness
         expect(fireRisk.source, DataSource.effis);
         expect(fireRisk.freshness, Freshness.live);
@@ -101,7 +106,7 @@ void main() {
         final startEvents = spyTelemetry.eventsOfType<AttemptStartEvent>();
         final endEvents = spyTelemetry.eventsOfType<AttemptEndEvent>();
         final completeEvents = spyTelemetry.eventsOfType<CompleteEvent>();
-        
+
         expect(startEvents.length, 1);
         expect(startEvents[0].source, TelemetrySource.effis);
         expect(endEvents.length, 1);
@@ -111,12 +116,14 @@ void main() {
         expect(completeEvents[0].chosenSource, TelemetrySource.effis);
 
         // Verify SEPA was never attempted (non-Scotland)
-        verifyNever(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')));
+        verifyNever(mockSepaService.getCurrent(
+            lat: anyNamed('lat'), lon: anyNamed('lon')));
       });
 
       test('S2: EFFIS fail → SEPA success in Scotland → source=sepa', () async {
         // Given: EFFIS fails, SEPA succeeds for Scotland coordinates
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 800));
           return Left(ApiError(message: 'EFFIS service unavailable'));
@@ -127,7 +134,8 @@ void main() {
           fwi: 28.5,
           observedAt: testDateTime,
         );
-        when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockSepaService.getCurrent(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 600));
           return Right(sepaFireRisk);
@@ -141,8 +149,9 @@ void main() {
 
         // Then: Should succeed with SEPA data
         expect(result.isRight(), isTrue);
-        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
-        
+        final fireRisk =
+            result.getOrElse(() => throw Exception('Expected Right'));
+
         expect(fireRisk.source, DataSource.sepa);
         expect(fireRisk.freshness, Freshness.live);
         expect(fireRisk.level, RiskLevel.high);
@@ -152,7 +161,7 @@ void main() {
         // Validate telemetry sequence: EFFIS → SEPA
         final startEvents = spyTelemetry.eventsOfType<AttemptStartEvent>();
         final fallbackEvents = spyTelemetry.eventsOfType<FallbackDepthEvent>();
-        
+
         expect(startEvents.length, 2);
         expect(startEvents[0].source, TelemetrySource.effis);
         expect(startEvents[1].source, TelemetrySource.sepa);
@@ -160,15 +169,18 @@ void main() {
         expect(fallbackEvents[1].depth, 1);
       });
 
-      test('S3: EFFIS+SEPA fail → Cache hit → source=cache, freshness=cached', () async {
+      test('S3: EFFIS+SEPA fail → Cache hit → source=cache, freshness=cached',
+          () async {
         // Given: Both EFFIS and SEPA fail, but cache has data
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 700));
           return Left(ApiError(message: 'EFFIS unavailable'));
         });
 
-        when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockSepaService.getCurrent(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 500));
           return Left(ApiError(message: 'SEPA maintenance'));
@@ -180,8 +192,7 @@ void main() {
           originalSource: DataSource.effis,
           observedAt: testDateTime.subtract(const Duration(hours: 2)),
         );
-        when(mockCacheService.get(key: anyNamed('key')))
-            .thenAnswer((_) async {
+        when(mockCacheService.get(key: anyNamed('key'))).thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 200));
           return Some(cachedFireRisk);
         });
@@ -194,8 +205,9 @@ void main() {
 
         // Then: Should succeed with cached data
         expect(result.isRight(), isTrue);
-        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
-        
+        final fireRisk =
+            result.getOrElse(() => throw Exception('Expected Right'));
+
         expect(fireRisk.source, DataSource.effis); // Original source preserved
         expect(fireRisk.freshness, Freshness.cached);
         expect(fireRisk.level, RiskLevel.veryHigh);
@@ -204,7 +216,7 @@ void main() {
         // Validate telemetry sequence: EFFIS → SEPA → Cache
         final startEvents = spyTelemetry.eventsOfType<AttemptStartEvent>();
         final fallbackEvents = spyTelemetry.eventsOfType<FallbackDepthEvent>();
-        
+
         expect(startEvents.length, 3);
         expect(startEvents[0].source, TelemetrySource.effis);
         expect(startEvents[1].source, TelemetrySource.sepa);
@@ -214,20 +226,21 @@ void main() {
 
       test('S4: All fail → Mock → source=mock, freshness=mock', () async {
         // Given: All upstream services fail
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 600));
           return Left(ApiError(message: 'EFFIS down'));
         });
 
-        when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockSepaService.getCurrent(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 400));
           return Left(ApiError(message: 'SEPA down'));
         });
 
-        when(mockCacheService.get(key: anyNamed('key')))
-            .thenAnswer((_) async {
+        when(mockCacheService.get(key: anyNamed('key'))).thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 300));
           return none();
         });
@@ -242,8 +255,9 @@ void main() {
 
         // Then: Should succeed with mock data (never-fail guarantee)
         expect(result.isRight(), isTrue);
-        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
-        
+        final fireRisk =
+            result.getOrElse(() => throw Exception('Expected Right'));
+
         expect(fireRisk.source, DataSource.mock);
         expect(fireRisk.freshness, Freshness.mock);
         expect(fireRisk.level, RiskLevel.moderate); // Default mock strategy
@@ -254,7 +268,7 @@ void main() {
         final startEvents = spyTelemetry.eventsOfType<AttemptStartEvent>();
         final fallbackEvents = spyTelemetry.eventsOfType<FallbackDepthEvent>();
         final completeEvents = spyTelemetry.eventsOfType<CompleteEvent>();
-        
+
         expect(startEvents.length, 4);
         expect(startEvents.map((e) => e.source), [
           TelemetrySource.effis,
@@ -264,16 +278,19 @@ void main() {
         ]);
         expect(fallbackEvents.last.depth, 3); // Mock at depth 3
         expect(completeEvents[0].chosenSource, TelemetrySource.mock);
-        
+
         // Verify total time is reasonable (under global deadline)
         expect(stopwatch.elapsedMilliseconds, lessThan(8000));
       });
 
-      test('S5: EFFIS hangs >3s → SEPA success (Scotland) within 8s deadline', () async {
+      test('S5: EFFIS hangs >3s → SEPA success (Scotland) within 8s deadline',
+          () async {
         // Given: EFFIS times out after 3s, SEPA succeeds quickly
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
-          await Future.delayed(const Duration(seconds: 4)); // Exceeds 3s timeout
+          await Future.delayed(
+              const Duration(seconds: 4)); // Exceeds 3s timeout
           return Right(EffisFwiResult(
             fwi: 20.0,
             dc: 150.0,
@@ -292,7 +309,8 @@ void main() {
           fwi: 18.0,
           observedAt: testDateTime,
         );
-        when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockSepaService.getCurrent(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 800));
           return Right(sepaFireRisk);
@@ -308,38 +326,44 @@ void main() {
 
         // Then: Should succeed with SEPA data (EFFIS timed out)
         expect(result.isRight(), isTrue);
-        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
-        
+        final fireRisk =
+            result.getOrElse(() => throw Exception('Expected Right'));
+
         expect(fireRisk.source, DataSource.sepa);
         expect(fireRisk.freshness, Freshness.live);
         expect(fireRisk.level, RiskLevel.moderate);
-        
+
         // Validate timing: EFFIS should have timed out, total < 8s
         expect(stopwatch.elapsedMilliseconds, lessThan(8000));
-        expect(stopwatch.elapsedMilliseconds, greaterThan(3000)); // EFFIS timeout + SEPA time
+        expect(stopwatch.elapsedMilliseconds,
+            greaterThan(3000)); // EFFIS timeout + SEPA time
 
         // Validate telemetry shows EFFIS failure due to timeout
         final endEvents = spyTelemetry.eventsOfType<AttemptEndEvent>();
-        final effisEndEvent = endEvents.firstWhere((e) => e.source == TelemetrySource.effis);
+        final effisEndEvent =
+            endEvents.firstWhere((e) => e.source == TelemetrySource.effis);
         expect(effisEndEvent.success, isFalse); // Failed due to timeout
       });
 
-      test('S6: All upstream fail but global deadline still met with Mock (<8s)', () async {
+      test(
+          'S6: All upstream fail but global deadline still met with Mock (<8s)',
+          () async {
         // Given: All services fail with various delays but total < 8s
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 2500));
           return Left(ApiError(message: 'EFFIS timeout'));
         });
 
-        when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockSepaService.getCurrent(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 1800));
           return Left(ApiError(message: 'SEPA error'));
         });
 
-        when(mockCacheService.get(key: anyNamed('key')))
-            .thenAnswer((_) async {
+        when(mockCacheService.get(key: anyNamed('key'))).thenAnswer((_) async {
           await Future.delayed(const Duration(milliseconds: 900));
           return none();
         });
@@ -354,19 +378,22 @@ void main() {
 
         // Then: Should succeed with mock data within deadline
         expect(result.isRight(), isTrue);
-        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
-        
+        final fireRisk =
+            result.getOrElse(() => throw Exception('Expected Right'));
+
         expect(fireRisk.source, DataSource.mock);
         expect(fireRisk.freshness, Freshness.mock);
-        
+
         // Validate global deadline compliance
         expect(stopwatch.elapsedMilliseconds, lessThan(8000));
-        
+
         // Validate mock response time is fast (<100ms additional)
-        final mockStartTime = spyTelemetry.eventsOfType<AttemptStartEvent>()
+        final mockStartTime = spyTelemetry
+            .eventsOfType<AttemptStartEvent>()
             .firstWhere((e) => e.source == TelemetrySource.mock)
             .timestamp;
-        final mockEndTime = spyTelemetry.eventsOfType<AttemptEndEvent>()
+        final mockEndTime = spyTelemetry
+            .eventsOfType<AttemptEndEvent>()
             .firstWhere((e) => e.source == TelemetrySource.mock)
             .timestamp;
         final mockDuration = mockEndTime.difference(mockStartTime);
@@ -377,14 +404,16 @@ void main() {
     group('Boundary and Validation Tests', () {
       test('Scotland edge case: coordinates exactly at boundary', () async {
         // Test coordinates at Scotland boundary (54.6°N - minimum)
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async => Left(ApiError(message: 'EFFIS fail')));
 
-        when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockSepaService.getCurrent(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async => Right(FireRisk.fromSepa(
-              level: RiskLevel.low,
-              observedAt: testDateTime,
-            )));
+                  level: RiskLevel.low,
+                  observedAt: testDateTime,
+                )));
 
         final result = await fireRiskService.getCurrent(
           lat: 54.6, // Exact Scotland boundary
@@ -392,8 +421,10 @@ void main() {
         );
 
         expect(result.isRight(), isTrue);
-        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
-        expect(fireRisk.source, DataSource.sepa); // Should use SEPA for Scotland boundary
+        final fireRisk =
+            result.getOrElse(() => throw Exception('Expected Right'));
+        expect(fireRisk.source,
+            DataSource.sepa); // Should use SEPA for Scotland boundary
       });
 
       test('Invalid coordinates: NaN returns validation error', () async {
@@ -409,10 +440,13 @@ void main() {
         );
 
         // Validate no services were attempted for invalid input
-        verifyNever(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')));
+        verifyNever(mockEffisService.getFwi(
+            lat: anyNamed('lat'), lon: anyNamed('lon')));
       });
 
-      test('Invalid coordinates: out of range latitude returns validation error', () async {
+      test(
+          'Invalid coordinates: out of range latitude returns validation error',
+          () async {
         final result = await fireRiskService.getCurrent(
           lat: 91.0, // Out of range
           lon: edinburghLon,
@@ -430,19 +464,20 @@ void main() {
       test('Logs never contain raw coordinates or place names', () async {
         // This test would require a logging framework to capture actual log messages
         // For now, we verify that the service uses privacy-preserving methods
-        
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async => Right(EffisFwiResult(
-              fwi: 12.0,
-              dc: 100.0,
-              dmc: 40.0,
-              ffmc: 80.0,
-              isi: 6.0,
-              bui: 85.0,
-              datetime: testDateTime,
-              longitude: newYorkLon,
-              latitude: newYorkLat,
-            )));
+                  fwi: 12.0,
+                  dc: 100.0,
+                  dmc: 40.0,
+                  ffmc: 80.0,
+                  isi: 6.0,
+                  bui: 85.0,
+                  datetime: testDateTime,
+                  longitude: newYorkLon,
+                  latitude: newYorkLat,
+                )));
 
         await fireRiskService.getCurrent(
           lat: newYorkLat,
@@ -452,20 +487,24 @@ void main() {
         // Note: In a real implementation, this would capture log messages
         // and verify they only contain redacted coordinates (2dp precision)
         // Example assertion: expect(logMessages, everyElement(matches(r'\d+\.\d{2},-\d+\.\d{2}')));
-        
+
         // For this test, we assume privacy compliance is built into the implementation
-        expect(true, isTrue, reason: 'Privacy compliance verified through implementation review');
+        expect(true, isTrue,
+            reason:
+                'Privacy compliance verified through implementation review');
       });
     });
 
     group('Timing and Performance Tests', () {
       test('Per-service timeouts are enforced', () async {
         // This test verifies that services respect their individual timeout budgets
-        
+
         // Setup services with known delays
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
-          await Future.delayed(const Duration(milliseconds: 3500)); // Exceeds 3s
+          await Future.delayed(
+              const Duration(milliseconds: 3500)); // Exceeds 3s
           return Right(EffisFwiResult(
             fwi: 15.0,
             dc: 120.0,
@@ -486,10 +525,12 @@ void main() {
 
         // Verify EFFIS was attempted but timed out
         final endEvents = spyTelemetry.eventsOfType<AttemptEndEvent>();
-        final effisEvent = endEvents.firstWhere((e) => e.source == TelemetrySource.effis);
-        
+        final effisEvent =
+            endEvents.firstWhere((e) => e.source == TelemetrySource.effis);
+
         // EFFIS should have been cut off at ~3s timeout
-        expect(effisEvent.elapsed.inMilliseconds, lessThanOrEqualTo(3100)); // Allow small buffer
+        expect(effisEvent.elapsed.inMilliseconds,
+            lessThanOrEqualTo(3100)); // Allow small buffer
         expect(effisEvent.success, isFalse);
       });
     });

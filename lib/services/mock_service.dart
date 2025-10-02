@@ -112,7 +112,7 @@ class _GeohashMockStrategy implements MockStrategy {
       final hashCode = geohash.hashCode.abs();
 
       // Map hash to risk level deterministically
-      final riskLevels = RiskLevel.values;
+      const riskLevels = RiskLevel.values;
       final riskIndex = hashCode % riskLevels.length;
       final level = riskLevels[riskIndex];
 

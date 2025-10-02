@@ -37,10 +37,10 @@ void main() {
     late FireRiskService fireRiskService;
 
     final testDateTime = DateTime.utc(2025, 10, 2, 14, 30);
-    final edinburghLat = 55.9533; // Scotland coordinates
-    final edinburghLon = -3.1883;
-    final newYorkLat = 40.7128; // Non-Scotland coordinates
-    final newYorkLon = -74.0060;
+    const edinburghLat = 55.9533; // Scotland coordinates
+    const edinburghLon = -3.1883;
+    const newYorkLat = 40.7128; // Non-Scotland coordinates
+    const newYorkLon = -74.0060;
 
     setUp(() {
       mockEffisService = MockEffisService();
