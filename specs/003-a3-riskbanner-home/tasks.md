@@ -17,7 +17,7 @@ Creating a Flutter widget to display wildfire risk levels with Scottish Governme
 - **Labels**: spec:A3, gate:C1, gate:C3, gate:C4, gate:C5
 
 ## Phase 3.1: Widget & States Implementation
-**Task T001: Core RiskBanner Widget with State Management**
+**Task T001: Core RiskBanner Widget with State Management** ✅ ✅
 - **File**: `lib/widgets/risk_banner.dart`
 - **Purpose**: Main widget displaying wildfire risk with proper state handling
 - **Labels**: spec:A3, gate:C1, gate:C3, gate:C4, gate:C5

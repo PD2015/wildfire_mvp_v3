@@ -1,0 +1,458 @@
+import 'package:flutter/material.dart';
+import 'package:equatable/equatable.dart';
+import '../services/models/fire_risk.dart';
+import '../models/risk_level.dart';
+import '../theme/risk_palette.dart';
+
+/// State representation for the RiskBanner widget
+sealed class RiskBannerState extends Equatable {
+  const RiskBannerState();
+
+  @override
+  List<Object?> get props => [];
+}
+
+/// Initial loading state
+class RiskBannerLoading extends RiskBannerState {
+  const RiskBannerLoading();
+}
+
+/// Success state with fire risk data
+class RiskBannerSuccess extends RiskBannerState {
+  final FireRisk data;
+
+  const RiskBannerSuccess(this.data);
+
+  @override
+  List<Object?> get props => [data];
+}
+
+/// Error state with optional cached data
+class RiskBannerError extends RiskBannerState {
+  final String message;
+  final FireRisk? cached;
+
+  const RiskBannerError(this.message, {this.cached});
+
+  @override
+  List<Object?> get props => [message, cached];
+}
+
+/// RiskBanner widget that displays wildfire risk information
+/// 
+/// This is a pure StatelessWidget that consumes RiskBannerState without
+/// performing any data fetching. It handles all UI states: loading, success,
+/// and error with proper accessibility support.
+class RiskBanner extends StatelessWidget {
+  /// Current state of the risk banner
+  final RiskBannerState state;
+  
+  /// Optional callback for retry action in error states
+  final VoidCallback? onRetry;
+
+  const RiskBanner({
+    super.key,
+    required this.state,
+    this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 44.0), // A11y minimum touch target
+      child: switch (state) {
+        RiskBannerLoading() => _buildLoadingState(),
+        RiskBannerSuccess(:final data) => _buildSuccessState(data),
+        RiskBannerError(:final message, :final cached) => _buildErrorState(message, cached),
+      },
+    );
+  }
+
+  /// Builds the loading state with progress indicator
+  Widget _buildLoadingState() {
+    return Semantics(
+      label: 'Loading wildfire risk data',
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: RiskPalette.lightGray,
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 20.0,
+              height: 20.0,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.0,
+                valueColor: AlwaysStoppedAnimation<Color>(RiskPalette.midGray),
+              ),
+            ),
+            SizedBox(width: 12.0),
+            Text(
+              'Loading wildfire risk...',
+              style: TextStyle(
+                color: RiskPalette.midGray,
+                fontSize: 16.0,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Builds the success state with risk level display
+  Widget _buildSuccessState(FireRisk data) {
+    final levelName = _getRiskLevelName(data.level);
+    final backgroundColor = _getRiskLevelColor(data.level);
+    final textColor = _getTextColor(backgroundColor);
+    final sourceName = _getSourceName(data.source);
+    
+    // For now, we'll show a placeholder for relative time until T002 is implemented
+    final timeText = 'Updated ${_formatTimePlaceholder(data.observedAt)}';
+    
+    return Semantics(
+      label: 'Current wildfire risk $levelName, $timeText, data from $sourceName',
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Main risk level title
+            Text(
+              'Wildfire Risk: ${levelName.toUpperCase()}',
+              style: TextStyle(
+                color: textColor,
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8.0),
+            
+            // Source and timestamp row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Source chip
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  decoration: BoxDecoration(
+                    color: textColor.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Text(
+                    sourceName,
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 12.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                
+                // Cached badge if applicable
+                if (data.freshness == Freshness.cached)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                    decoration: BoxDecoration(
+                      color: RiskPalette.midGray.withValues(alpha: 0.8),
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    child: const Text(
+                      'Cached',
+                      style: TextStyle(
+                        color: RiskPalette.white,
+                        fontSize: 12.0,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            
+            const SizedBox(height: 4.0),
+            
+            // Timestamp
+            Text(
+              timeText,
+              style: TextStyle(
+                color: textColor.withValues(alpha: 0.8),
+                fontSize: 14.0,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Builds the error state with retry option
+  Widget _buildErrorState(String message, FireRisk? cached) {
+    if (cached != null) {
+      // Show cached data with error indication
+      return _buildErrorWithCachedData(message, cached);
+    } else {
+      // Show error message with retry option
+      return _buildErrorWithoutCachedData(message);
+    }
+  }
+
+  /// Builds error state when cached data is available
+  Widget _buildErrorWithCachedData(String message, FireRisk cached) {
+    final levelName = _getRiskLevelName(cached.level);
+    final backgroundColor = _getRiskLevelColor(cached.level).withValues(alpha: 0.6);
+    final textColor = _getTextColor(backgroundColor);
+    final sourceName = _getSourceName(cached.source);
+    final timeText = 'Updated ${_formatTimePlaceholder(cached.observedAt)}';
+    
+    return Semantics(
+      label: 'Error loading current data, showing cached $levelName wildfire risk from $timeText',
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(8.0),
+          border: Border.all(
+            color: RiskPalette.midGray,
+            width: 2.0,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Error indicator
+            const Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: RiskPalette.midGray,
+                  size: 20.0,
+                ),
+                SizedBox(width: 8.0),
+                Expanded(
+                  child: Text(
+                    'Unable to load current data',
+                    style: TextStyle(
+                      color: RiskPalette.midGray,
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 8.0),
+            
+            // Cached risk level
+            Text(
+              'Wildfire Risk: ${levelName.toUpperCase()}',
+              style: TextStyle(
+                color: textColor,
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            
+            const SizedBox(height: 8.0),
+            
+            // Source and cached badge row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  decoration: BoxDecoration(
+                    color: textColor.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Text(
+                    sourceName,
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 12.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  decoration: BoxDecoration(
+                    color: RiskPalette.midGray.withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: const Text(
+                    'Cached',
+                    style: TextStyle(
+                      color: RiskPalette.white,
+                      fontSize: 12.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 4.0),
+            
+            Text(
+              timeText,
+              style: TextStyle(
+                color: textColor.withValues(alpha: 0.8),
+                fontSize: 14.0,
+              ),
+            ),
+            
+            const SizedBox(height: 12.0),
+            
+            // Retry button
+            if (onRetry != null)
+              SizedBox(
+                height: 44.0, // A11y minimum touch target
+                child: ElevatedButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh, size: 18.0),
+                  label: const Text('Retry'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: RiskPalette.blueAccent,
+                    foregroundColor: RiskPalette.white,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Builds error state when no cached data is available
+  Widget _buildErrorWithoutCachedData(String message) {
+    return Semantics(
+      label: 'Unable to load wildfire risk data',
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: RiskPalette.lightGray,
+          borderRadius: BorderRadius.circular(8.0),
+          border: Border.all(
+            color: RiskPalette.midGray,
+            width: 1.0,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(
+                  Icons.error_outline_rounded,
+                  color: RiskPalette.midGray,
+                  size: 24.0,
+                ),
+                SizedBox(width: 12.0),
+                Expanded(
+                  child: Text(
+                    'Unable to load wildfire risk data',
+                    style: TextStyle(
+                      color: RiskPalette.darkGray,
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 8.0),
+            
+            Text(
+              message,
+              style: const TextStyle(
+                color: RiskPalette.midGray,
+                fontSize: 14.0,
+              ),
+            ),
+            
+            const SizedBox(height: 12.0),
+            
+            // Retry button
+            if (onRetry != null)
+              SizedBox(
+                height: 44.0, // A11y minimum touch target
+                child: ElevatedButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh, size: 18.0),
+                  label: const Text('Retry'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: RiskPalette.blueAccent,
+                    foregroundColor: RiskPalette.white,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Gets the display name for a risk level
+  String _getRiskLevelName(RiskLevel level) {
+    return switch (level) {
+      RiskLevel.veryLow => 'Very Low',
+      RiskLevel.low => 'Low',
+      RiskLevel.moderate => 'Moderate',
+      RiskLevel.high => 'High',
+      RiskLevel.veryHigh => 'Very High',
+      RiskLevel.extreme => 'Extreme',
+    };
+  }
+
+  /// Gets the background color for a risk level using RiskPalette
+  Color _getRiskLevelColor(RiskLevel level) {
+    return switch (level) {
+      RiskLevel.veryLow => RiskPalette.veryLow,
+      RiskLevel.low => RiskPalette.low,
+      RiskLevel.moderate => RiskPalette.moderate,
+      RiskLevel.high => RiskPalette.high,
+      RiskLevel.veryHigh => RiskPalette.veryHigh,
+      RiskLevel.extreme => RiskPalette.extreme,
+    };
+  }
+
+  /// Gets appropriate text color based on background color
+  Color _getTextColor(Color backgroundColor) {
+    // Use luminance to determine if we need dark or light text
+    final luminance = backgroundColor.computeLuminance();
+    return luminance > 0.5 ? RiskPalette.darkGray : RiskPalette.white;
+  }
+
+  /// Gets the display name for a data source
+  String _getSourceName(DataSource source) {
+    return switch (source) {
+      DataSource.effis => 'EFFIS',
+      DataSource.sepa => 'SEPA',
+      DataSource.cache => 'Cache',
+      DataSource.mock => 'Mock',
+    };
+  }
+
+  /// Placeholder for time formatting (will be replaced in T002)
+  String _formatTimePlaceholder(DateTime observedAt) {
+    final now = DateTime.now().toUtc();
+    final difference = now.difference(observedAt);
+    
+    if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} min ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inDays} days ago';
+    } else {
+      return '${difference.inDays} days ago';
+    }
+  }
+}
