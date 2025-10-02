@@ -16,10 +16,10 @@
 ---
 
 ## Phase 3.1: Setup & Dependencies
-- [ ] T001 Create Flutter project structure per implementation plan
-- [ ] T002 Add dependencies to pubspec.yaml: http ^1.1.0, dartz ^0.10.1, equatable ^2.0.5
-- [ ] T003 [P] Add dev dependencies: mockito ^5.4.2, build_runner ^2.4.7 (C1: Code Quality)
-- [ ] T004 [P] Configure flutter analyze and dart format in existing CI (C1: Code Quality)
+- [X] T001 Create Flutter project structure per implementation plan (✅ COMPLETE: pubspec.yaml, lib/main.dart, test/widget_test.dart, AndroidManifest.xml)
+- [X] T002 Add dependencies to pubspec.yaml: http ^1.1.0, dartz ^0.10.1, equatable ^2.0.5
+- [X] T003 [P] Add dev dependencies: mockito ^5.4.2, build_runner ^2.4.7 (C1: Code Quality)
+- [X] T004 [P] Configure flutter analyze and dart format in existing CI (C1: Code Quality)
 
 ## Phase 3.2: Test Fixtures & Contract Tests (TDD Setup)
 **CRITICAL: Create test fixtures BEFORE implementation to enable TDD**

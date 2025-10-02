@@ -6,11 +6,11 @@ import 'package:flutter/material.dart';
 class RiskPalette {
   // Risk levels (Very Low → Extreme)
   static const veryLow = Color(0xFF00B3FF); // Very Low
-  static const low = Color(0xFF2ECC71);     // Low
+  static const low = Color(0xFF2ECC71); // Low
   static const moderate = Color(0xFFF1C40F); // Moderate
-  static const high = Color(0xFFE67E22);     // High
+  static const high = Color(0xFFE67E22); // High
   static const veryHigh = Color(0xFFE74C3C); // Very High
-  static const extreme = Color(0xFFC0392B);  // Extreme
+  static const extreme = Color(0xFFC0392B); // Extreme
 
   // Brand accent
   static const brandForest = Color(0xFF0B3D2E);
