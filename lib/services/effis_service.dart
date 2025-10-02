@@ -3,15 +3,15 @@ import '../models/api_error.dart';
 import '../models/effis_fwi_result.dart';
 
 /// Abstract interface for EFFIS Fire Weather Index service
-/// 
+///
 /// Provides contract for retrieving FWI data from EFFIS (European Forest Fire Information System)
 /// with comprehensive error handling and retry capabilities.
-/// 
+///
 /// All implementations must use constructor injection for http.Client to enable
 /// deterministic testing without live HTTP requests.
 abstract class EffisService {
   /// Retrieves Fire Weather Index for given coordinates from EFFIS WMS service
-  /// 
+  ///
   /// Returns Either<ApiError, EffisFwiResult> where:
   /// - Left: Structured error information for all failure cases
   /// - Right: Successful FWI result with risk level mapping and metadata
@@ -37,7 +37,7 @@ abstract class EffisService {
   ///
   /// Preconditions:
   /// - lat must be in range [-90, 90]
-  /// - lon must be in range [-180, 180]  
+  /// - lon must be in range [-180, 180]
   /// - timeout must be positive duration
   /// - maxRetries must be >= 0 and <= 10
   ///
@@ -54,7 +54,7 @@ abstract class EffisService {
   ///   lat: 55.9533,  // Edinburgh
   ///   lon: -3.1883,
   /// );
-  /// 
+  ///
   /// result.fold(
   ///   (error) => print('Error: ${error.message}'),
   ///   (fwiResult) => print('FWI: ${fwiResult.fwi} (${fwiResult.riskLevel})'),

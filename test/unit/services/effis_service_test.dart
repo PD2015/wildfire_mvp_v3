@@ -33,7 +33,7 @@ const edinburghSuccessFixture = '''
 ''';
 
 /// Unit tests for EffisService implementation
-/// 
+///
 /// Tests cover all success and failure scenarios with mocked HTTP client:
 /// - Success: Parse Edinburgh success fixture with FWI=12.0 → moderate risk
 /// - 404 Error: Map to ApiError with notFound reason
@@ -53,16 +53,17 @@ void main() {
     });
 
     group('getFwi success scenarios', () {
-      test('should parse Edinburgh success fixture to EffisFwiResult', () async {
+      test('should parse Edinburgh success fixture to EffisFwiResult',
+          () async {
         // Mock HTTP response
         when(mockHttpClient.get(
           any,
           headers: anyNamed('headers'),
         )).thenAnswer((_) async => http.Response(
-          edinburghSuccessFixture,
-          200,
-          headers: {'content-type': 'application/json'},
-        ));
+              edinburghSuccessFixture,
+              200,
+              headers: {'content-type': 'application/json'},
+            ));
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -72,9 +73,11 @@ void main() {
 
         // Verify successful result
         expect(result.isRight(), isTrue);
-        final fwiResult = result.getOrElse(() => throw Exception('Expected Right'));
+        final fwiResult =
+            result.getOrElse(() => throw Exception('Expected Right'));
         expect(fwiResult.fwi, equals(12.0));
-        expect(fwiResult.datetime, equals(DateTime.parse("2023-09-13T00:00:00Z")));
+        expect(
+            fwiResult.datetime, equals(DateTime.parse("2023-09-13T00:00:00Z")));
         expect(fwiResult.longitude, equals(-3.1883));
         expect(fwiResult.latitude, equals(55.9533));
       });
@@ -85,10 +88,10 @@ void main() {
           any,
           headers: anyNamed('headers'),
         )).thenAnswer((_) async => http.Response(
-          jsonEncode({"type": "FeatureCollection", "features": []}),
-          200,
-          headers: {'content-type': 'application/json'},
-        ));
+              jsonEncode({"type": "FeatureCollection", "features": []}),
+              200,
+              headers: {'content-type': 'application/json'},
+            ));
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -97,9 +100,11 @@ void main() {
         await service.getFwi(lat: 55.9533, lon: -3.1883);
 
         // Verify URL construction
-        final captured = verify(mockHttpClient.get(captureAny, headers: anyNamed('headers'))).captured;
+        final captured =
+            verify(mockHttpClient.get(captureAny, headers: anyNamed('headers')))
+                .captured;
         final requestUri = captured.first as Uri;
-        
+
         expect(requestUri.scheme, equals('https'));
         expect(requestUri.host, equals('ies-ows.jrc.ec.europa.eu'));
         expect(requestUri.path, equals('/gwis'));
@@ -108,7 +113,8 @@ void main() {
         expect(requestUri.queryParameters['LAYERS'], equals('ecmwf.fwi'));
         expect(requestUri.queryParameters['QUERY_LAYERS'], equals('ecmwf.fwi'));
         expect(requestUri.queryParameters['CRS'], equals('EPSG:3857'));
-        expect(requestUri.queryParameters['INFO_FORMAT'], equals('application/json'));
+        expect(requestUri.queryParameters['INFO_FORMAT'],
+            equals('application/json'));
         expect(requestUri.queryParameters['FEATURE_COUNT'], equals('1'));
       });
     });
@@ -120,10 +126,10 @@ void main() {
           any,
           headers: anyNamed('headers'),
         )).thenAnswer((_) async => http.Response(
-          'Not Found',
-          404,
-          headers: {'content-type': 'text/plain'},
-        ));
+              'Not Found',
+              404,
+              headers: {'content-type': 'text/plain'},
+            ));
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -133,21 +139,23 @@ void main() {
 
         // Verify error mapping
         expect(result.isLeft(), isTrue);
-        final error = result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        final error =
+            result.fold((l) => l, (r) => throw Exception('Expected Left'));
         expect(error.reason, equals(ApiErrorReason.notFound));
         expect(error.statusCode, equals(404));
       });
 
-      test('should retry 503 responses with exponential backoff then fail', () async {
+      test('should retry 503 responses with exponential backoff then fail',
+          () async {
         // Mock 503 responses for all retry attempts
         when(mockHttpClient.get(
           any,
           headers: anyNamed('headers'),
         )).thenAnswer((_) async => http.Response(
-          'Service Unavailable',
-          503,
-          headers: {'content-type': 'text/plain'},
-        ));
+              'Service Unavailable',
+              503,
+              headers: {'content-type': 'text/plain'},
+            ));
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -161,7 +169,8 @@ void main() {
 
         // Verify error after all retries exhausted
         expect(result.isLeft(), isTrue);
-        final error = result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        final error =
+            result.fold((l) => l, (r) => throw Exception('Expected Left'));
         expect(error.reason, equals(ApiErrorReason.serviceUnavailable));
         expect(error.statusCode, equals(503));
 
@@ -175,10 +184,10 @@ void main() {
           any,
           headers: anyNamed('headers'),
         )).thenAnswer((_) async => http.Response(
-          '{"invalid": json}',
-          200,
-          headers: {'content-type': 'application/json'},
-        ));
+              '{"invalid": json}',
+              200,
+              headers: {'content-type': 'application/json'},
+            ));
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -188,7 +197,8 @@ void main() {
 
         // Verify error mapping
         expect(result.isLeft(), isTrue);
-        final error = result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        final error =
+            result.fold((l) => l, (r) => throw Exception('Expected Left'));
         expect(error.message, contains('Failed to parse JSON response'));
       });
 
@@ -211,7 +221,8 @@ void main() {
 
         // Verify timeout error
         expect(result.isLeft(), isTrue);
-        final error = result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        final error =
+            result.fold((l) => l, (r) => throw Exception('Expected Left'));
         expect(error.message, contains('connection'));
       });
 
@@ -221,10 +232,10 @@ void main() {
           any,
           headers: anyNamed('headers'),
         )).thenAnswer((_) async => http.Response(
-          jsonEncode({"type": "FeatureCollection", "features": []}),
-          200,
-          headers: {'content-type': 'application/json'},
-        ));
+              jsonEncode({"type": "FeatureCollection", "features": []}),
+              200,
+              headers: {'content-type': 'application/json'},
+            ));
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -234,7 +245,8 @@ void main() {
 
         // Verify error mapping
         expect(result.isLeft(), isTrue);
-        final error = result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        final error =
+            result.fold((l) => l, (r) => throw Exception('Expected Left'));
         expect(error.message, contains('No FWI data available'));
       });
     });
@@ -246,10 +258,10 @@ void main() {
           any,
           headers: anyNamed('headers'),
         )).thenAnswer((_) async => http.Response(
-          edinburghSuccessFixture,
-          200,
-          headers: {'content-type': 'application/json'},
-        ));
+              edinburghSuccessFixture,
+              200,
+              headers: {'content-type': 'application/json'},
+            ));
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -258,7 +270,9 @@ void main() {
         await service.getFwi(lat: 55.9533, lon: -3.1883);
 
         // Verify headers
-        final captured = verify(mockHttpClient.get(any, headers: captureAnyNamed('headers'))).captured;
+        final captured =
+            verify(mockHttpClient.get(any, headers: captureAnyNamed('headers')))
+                .captured;
         final headers = captured.first as Map<String, String>;
         expect(headers['User-Agent'], equals('WildFire/0.1 (prototype)'));
         expect(headers['Accept'], equals('application/json,*/*;q=0.8'));
@@ -269,25 +283,28 @@ void main() {
       test('should validate latitude range', () async {
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
-        
+
         // Test invalid latitude
         final result = await service.getFwi(lat: 91.0, lon: 0.0);
-        
+
         expect(result.isLeft(), isTrue);
-        final error = result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        final error =
+            result.fold((l) => l, (r) => throw Exception('Expected Left'));
         expect(error.message, contains('Latitude must be between -90 and 90'));
       });
 
       test('should validate longitude range', () async {
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
-        
+
         // Test invalid longitude
         final result = await service.getFwi(lat: 0.0, lon: 181.0);
-        
+
         expect(result.isLeft(), isTrue);
-        final error = result.fold((l) => l, (r) => throw Exception('Expected Left'));
-        expect(error.message, contains('Longitude must be between -180 and 180'));
+        final error =
+            result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        expect(
+            error.message, contains('Longitude must be between -180 and 180'));
       });
     });
 
@@ -298,10 +315,10 @@ void main() {
           any,
           headers: anyNamed('headers'),
         )).thenAnswer((_) async => http.Response(
-          'Bad Request',
-          400,
-          headers: {'content-type': 'text/plain'},
-        ));
+              'Bad Request',
+              400,
+              headers: {'content-type': 'text/plain'},
+            ));
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -315,7 +332,8 @@ void main() {
 
         // Verify error without retries
         expect(result.isLeft(), isTrue);
-        final error = result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        final error =
+            result.fold((l) => l, (r) => throw Exception('Expected Left'));
         expect(error.statusCode, equals(400));
 
         // Verify no retries (only 1 attempt)
@@ -353,7 +371,8 @@ void main() {
 
         // Verify successful result after retries
         expect(result.isRight(), isTrue);
-        final fwiResult = result.getOrElse(() => throw Exception('Expected Right'));
+        final fwiResult =
+            result.getOrElse(() => throw Exception('Expected Right'));
         expect(fwiResult.fwi, equals(12.0));
 
         // Verify retry attempts (2 total: 1 failure + 1 success)
@@ -366,10 +385,10 @@ void main() {
           any,
           headers: anyNamed('headers'),
         )).thenAnswer((_) async => http.Response(
-          'Service Unavailable',
-          503,
-          headers: {'content-type': 'text/plain'},
-        ));
+              'Service Unavailable',
+              503,
+              headers: {'content-type': 'text/plain'},
+            ));
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -383,7 +402,8 @@ void main() {
 
         // Verify error after limited retries
         expect(result.isLeft(), isTrue);
-        final error = result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        final error =
+            result.fold((l) => l, (r) => throw Exception('Expected Left'));
         expect(error.reason, equals(ApiErrorReason.serviceUnavailable));
 
         // Verify retry attempts (initial + 1 retry = 2 total)

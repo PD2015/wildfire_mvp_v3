@@ -52,20 +52,23 @@ void main() {
         any,
         headers: anyNamed('headers'),
       )).thenAnswer((_) async => http.Response(
-        jsonString,
-        200,
-        headers: {'content-type': 'application/json'},
-      ));
+            jsonString,
+            200,
+            headers: {'content-type': 'application/json'},
+          ));
 
       final service = EffisServiceImpl(httpClient: mockHttpClient);
       final result = await service.getFwi(lat: 55.9533, lon: -3.1883);
 
       // Verify successful parsing with EffisFwiResult
       expect(result.isRight(), isTrue);
-      final fwiResult = result.getOrElse(() => throw Exception('Expected Right'));
+      final fwiResult =
+          result.getOrElse(() => throw Exception('Expected Right'));
       expect(fwiResult.fwi, equals(12.0));
-      expect(fwiResult.riskLevel, equals(RiskLevel.moderate)); // FWI 12.0 → moderate
-      expect(fwiResult.datetime, equals(DateTime.parse('2025-10-02T12:00:00Z')));
+      expect(fwiResult.riskLevel,
+          equals(RiskLevel.moderate)); // FWI 12.0 → moderate
+      expect(
+          fwiResult.datetime, equals(DateTime.parse('2025-10-02T12:00:00Z')));
     });
 
     test('404.json should map to clientError ApiError', () async {
@@ -85,17 +88,18 @@ void main() {
         any,
         headers: anyNamed('headers'),
       )).thenAnswer((_) async => http.Response(
-        'Not Found',
-        404,
-        headers: {'content-type': 'text/plain'},
-      ));
+            'Not Found',
+            404,
+            headers: {'content-type': 'text/plain'},
+          ));
 
       final service = EffisServiceImpl(httpClient: mockHttpClient);
       final result = await service.getFwi(lat: 55.9533, lon: -3.1883);
 
       // Verify 404 maps to ApiError with notFound reason
       expect(result.isLeft(), isTrue);
-      final error = result.fold((l) => l, (r) => throw Exception('Expected Left'));
+      final error =
+          result.fold((l) => l, (r) => throw Exception('Expected Left'));
       expect(error.reason, equals(ApiErrorReason.notFound));
       expect(error.statusCode, equals(404));
     });
@@ -117,10 +121,10 @@ void main() {
         any,
         headers: anyNamed('headers'),
       )).thenAnswer((_) async => http.Response(
-        'Service Unavailable',
-        503,
-        headers: {'content-type': 'text/plain'},
-      ));
+            'Service Unavailable',
+            503,
+            headers: {'content-type': 'text/plain'},
+          ));
 
       final service = EffisServiceImpl(httpClient: mockHttpClient);
       final result = await service.getFwi(
@@ -131,7 +135,8 @@ void main() {
 
       // Verify 503 maps to ApiError with serviceUnavailable reason after retries
       expect(result.isLeft(), isTrue);
-      final error = result.fold((l) => l, (r) => throw Exception('Expected Left'));
+      final error =
+          result.fold((l) => l, (r) => throw Exception('Expected Left'));
       expect(error.reason, equals(ApiErrorReason.serviceUnavailable));
       expect(error.statusCode, equals(503));
 
@@ -154,9 +159,10 @@ void main() {
       final properties = feature['properties'] as Map<String, dynamic>;
 
       // Missing 'fwi' property but has 'value' - this fixture actually parses successfully
-      // due to defensive programming in EffisServiceImpl._extractFwiValue() 
+      // due to defensive programming in EffisServiceImpl._extractFwiValue()
       expect(properties.containsKey('fwi'), isFalse);
-      expect(properties['value'], equals(12.34)); // Has 'value' instead of 'fwi'
+      expect(
+          properties['value'], equals(12.34)); // Has 'value' instead of 'fwi'
 
       // Test service parsing - this should actually succeed since 'value' is a fallback
       final mockHttpClient = MockClient();
@@ -164,17 +170,18 @@ void main() {
         any,
         headers: anyNamed('headers'),
       )).thenAnswer((_) async => http.Response(
-        jsonString,
-        200,
-        headers: {'content-type': 'application/json'},
-      ));
+            jsonString,
+            200,
+            headers: {'content-type': 'application/json'},
+          ));
 
       final service = EffisServiceImpl(httpClient: mockHttpClient);
       final result = await service.getFwi(lat: 55.9533, lon: -3.1883);
 
       // Verify that 'value' property is successfully parsed (defensive programming)
       expect(result.isRight(), isTrue);
-      final fwiResult = result.getOrElse(() => throw Exception('Expected Right'));
+      final fwiResult =
+          result.getOrElse(() => throw Exception('Expected Right'));
       expect(fwiResult.fwi, equals(12.34)); // Parsed from 'value' property
     });
 
@@ -195,17 +202,18 @@ void main() {
         any,
         headers: anyNamed('headers'),
       )).thenAnswer((_) async => http.Response(
-        jsonString,
-        200,
-        headers: {'content-type': 'application/json'},
-      ));
+            jsonString,
+            200,
+            headers: {'content-type': 'application/json'},
+          ));
 
       final service = EffisServiceImpl(httpClient: mockHttpClient);
       final result = await service.getFwi(lat: 55.9533, lon: -3.1883);
 
       // Verify empty features array is handled as no data available error
       expect(result.isLeft(), isTrue);
-      final error = result.fold((l) => l, (r) => throw Exception('Expected Left'));
+      final error =
+          result.fold((l) => l, (r) => throw Exception('Expected Left'));
       expect(error.message, contains('No FWI data available'));
     });
 

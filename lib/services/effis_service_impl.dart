@@ -9,11 +9,11 @@ import '../models/effis_fwi_result.dart';
 import 'effis_service.dart';
 
 /// Production implementation of EffisService using EFFIS WMS GetFeatureInfo
-/// 
+///
 /// Integrates with EFFIS (European Forest Fire Information System) to retrieve
 /// Fire Weather Index data for specific coordinates with comprehensive error
 /// handling, retry logic, and response validation.
-/// 
+///
 /// Key features:
 /// - Constructor injection of http.Client for testability
 /// - WMS GetFeatureInfo URL construction with proper coordinate transformation
@@ -21,23 +21,77 @@ import 'effis_service.dart';
 /// - Structured error categorization with ApiError mapping
 /// - Comprehensive input validation and response parsing
 /// - Safe logging with coordinate precision limits
+///
+/// ## Usage Example
+///
+/// ```dart
+/// import 'package:http/http.dart' as http;
+/// import 'package:wildfire_mvp_v3/services/effis_service_impl.dart';
+///
+/// // Initialize service with HTTP client
+/// final httpClient = http.Client();
+/// final effisService = EffisServiceImpl(httpClient: httpClient);
+///
+/// // Query FWI for Edinburgh, Scotland
+/// final result = await effisService.getFwi(
+///   lat: 55.9533,    // Edinburgh latitude
+///   lon: -3.1883,    // Edinburgh longitude
+///   timeout: Duration(seconds: 30),  // Optional timeout
+///   maxRetries: 3,   // Optional retry count
+/// );
+///
+/// // Handle result using Either pattern
+/// result.fold(
+///   (error) {
+///     // Handle API error
+///     print('Error: ${error.message}');
+///     if (error.statusCode != null) {
+///       print('HTTP Status: ${error.statusCode}');
+///     }
+///   },
+///   (fwiResult) {
+///     // Handle successful FWI data
+///     print('FWI: ${fwiResult.fwi}');
+///     print('Risk Level: ${fwiResult.riskLevel}');
+///     print('Observed At: ${fwiResult.observedAt}');
+///     print('Location: ${fwiResult.location.latitude}, ${fwiResult.location.longitude}');
+///   },
+/// );
+///
+/// // Clean up HTTP client when done
+/// httpClient.close();
+/// ```
+///
+/// ## Error Handling
+///
+/// The service returns `Either<ApiError, EffisFwiResult>` for type-safe error handling:
+///
+/// - **Left(ApiError)**: Network errors, HTTP errors, parsing errors, validation errors
+/// - **Right(EffisFwiResult)**: Successful FWI data with location and timestamp
+///
+/// Common error scenarios:
+/// - Network timeout → Retryable error with exponential backoff
+/// - HTTP 503 Service Unavailable → Retryable error
+/// - HTTP 404 Not Found → Non-retryable error
+/// - Invalid coordinates → Non-retryable validation error
+/// - Malformed JSON response → Non-retryable parsing error
 class EffisServiceImpl implements EffisService {
   static const String _baseUrl = 'https://ies-ows.jrc.ec.europa.eu/gwis';
   static const String _userAgent = 'WildFire/0.1 (prototype)';
   static const String _acceptHeader = 'application/json,*/*;q=0.8';
-  
+
   final http.Client _httpClient;
   final Random _random;
 
   /// Creates EffisServiceImpl with injected HTTP client
-  /// 
+  ///
   /// [httpClient] - Injectable HTTP client for network requests (enables mocking)
   /// [random] - Injectable random generator for jitter (enables deterministic testing)
   EffisServiceImpl({
     required http.Client httpClient,
     Random? random,
-  }) : _httpClient = httpClient,
-       _random = random ?? Random();
+  })  : _httpClient = httpClient,
+        _random = random ?? Random();
 
   @override
   Future<Either<ApiError, EffisFwiResult>> getFwi({
@@ -100,7 +154,7 @@ class EffisServiceImpl implements EffisService {
       try {
         // Construct WMS GetFeatureInfo URL
         final uri = _buildWmsUrl(lat, lon);
-        
+
         // Execute HTTP request with timeout
         final response = await _httpClient.get(
           uri,
@@ -117,17 +171,17 @@ class EffisServiceImpl implements EffisService {
         }
 
         // Check if error is retryable
-        final error = result.fold((l) => l, (r) => throw Exception('Unexpected Right'));
+        final error =
+            result.fold((l) => l, (r) => throw Exception('Unexpected Right'));
         if (!_isRetryableError(error)) {
           return Left(error);
         }
 
         lastError = error;
-
       } catch (e) {
         // Handle network exceptions
         lastError = _mapExceptionToApiError(e);
-        
+
         // Check if exception is retryable
         if (!_isRetryableError(lastError)) {
           return Left(lastError);
@@ -144,17 +198,19 @@ class EffisServiceImpl implements EffisService {
     }
 
     // All retries exhausted
-    return Left(lastError ?? ApiError(
-      message: 'Request failed after $maxRetries retries',
-    ));
+    return Left(lastError ??
+        ApiError(
+          message: 'Request failed after $maxRetries retries',
+        ));
   }
 
   /// Builds WMS GetFeatureInfo URL for EFFIS service
   Uri _buildWmsUrl(double lat, double lon) {
     // Transform WGS84 coordinates to Web Mercator (EPSG:3857) bounds
     final webMercatorX = lon * 20037508.34 / 180;
-    final webMercatorY = log(tan((90 + lat) * pi / 360)) / (pi / 180) * 20037508.34 / 180;
-    
+    final webMercatorY =
+        log(tan((90 + lat) * pi / 360)) / (pi / 180) * 20037508.34 / 180;
+
     // Create small bounding box around point (±1000m)
     const buffer = 1000.0;
     final minX = webMercatorX - buffer;
@@ -172,15 +228,16 @@ class EffisServiceImpl implements EffisService {
       'BBOX': '$minX,$minY,$maxX,$maxY',
       'WIDTH': '256',
       'HEIGHT': '256',
-      'I': '128',  // Query point X
-      'J': '128',  // Query point Y
+      'I': '128', // Query point X
+      'J': '128', // Query point Y
       'INFO_FORMAT': 'application/json',
       'FEATURE_COUNT': '1',
     });
   }
 
   /// Processes HTTP response and parses EFFIS data
-  Future<Either<ApiError, EffisFwiResult>> _processResponse(http.Response response) async {
+  Future<Either<ApiError, EffisFwiResult>> _processResponse(
+      http.Response response) async {
     // Handle HTTP error status codes
     if (response.statusCode >= 400) {
       return Left(_mapHttpStatusToApiError(response.statusCode, response.body));
@@ -208,7 +265,8 @@ class EffisServiceImpl implements EffisService {
   }
 
   /// Parses EFFIS GeoJSON FeatureCollection response
-  Future<Either<ApiError, EffisFwiResult>> _parseEffisResponse(Map<String, dynamic> jsonData) async {
+  Future<Either<ApiError, EffisFwiResult>> _parseEffisResponse(
+      Map<String, dynamic> jsonData) async {
     // Validate FeatureCollection structure
     if (jsonData['type'] != 'FeatureCollection') {
       return Left(ApiError(
@@ -227,7 +285,7 @@ class EffisServiceImpl implements EffisService {
       // Parse first feature (should contain FWI data)
       final feature = features.first as Map<String, dynamic>;
       final properties = feature['properties'] as Map<String, dynamic>;
-      
+
       // Extract FWI value (try different property names)
       final fwi = _extractFwiValue(properties);
       if (fwi == null) {
@@ -268,7 +326,6 @@ class EffisServiceImpl implements EffisService {
       );
 
       return Right(effisResult);
-
     } catch (e) {
       return Left(ApiError(
         message: 'Failed to parse EFFIS feature data: ${e.toString()}',
@@ -304,7 +361,8 @@ class EffisServiceImpl implements EffisService {
     switch (statusCode) {
       case 404:
         return ApiError(
-          message: 'EFFIS endpoint not found or coordinates out of coverage area',
+          message:
+              'EFFIS endpoint not found or coordinates out of coverage area',
           statusCode: statusCode,
           reason: ApiErrorReason.notFound,
         );
@@ -351,22 +409,24 @@ class EffisServiceImpl implements EffisService {
     if (error.statusCode != null) {
       return error.statusCode! >= 500;
     }
-    
+
     // Retry on network exceptions (timeout, connection failure)
-    return error.message.contains('timeout') || 
-           error.message.contains('connection') ||
-           error.message.contains('Network');
+    return error.message.contains('timeout') ||
+        error.message.contains('connection') ||
+        error.message.contains('Network');
   }
 
   /// Calculates exponential backoff delay with jitter
   Duration _calculateBackoffDelay(int attemptNumber) {
     // Base delay: 1000ms * (2^attemptNumber)
     final baseDelayMs = 1000 * pow(2, attemptNumber - 1);
-    
+
     // Add jitter: ±25% of base delay
-    final jitterMs = (baseDelayMs * 0.25 * (_random.nextDouble() - 0.5)).round();
-    final totalDelayMs = (baseDelayMs + jitterMs).clamp(100, 30000); // Min 100ms, max 30s
-    
+    final jitterMs =
+        (baseDelayMs * 0.25 * (_random.nextDouble() - 0.5)).round();
+    final totalDelayMs =
+        (baseDelayMs + jitterMs).clamp(100, 30000); // Min 100ms, max 30s
+
     return Duration(milliseconds: totalDelayMs.toInt());
   }
 }

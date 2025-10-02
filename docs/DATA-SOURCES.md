@@ -2,11 +2,43 @@
 
 ## EFFIS (European Forest Fire Information System)
 - **Service**: WMS `GetFeatureInfo` for Fire Weather Index (FWI)
-- **Input**: lat, lon
-- **Output**: JSON with FWI value
-- **Timeout**: 30s, max 3 retries with exponential backoff
+- **Base URL**: `https://ies-ows.jrc.ec.europa.eu/gwis`
+- **Input**: lat, lon (WGS84 coordinates)
+- **Output**: GeoJSON FeatureCollection with FWI value
+- **Timeout**: 30s default, configurable
+- **Retry Policy**: Max 3 retries with exponential backoff + jitter
 - **Fallback**: handled by `FireRiskService`
 - **Notes**: schema can change; use golden fixtures in tests
+
+### WMS Parameters Used
+- **SERVICE**: `WMS`
+- **VERSION**: `1.3.0`
+- **REQUEST**: `GetFeatureInfo`
+- **LAYERS**: `ecmwf.fwi` (ECMWF Fire Weather Index layer)
+- **QUERY_LAYERS**: `ecmwf.fwi`
+- **CRS**: `EPSG:3857` (Web Mercator projection)
+- **BBOX**: Dynamic bounding box (±1000m buffer around query point)
+- **WIDTH/HEIGHT**: `256x256` pixels
+- **I/J**: `128,128` (center query point)
+- **INFO_FORMAT**: `application/json`
+- **FEATURE_COUNT**: `1`
+
+### HTTP Headers
+- **User-Agent**: `WildFire/0.1 (prototype)`
+- **Accept**: `application/json,*/*;q=0.8`
+
+### Content-Type Behavior
+- **Expected**: `application/json` (validated)
+- **Parsing**: GeoJSON FeatureCollection format
+- **FWI Extraction**: From feature properties (flexible property names)
+- **Timestamp**: UTC parsing from `datetime`/`timestamp` properties (fallback to current time)
+
+### Error Handling & Retry Policy
+- **Retryable Errors**: HTTP 5xx, network timeouts, temporary failures
+- **Non-Retryable**: HTTP 4xx (client errors), malformed responses
+- **Backoff Formula**: `base_delay * (2^attempt) + jitter`
+- **Jitter Range**: ±25% to prevent thundering herd
+- **Max Retries**: 3 attempts (configurable, capped at 10)
 
 ### FWI → Risk Mapping
 - `< 5` → Very Low
