@@ -26,7 +26,7 @@
 ## Phase 1: Models & Service Interface (TDD Setup)
 **Target**: Define public API and data structures
 
-### T001 [P] Create FireRisk data model and service interface (spec:A2, gate:C2)
+### [X] T001 [P] Create FireRisk data model and service interface (spec:A2, gate:C2)
 **File**: `lib/services/models/fire_risk.dart`
 - Implement FireRisk value object with equatable
 - Fields: level: RiskLevel (reuse A1's enum), fwi: double?, source: DataSource, observedAt: DateTime (UTC), freshness: Freshness
