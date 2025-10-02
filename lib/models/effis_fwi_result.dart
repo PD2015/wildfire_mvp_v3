@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'risk_level.dart';
 
 /// Represents a single EFFIS Fire Weather Index result from the GeoJSON API
-/// 
+///
 /// Parses and validates EFFIS API response data per docs/data-model.md:
 /// - FWI and related fire weather indices (DC, DMC, FFMC, ISI, BUI)
 /// - UTC timestamp parsing (2023-09-13T00:00:00Z format)
@@ -21,7 +21,7 @@ class EffisFwiResult extends Equatable {
   final RiskLevel riskLevel;
 
   /// Creates an EffisFwiResult with validation
-  /// 
+  ///
   /// All fire weather index values must be non-negative.
   /// Coordinates must be within valid ranges: longitude [-180, 180], latitude [-90, 90].
   /// DateTime must be in UTC.
@@ -59,11 +59,11 @@ class EffisFwiResult extends Equatable {
   }
 
   /// Creates an EffisFwiResult from EFFIS GeoJSON Feature JSON
-  /// 
+  ///
   /// Expects GeoJSON Feature format with:
   /// - properties: fwi, dc, dmc, ffmc, isi, bui, datetime (UTC ISO string)
   /// - geometry: Point with coordinates [longitude, latitude]
-  /// 
+  ///
   /// Throws [ArgumentError] for invalid or missing data.
   factory EffisFwiResult.fromJson(Map<String, dynamic> json) {
     try {
@@ -102,10 +102,12 @@ class EffisFwiResult extends Equatable {
       try {
         datetime = DateTime.parse(datetimeStr);
         if (!datetime.isUtc) {
-          throw ArgumentError('DateTime must be in UTC format (end with Z): $datetimeStr');
+          throw ArgumentError(
+              'DateTime must be in UTC format (end with Z): $datetimeStr');
         }
       } catch (e) {
-        throw ArgumentError('Invalid datetime format: $datetimeStr. Expected UTC ISO format like 2023-09-13T00:00:00Z');
+        throw ArgumentError(
+            'Invalid datetime format: $datetimeStr. Expected UTC ISO format like 2023-09-13T00:00:00Z');
       }
 
       // Extract coordinates
@@ -136,7 +138,8 @@ class EffisFwiResult extends Equatable {
       throw ArgumentError('Missing required field: $key');
     }
     if (value is! num) {
-      throw ArgumentError('Field $key must be a number, got: ${value.runtimeType}');
+      throw ArgumentError(
+          'Field $key must be a number, got: ${value.runtimeType}');
     }
     return value.toDouble();
   }

@@ -16,6 +16,7 @@ void main() {
 
     // Verify that our app title appears (appears in both AppBar and body).
     expect(find.text('WildFire Risk Assessment'), findsNWidgets(2));
-    expect(find.text('EffisService implementation in progress...'), findsOneWidget);
+    expect(find.text('EffisService implementation in progress...'),
+        findsOneWidget);
   });
 }

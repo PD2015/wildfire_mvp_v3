@@ -3,7 +3,7 @@ import 'package:wildfire_mvp_v3/models/effis_fwi_result.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
 
 /// Unit tests for EffisFwiResult model validation
-/// 
+///
 /// Tests verify correct parsing and validation of EFFIS API response data
 /// per docs/data-model.md specifications:
 /// - UTC timestamp parsing (2023-09-13T00:00:00Z format)
@@ -96,7 +96,8 @@ void main() {
               expectedRisk = RiskLevel.extreme;
               break;
             default:
-              throw ArgumentError('Unknown risk level: ${testCase["expectedRisk"]}');
+              throw ArgumentError(
+                  'Unknown risk level: ${testCase["expectedRisk"]}');
           }
           expect(result.riskLevel, equals(expectedRisk));
         }
@@ -161,10 +162,10 @@ void main() {
 
       test('should reject invalid datetime formats', () {
         final invalidDateTimes = [
-          "2023-09-13",           // Missing time
-          "2023-09-13T00:00:00",  // Missing Z
-          "invalid-date",         // Not a date
-          "",                     // Empty string
+          "2023-09-13", // Missing time
+          "2023-09-13T00:00:00", // Missing Z
+          "invalid-date", // Not a date
+          "", // Empty string
         ];
 
         for (final invalidDateTime in invalidDateTimes) {
@@ -185,11 +186,8 @@ void main() {
             }
           };
 
-          expect(
-            () => EffisFwiResult.fromJson(jsonData),
-            throwsArgumentError,
-            reason: 'Should reject invalid datetime: $invalidDateTime'
-          );
+          expect(() => EffisFwiResult.fromJson(jsonData), throwsArgumentError,
+              reason: 'Should reject invalid datetime: $invalidDateTime');
         }
       });
     });
@@ -239,21 +237,18 @@ void main() {
           }
         };
 
-        expect(
-          () => EffisFwiResult.fromJson(jsonData),
-          throwsArgumentError,
-          reason: 'Should reject negative FWI values'
-        );
+        expect(() => EffisFwiResult.fromJson(jsonData), throwsArgumentError,
+            reason: 'Should reject negative FWI values');
       });
     });
 
     group('coordinate validation', () {
       test('should accept valid latitude/longitude coordinates', () {
         final validCoordinates = [
-          [-3.1883, 55.9533],   // Edinburgh
-          [0.0, 0.0],           // Equator/Prime Meridian
-          [-180.0, -90.0],      // Southwest corner
-          [180.0, 90.0],        // Northeast corner
+          [-3.1883, 55.9533], // Edinburgh
+          [0.0, 0.0], // Equator/Prime Meridian
+          [-180.0, -90.0], // Southwest corner
+          [180.0, 90.0], // Northeast corner
         ];
 
         for (final coords in validCoordinates) {
@@ -268,10 +263,7 @@ void main() {
               "bui": 25.0,
               "datetime": "2023-09-13T00:00:00Z"
             },
-            "geometry": {
-              "type": "Point",
-              "coordinates": coords
-            }
+            "geometry": {"type": "Point", "coordinates": coords}
           };
 
           final result = EffisFwiResult.fromJson(jsonData);
@@ -282,10 +274,10 @@ void main() {
 
       test('should reject invalid coordinate ranges', () {
         final invalidCoordinates = [
-          [-181.0, 0.0],    // Longitude too low
-          [181.0, 0.0],     // Longitude too high
-          [0.0, -91.0],     // Latitude too low
-          [0.0, 91.0],      // Latitude too high
+          [-181.0, 0.0], // Longitude too low
+          [181.0, 0.0], // Longitude too high
+          [0.0, -91.0], // Latitude too low
+          [0.0, 91.0], // Latitude too high
         ];
 
         for (final coords in invalidCoordinates) {
@@ -300,17 +292,11 @@ void main() {
               "bui": 25.0,
               "datetime": "2023-09-13T00:00:00Z"
             },
-            "geometry": {
-              "type": "Point",
-              "coordinates": coords
-            }
+            "geometry": {"type": "Point", "coordinates": coords}
           };
 
-          expect(
-            () => EffisFwiResult.fromJson(jsonData),
-            throwsArgumentError,
-            reason: 'Should reject invalid coordinates: $coords'
-          );
+          expect(() => EffisFwiResult.fromJson(jsonData), throwsArgumentError,
+              reason: 'Should reject invalid coordinates: $coords');
         }
       });
     });
@@ -334,17 +320,23 @@ void main() {
           }
         };
 
-        final mandatoryFields = ['fwi', 'dc', 'dmc', 'ffmc', 'isi', 'bui', 'datetime'];
+        final mandatoryFields = [
+          'fwi',
+          'dc',
+          'dmc',
+          'ffmc',
+          'isi',
+          'bui',
+          'datetime'
+        ];
 
         for (final field in mandatoryFields) {
           final incompleteJson = Map<String, dynamic>.from(baseJson);
           (incompleteJson['properties'] as Map<String, dynamic>).remove(field);
 
-          expect(
-            () => EffisFwiResult.fromJson(incompleteJson),
-            throwsArgumentError,
-            reason: 'Should require field: $field'
-          );
+          expect(() => EffisFwiResult.fromJson(incompleteJson),
+              throwsArgumentError,
+              reason: 'Should require field: $field');
         }
       });
 
@@ -366,11 +358,9 @@ void main() {
           }
         };
 
-        expect(
-          () => EffisFwiResult.fromJson(jsonWithoutCoords),
-          throwsArgumentError,
-          reason: 'Should require geometry coordinates'
-        );
+        expect(() => EffisFwiResult.fromJson(jsonWithoutCoords),
+            throwsArgumentError,
+            reason: 'Should require geometry coordinates');
       });
     });
 

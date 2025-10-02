@@ -8,11 +8,11 @@ enum ApiErrorReason {
 }
 
 /// Represents an error from the EFFIS API with categorized reason codes
-/// 
+///
 /// Provides structured error information with automatic categorization
 /// based on HTTP status codes per docs/data-model.md:
 /// - 404 → notFound
-/// - 503 → serviceUnavailable  
+/// - 503 → serviceUnavailable
 /// - Other codes → general
 class ApiError extends Equatable {
   final String message;
@@ -20,7 +20,7 @@ class ApiError extends Equatable {
   final ApiErrorReason reason;
 
   /// Creates an ApiError with automatic reason categorization
-  /// 
+  ///
   /// [message] must be non-empty. [statusCode] can be null for non-HTTP errors.
   /// [reason] is automatically determined from [statusCode] if not provided.
   ApiError({

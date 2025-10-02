@@ -2,10 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
 
 /// Unit tests for RiskLevel FWI mapping boundaries
-/// 
+///
 /// Tests verify correct FWI value to risk level mapping per docs/DATA-SOURCES.md:
 /// - < 5 → Very Low
-/// - 5–11 → Low  
+/// - 5–11 → Low
 /// - 12–20 → Moderate
 /// - 21–37 → High
 /// - 38–49 → Very High
@@ -59,12 +59,12 @@ void main() {
     group('specific boundary test values per specification', () {
       test('test fixture values from docs/DATA-SOURCES.md', () {
         // These are the exact boundary values specified in DATA-SOURCES.md
-        expect(RiskLevel.fromFwi(4), equals(RiskLevel.veryLow));   // < 5
-        expect(RiskLevel.fromFwi(5), equals(RiskLevel.low));       // 5–11
+        expect(RiskLevel.fromFwi(4), equals(RiskLevel.veryLow)); // < 5
+        expect(RiskLevel.fromFwi(5), equals(RiskLevel.low)); // 5–11
         expect(RiskLevel.fromFwi(12), equals(RiskLevel.moderate)); // 12–20
-        expect(RiskLevel.fromFwi(21), equals(RiskLevel.high));     // 21–37
+        expect(RiskLevel.fromFwi(21), equals(RiskLevel.high)); // 21–37
         expect(RiskLevel.fromFwi(38), equals(RiskLevel.veryHigh)); // 38–49
-        expect(RiskLevel.fromFwi(50), equals(RiskLevel.extreme));  // ≥ 50
+        expect(RiskLevel.fromFwi(50), equals(RiskLevel.extreme)); // ≥ 50
       });
     });
 

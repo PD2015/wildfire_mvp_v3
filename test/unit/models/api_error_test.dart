@@ -2,10 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wildfire_mvp_v3/models/api_error.dart';
 
 /// Unit tests for ApiError categorization
-/// 
+///
 /// Tests verify correct HTTP status code mapping to error reasons
 /// per docs/data-model.md error categorization:
-/// - 404 → notFound 
+/// - 404 → notFound
 /// - 503 → serviceUnavailable
 /// - Other errors → general
 void main() {
@@ -36,7 +36,7 @@ void main() {
           statusCode: 500,
         );
         expect(error500.reason, equals(ApiErrorReason.general));
-        
+
         final error400 = ApiError(
           message: 'Bad request',
           statusCode: 400,
@@ -82,9 +82,7 @@ void main() {
       test('should require non-empty message', () {
         // Empty message should be invalid
         expect(
-          () => ApiError(message: '', statusCode: 404),
-          throwsArgumentError
-        );
+            () => ApiError(message: '', statusCode: 404), throwsArgumentError);
       });
 
       test('should accept null status code for non-HTTP errors', () {
@@ -111,7 +109,8 @@ void main() {
         // Verify all expected error reasons exist
         expect(ApiErrorReason.values.length, equals(3));
         expect(ApiErrorReason.values, contains(ApiErrorReason.notFound));
-        expect(ApiErrorReason.values, contains(ApiErrorReason.serviceUnavailable));
+        expect(
+            ApiErrorReason.values, contains(ApiErrorReason.serviceUnavailable));
         expect(ApiErrorReason.values, contains(ApiErrorReason.general));
       });
 
