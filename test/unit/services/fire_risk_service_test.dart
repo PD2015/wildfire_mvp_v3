@@ -213,8 +213,10 @@ void main() {
 
         // Then: Should still succeed with mock data (never-fail guarantee)
         expect(result.isRight(), isTrue,
-            reason: 'Service must never fail completely - mock should provide fallback');
-        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
+            reason:
+                'Service must never fail completely - mock should provide fallback');
+        final fireRisk =
+            result.getOrElse(() => throw Exception('Expected Right'));
         expect(fireRisk.source, DataSource.mock);
         expect(fireRisk.freshness, Freshness.mock);
       });
@@ -238,8 +240,10 @@ void main() {
 
         // Then: Should handle exceptions gracefully and return mock data
         expect(result.isRight(), isTrue,
-            reason: 'Service should handle all exceptions and return mock fallback');
-        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
+            reason:
+                'Service should handle all exceptions and return mock fallback');
+        final fireRisk =
+            result.getOrElse(() => throw Exception('Expected Right'));
         expect(fireRisk.source, DataSource.mock);
       });
     });
