@@ -1,0 +1,74 @@
+name: Flutter CI
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java (for Android toolchain)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Restore pub cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+
+      - name: Pub get
+        run: flutter pub get
+
+      - name: Format check (C1)
+        run: |
+          dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze (C1)
+        run: flutter analyze
+
+      - name: Run tests (C1, C5)
+        run: flutter test --platform=chrome --reporter expanded
+
+      - name: Secret scan with gitleaks (C2)
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: detect --source . --no-git -v
+
+      - name: Optional color/palette guard (C4)
+        shell: bash
+        run: |
+          if [ -x scripts/color_guard.sh ]; then
+            scripts/color_guard.sh
+          else
+            echo "No color_guard.sh found; skipping palette check.";
+          fi
+
+      - name: Upload test results (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            **/coverage/**
+            **/test/**/golden/**
+

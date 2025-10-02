@@ -1,0 +1,52 @@
+# WildFire — Approved Color Palette (Gate C4)
+# Official Scottish wildfire risk scale + brand neutrals.
+# NOTE: Replace the placeholder hexes below with your final palette constants.
+
+
+# Risk levels (Very Low → Extreme)
+# VERY LOW
+#00B3FF
+# LOW
+#2ECC71
+# MODERATE
+#F1C40F
+# HIGH
+#E67E22
+# VERY HIGH
+#E74C3C
+# EXTREME
+#C0392B
+
+
+# Brand deep forest green (logo/text)
+#0B3D2E
+
+
+# Neutrals (UI)
+#000000
+#111111
+#222222
+#444444
+#666666
+#888888
+#AAAAAA
+#CCCCCC
+#DDDDDD
+#EEEEEE
+#F5F5F5
+#FFFFFF
+
+
+# Accent/Focus (if any)
+#1E90FF
+#FF4081
+
+
+# Map overlays (optional; set when Map feature lands)
+#FF0000
+#FFA500
+#FFFF00
+#00FF00
+#00FFFF
+#0000FF
+#800080
