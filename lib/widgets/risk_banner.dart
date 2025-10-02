@@ -3,6 +3,8 @@ import 'package:equatable/equatable.dart';
 import '../services/models/fire_risk.dart';
 import '../models/risk_level.dart';
 import '../theme/risk_palette.dart';
+import '../utils/time_format.dart';
+import 'badges/cached_badge.dart';
 
 /// State representation for the RiskBanner widget
 sealed class RiskBannerState extends Equatable {
@@ -112,8 +114,10 @@ class RiskBanner extends StatelessWidget {
     final textColor = _getTextColor(backgroundColor);
     final sourceName = _getSourceName(data.source);
 
-    // For now, we'll show a placeholder for relative time until T002 is implemented
-    final timeText = 'Updated ${_formatTimePlaceholder(data.observedAt)}';
+    final timeText = 'Updated ${formatRelativeTime(
+      utcNow: DateTime.now().toUtc(),
+      updatedUtc: data.observedAt,
+    )}';
 
     return Semantics(
       label:
@@ -162,22 +166,7 @@ class RiskBanner extends StatelessWidget {
 
                 // Cached badge if applicable
                 if (data.freshness == Freshness.cached)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0, vertical: 4.0),
-                    decoration: BoxDecoration(
-                      color: RiskPalette.midGray.withValues(alpha: 0.8),
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: const Text(
-                      'Cached',
-                      style: TextStyle(
-                        color: RiskPalette.white,
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
+                  const CachedBadge(),
               ],
             ),
 
@@ -215,7 +204,10 @@ class RiskBanner extends StatelessWidget {
         _getRiskLevelColor(cached.level).withValues(alpha: 0.6);
     final textColor = _getTextColor(backgroundColor);
     final sourceName = _getSourceName(cached.source);
-    final timeText = 'Updated ${_formatTimePlaceholder(cached.observedAt)}';
+    final timeText = 'Updated ${formatRelativeTime(
+      utcNow: DateTime.now().toUtc(),
+      updatedUtc: cached.observedAt,
+    )}';
 
     return Semantics(
       label:
@@ -289,22 +281,7 @@ class RiskBanner extends StatelessWidget {
                     ),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8.0, vertical: 4.0),
-                  decoration: BoxDecoration(
-                    color: RiskPalette.midGray.withValues(alpha: 0.8),
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: const Text(
-                    'Cached',
-                    style: TextStyle(
-                      color: RiskPalette.white,
-                      fontSize: 12.0,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+                const CachedBadge(),
               ],
             ),
 
@@ -451,17 +428,5 @@ class RiskBanner extends StatelessWidget {
     };
   }
 
-  /// Placeholder for time formatting (will be replaced in T002)
-  String _formatTimePlaceholder(DateTime observedAt) {
-    final now = DateTime.now().toUtc();
-    final difference = now.difference(observedAt);
 
-    if (difference.inMinutes < 60) {
-      return '${difference.inMinutes} min ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inDays} days ago';
-    } else {
-      return '${difference.inDays} days ago';
-    }
-  }
 }
