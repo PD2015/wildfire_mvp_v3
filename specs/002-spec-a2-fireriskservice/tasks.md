@@ -155,7 +155,7 @@ abstract class CacheService {
 ## Phase 4: Documentation & CI Compliance
 **Target**: Ensure production readiness
 
-### T005 [P] Update documentation and ensure CI compliance (spec:A2, gate:C1)
+### T005 [X] Update documentation and ensure CI compliance (spec:A2, gate:C1)
 **File**: `docs/CONTEXT.md` (if exists)
 - Update with FireRiskService fallback decision tree
 - Document Scotland boundary detection logic (9.0°W-1.0°E, 54.6°N-60.9°N)
