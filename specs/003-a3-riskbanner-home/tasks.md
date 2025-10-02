@@ -19,15 +19,16 @@ Creating a Flutter widget to display wildfire risk levels with Scottish Governme
 ## Phase 3.1: Widget & States Implementation
 **Task T001: Core RiskBanner Widget with State Management** ✅ ✅
 - **File**: `lib/widgets/risk_banner.dart`
-- **Purpose**: Main widget displaying wildfire risk with proper state handling
+- **Purpose**: Pure presentational widget displaying wildfire risk with proper state handling
 - **Labels**: spec:A3, gate:C1, gate:C3, gate:C4, gate:C5
 - **Requirements**:
-  - StatelessWidget consuming RiskBannerState via BlocBuilder
-  - Four visual states: loading (spinner), success (colored risk display), error (retry UI), offline/cached (with badge)
+  - StatelessWidget that accepts RiskBannerState state (no BlocBuilder inside). Parent decides state mgmt.
+  - Four visual states: loading (spinner), success (colored risk display), error (retry UI), error+cached (cached badge + cached level colors)
   - Main text: "Wildfire Risk: {LEVEL}" using RiskPalette colors
+  - Error state: when cached FireRisk provided, render cached badge and use RiskPalette.fromLevel(cached.level) for banner color
   - Source chip displaying data origin (EFFIS/SEPA/Cache/Mock)
   - Relative timestamp: "Updated {relative_time}"
-  - Retry callback for error states
+  - Show Retry button only when onRetry != null; optional callback parameter
   - Accessibility: semantic labels, minimum 44dp touch targets
   - No direct data fetching - consumes FireRisk model only
 - **Validation**:
@@ -39,14 +40,14 @@ Creating a Flutter widget to display wildfire risk levels with Scottish Governme
 
 ## Phase 3.2: Time Formatting & UI Utilities  
 **Task T002 [P]: Time Formatting and Badge Components**
-- **File**: `lib/utils/time_format.dart`
-- **Purpose**: UTC to local time conversion with relative formatting
+- **Files**: `lib/utils/time_format.dart`, `lib/widgets/badges/cached_badge.dart`
+- **Purpose**: UTC to local time conversion with relative formatting and cached data badges
 - **Labels**: spec:A3, gate:C4
 - **Requirements**:
-  - Function: `formatRelativeTime(DateTime utc) -> String`
-  - Outputs: "2 min ago", "1 hour ago", "3 days ago"
-  - Handle timezone conversion from UTC to local
-  - "Cached" badge component for offline/stale data indication
+  - Function: `formatRelativeTime({required DateTime nowUtc, required DateTime updatedUtc}) -> String`
+  - Keep outputs short: "Just now", "2 min ago", "1 hour ago", "3 days ago" (document in function header)
+  - Unit tests for boundary cases (59s, 60s, 59m, 60m, 23h, 24h)
+  - CachedBadge component at `lib/widgets/badges/cached_badge.dart` for offline/stale data indication
   - Integrate with RiskBanner for timestamp display
 - **Validation**:
   - Accurate relative time calculations
@@ -62,16 +63,21 @@ Creating a Flutter widget to display wildfire risk levels with Scottish Governme
 - **Labels**: spec:A3, gate:C1, gate:C3, gate:C5
 - **Requirements**:
   - **Widget Tests**:
-    - Color mapping validation for each risk level using RiskPalette
+    - Assert widget background equals RiskPalette.fromLevel(level) (not literal Color values)
+    - Error view shows Cached badge and uses RiskPalette.fromLevel(cached.level) for banner color when cached data provided
     - Timestamp visibility in all appropriate states
-    - Accessibility compliance: semantic labels, touch target sizes ≥44dp
-    - Retry callback wiring for error states
+    - Accessibility: semantic label "Current wildfire risk {LEVEL}, updated {relative time}. Source {EFFIS|SEPA|Cache|Mock}."
+    - Explicit RenderBox size assertion for Retry button and tappable chips (≥44dp)
+    - Test Retry button absence/presence behavior (onRetry != null)
     - State transition testing (loading→success→error flows)
   - **Golden Tests**:
-    - Light/dark theme variants for each risk level (Very Low→Very High)
+    - Light/dark theme variants for each risk level (Very Low→Very High→Extreme) - add {extreme_light.png, extreme_dark.png}
     - Store golden images under `test/goldens/risk_banner/`
     - Cached state visual verification
     - Error state with/without cached data
+  - **Test Helpers**:
+    - fakeFireRisk({level, source, freshness, observedAtUtc}) factory
+    - fakeSuccessState(level, source, freshness) factory
 - **Validation**:
   - All tests pass with proper mocking
   - Golden tests detect visual regressions
@@ -81,12 +87,13 @@ Creating a Flutter widget to display wildfire risk levels with Scottish Governme
 ## Phase 3.4: Documentation & CI Integration
 **Task T004 [P]: Documentation Updates and CI Validation**
 - **Files**: 
-  - `docs/UX-CUES.md` (if text changes)
+  - `docs/UX-CUES.md` (required for wording changes)
   - CI configuration validation
 - **Purpose**: Sync documentation and ensure CI compliance
 - **Labels**: spec:A3, gate:C1
 - **Requirements**:
-  - Update `docs/UX-CUES.md` if widget text patterns change
+  - Explicitly update `docs/UX-CUES.md` with any wording changes ("Updated {relative}" phrase, source-chip text)
+  - Confirm CI runs widget tests + goldens (goldens can be updated with --update-goldens locally)
   - Verify CI passes with new widget code
   - Ensure flutter analyze and dart format compliance
   - Validate accessibility testing integration in CI
