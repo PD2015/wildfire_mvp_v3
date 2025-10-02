@@ -165,8 +165,7 @@ class RiskBanner extends StatelessWidget {
                 ),
 
                 // Cached badge if applicable
-                if (data.freshness == Freshness.cached)
-                  const CachedBadge(),
+                if (data.freshness == Freshness.cached) const CachedBadge(),
               ],
             ),
 
@@ -427,6 +426,4 @@ class RiskBanner extends StatelessWidget {
       DataSource.mock => 'Mock',
     };
   }
-
-
 }

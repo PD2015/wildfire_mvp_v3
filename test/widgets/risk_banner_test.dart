@@ -58,12 +58,13 @@ void main() {
           );
 
           // Find the main container with risk level background color
-          final containers = tester.widgetList<Container>(find.byType(Container));
+          final containers =
+              tester.widgetList<Container>(find.byType(Container));
           final decoratedContainer = containers.firstWhere((container) {
             final decoration = container.decoration as BoxDecoration?;
-            return decoration?.color != null && 
-                   decoration!.color != Colors.transparent &&
-                   decoration.color != RiskPalette.lightGray;
+            return decoration?.color != null &&
+                decoration!.color != Colors.transparent &&
+                decoration.color != RiskPalette.lightGray;
           });
           final decoration = decoratedContainer.decoration as BoxDecoration;
           final expectedColor = _getRiskLevelColorTest(level);
@@ -153,7 +154,8 @@ void main() {
 
         // Check for semantic label containing risk level and data source
         expect(
-          find.bySemanticsLabel(RegExp(r'Current wildfire risk High.*data from EFFIS')),
+          find.bySemanticsLabel(
+              RegExp(r'Current wildfire risk High.*data from EFFIS')),
           findsOneWidget,
         );
       });
@@ -285,10 +287,10 @@ void main() {
 
         // Allow the widget to settle
         await tester.pumpAndSettle();
-        
+
         // Find the retry button text first (should always exist with onRetry callback)
         expect(find.text('Retry'), findsOneWidget);
-        
+
         // Find the button by text and check its container size
         final retryFinder = find.ancestor(
           of: find.text('Retry'),
@@ -463,8 +465,8 @@ FireRisk _fakeFireRisk({
     level: level,
     source: source,
     freshness: freshness,
-    observedAt:
-        observedAtUtc ?? DateTime.now().toUtc().subtract(const Duration(minutes: 30)),
+    observedAt: observedAtUtc ??
+        DateTime.now().toUtc().subtract(const Duration(minutes: 30)),
   );
 }
 
