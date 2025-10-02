@@ -28,6 +28,47 @@
 
 ---
 
+## T000: Privacy/Logging Helper
+**Files**: `lib/utils/location_utils.dart`
+**Labels**: spec:A4, gate:C2
+
+Create privacy-compliant logging helper to prove Gate C2 compliance:
+
+1. **Create logging utility** in `lib/utils/location_utils.dart`:
+   ```dart
+   class LocationUtils {
+     /// Privacy-compliant coordinate logging with 2 decimal precision
+     /// Prevents PII exposure in logs per Gate C2 requirements
+     static String logRedact(double lat, double lon) {
+       return '${lat.toStringAsFixed(2)},${lon.toStringAsFixed(2)}';
+     }
+     
+     /// Validate coordinate ranges
+     static bool isValidCoordinate(double lat, double lon) {
+       return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+     }
+   }
+   ```
+
+2. **Integration in LocationResolver**:
+   - Replace all raw coordinate logging with `LocationUtils.logRedact(lat, lon)`
+   - Ensure no debug prints or error messages expose full precision coordinates
+   - Add to export statements for service consumption
+
+3. **Test coverage requirements**:
+   - Unit tests verify logRedact() output format (exactly 2 decimal places)
+   - Integration tests scan all log output to ensure no raw coordinates leak
+   - Test edge cases: negative coordinates, extreme values, precision boundaries
+
+**Acceptance Criteria**:
+- [ ] logRedact() always outputs exactly 2 decimal places
+- [ ] No raw coordinates (>2 decimal precision) appear in any logs
+- [ ] Edge cases tested: (-90.123456, 180.987654) → "-90.12,180.99"
+- [ ] All LocationResolver logging uses logRedact() helper
+- [ ] Tests verify log output contains no PII coordinate exposure
+
+---
+
 ## T001: LocationResolver Service & Permission Handling
 **Files**: `lib/services/location_resolver.dart`, `lib/services/location_resolver_impl.dart`, `lib/models/location_models.dart`
 **Labels**: spec:A4, gate:C1, gate:C2, gate:C5
@@ -42,19 +83,25 @@ Implement core LocationResolver service with 4-tier fallback strategy and permis
 2. **Create interface** in `lib/services/location_resolver.dart`:
    ```dart
    abstract class LocationResolver {
-     Future<Either<LocationError, LatLng>> getLatLon();
+     Future<Either<LocationError, LatLng>> getLatLon({bool allowDefault = true});
      Future<void> saveManual(LatLng location, {String? placeName});
    }
    ```
 
 3. **Implement service** in `lib/services/location_resolver_impl.dart`:
-   - Scotland centroid constant: `LatLng(55.8642, -4.2518)`
-   - GPS attempt with 2-second timeout using geolocator
+   - Scotland centroid constant: `LatLng(56.5, -4.2)` (rural central location)
+   - Web/emulator guard: skip GPS attempts on unsupported platforms
+   - 5-tier fallback chain with 2.5s total resolution budget:
+     1. Last known device position (instant, via `getLastKnownPosition()`)
+     2. GPS fix with 2-second timeout using geolocator
+     3. SharedPreferences cached manual location
+     4. Manual entry (caller responsibility - return Left if allowDefault=false)
+     5. Scotland centroid (only if allowDefault=true)
    - Permission handling: granted → proceed, denied → fallback
    - Handle deniedForever without crashes
    - Mid-session permission changes handled gracefully
-   - Privacy-compliant logging: coordinates limited to 2 decimal places (C2)
-   - Fallback chain: GPS → cached → manual → Scotland centroid (C5)
+   - Privacy-compliant logging via `logRedact(lat, lon)` helper (C2)
+   - Headless service: no UI coupling, caller handles manual entry dialogs
 
 4. **Dependencies setup** in `pubspec.yaml`:
    ```yaml
@@ -71,12 +118,15 @@ Implement core LocationResolver service with 4-tier fallback strategy and permis
    - Add NSLocationWhenInUseUsageDescription to iOS Info.plist
 
 **Acceptance Criteria**:
-- [ ] GPS permission granted → returns actual coordinates
-- [ ] GPS permission denied → graceful fallback to Scotland centroid
+- [ ] Last known position available → returns immediately (<100ms)
+- [ ] GPS permission granted → returns GPS coordinates within 2s timeout
+- [ ] GPS permission denied + allowDefault=true → returns Scotland centroid
+- [ ] GPS permission denied + allowDefault=false → returns Left(permissionDenied)
+- [ ] Web/emulator platform → skips GPS, uses cache/manual/default path
 - [ ] Mid-session permission revocation → no crash, immediate fallback
-- [ ] GPS timeout (>2s) → fallback to cached or default
-- [ ] All coordinate logging limited to 2 decimal precision (C2)
-- [ ] Service never fails - always returns Right(LatLng) (C5)
+- [ ] GPS timeout (>2s) → fallback within 2.5s total budget
+- [ ] All coordinate logging via logRedact() helper (C2)
+- [ ] Headless service: no UI coupling, caller triggers manual entry (C5)
 
 ---
 
@@ -87,16 +137,21 @@ Implement core LocationResolver service with 4-tier fallback strategy and permis
 Implement manual coordinate entry dialog with validation and SharedPreferences persistence:
 
 1. **Create dialog widget** in `lib/widgets/manual_location_dialog.dart`:
-   - Two text fields: latitude and longitude
-   - Real-time validation for coordinate ranges
-   - Touch targets ≥44dp (C3)
-   - Semantic labels for screen readers (C3):
+   - Two text fields: latitude and longitude with proper input formatters:
      ```dart
-     semanticCounterText: 'Latitude coordinate'
-     semanticCounterText: 'Longitude coordinate' 
+     keyboardType: TextInputType.numberWithOptions(signed: true, decimal: true)
+     inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d*'))]
+     ```
+   - Real-time validation for coordinate ranges
+   - Touch targets ≥44dp with proper semantic labels (C3):
+     ```dart
+     Semantics(
+       label: 'Latitude coordinate input',
+       child: TextField(...)
+     )
      ```
    - Clear error messages for invalid input
-   - Save/Cancel buttons with proper key identifiers
+   - Save/Cancel buttons ≥44dp with semantic labels and key identifiers
 
 2. **Input validation logic**:
    - Latitude: [-90.0, 90.0] range
@@ -106,24 +161,30 @@ Implement manual coordinate entry dialog with validation and SharedPreferences p
    - Prevent save with invalid coordinates
 
 3. **Create persistence service** in `lib/services/location_cache.dart`:
-   - Save coordinates to SharedPreferences
-   - Restore coordinates on app restart
+   - Save coordinates to SharedPreferences with version field
+   - Restore coordinates on app restart with version compatibility check
    - Handle SharedPreferences corruption gracefully (C5)
-   - Cache keys: 'manual_location_lat', 'manual_location_lon', 'manual_location_place'
+   - Cache keys with version: 
+     - 'manual_location_version': '1.0' (for format compatibility)
+     - 'manual_location_lat': double value
+     - 'manual_location_lon': double value  
+     - 'manual_location_place': string (optional display name)
+     - 'manual_location_timestamp': int (milliseconds since epoch)
 
 4. **Integration with LocationResolver**:
-   - Manual entry triggered when GPS fails and no cache
-   - Successful manual entry persisted immediately
-   - Cache checked before manual entry dialog
+   - Manual entry is invoked by the caller (e.g., Home), not by the service
+   - A6/Home receives Left(permissionDenied|timeout) → opens ManualLocationDialog
+   - Successful manual entry persisted immediately via saveManual()
+   - Cache checked by service before returning Left to trigger manual entry
 
 **Acceptance Criteria**:
-- [ ] Dialog accepts valid coordinates (55.9533, -3.1883)
-- [ ] Dialog rejects invalid ranges (999, 999) with clear error
-- [ ] Touch targets meet 44dp minimum (C3)
-- [ ] Semantic labels present for accessibility (C3)
-- [ ] Manual location persists across app restart
+- [ ] Dialog accepts valid coordinates (55.9533, -3.1883) with proper input formatters
+- [ ] Dialog rejects invalid ranges (999, 999) with clear error messages
+- [ ] All touch targets (fields, buttons) meet 44dp minimum (C3)
+- [ ] Proper Semantics labels for screen readers, not semanticCounterText (C3)
+- [ ] Manual location persists across app restart with version compatibility
 - [ ] SharedPreferences corruption handled without crash (C5)
-- [ ] Dialog integrates with LocationResolver fallback chain
+- [ ] Dialog is triggered by A6/Home on Left(LocationError), not by service itself
 
 ---
 
@@ -134,29 +195,39 @@ Implement manual coordinate entry dialog with validation and SharedPreferences p
 Create comprehensive test suite covering all fallback scenarios and edge cases:
 
 1. **Unit tests** in `test/unit/services/location_resolver_test.dart`:
+   - Last known position available → returns immediately (<100ms with fakes)
    - GPS permission granted → returns GPS coordinates
-   - GPS permission denied → returns Scotland centroid
-   - GPS permission deniedForever → returns Scotland centroid
-   - GPS timeout (>2s) → fallback behavior
+   - GPS permission denied + allowDefault=true → returns Scotland centroid
+   - GPS permission denied + allowDefault=false → returns Left(permissionDenied)
+   - GPS permission deniedForever + allowDefault=false → returns Left(permissionDenied)
+   - GPS timeout (>2s) within 2.5s total budget → fallback behavior
+   - Web/emulator platform → skips GPS calls, uses cache/manual/default path
    - SharedPreferences corruption → graceful degradation (C5)
    - Mid-session permission revocation → no crash
    - Coordinate validation edge cases
    - Mock geolocator and SharedPreferences for controlled testing
+   - logRedact() helper never exposes raw coordinates in logs
 
 2. **Widget tests** in `test/widget/manual_location_dialog_test.dart`:
-   - Valid coordinate input accepted
-   - Invalid coordinate input rejected with error
-   - Touch target size validation ≥44dp (C3)
-   - Semantic label presence (C3)
-   - Save/Cancel button behavior
-   - Accessibility testing with semantic finders
+   - Valid coordinate input accepted with input formatters
+   - Invalid coordinate input rejected with clear error messages
+   - Input formatters prevent invalid characters (letters, multiple decimals)
+   - Touch target size validation ≥44dp for all interactive elements (C3)
+   - Proper Semantics labels (not semanticCounterText) for screen readers (C3)
+   - Save/Cancel button behavior with semantic labels
+   - Keyboard type validation (numberWithOptions)
+   - Accessibility testing with semantic finders and talkback simulation
 
 3. **Integration tests** in `test/integration/location_flow_test.dart`:
-   - Complete fallback chain: GPS → cache → manual → default
-   - Manual entry persistence across app restart
+   - Complete 5-tier fallback chain: last known → GPS → cache → manual → default
+   - allowDefault=true flow: returns Scotland centroid when no manual entry available
+   - allowDefault=false flow: returns Left to trigger manual entry dialog
+   - Manual entry persistence across app restart with version compatibility
    - Permission flow testing (granted/denied/deniedForever)
-   - Performance validation: <500ms location resolution
-   - SharedPreferences performance: <200ms read/write
+   - Performance validation with fakes: <500ms total resolution, <100ms last known
+   - 2.5s total budget enforcement using controlled fake timers
+   - SharedPreferences performance: <200ms read/write operations
+   - Web platform integration: skips GPS, uses alternative paths
 
 4. **Test scenarios from quickstart.md**:
    - Story 1: First app launch with GPS available
@@ -167,12 +238,14 @@ Create comprehensive test suite covering all fallback scenarios and edge cases:
    - Story 6: Mid-session permission changes
 
 **Acceptance Criteria**:
-- [ ] Unit test coverage >90% for all service methods
-- [ ] Widget tests verify accessibility compliance (C3)
-- [ ] Integration tests cover complete fallback chain (C5)
-- [ ] Performance tests validate GPS timeout and cache speed
+- [ ] Unit test coverage >90% for all service methods including allowDefault scenarios
+- [ ] Widget tests verify accessibility compliance with proper Semantics (C3)
+- [ ] Integration tests cover complete 5-tier fallback chain (C5)
+- [ ] Performance tests use fakes to validate budgets without CI flakiness
+- [ ] logRedact() helper tested to ensure no raw coordinates in logs (C2)
+- [ ] Web/emulator platform tests verify GPS calls are skipped
 - [ ] All quickstart user stories have corresponding test validation
-- [ ] Tests run without external dependencies (mocked GPS/permissions)
+- [ ] Tests run without external dependencies (mocked GPS/permissions/platform)
 
 ---
 
@@ -183,17 +256,19 @@ Create comprehensive test suite covering all fallback scenarios and edge cases:
 Update documentation and ensure CI pipeline validates implementation:
 
 1. **Update documentation** in `docs/CONTEXT.md`:
-   - Add LocationResolver service description
-   - Document fallback chain: GPS → cached → manual → Scotland centroid
-   - Include basic flow diagram (optional):
+   - Add LocationResolver service description with headless architecture
+   - Document 5-tier fallback chain with allowDefault parameter:
      ```
-     Location Request → GPS Available? → Yes → Return GPS
-                                      → No → Cache Available? → Yes → Return Cache
-                                                              → No → Manual Entry → Return Manual
-                                                                                  → Default → Scotland Centroid
+     Location Request → Last Known Available? → Yes → Return Last Known
+                                              → No → GPS Available? → Yes → Return GPS
+                                                                  → No → Cache Available? → Yes → Return Cache
+                                                                                          → No → allowDefault? → Yes → Scotland Centroid
+                                                                                                               → No → Left(LocationError)
      ```
-   - Document privacy compliance: coordinate precision limited to 2 decimals
-   - Integration guide for other services
+   - Document Scotland centroid choice: LatLng(56.5, -4.2) for rural/central bias avoidance
+   - Document privacy compliance via logRedact(lat, lon) helper
+   - Integration guide: A6/Home handles Left(LocationError) → ManualLocationDialog
+   - Persistence semantics with version compatibility and graceful corruption handling
 
 2. **Verify CI pipeline** in `.github/workflows/ci.yml`:
    - Ensure `flutter analyze` passes with no warnings (C1)
@@ -202,9 +277,18 @@ Update documentation and ensure CI pipeline validates implementation:
    - Add location permissions to test environment if needed
 
 3. **Create usage examples**:
-   - Basic integration pattern with FireRiskService
-   - Error handling examples
-   - Manual entry dialog usage
+   - Basic integration pattern with FireRiskService using allowDefault parameter
+   - Error handling examples for Left(LocationError) responses
+   - Manual entry dialog triggered by A6/Home, not service
+   - logRedact() helper usage for privacy-compliant logging:
+     ```dart
+     // CORRECT: Privacy-preserving logging
+     _logger.info('Location resolved: ${logRedact(lat, lon)}');
+     // Outputs: "Location resolved: 56.50,-4.20"
+     
+     // WRONG: Raw coordinates expose PII
+     _logger.info('Location: $lat,$lon'); // Violates C2 gate
+     ```
 
 4. **Constitutional compliance documentation**:
    - C1: Code quality standards and test coverage requirements
@@ -214,24 +298,29 @@ Update documentation and ensure CI pipeline validates implementation:
 
 **Acceptance Criteria**:
 - [ ] CI pipeline passes all checks: analyze, format, test
-- [ ] Documentation includes fallback chain explanation
-- [ ] Usage examples provided for integration
-- [ ] Constitutional compliance (C1, C2, C3, C5) documented
+- [ ] Documentation includes 5-tier fallback chain with allowDefault explanation
+- [ ] Scotland centroid choice (56.5, -4.2) documented as rural/central
+- [ ] logRedact() helper usage examples demonstrate C2 compliance
+- [ ] Persistence semantics with version compatibility documented
+- [ ] A6/Home integration patterns for headless service documented
+- [ ] Constitutional compliance (C1, C2, C3, C5) with concrete examples
 - [ ] No flutter analyze warnings or errors
 - [ ] All tests pass in CI environment
 
 ---
 
 ## Dependencies
-- **Sequential execution required**: T001 → T002 → T003 → T004
-- T001 creates foundation models and service interface
+- **Sequential execution required**: T000 → T001 → T002 → T003 → T004
+- T000 creates privacy/logging utilities used by all other tasks
+- T001 creates foundation models and service interface, uses T000 utilities
 - T002 depends on T001 models and service contract
-- T003 requires T001 and T002 implementations to test
-- T004 validates complete implementation from T001-T003
+- T003 requires T000-T002 implementations to test, validates logRedact() compliance
+- T004 validates complete implementation from T000-T003
 
 ## Parallel Opportunities
-- Within T001: Models and interface can be created in parallel
-- Within T003: Unit tests, widget tests, and integration tests can be developed in parallel after T001-T002
+- T000 can be developed independently and in parallel with early T001 work
+- Within T001: Models and interface can be created in parallel with T000
+- Within T003: Unit tests, widget tests, and integration tests can be developed in parallel after T000-T002
 - Within T004: Documentation and CI updates can be done in parallel
 
 ## Validation Commands
@@ -253,4 +342,4 @@ dart format --set-exit-if-changed .
 
 ---
 
-**Total**: 4 atomic tasks implementing A4 LocationResolver with constitutional compliance (C1, C2, C3, C5) and comprehensive test coverage.
+**Total**: 5 atomic tasks implementing A4 LocationResolver with constitutional compliance (C1, C2, C3, C5) and comprehensive test coverage including privacy-compliant logging utilities.
