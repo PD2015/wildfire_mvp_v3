@@ -4,12 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:http/http.dart' as http;
-import 'package:dartz/dartz.dart';
-import 'package:wildfire_mvp_v3/services/effis_service.dart';
 import 'package:wildfire_mvp_v3/services/effis_service_impl.dart';
 import 'package:wildfire_mvp_v3/models/api_error.dart';
-import 'package:wildfire_mvp_v3/models/effis_fwi_result.dart';
-import 'package:wildfire_mvp_v3/models/risk_level.dart';
 
 // Generate mocks
 @GenerateMocks([http.Client])
