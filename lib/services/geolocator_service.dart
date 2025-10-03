@@ -15,25 +15,28 @@ abstract class GeolocatorService {
 /// Production implementation using the real Geolocator
 class GeolocatorServiceImpl implements GeolocatorService {
   @override
-  Future<bool> isLocationServiceEnabled() => Geolocator.isLocationServiceEnabled();
-  
+  Future<bool> isLocationServiceEnabled() =>
+      Geolocator.isLocationServiceEnabled();
+
   @override
   Future<LocationPermission> checkPermission() => Geolocator.checkPermission();
-  
+
   @override
-  Future<LocationPermission> requestPermission() => Geolocator.requestPermission();
-  
+  Future<LocationPermission> requestPermission() =>
+      Geolocator.requestPermission();
+
   @override
   Future<Position?> getLastKnownPosition() => Geolocator.getLastKnownPosition(
-    forceAndroidLocationManager: false,
-  );
-  
+        forceAndroidLocationManager: false,
+      );
+
   @override
   Future<Position> getCurrentPosition({
     LocationAccuracy desiredAccuracy = LocationAccuracy.best,
     Duration? timeLimit,
-  }) => Geolocator.getCurrentPosition(
-    desiredAccuracy: desiredAccuracy,
-    timeLimit: timeLimit,
-  );
+  }) =>
+      Geolocator.getCurrentPosition(
+        desiredAccuracy: desiredAccuracy,
+        timeLimit: timeLimit,
+      );
 }

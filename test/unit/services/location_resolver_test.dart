@@ -20,12 +20,13 @@ void main() {
       fakeGeolocator = FakeGeolocator();
       fakePrefs = FakeSharedPreferences();
       logSpy = LogSpy();
-      
+
       // Set up SharedPreferences mock
       SharedPreferences.setMockInitialValues({});
-      
+
       // Create location resolver with dependency injection
-      locationResolver = LocationResolverImpl(geolocatorService: fakeGeolocator);
+      locationResolver =
+          LocationResolverImpl(geolocatorService: fakeGeolocator);
     });
 
     tearDown(() {
@@ -50,13 +51,14 @@ void main() {
 
         // Assert
         stopwatch.stop();
-        expect(stopwatch.elapsedMilliseconds, lessThan(100), 
-          reason: 'Last known position should return in <100ms');
-        
+        expect(stopwatch.elapsedMilliseconds, lessThan(100),
+            reason: 'Last known position should return in <100ms');
+
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
         expect(location.latitude, closeTo(TestData.edinburgh.latitude, 0.001));
-        expect(location.longitude, closeTo(TestData.edinburgh.longitude, 0.001));
+        expect(
+            location.longitude, closeTo(TestData.edinburgh.longitude, 0.001));
       });
 
       test('falls back to GPS when no last known position', () async {
@@ -79,13 +81,14 @@ void main() {
     });
 
     group('GPS Permission Handling', () {
-      test('GPS permission granted returns GPS coordinates within 2s timeout', () async {
+      test('GPS permission granted returns GPS coordinates within 2s timeout',
+          () async {
         // Arrange
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.whileInUse);
         fakeGeolocator.setLocationServiceEnabled(true);
         fakeGeolocator.setResponseDelay(Duration(milliseconds: 500));
-        
+
         final gpsPos = TestData.createPosition(
           latitude: TestData.london.latitude,
           longitude: TestData.london.longitude,
@@ -99,15 +102,16 @@ void main() {
 
         // Assert
         stopwatch.stop();
-        expect(stopwatch.elapsedMilliseconds, lessThan(2000), 
-          reason: 'GPS should complete within 2s timeout');
-        
+        expect(stopwatch.elapsedMilliseconds, lessThan(2000),
+            reason: 'GPS should complete within 2s timeout');
+
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
         expect(location.latitude, closeTo(TestData.london.latitude, 0.001));
       });
 
-      test('permission denied + allowDefault=true returns Scotland centroid', () async {
+      test('permission denied + allowDefault=true returns Scotland centroid',
+          () async {
         // Arrange
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.denied);
@@ -118,11 +122,15 @@ void main() {
         // Assert
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
-        expect(location.latitude, closeTo(TestData.scotlandCentroid.latitude, 0.001));
-        expect(location.longitude, closeTo(TestData.scotlandCentroid.longitude, 0.001));
+        expect(location.latitude,
+            closeTo(TestData.scotlandCentroid.latitude, 0.001));
+        expect(location.longitude,
+            closeTo(TestData.scotlandCentroid.longitude, 0.001));
       });
 
-      test('permission denied + allowDefault=false returns Left(permissionDenied)', () async {
+      test(
+          'permission denied + allowDefault=false returns Left(permissionDenied)',
+          () async {
         // Arrange
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.denied);
@@ -136,7 +144,8 @@ void main() {
         expect(error, equals(LocationError.permissionDenied));
       });
 
-      test('deniedForever + allowDefault=false returns Left(permissionDenied)', () async {
+      test('deniedForever + allowDefault=false returns Left(permissionDenied)',
+          () async {
         // Arrange
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.deniedForever);
@@ -157,8 +166,10 @@ void main() {
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.whileInUse);
         fakeGeolocator.setLocationServiceEnabled(true);
-        fakeGeolocator.setResponseDelay(Duration(seconds: 3)); // Exceeds 2s timeout
-        fakeGeolocator.setException(TimeoutException('GPS timeout', Duration(seconds: 2)));
+        fakeGeolocator
+            .setResponseDelay(Duration(seconds: 3)); // Exceeds 2s timeout
+        fakeGeolocator.setException(
+            TimeoutException('GPS timeout', Duration(seconds: 2)));
 
         final stopwatch = Stopwatch()..start();
 
@@ -167,12 +178,13 @@ void main() {
 
         // Assert
         stopwatch.stop();
-        expect(stopwatch.elapsedMilliseconds, lessThan(2500), 
-          reason: 'Total resolution should complete within 2.5s budget');
-        
+        expect(stopwatch.elapsedMilliseconds, lessThan(2500),
+            reason: 'Total resolution should complete within 2.5s budget');
+
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
-        expect(location.latitude, closeTo(TestData.scotlandCentroid.latitude, 0.001));
+        expect(location.latitude,
+            closeTo(TestData.scotlandCentroid.latitude, 0.001));
       });
     });
 
@@ -180,7 +192,7 @@ void main() {
       test('web/emulator platform skips GPS and uses fallback path', () async {
         // Note: In a real implementation, we would mock kIsWeb or platform detection
         // For this test, we simulate the behavior by configuring GPS as unavailable
-        
+
         // Arrange
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setLocationServiceEnabled(false);
@@ -191,7 +203,8 @@ void main() {
         // Assert
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
-        expect(location.latitude, closeTo(TestData.scotlandCentroid.latitude, 0.001));
+        expect(location.latitude,
+            closeTo(TestData.scotlandCentroid.latitude, 0.001));
       });
     });
 
@@ -200,7 +213,7 @@ void main() {
         // Arrange
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.denied);
-        
+
         // Set up cached location
         SharedPreferences.setMockInitialValues({
           'manual_location_version': '1.0',
@@ -216,14 +229,15 @@ void main() {
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
         expect(location.latitude, closeTo(TestData.edinburgh.latitude, 0.001));
-        expect(location.longitude, closeTo(TestData.edinburgh.longitude, 0.001));
+        expect(
+            location.longitude, closeTo(TestData.edinburgh.longitude, 0.001));
       });
 
       test('handles SharedPreferences corruption gracefully', () async {
         // Arrange
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.denied);
-        
+
         // Set up corrupted cache data
         SharedPreferences.setMockInitialValues({
           'manual_location_version': '1.0',
@@ -238,7 +252,8 @@ void main() {
         // Assert - should fall back to Scotland centroid without crashing
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
-        expect(location.latitude, closeTo(TestData.scotlandCentroid.latitude, 0.001));
+        expect(location.latitude,
+            closeTo(TestData.scotlandCentroid.latitude, 0.001));
       });
     });
 
@@ -254,8 +269,10 @@ void main() {
         // Assert - verify data was saved to SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         expect(prefs.getString('manual_location_version'), equals('1.0'));
-        expect(prefs.getDouble('manual_location_lat'), equals(testLocation.latitude));
-        expect(prefs.getDouble('manual_location_lon'), equals(testLocation.longitude));
+        expect(prefs.getDouble('manual_location_lat'),
+            equals(testLocation.latitude));
+        expect(prefs.getDouble('manual_location_lon'),
+            equals(testLocation.longitude));
         expect(prefs.getString('manual_location_place'), equals(placeName));
         expect(prefs.getInt('manual_location_timestamp'), isNotNull);
       });
@@ -265,7 +282,7 @@ void main() {
       test('all coordinate logging uses logRedact helper', () async {
         // Note: In a real implementation, we would inject a logger to capture output
         // This test verifies the logRedact helper is used correctly
-        
+
         // Arrange
         const testLat = 55.123456789;
         const testLon = -3.987654321;
@@ -281,11 +298,12 @@ void main() {
 
       test('logRedact handles edge cases correctly', () {
         // Test negative coordinates
-        expect(LocationUtils.logRedact(-90.123456, 180.987654), equals('-90.12,180.99'));
-        
+        expect(LocationUtils.logRedact(-90.123456, 180.987654),
+            equals('-90.12,180.99'));
+
         // Test zero values
         expect(LocationUtils.logRedact(0.0, 0.0), equals('0.00,0.00'));
-        
+
         // Test boundary values
         expect(LocationUtils.logRedact(90.0, -180.0), equals('90.00,-180.00'));
       });
@@ -297,7 +315,7 @@ void main() {
         expect(LocationUtils.isValidCoordinate(55.9533, -3.1883), isTrue);
         expect(LocationUtils.isValidCoordinate(90.0, 180.0), isTrue);
         expect(LocationUtils.isValidCoordinate(-90.0, -180.0), isTrue);
-        
+
         // Invalid coordinates
         expect(LocationUtils.isValidCoordinate(91.0, -3.1883), isFalse);
         expect(LocationUtils.isValidCoordinate(55.9533, 181.0), isFalse);
@@ -318,7 +336,8 @@ void main() {
         // Assert - should not crash and return default
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
-        expect(location.latitude, closeTo(TestData.scotlandCentroid.latitude, 0.001));
+        expect(location.latitude,
+            closeTo(TestData.scotlandCentroid.latitude, 0.001));
       });
 
       test('handles concurrent location requests', () async {
@@ -326,7 +345,7 @@ void main() {
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.whileInUse);
         fakeGeolocator.setResponseDelay(Duration(milliseconds: 100));
-        
+
         final gpsPos = TestData.createPosition(
           latitude: TestData.glasgow.latitude,
           longitude: TestData.glasgow.longitude,
@@ -359,23 +378,26 @@ void main() {
         final stopwatch = Stopwatch()..start();
         final result = await locationResolver.getLatLon();
         stopwatch.stop();
-        
+
         expect(result.isRight(), isTrue);
         expect(stopwatch.elapsedMilliseconds, lessThan(100));
       });
 
-      test('total resolution completes within 2.5s budget under adverse conditions', () async {
+      test(
+          'total resolution completes within 2.5s budget under adverse conditions',
+          () async {
         // Arrange - simulate slow GPS that will timeout
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.whileInUse);
         fakeGeolocator.setResponseDelay(Duration(seconds: 3));
-        fakeGeolocator.setException(TimeoutException('GPS timeout', Duration(seconds: 2)));
+        fakeGeolocator.setException(
+            TimeoutException('GPS timeout', Duration(seconds: 2)));
 
         // Act & Assert
         final stopwatch = Stopwatch()..start();
         final result = await locationResolver.getLatLon(allowDefault: true);
         stopwatch.stop();
-        
+
         expect(result.isRight(), isTrue);
         expect(stopwatch.elapsedMilliseconds, lessThan(2500));
       });

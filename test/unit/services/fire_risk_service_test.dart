@@ -147,8 +147,8 @@ void main() {
         // Test boundary conditions
         final validCoords = [
           [-90.0, -180.0], // Min bounds
-          [90.0, 180.0],   // Max bounds
-          [0.0, 0.0],      // Origin
+          [90.0, 180.0], // Max bounds
+          [0.0, 0.0], // Origin
         ];
 
         for (final coords in validCoords) {
@@ -237,23 +237,18 @@ void main() {
                 lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async => Right(effisFwiResult));
 
-        // TODO: Uncomment when FireRiskService implementation exists
-        // final result = await fireRiskService.getCurrent(
-        //   lat: newYorkLat, // Non-Scotland to skip SEPA
-        //   lon: newYorkLon,
-        // );
+        final result = await fireRiskService.getCurrent(
+          lat: newYorkLat, // Non-Scotland to skip SEPA
+          lon: newYorkLon,
+        );
 
         // Then: Should return EFFIS data with correct attribution
-        // expect(result.isRight(), isTrue);
-        // final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
-        // expect(fireRisk.source, DataSource.effis);
-        // expect(fireRisk.freshness, Freshness.live);
-        // expect(fireRisk.fwi, 18.5);
-        // expect(fireRisk.level, RiskLevel.moderate);
-
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason: 'T002: Test designed to fail until T003 implementation');
+        expect(result.isRight(), isTrue);
+        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
+        expect(fireRisk.source, DataSource.effis);
+        expect(fireRisk.freshness, Freshness.live);
+        expect(fireRisk.fwi, 18.5);
+        expect(fireRisk.level, RiskLevel.moderate);
       });
 
       test(
@@ -274,21 +269,16 @@ void main() {
                 lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async => Right(sepaFireRisk));
 
-        // TODO: Uncomment when FireRiskService implementation exists
-        // final result = await fireRiskService.getCurrent(
-        //   lat: edinburghLat, // Scotland coordinates
-        //   lon: edinburghLon,
-        // );
+        final result = await fireRiskService.getCurrent(
+          lat: edinburghLat, // Scotland coordinates
+          lon: edinburghLon,
+        );
 
         // Then: Should return SEPA data with correct attribution
-        // expect(result.isRight(), isTrue);
-        // final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
-        // expect(fireRisk.source, DataSource.sepa);
-        // expect(fireRisk.freshness, Freshness.live);
-
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason: 'T002: Test designed to fail until T003 implementation');
+        expect(result.isRight(), isTrue);
+        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
+        expect(fireRisk.source, DataSource.sepa);
+        expect(fireRisk.freshness, Freshness.live);
       });
 
       test(
@@ -313,21 +303,16 @@ void main() {
         when(mockCacheService.get(key: anyNamed('key')))
             .thenAnswer((_) async => Some(cachedFireRisk));
 
-        // TODO: Uncomment when FireRiskService implementation exists
-        // final result = await fireRiskService.getCurrent(
-        //   lat: edinburghLat,
-        //   lon: edinburghLon,
-        // );
+        final result = await fireRiskService.getCurrent(
+          lat: edinburghLat,
+          lon: edinburghLon,
+        );
 
         // Then: Should return cached data with correct attribution
-        // expect(result.isRight(), isTrue);
-        // final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
-        // expect(fireRisk.source, DataSource.effis); // Original source preserved
-        // expect(fireRisk.freshness, Freshness.cached);
-
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason: 'T002: Test designed to fail until T003 implementation');
+        expect(result.isRight(), isTrue);
+        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
+        expect(fireRisk.source, DataSource.effis); // Original source preserved
+        expect(fireRisk.freshness, Freshness.cached);
       });
 
       test('returns mock data with mock freshness as final fallback', () async {
@@ -343,22 +328,17 @@ void main() {
         when(mockCacheService.get(key: anyNamed('key')))
             .thenAnswer((_) async => none());
 
-        // TODO: Uncomment when FireRiskService implementation exists
-        // final result = await fireRiskService.getCurrent(
-        //   lat: edinburghLat,
-        //   lon: edinburghLon,
-        // );
+        final result = await fireRiskService.getCurrent(
+          lat: edinburghLat,
+          lon: edinburghLon,
+        );
 
         // Then: Should return mock data as final fallback
-        // expect(result.isRight(), isTrue);
-        // final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
-        // expect(fireRisk.source, DataSource.mock);
-        // expect(fireRisk.freshness, Freshness.mock);
-        // expect(fireRisk.fwi, isNull, reason: 'Mock service should not provide FWI');
-
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason: 'T002: Test designed to fail until T003 implementation');
+        expect(result.isRight(), isTrue);
+        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
+        expect(fireRisk.source, DataSource.mock);
+        expect(fireRisk.freshness, Freshness.mock);
+        expect(fireRisk.fwi, isNull, reason: 'Mock service should not provide FWI');
       });
     });
 
@@ -528,19 +508,14 @@ void main() {
         when(mockCacheService.get(key: anyNamed('key')))
             .thenThrow(Exception('Cache corrupted'));
 
-        // TODO: Uncomment when FireRiskService implementation exists
-        // final result = await fireRiskService.getCurrent(
-        //   lat: edinburghLat,
-        //   lon: edinburghLon,
-        // );
+        final result = await fireRiskService.getCurrent(
+          lat: edinburghLat,
+          lon: edinburghLon,
+        );
 
         // Then: Should handle exceptions and return mock fallback
-        // expect(result.isRight(), isTrue,
-        //     reason: 'Should handle all exceptions gracefully with mock fallback');
-
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason: 'T002: Test designed to fail until T003 implementation');
+        expect(result.isRight(), isTrue,
+            reason: 'Should handle all exceptions gracefully with mock fallback');
       });
 
       test('maintains fallback order: EFFIS → SEPA → Cache → Mock', () async {

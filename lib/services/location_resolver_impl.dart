@@ -20,6 +20,7 @@ class LocationResolverImpl implements LocationResolver {
   /// Uses production GeolocatorServiceImpl by default
   LocationResolverImpl({GeolocatorService? geolocatorService})
       : _geolocatorService = geolocatorService ?? GeolocatorServiceImpl();
+
   /// Scotland centroid - rural central location to avoid city bias
   static const LatLng _scotlandCentroid = LatLng(56.5, -4.2);
 
