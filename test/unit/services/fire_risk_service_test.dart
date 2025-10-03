@@ -86,31 +86,21 @@ void main() {
       });
 
       test('rejects positive infinity latitude', () async {
-        // TODO: Uncomment when FireRiskService implementation exists
-        // final result = await fireRiskService.getCurrent(
-        //   lat: double.infinity,
-        //   lon: edinburghLon,
-        // );
+        final result = await fireRiskService.getCurrent(
+          lat: double.infinity,
+          lon: edinburghLon,
+        );
 
-        // expect(result.isLeft(), isTrue);
-
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason: 'T002: Test designed to fail until T003 implementation');
+        expect(result.isLeft(), isTrue);
       });
 
       test('rejects negative infinity longitude', () async {
-        // TODO: Uncomment when FireRiskService implementation exists
-        // final result = await fireRiskService.getCurrent(
-        //   lat: edinburghLat,
-        //   lon: double.negativeInfinity,
-        // );
+        final result = await fireRiskService.getCurrent(
+          lat: edinburghLat,
+          lon: double.negativeInfinity,
+        );
 
-        // expect(result.isLeft(), isTrue);
-
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason: 'T002: Test designed to fail until T003 implementation');
+        expect(result.isLeft(), isTrue);
       });
 
       test('rejects latitude out of range (> 90)', () async {
@@ -127,68 +117,48 @@ void main() {
       });
 
       test('rejects latitude out of range (< -90)', () async {
-        // TODO: Uncomment when FireRiskService implementation exists
-        // final result = await fireRiskService.getCurrent(
-        //   lat: -91.0,
-        //   lon: edinburghLon,
-        // );
+        final result = await fireRiskService.getCurrent(
+          lat: -91.0,
+          lon: edinburghLon,
+        );
 
-        // expect(result.isLeft(), isTrue);
-
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason: 'T002: Test designed to fail until T003 implementation');
+        expect(result.isLeft(), isTrue);
       });
 
       test('rejects longitude out of range (> 180)', () async {
-        // TODO: Uncomment when FireRiskService implementation exists
-        // final result = await fireRiskService.getCurrent(
-        //   lat: edinburghLat,
-        //   lon: 181.0,
-        // );
+        final result = await fireRiskService.getCurrent(
+          lat: edinburghLat,
+          lon: 181.0,
+        );
 
-        // expect(result.isLeft(), isTrue);
-
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason: 'T002: Test designed to fail until T003 implementation');
+        expect(result.isLeft(), isTrue);
       });
 
       test('rejects longitude out of range (< -180)', () async {
-        // TODO: Uncomment when FireRiskService implementation exists
-        // final result = await fireRiskService.getCurrent(
-        //   lat: edinburghLat,
-        //   lon: -181.0,
-        // );
+        final result = await fireRiskService.getCurrent(
+          lat: edinburghLat,
+          lon: -181.0,
+        );
 
-        // expect(result.isLeft(), isTrue);
-
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason: 'T002: Test designed to fail until T003 implementation');
+        expect(result.isLeft(), isTrue);
       });
 
       test('accepts valid coordinate boundaries', () async {
-        // TODO: Uncomment when FireRiskService implementation exists
         // Test boundary conditions
-        // final validCoords = [
-        //   [-90.0, -180.0], // Min bounds
-        //   [90.0, 180.0],   // Max bounds
-        //   [0.0, 0.0],      // Origin
-        // ];
+        final validCoords = [
+          [-90.0, -180.0], // Min bounds
+          [90.0, 180.0],   // Max bounds
+          [0.0, 0.0],      // Origin
+        ];
 
-        // for (final coords in validCoords) {
-        //   final result = await fireRiskService.getCurrent(
-        //     lat: coords[0],
-        //     lon: coords[1],
-        //   );
-        //   expect(result.isRight(), isTrue,
-        //       reason: 'Valid coordinates should not return validation error');
-        // }
-
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason: 'T002: Test designed to fail until T003 implementation');
+        for (final coords in validCoords) {
+          final result = await fireRiskService.getCurrent(
+            lat: coords[0],
+            lon: coords[1],
+          );
+          expect(result.isRight(), isTrue,
+              reason: 'Valid coordinates should not return validation error');
+        }
       });
     });
 
