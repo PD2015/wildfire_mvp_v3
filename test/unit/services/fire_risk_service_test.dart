@@ -351,34 +351,35 @@ void main() {
             .thenAnswer(
                 (_) async => Left(ApiError(message: 'EFFIS unavailable')));
 
-        // TODO: This test depends on GeographicUtils.isInScotland() from T003
-        // final scotlandCoords = [
-        //   [55.9533, -3.1883], // Edinburgh
-        //   [57.4778, -4.2247], // Inverness
-        //   [60.3933, -1.1664], // Lerwick, Shetland
-        // ];
+        when(mockCacheService.get(key: anyNamed('key')))
+            .thenAnswer((_) async => none());
 
-        // for (final coords in scotlandCoords) {
-        //   reset(mockSepaService);
-        //   when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
-        //       .thenAnswer((_) async => Right(FireRisk.fromSepa(
-        //         level: RiskLevel.moderate,
-        //         observedAt: testDateTime,
-        //       )));
+        // Test with Scotland coordinates that should trigger SEPA fallback
+        final scotlandCoords = [
+          [55.9533, -3.1883], // Edinburgh
+          [57.4778, -4.2247], // Inverness
+          [60.3933, -1.1664], // Lerwick, Shetland
+        ];
 
-        //   final result = await fireRiskService.getCurrent(
-        //     lat: coords[0],
-        //     lon: coords[1],
-        //   );
+        for (final coords in scotlandCoords) {
+          reset(mockSepaService);
+          when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
+              .thenAnswer((_) async => Right(FireRisk.fromSepa(
+                level: RiskLevel.moderate,
+                observedAt: testDateTime,
+              )));
 
-        //   // Should attempt SEPA service for Scotland coordinates
-        //   verify(mockSepaService.getCurrent(lat: coords[0], lon: coords[1])).called(1);
-        // }
+          final result = await fireRiskService.getCurrent(
+            lat: coords[0],
+            lon: coords[1],
+          );
 
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason:
-                'T002: Test designed to fail until T003 implementation - requires GeographicUtils');
+          // Should attempt SEPA service for Scotland coordinates
+          verify(mockSepaService.getCurrent(lat: coords[0], lon: coords[1])).called(1);
+          expect(result.isRight(), isTrue);
+          final fireRisk = result.getOrElse(() => throw Exception('Should not reach here'));
+          expect(fireRisk.source, DataSource.sepa);
+        }
       });
 
       test('skips SEPA service for non-Scotland coordinates', () async {
@@ -390,109 +391,129 @@ void main() {
         when(mockCacheService.get(key: anyNamed('key')))
             .thenAnswer((_) async => none());
 
-        // TODO: This test depends on GeographicUtils.isInScotland() from T003
-        // final nonScotlandCoords = [
-        //   [40.7128, -74.0060], // New York
-        //   [51.5074, -0.1278],  // London
-        //   [48.8566, 2.3522],   // Paris
-        // ];
+        // Test with non-Scotland coordinates that should skip SEPA
+        final nonScotlandCoords = [
+          [40.7128, -74.0060], // New York
+          [51.5074, -0.1278],  // London
+          [48.8566, 2.3522],   // Paris
+        ];
 
-        // for (final coords in nonScotlandCoords) {
-        //   reset(mockSepaService);
-        //
-        //   final result = await fireRiskService.getCurrent(
-        //     lat: coords[0],
-        //     lon: coords[1],
-        //   );
+        for (final coords in nonScotlandCoords) {
+          reset(mockSepaService);
 
-        //   // Should NOT attempt SEPA service for non-Scotland coordinates
-        //   verifyNever(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')));
-        //   expect(result.isRight(), isTrue, reason: 'Should fallback to mock');
-        // }
+          final result = await fireRiskService.getCurrent(
+            lat: coords[0],
+            lon: coords[1],
+          );
 
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason:
-                'T002: Test designed to fail until T003 implementation - requires GeographicUtils');
+          // Should NOT attempt SEPA service for non-Scotland coordinates
+          verifyNever(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')));
+          expect(result.isRight(), isTrue, reason: 'Should fallback to mock');
+          final fireRisk = result.getOrElse(() => throw Exception('Should not reach here'));
+          expect(fireRisk.source, DataSource.mock, reason: 'Should use mock for non-Scotland coords');
+        }
       });
     });
 
     group('Deadline and Timing Budget', () {
       test('respects default 8-second deadline', () async {
-        // TODO: This test requires timing infrastructure from T003
         // Given: Services that respond within budget
-        // when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
-        //     .thenAnswer((_) async {
-        //       await Future.delayed(Duration(milliseconds: 100));
-        //       return Right(EffisFwiResult(
-        //         fwiValue: 15.0,
-        //         riskLevel: RiskLevel.moderate,
-        //         observedAt: testDateTime,
-        //       ));
-        //     });
+        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+            .thenAnswer((_) async {
+              await Future.delayed(Duration(milliseconds: 100));
+              return Right(EffisFwiResult(
+                fwi: 15.0,
+                dc: 200.0,
+                dmc: 50.0,
+                ffmc: 80.0,
+                isi: 5.0,
+                bui: 25.0,
+                datetime: testDateTime,
+                longitude: newYorkLon,
+                latitude: newYorkLat,
+              ));
+            });
 
-        // final stopwatch = Stopwatch()..start();
-        // final result = await fireRiskService.getCurrent(
-        //   lat: newYorkLat,
-        //   lon: newYorkLon,
-        // );
-        // stopwatch.stop();
+        final stopwatch = Stopwatch()..start();
+        final result = await fireRiskService.getCurrent(
+          lat: newYorkLat,
+          lon: newYorkLon,
+        );
+        stopwatch.stop();
 
-        // expect(result.isRight(), isTrue);
-        // expect(stopwatch.elapsedMilliseconds, lessThan(8000),
-        //     reason: 'Should complete within default 8-second deadline');
-
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason:
-                'T002: Test designed to fail until T003 implementation - requires timing infrastructure');
+        expect(result.isRight(), isTrue);
+        expect(stopwatch.elapsedMilliseconds, lessThan(8000),
+            reason: 'Should complete within default 8-second deadline');
       });
 
       test('accepts custom deadline parameter', () async {
-        // TODO: This test requires timing infrastructure from T003
-        // final customDeadline = Duration(seconds: 5);
-        //
-        // final result = await fireRiskService.getCurrent(
-        //   lat: edinburghLat,
-        //   lon: edinburghLon,
-        //   deadline: customDeadline,
-        // );
+        final customDeadline = Duration(seconds: 5);
+        
+        // Fast-responding EFFIS service
+        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+            .thenAnswer((_) async {
+          await Future.delayed(Duration(milliseconds: 50));
+          return Right(EffisFwiResult(
+            fwi: 12.0,
+            dc: 180.0,
+            dmc: 40.0,
+            ffmc: 75.0,
+            isi: 4.0,
+            bui: 20.0,
+            datetime: testDateTime,
+            longitude: edinburghLon,
+            latitude: edinburghLat,
+          ));
+        });
 
-        // expect(result.isRight(), isTrue,
-        //     reason: 'Should accept custom deadline parameter');
+        final result = await fireRiskService.getCurrent(
+          lat: edinburghLat,
+          lon: edinburghLon,
+          deadline: customDeadline,
+        );
 
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason:
-                'T002: Test designed to fail until T003 implementation - requires timing infrastructure');
+        expect(result.isRight(), isTrue,
+            reason: 'Should accept custom deadline parameter');
       });
 
       test('enforces per-service timeout budgets (EFFIS 3s, SEPA 2s, Cache 1s)',
           () async {
-        // TODO: This test requires detailed timing controls from T003
         // Given: EFFIS takes longer than 3s budget
-        // when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
-        //     .thenAnswer((_) async {
-        //       await Future.delayed(Duration(seconds: 4)); // Exceeds 3s budget
-        //       return Right(EffisFwiResult(
-        //         fwiValue: 15.0,
-        //         riskLevel: RiskLevel.moderate,
-        //         observedAt: testDateTime,
-        //       ));
-        //     });
+        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+            .thenAnswer((_) async {
+              await Future.delayed(Duration(seconds: 4)); // Exceeds 3s budget
+              return Right(EffisFwiResult(
+                fwi: 15.0,
+                dc: 210.0,
+                dmc: 55.0,
+                ffmc: 82.0,
+                isi: 6.0,
+                bui: 28.0,
+                datetime: testDateTime,
+                longitude: edinburghLon,
+                latitude: edinburghLat,
+              ));
+            });
 
-        // final result = await fireRiskService.getCurrent(
-        //   lat: edinburghLat,
-        //   lon: edinburghLon,
-        // );
+        // Mock SEPA for Scotland fallback
+        when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
+            .thenAnswer((_) async => Right(FireRisk.fromSepa(
+              level: RiskLevel.high,
+              observedAt: testDateTime,
+            )));
 
-        // // Should timeout EFFIS and proceed to SEPA (for Scotland coords)
-        // expect(result.isRight(), isTrue);
+        when(mockCacheService.get(key: anyNamed('key')))
+            .thenAnswer((_) async => none());
 
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason:
-                'T002: Test designed to fail until T003 implementation - requires timeout infrastructure');
+        final result = await fireRiskService.getCurrent(
+          lat: edinburghLat,
+          lon: edinburghLon,
+        );
+
+        // Should timeout EFFIS and proceed to SEPA (for Scotland coords)
+        expect(result.isRight(), isTrue);
+        final fireRisk = result.getOrElse(() => throw Exception('Should not reach here'));
+        expect(fireRisk.source, DataSource.sepa, reason: 'Should fallback to SEPA after EFFIS timeout');
       });
     });
 
@@ -519,34 +540,46 @@ void main() {
       });
 
       test('maintains fallback order: EFFIS → SEPA → Cache → Mock', () async {
-        // TODO: This test requires telemetry/logging infrastructure from T003
-        // Given: All services fail in sequence
-        // when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
-        //     .thenAnswer((_) async => Left(ApiError(message: 'EFFIS failed')));
-        // when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
-        //     .thenAnswer((_) async => Left(ApiError(message: 'SEPA failed')));
-        // when(mockCacheService.get(key: anyNamed('key')))
-        //     .thenAnswer((_) async => none());
+        // Create service with SpyTelemetry to verify fallback order
+        final spyTelemetry = SpyTelemetry();
+        final serviceWithTelemetry = FireRiskServiceImpl(
+          effisService: mockEffisService,
+          sepaService: mockSepaService,
+          cacheService: mockCacheService,
+          mockService: MockService.defaultStrategy(),
+          telemetry: spyTelemetry,
+        );
 
-        // final result = await fireRiskService.getCurrent(
-        //   lat: edinburghLat, // Scotland coords to test full chain
-        //   lon: edinburghLon,
-        // );
+        // Given: All services fail in sequence
+        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+            .thenAnswer((_) async => Left(ApiError(message: 'EFFIS failed')));
+        when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
+            .thenAnswer((_) async => Left(ApiError(message: 'SEPA failed')));
+        when(mockCacheService.get(key: anyNamed('key')))
+            .thenAnswer((_) async => none());
+
+        final result = await serviceWithTelemetry.getCurrent(
+          lat: edinburghLat, // Scotland coords to test full chain
+          lon: edinburghLon,
+        );
 
         // Then: Should attempt services in correct order
-        // final verificationOrder = verifyInOrder([
-        //   mockEffisService.getFwi(lat: edinburghLat, lon: edinburghLon),
-        //   mockSepaService.getCurrent(lat: edinburghLat, lon: edinburghLon),
-        //   mockCacheService.get(key: anyNamed('key')),
-        // ]);
+        verifyInOrder([
+          mockEffisService.getFwi(lat: edinburghLat, lon: edinburghLon),
+          mockSepaService.getCurrent(lat: edinburghLat, lon: edinburghLon),
+          mockCacheService.get(key: anyNamed('key')),
+        ]);
 
-        // expect(result.isRight(), isTrue);
-        // expect(result.getOrElse(() => throw Exception()).source, DataSource.mock);
+        expect(result.isRight(), isTrue);
+        final fireRisk = result.getOrElse(() => throw Exception('Should not reach here'));
+        expect(fireRisk.source, DataSource.mock);
 
-        // Placeholder test that will fail until T003
-        expect(true, isFalse,
-            reason:
-                'T002: Test designed to fail until T003 implementation - requires telemetry');
+        // Verify telemetry recorded attempts in correct order
+        final attemptEvents = spyTelemetry.eventsOfType<AttemptStartEvent>();
+        expect(attemptEvents.length, greaterThanOrEqualTo(3));
+        expect(attemptEvents[0].source, TelemetrySource.effis);
+        expect(attemptEvents[1].source, TelemetrySource.sepa);
+        expect(attemptEvents[2].source, TelemetrySource.cache);
       });
     });
   });
