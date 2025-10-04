@@ -128,6 +128,47 @@ class FireRisk extends Equatable {
     );
   }
 
+  /// Creates a copy with modified fields
+  FireRisk copyWith({
+    RiskLevel? level,
+    double? fwi,
+    DataSource? source,
+    DateTime? observedAt,
+    Freshness? freshness,
+  }) {
+    return FireRisk(
+      level: level ?? this.level,
+      fwi: fwi ?? this.fwi,
+      source: source ?? this.source,
+      observedAt: observedAt ?? this.observedAt,
+      freshness: freshness ?? this.freshness,
+    );
+  }
+
+  /// Serialize to JSON map
+  Map<String, dynamic> toJson() {
+    return {
+      'level': level.name,
+      'fwi': fwi,
+      'source': source.name,
+      'observedAt': observedAt.millisecondsSinceEpoch,
+      'freshness': freshness.name,
+    };
+  }
+
+  /// Deserialize from JSON map
+  factory FireRisk.fromJson(Map<String, dynamic> json) {
+    return FireRisk(
+      level: RiskLevel.values.firstWhere((e) => e.name == json['level']),
+      fwi: json['fwi']?.toDouble(),
+      source: DataSource.values.firstWhere((e) => e.name == json['source']),
+      observedAt:
+          DateTime.fromMillisecondsSinceEpoch(json['observedAt']).toUtc(),
+      freshness:
+          Freshness.values.firstWhere((e) => e.name == json['freshness']),
+    );
+  }
+
   @override
   List<Object?> get props => [level, fwi, source, observedAt, freshness];
 
