@@ -1,15 +1,19 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 // Service imports
 import 'services/fire_risk_service.dart';
+import 'services/fire_risk_service_impl.dart';
 import 'services/location_resolver.dart';
 import 'services/location_resolver_impl.dart';
+import 'services/contracts/service_contracts.dart';
+import 'services/effis_service_impl.dart';
+import 'services/mock_service.dart';
 
 // Model imports
 import 'models/api_error.dart';
-import 'models/risk_level.dart';
-import 'services/models/fire_risk.dart';
+import 'models/effis_fwi_result.dart';
 
 // Core imports
 import 'package:dartz/dartz.dart'
@@ -67,9 +71,25 @@ Future<ServiceContainer> _initializeServices() async {
   // Initialize location resolver (A4)
   final LocationResolver locationResolver = LocationResolverImpl();
 
-  // Initialize fire risk service (A2) - simplified for T004
-  // TODO: Wire full orchestrated FireRiskService in T005
-  final FireRiskService fireRiskService = _SimplifiedFireRiskService();
+  // Initialize HTTP client for network requests
+  final httpClient = http.Client();
+
+  // Initialize EFFIS service implementation (A1)
+  final effisServiceImpl = EffisServiceImpl(httpClient: httpClient);
+
+  // Create adapter to match contract interface
+  final EffisService effisService = _EffisServiceAdapter(effisServiceImpl);
+
+  // Initialize mock service for fallback
+  final MockService mockService = MockService.defaultStrategy();
+
+  // Initialize full orchestrated fire risk service (A2)
+  final FireRiskService fireRiskService = FireRiskServiceImpl(
+    effisService: effisService,
+    mockService: mockService,
+    // TODO: Add SEPA service when implemented
+    // TODO: Add cache service when implemented
+  );
 
   return ServiceContainer(
     locationResolver: locationResolver,
@@ -148,22 +168,18 @@ class AppLifecycleManager {
   }
 }
 
-/// Simplified FireRiskService for T004 initial integration
-/// TODO: Replace with full orchestrated FireRiskService in T005
-class _SimplifiedFireRiskService implements FireRiskService {
+/// Adapter to bridge EFFIS implementation with contract interface
+class _EffisServiceAdapter implements EffisService {
+  final EffisServiceImpl _impl;
+
+  _EffisServiceAdapter(this._impl);
+
   @override
-  Future<Either<ApiError, FireRisk>> getCurrent({
+  Future<Either<ApiError, EffisFwiResult>> getFwi({
     required double lat,
     required double lon,
-    Duration? deadline,
   }) async {
-    // Simple mock implementation for app integration
-    return Right(FireRisk(
-      level: RiskLevel.moderate,
-      fwi: 5.0,
-      source: DataSource.mock,
-      observedAt: DateTime.now().toUtc(),
-      freshness: Freshness.live,
-    ));
+    // Call the implementation with default parameters
+    return await _impl.getFwi(lat: lat, lon: lon);
   }
 }
