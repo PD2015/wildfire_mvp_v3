@@ -244,7 +244,8 @@ void main() {
 
         // Then: Should return EFFIS data with correct attribution
         expect(result.isRight(), isTrue);
-        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
+        final fireRisk =
+            result.getOrElse(() => throw Exception('Expected Right'));
         expect(fireRisk.source, DataSource.effis);
         expect(fireRisk.freshness, Freshness.live);
         expect(fireRisk.fwi, 18.5);
@@ -276,7 +277,8 @@ void main() {
 
         // Then: Should return SEPA data with correct attribution
         expect(result.isRight(), isTrue);
-        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
+        final fireRisk =
+            result.getOrElse(() => throw Exception('Expected Right'));
         expect(fireRisk.source, DataSource.sepa);
         expect(fireRisk.freshness, Freshness.live);
       });
@@ -310,7 +312,8 @@ void main() {
 
         // Then: Should return cached data with correct attribution
         expect(result.isRight(), isTrue);
-        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
+        final fireRisk =
+            result.getOrElse(() => throw Exception('Expected Right'));
         expect(fireRisk.source, DataSource.effis); // Original source preserved
         expect(fireRisk.freshness, Freshness.cached);
       });
@@ -335,10 +338,12 @@ void main() {
 
         // Then: Should return mock data as final fallback
         expect(result.isRight(), isTrue);
-        final fireRisk = result.getOrElse(() => throw Exception('Expected Right'));
+        final fireRisk =
+            result.getOrElse(() => throw Exception('Expected Right'));
         expect(fireRisk.source, DataSource.mock);
         expect(fireRisk.freshness, Freshness.mock);
-        expect(fireRisk.fwi, isNull, reason: 'Mock service should not provide FWI');
+        expect(fireRisk.fwi, isNull,
+            reason: 'Mock service should not provide FWI');
       });
     });
 
@@ -363,11 +368,12 @@ void main() {
 
         for (final coords in scotlandCoords) {
           reset(mockSepaService);
-          when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
+          when(mockSepaService.getCurrent(
+                  lat: anyNamed('lat'), lon: anyNamed('lon')))
               .thenAnswer((_) async => Right(FireRisk.fromSepa(
-                level: RiskLevel.moderate,
-                observedAt: testDateTime,
-              )));
+                    level: RiskLevel.moderate,
+                    observedAt: testDateTime,
+                  )));
 
           final result = await fireRiskService.getCurrent(
             lat: coords[0],
@@ -375,9 +381,11 @@ void main() {
           );
 
           // Should attempt SEPA service for Scotland coordinates
-          verify(mockSepaService.getCurrent(lat: coords[0], lon: coords[1])).called(1);
+          verify(mockSepaService.getCurrent(lat: coords[0], lon: coords[1]))
+              .called(1);
           expect(result.isRight(), isTrue);
-          final fireRisk = result.getOrElse(() => throw Exception('Should not reach here'));
+          final fireRisk =
+              result.getOrElse(() => throw Exception('Should not reach here'));
           expect(fireRisk.source, DataSource.sepa);
         }
       });
@@ -394,8 +402,8 @@ void main() {
         // Test with non-Scotland coordinates that should skip SEPA
         final nonScotlandCoords = [
           [40.7128, -74.0060], // New York
-          [51.5074, -0.1278],  // London
-          [48.8566, 2.3522],   // Paris
+          [51.5074, -0.1278], // London
+          [48.8566, 2.3522], // Paris
         ];
 
         for (final coords in nonScotlandCoords) {
@@ -407,10 +415,13 @@ void main() {
           );
 
           // Should NOT attempt SEPA service for non-Scotland coordinates
-          verifyNever(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')));
+          verifyNever(mockSepaService.getCurrent(
+              lat: anyNamed('lat'), lon: anyNamed('lon')));
           expect(result.isRight(), isTrue, reason: 'Should fallback to mock');
-          final fireRisk = result.getOrElse(() => throw Exception('Should not reach here'));
-          expect(fireRisk.source, DataSource.mock, reason: 'Should use mock for non-Scotland coords');
+          final fireRisk =
+              result.getOrElse(() => throw Exception('Should not reach here'));
+          expect(fireRisk.source, DataSource.mock,
+              reason: 'Should use mock for non-Scotland coords');
         }
       });
     });
@@ -418,21 +429,22 @@ void main() {
     group('Deadline and Timing Budget', () {
       test('respects default 8-second deadline', () async {
         // Given: Services that respond within budget
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
-              await Future.delayed(Duration(milliseconds: 100));
-              return Right(EffisFwiResult(
-                fwi: 15.0,
-                dc: 200.0,
-                dmc: 50.0,
-                ffmc: 80.0,
-                isi: 5.0,
-                bui: 25.0,
-                datetime: testDateTime,
-                longitude: newYorkLon,
-                latitude: newYorkLat,
-              ));
-            });
+          await Future.delayed(Duration(milliseconds: 100));
+          return Right(EffisFwiResult(
+            fwi: 15.0,
+            dc: 200.0,
+            dmc: 50.0,
+            ffmc: 80.0,
+            isi: 5.0,
+            bui: 25.0,
+            datetime: testDateTime,
+            longitude: newYorkLon,
+            latitude: newYorkLat,
+          ));
+        });
 
         final stopwatch = Stopwatch()..start();
         final result = await fireRiskService.getCurrent(
@@ -448,9 +460,10 @@ void main() {
 
       test('accepts custom deadline parameter', () async {
         final customDeadline = Duration(seconds: 5);
-        
+
         // Fast-responding EFFIS service
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
           await Future.delayed(Duration(milliseconds: 50));
           return Right(EffisFwiResult(
@@ -479,28 +492,30 @@ void main() {
       test('enforces per-service timeout budgets (EFFIS 3s, SEPA 2s, Cache 1s)',
           () async {
         // Given: EFFIS takes longer than 3s budget
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
-              await Future.delayed(Duration(seconds: 4)); // Exceeds 3s budget
-              return Right(EffisFwiResult(
-                fwi: 15.0,
-                dc: 210.0,
-                dmc: 55.0,
-                ffmc: 82.0,
-                isi: 6.0,
-                bui: 28.0,
-                datetime: testDateTime,
-                longitude: edinburghLon,
-                latitude: edinburghLat,
-              ));
-            });
+          await Future.delayed(Duration(seconds: 4)); // Exceeds 3s budget
+          return Right(EffisFwiResult(
+            fwi: 15.0,
+            dc: 210.0,
+            dmc: 55.0,
+            ffmc: 82.0,
+            isi: 6.0,
+            bui: 28.0,
+            datetime: testDateTime,
+            longitude: edinburghLon,
+            latitude: edinburghLat,
+          ));
+        });
 
         // Mock SEPA for Scotland fallback
-        when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockSepaService.getCurrent(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async => Right(FireRisk.fromSepa(
-              level: RiskLevel.high,
-              observedAt: testDateTime,
-            )));
+                  level: RiskLevel.high,
+                  observedAt: testDateTime,
+                )));
 
         when(mockCacheService.get(key: anyNamed('key')))
             .thenAnswer((_) async => none());
@@ -512,8 +527,10 @@ void main() {
 
         // Should timeout EFFIS and proceed to SEPA (for Scotland coords)
         expect(result.isRight(), isTrue);
-        final fireRisk = result.getOrElse(() => throw Exception('Should not reach here'));
-        expect(fireRisk.source, DataSource.sepa, reason: 'Should fallback to SEPA after EFFIS timeout');
+        final fireRisk =
+            result.getOrElse(() => throw Exception('Should not reach here'));
+        expect(fireRisk.source, DataSource.sepa,
+            reason: 'Should fallback to SEPA after EFFIS timeout');
       });
     });
 
@@ -536,7 +553,8 @@ void main() {
 
         // Then: Should handle exceptions and return mock fallback
         expect(result.isRight(), isTrue,
-            reason: 'Should handle all exceptions gracefully with mock fallback');
+            reason:
+                'Should handle all exceptions gracefully with mock fallback');
       });
 
       test('maintains fallback order: EFFIS → SEPA → Cache → Mock', () async {
@@ -551,9 +569,11 @@ void main() {
         );
 
         // Given: All services fail in sequence
-        when(mockEffisService.getFwi(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockEffisService.getFwi(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async => Left(ApiError(message: 'EFFIS failed')));
-        when(mockSepaService.getCurrent(lat: anyNamed('lat'), lon: anyNamed('lon')))
+        when(mockSepaService.getCurrent(
+                lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async => Left(ApiError(message: 'SEPA failed')));
         when(mockCacheService.get(key: anyNamed('key')))
             .thenAnswer((_) async => none());
@@ -571,7 +591,8 @@ void main() {
         ]);
 
         expect(result.isRight(), isTrue);
-        final fireRisk = result.getOrElse(() => throw Exception('Should not reach here'));
+        final fireRisk =
+            result.getOrElse(() => throw Exception('Should not reach here'));
         expect(fireRisk.source, DataSource.mock);
 
         // Verify telemetry recorded attempts in correct order

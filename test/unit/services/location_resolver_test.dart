@@ -57,16 +57,20 @@ void main() {
 
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
-        
+
         // On macOS, GPS is skipped by platform guard, so we get Scotland centroid
         // On mobile platforms, we would get the last known position
         if (Platform.isAndroid || Platform.isIOS) {
-          expect(location.latitude, closeTo(TestData.edinburgh.latitude, 0.001));
-          expect(location.longitude, closeTo(TestData.edinburgh.longitude, 0.001));
+          expect(
+              location.latitude, closeTo(TestData.edinburgh.latitude, 0.001));
+          expect(
+              location.longitude, closeTo(TestData.edinburgh.longitude, 0.001));
         } else {
           // macOS/desktop: platform guard triggers, falls back to Scotland centroid
-          expect(location.latitude, closeTo(TestData.scotlandCentroid.latitude, 0.001));
-          expect(location.longitude, closeTo(TestData.scotlandCentroid.longitude, 0.001));
+          expect(location.latitude,
+              closeTo(TestData.scotlandCentroid.latitude, 0.001));
+          expect(location.longitude,
+              closeTo(TestData.scotlandCentroid.longitude, 0.001));
         }
       });
 
@@ -91,10 +95,12 @@ void main() {
 
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
-        
+
         // On all platforms without GPS support (including macOS), falls back to Scotland centroid
-        expect(location.latitude, closeTo(TestData.scotlandCentroid.latitude, 0.001));
-        expect(location.longitude, closeTo(TestData.scotlandCentroid.longitude, 0.001));
+        expect(location.latitude,
+            closeTo(TestData.scotlandCentroid.latitude, 0.001));
+        expect(location.longitude,
+            closeTo(TestData.scotlandCentroid.longitude, 0.001));
       });
     });
 
@@ -125,14 +131,16 @@ void main() {
 
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
-        
+
         // On macOS/desktop, platform guard skips GPS and uses Scotland centroid
         if (Platform.isAndroid || Platform.isIOS) {
           expect(location.latitude, closeTo(TestData.london.latitude, 0.001));
           expect(location.longitude, closeTo(TestData.london.longitude, 0.001));
         } else {
-          expect(location.latitude, closeTo(TestData.scotlandCentroid.latitude, 0.001));
-          expect(location.longitude, closeTo(TestData.scotlandCentroid.longitude, 0.001));
+          expect(location.latitude,
+              closeTo(TestData.scotlandCentroid.latitude, 0.001));
+          expect(location.longitude,
+              closeTo(TestData.scotlandCentroid.longitude, 0.001));
         }
       });
 
@@ -386,14 +394,18 @@ void main() {
         for (final result in results) {
           expect(result.isRight(), isTrue);
           final location = result.getOrElse(() => TestData.scotlandCentroid);
-          
+
           // On macOS/desktop, platform guard skips GPS and uses Scotland centroid
           if (Platform.isAndroid || Platform.isIOS) {
-            expect(location.latitude, closeTo(TestData.glasgow.latitude, 0.001));
-            expect(location.longitude, closeTo(TestData.glasgow.longitude, 0.001));
+            expect(
+                location.latitude, closeTo(TestData.glasgow.latitude, 0.001));
+            expect(
+                location.longitude, closeTo(TestData.glasgow.longitude, 0.001));
           } else {
-            expect(location.latitude, closeTo(TestData.scotlandCentroid.latitude, 0.001));
-            expect(location.longitude, closeTo(TestData.scotlandCentroid.longitude, 0.001));
+            expect(location.latitude,
+                closeTo(TestData.scotlandCentroid.latitude, 0.001));
+            expect(location.longitude,
+                closeTo(TestData.scotlandCentroid.longitude, 0.001));
           }
         }
       });
