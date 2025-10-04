@@ -243,13 +243,23 @@ class EffisServiceImpl implements EffisService {
       return Left(_mapHttpStatusToApiError(response.statusCode, response.body));
     }
 
-    // Validate content type
+    // Validate content type - EFFIS returns XML, not JSON
     final contentType = response.headers['content-type'] ?? '';
-    if (!contentType.contains('application/json')) {
+    
+    // Debug: Print the actual response
+    print('🔍 EFFIS Response Content-Type: $contentType');
+    print('🔍 EFFIS Response Body (first 500 chars): ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}');
+
+    if (!contentType.contains('application/json') && !contentType.contains('text/xml')) {
       return Left(ApiError(
         message: 'Unsupported response format: $contentType',
         statusCode: response.statusCode,
       ));
+    }
+
+    // Handle XML response format (EFFIS default)
+    if (contentType.contains('text/xml')) {
+      return await _parseEffisXmlResponse(response.body);
     }
 
     // Parse JSON response
@@ -428,5 +438,15 @@ class EffisServiceImpl implements EffisService {
         (baseDelayMs + jitterMs).clamp(100, 30000); // Min 100ms, max 30s
 
     return Duration(milliseconds: totalDelayMs.toInt());
+  }
+
+  /// Temporary method to parse XML response from EFFIS WMS
+  Future<Either<ApiError, EffisFwiResult>> _parseEffisXmlResponse(String xmlBody) async {
+    print('🔍 Parsing EFFIS XML response...');
+    
+    // For now, return an error to see the XML structure
+    return Left(ApiError(
+      message: 'XML parsing not yet implemented - see debug output for structure',
+    ));
   }
 }

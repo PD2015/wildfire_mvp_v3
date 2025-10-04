@@ -83,6 +83,18 @@ Future<ServiceContainer> _initializeServices() async {
   // Initialize mock service for fallback
   final MockService mockService = MockService.defaultStrategy();
 
+  // DEBUG: Test the EFFIS service directly
+  print('🔍 Testing EFFIS service directly...');
+  try {
+    final testResult = await effisService.getFwi(lat: 37.42, lon: -122.08);
+    testResult.fold(
+      (error) => print('🔍 EFFIS direct test FAILED: ${error.message}'),
+      (result) => print('🔍 EFFIS direct test SUCCESS: FWI=${result.fwi}, Risk=${result.riskLevel}'),
+    );
+  } catch (e) {
+    print('🔍 EFFIS direct test EXCEPTION: $e');
+  }
+
   // Initialize full orchestrated fire risk service (A2)
   final FireRiskService fireRiskService = FireRiskServiceImpl(
     effisService: effisService,
