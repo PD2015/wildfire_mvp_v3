@@ -1,5 +1,5 @@
 import 'package:dartz/dartz.dart';
-import 'package:equatable/equatable.dart';
+import '../models/cache_metadata.dart';
 import 'cache/cache_error.dart';
 
 /// Generic cache service interface with TTL and spatial keying support
@@ -78,40 +78,4 @@ abstract class CacheService<T> {
   ///
   /// Returns: Number of entries removed
   Future<int> cleanup();
-}
-
-/// Cache metadata for monitoring and LRU eviction
-///
-/// Tracks cache state and access patterns for optimal cache management.
-class CacheMetadata extends Equatable {
-  const CacheMetadata({
-    required this.totalEntries,
-    required this.lastCleanup,
-    this.accessLog = const {},
-  });
-
-  /// Current number of entries in cache
-  final int totalEntries;
-
-  /// Last time cleanup() was called
-  final DateTime lastCleanup;
-
-  /// Access timestamp log for LRU eviction policy
-  final Map<String, DateTime> accessLog;
-
-  /// Check if cache has reached capacity (100 entries)
-  bool get isFull => totalEntries >= 100;
-
-  /// Get least recently used entry key for eviction
-  ///
-  /// Returns null if no access log entries exist.
-  String? get lruKey {
-    if (accessLog.isEmpty) return null;
-    return accessLog.entries
-        .reduce((a, b) => a.value.isBefore(b.value) ? a : b)
-        .key;
-  }
-
-  @override
-  List<Object?> get props => [totalEntries, lastCleanup, accessLog];
 }
