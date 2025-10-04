@@ -133,26 +133,28 @@ Flutter project structure:
 
 ---
 
-### T004: App Entry Point and Navigation Setup
+### ✅ T004: App Entry Point and Navigation Setup
 **Purpose**: Configure main app entry with home screen as initial route
 **Files**:
-- `lib/main.dart` (App initialization and theme)
-- `lib/app.dart` (MaterialApp configuration)
+- `lib/main.dart` (App initialization and theme) ✅
+- `lib/app.dart` (MaterialApp configuration) ✅
 
 **Requirements**:
-- MaterialApp with HomeScreen as initial route
-- Theme configuration with official Scottish risk colors (C4 compliance)
-- Wire A1-A5 services via constructors/Providers in main.dart (composition-root DI)
-- App lifecycle listener for debounced `controller.refresh()` on resume
-- Error boundary for unhandled exceptions
+- MaterialApp with HomeScreen as initial route ✅
+- Theme configuration with official Scottish risk colors (C4 compliance) ✅
+- Wire A1-A5 services via constructors/Providers in main.dart (composition-root DI) ✅
+- App lifecycle listener for debounced `controller.refresh()` on resume ✅
+- Error boundary for unhandled exceptions ✅
 
 **Acceptance Criteria**:
-- App launches to HomeScreen successfully
-- Theme uses approved color palette
-- Services properly injected via composition root (no service locator)
-- Navigation structure supports future screens
-- App lifecycle refresh works on foreground resume
-- Error handling prevents app crashes
+- App launches to HomeScreen successfully ✅
+- Theme uses approved color palette ✅
+- Services properly injected via composition root (no service locator) ✅
+- Navigation structure supports future screens ✅
+- App lifecycle refresh works on foreground resume ✅
+- Error handling prevents app crashes ✅
+
+**Status**: ✅ Complete - App successfully configured with MaterialApp, theme, and service composition root
 
 ---
 
@@ -180,20 +182,65 @@ Flutter project structure:
 
 **Status**: ✅ Complete - All constitutional gates passing, CI pipeline configured, documentation updated
 
+---
+
+### ✅ T006: iOS Location Permission Configuration
+**Purpose**: Configure iOS location permissions for GPS functionality
+**Files**:
+- `ios/Runner/Info.plist` (iOS permission descriptions) ✅
+
+**Requirements**:
+- Add NSLocationWhenInUseUsageDescription to Info.plist ✅
+- Provide user-friendly description for location permission request ✅
+- Ensure compatibility with geolocator plugin requirements ✅
+- Constitutional compliance: C4 (transparency in permission requests) ✅
+
+**Acceptance Criteria**:
+- iOS Info.plist contains proper location permission keys ✅
+- Permission dialog shows clear usage description ✅
+- geolocator plugin can request location permissions ✅
+- LocationResolver GPS tier functional on iOS devices ✅
+
+**Status**: ✅ Complete - iOS location permissions properly configured with user-friendly descriptions
+
+---
+
+### ✅ T007: Android Location Permission Configuration  
+**Purpose**: Configure Android location permissions for GPS functionality
+**Files**:
+- `android/app/src/main/AndroidManifest.xml` (Android permission declarations) ✅
+
+**Requirements**:
+- Add ACCESS_FINE_LOCATION permission to AndroidManifest.xml ✅
+- Add ACCESS_COARSE_LOCATION as fallback permission ✅
+- Ensure compatibility with geolocator plugin requirements ✅
+- Constitutional compliance: C4 (explicit permission declarations) ✅
+
+**Acceptance Criteria**:
+- AndroidManifest.xml contains required location permissions ✅
+- System can prompt users for location permissions ✅
+- geolocator plugin recognizes declared permissions ✅
+- LocationResolver GPS tier functional on Android devices ✅
+
+**Status**: ✅ Complete - Android location permissions properly configured for cross-platform GPS functionality
+
 ## Dependencies
 
 ```
 T001 (Models/Controller) → T002 (UI) → T003 (Tests) → T004 (App) → T005 (Docs)
+                                                     ↓
+                                           T006 (iOS Permissions) → T007 (Android Permissions)
 ```
 
 **Critical Path**:
-1. T001 must complete first (foundation state management)
-2. T002 requires T001 (UI needs controller)
-3. T003 requires T001-T002 (tests need implementation)
-4. T004 requires T001-T002 (app needs screen)
-5. T005 requires all previous (validation needs complete feature)
+1. T001 must complete first (foundation state management) ✅
+2. T002 requires T001 (UI needs controller) ✅
+3. T003 requires T001-T002 (tests need implementation) ✅
+4. T004 requires T001-T002 (app needs screen) ✅
+5. T005 requires all previous (validation needs complete feature) ✅
+6. T006-T007 can run parallel to T005 (platform configuration independent) ✅
 
-**No Parallel Tasks**: All tasks modify related components in sequence
+**Platform Configuration Tasks**: T006 and T007 are parallel and independent - iOS and Android permission setup
 
 ## Integration Points
 
@@ -270,6 +317,8 @@ MockFireRiskService.mockAllFail(); // Triggers mock fallback
 - [x] App launches to home screen successfully
 - [x] Constitutional compliance verified (C1, C3, C4, C5)
 - [x] Documentation updated with architecture details
+- [x] iOS location permissions configured for GPS functionality
+- [x] Android location permissions configured for GPS functionality
 
 **Performance Targets**:
 - Time to first paint: skeleton visible immediately
@@ -281,10 +330,12 @@ MockFireRiskService.mockAllFail(); // Triggers mock fallback
 ---
 
 **Estimated Timeline**: 4-6 hours total
-- T001: 90 minutes (core logic)
-- T002: 2 hours (UI + dialog)
-- T003: 2 hours (6 scenarios + a11y)
-- T004: 45 minutes (app setup)
-- T005: 30 minutes (docs + CI)
+- T001: 90 minutes (core logic) ✅
+- T002: 2 hours (UI + dialog) ✅
+- T003: 2 hours (6 scenarios + a11y) ✅
+- T004: 45 minutes (app setup) ✅
+- T005: 30 minutes (docs + CI) ✅
+- T006: 15 minutes (iOS permissions) ✅
+- T007: 15 minutes (Android permissions) ✅
 
 **Ready for Implementation**: All design artifacts complete, dependencies identified, constitutional compliance mapped.
