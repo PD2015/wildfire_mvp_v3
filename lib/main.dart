@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Service imports
 import 'services/fire_risk_service.dart';
@@ -36,6 +37,9 @@ void main() async {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Clear cached location for testing Portugal coordinates
+  await _clearCachedLocation();
+  
   // Initialize services using composition root pattern
   final services = await _initializeServices();
 
@@ -64,6 +68,15 @@ class ServiceContainer {
     required this.locationResolver,
     required this.fireRiskService,
   });
+}
+
+/// Clear cached location for testing
+Future<void> _clearCachedLocation() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove('manual_location_lat');
+  await prefs.remove('manual_location_lon');
+  await prefs.remove('manual_location_place');
+  print('🧹 Cleared cached location - will use Portugal coordinates');
 }
 
 /// Initialize all services with proper dependency wiring

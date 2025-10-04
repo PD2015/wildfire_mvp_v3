@@ -22,6 +22,7 @@ class LocationResolverImpl implements LocationResolver {
       : _geolocatorService = geolocatorService ?? GeolocatorServiceImpl();
 
   /// TEMP: Portugal coordinates for EFFIS data testing - known to have fire weather data
+  // Portugal coordinates - where we confirmed EFFIS has fire weather data
   static const LatLng _scotlandCentroid = LatLng(39.6, -9.1);
 
   /// Total resolution budget to prevent UI blocking

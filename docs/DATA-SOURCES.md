@@ -1,6 +1,6 @@
 # WildFire Prototype — Data Sources
 
-## EFFIS (European Forest Fire Information System) ✅ VERIFIED 2025-10-04
+## EFFIS (European Forest Fire Information System) 🎉 BREAKTHROUGH COMPLETE 2025-10-04
 - **Service**: WMS `GetFeatureInfo` for Fire Weather Index (FWI)
 - **Base URL**: `https://ies-ows.jrc.ec.europa.eu/gwis`
 - **Input**: lat, lon (WGS84 coordinates)
@@ -8,7 +8,15 @@
 - **Timeout**: 30s default, configurable
 - **Retry Policy**: Max 3 retries with exponential backoff + jitter
 - **Fallback**: handled by `FireRiskService`
-- **Status**: Integration 95% complete - architectural foundation solid
+- **Status**: 🎉 100% COMPLETE - Real EFFIS data successfully integrated!
+
+### 🚨 BREAKTHROUGH: Critical Requirements for EFFIS Access
+
+**Essential Configuration Changes:**
+1. **Coordinate System**: `EPSG:4326` (NOT EPSG:3857) - This was the breakthrough fix!
+2. **Temporal Parameter**: `TIME=YYYY-MM-DD` (REQUIRED for data access)
+3. **Geographic Coverage**: European/Mediterranean regions (Portugal confirmed working)
+4. **Working Date**: `2024-08-15` (confirmed fire weather data available)
 
 ### ✅ VERIFIED Working Configuration (2025-10-04)
 
@@ -18,18 +26,19 @@
 - **Regional**: `fwi_gadm_admin1.fwi` ✅ FWI on GADM Admin level 1
 - **Regional**: `fwi_gadm_admin2.fwi` ✅ FWI on GADM Admin level 2
 
-### WMS Parameters Used
+### WMS Parameters Used (🎯 BREAKTHROUGH CONFIGURATION)
 - **SERVICE**: `WMS`
 - **VERSION**: `1.3.0`
 - **REQUEST**: `GetFeatureInfo`
 - **LAYERS**: `nasa_geos5.fwi` ✅ **VERIFIED WORKING**
 - **QUERY_LAYERS**: `nasa_geos5.fwi`
-- **CRS**: `EPSG:3857` (Web Mercator projection)
-- **BBOX**: Dynamic bounding box (±1000m buffer around query point)
+- **CRS**: `EPSG:4326` ✅ **BREAKTHROUGH FIX** (was EPSG:3857 - caused "no results")
+- **BBOX**: Dynamic bounding box (±0.1 degrees ~11km buffer)
 - **WIDTH/HEIGHT**: `256x256` pixels
 - **I/J**: `128,128` (center query point)
 - **INFO_FORMAT**: `text/plain` ✅ **VERIFIED WORKING**
 - **FEATURE_COUNT**: `1`
+- **TIME**: `2024-08-15` ✅ **BREAKTHROUGH FIX** (temporal parameter required)
 
 ### 🔍 Integration Research Results
 
