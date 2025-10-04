@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../lib/models/location_models.dart';
-import '../../../lib/services/location_resolver_impl.dart';
-import '../../../lib/utils/location_utils.dart';
+import 'package:wildfire_mvp_v3/models/location_models.dart';
+import 'package:wildfire_mvp_v3/services/location_resolver_impl.dart';
+import 'package:wildfire_mvp_v3/utils/location_utils.dart';
 import '../../support/fakes.dart';
 
 void main() {
@@ -111,7 +111,7 @@ void main() {
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.whileInUse);
         fakeGeolocator.setLocationServiceEnabled(true);
-        fakeGeolocator.setResponseDelay(Duration(milliseconds: 500));
+        fakeGeolocator.setResponseDelay(const Duration(milliseconds: 500));
 
         final gpsPos = TestData.createPosition(
           latitude: TestData.london.latitude,
@@ -201,9 +201,9 @@ void main() {
         fakeGeolocator.setPermission(LocationPermission.whileInUse);
         fakeGeolocator.setLocationServiceEnabled(true);
         fakeGeolocator
-            .setResponseDelay(Duration(seconds: 3)); // Exceeds 2s timeout
+            .setResponseDelay(const Duration(seconds: 3)); // Exceeds 2s timeout
         fakeGeolocator.setException(
-            TimeoutException('GPS timeout', Duration(seconds: 2)));
+            TimeoutException('GPS timeout', const Duration(seconds: 2)));
 
         final stopwatch = Stopwatch()..start();
 
@@ -294,7 +294,7 @@ void main() {
     group('saveManual Integration', () {
       test('saveManual persists location to cache', () async {
         // Arrange
-        final testLocation = TestData.edinburgh;
+        const testLocation = TestData.edinburgh;
         const placeName = 'Edinburgh Castle';
 
         // Act
@@ -378,7 +378,7 @@ void main() {
         // Arrange
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.whileInUse);
-        fakeGeolocator.setResponseDelay(Duration(milliseconds: 100));
+        fakeGeolocator.setResponseDelay(const Duration(milliseconds: 100));
 
         final gpsPos = TestData.createPosition(
           latitude: TestData.glasgow.latitude,
@@ -435,9 +435,9 @@ void main() {
         // Arrange - simulate slow GPS that will timeout
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.whileInUse);
-        fakeGeolocator.setResponseDelay(Duration(seconds: 3));
+        fakeGeolocator.setResponseDelay(const Duration(seconds: 3));
         fakeGeolocator.setException(
-            TimeoutException('GPS timeout', Duration(seconds: 2)));
+            TimeoutException('GPS timeout', const Duration(seconds: 2)));
 
         // Act & Assert
         final stopwatch = Stopwatch()..start();

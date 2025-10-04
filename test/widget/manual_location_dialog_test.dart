@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../lib/models/location_models.dart';
-import '../../lib/widgets/manual_location_dialog.dart';
+import 'package:wildfire_mvp_v3/models/location_models.dart';
+import 'package:wildfire_mvp_v3/widgets/manual_location_dialog.dart';
 
 void main() {
   group('ManualLocationDialog Widget Tests', () {

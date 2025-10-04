@@ -432,7 +432,7 @@ void main() {
         when(mockEffisService.getFwi(
                 lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
-          await Future.delayed(Duration(milliseconds: 100));
+          await Future.delayed(const Duration(milliseconds: 100));
           return Right(EffisFwiResult(
             fwi: 15.0,
             dc: 200.0,
@@ -459,13 +459,13 @@ void main() {
       });
 
       test('accepts custom deadline parameter', () async {
-        final customDeadline = Duration(seconds: 5);
+        const customDeadline = Duration(seconds: 5);
 
         // Fast-responding EFFIS service
         when(mockEffisService.getFwi(
                 lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
-          await Future.delayed(Duration(milliseconds: 50));
+          await Future.delayed(const Duration(milliseconds: 50));
           return Right(EffisFwiResult(
             fwi: 12.0,
             dc: 180.0,
@@ -495,7 +495,7 @@ void main() {
         when(mockEffisService.getFwi(
                 lat: anyNamed('lat'), lon: anyNamed('lon')))
             .thenAnswer((_) async {
-          await Future.delayed(Duration(seconds: 4)); // Exceeds 3s budget
+          await Future.delayed(const Duration(seconds: 4)); // Exceeds 3s budget
           return Right(EffisFwiResult(
             fwi: 15.0,
             dc: 210.0,

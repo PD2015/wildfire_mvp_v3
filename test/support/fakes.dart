@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
-import '../../lib/models/location_models.dart';
-import '../../lib/services/geolocator_service.dart';
+import 'package:wildfire_mvp_v3/models/location_models.dart';
+import 'package:wildfire_mvp_v3/services/geolocator_service.dart';
 
 /// Fake timer for controlling time-dependent operations in tests
 class FakeTimer {
@@ -39,7 +39,7 @@ class FakeGeolocator implements GeolocatorService {
   LocationPermission _permission = LocationPermission.whileInUse;
   Position? _lastKnownPosition;
   Position? _currentPosition;
-  Duration _responseDelay = Duration(milliseconds: 100);
+  Duration _responseDelay = const Duration(milliseconds: 100);
   Exception? _exception;
 
   /// Configure whether location services are enabled
@@ -75,21 +75,21 @@ class FakeGeolocator implements GeolocatorService {
   /// Mock implementation of isLocationServiceEnabled
   @override
   Future<bool> isLocationServiceEnabled() async {
-    await Future.delayed(Duration(milliseconds: 10));
+    await Future.delayed(const Duration(milliseconds: 10));
     return _isLocationServiceEnabled;
   }
 
   /// Mock implementation of checkPermission
   @override
   Future<LocationPermission> checkPermission() async {
-    await Future.delayed(Duration(milliseconds: 10));
+    await Future.delayed(const Duration(milliseconds: 10));
     return _permission;
   }
 
   /// Mock implementation of requestPermission
   @override
   Future<LocationPermission> requestPermission() async {
-    await Future.delayed(Duration(milliseconds: 50));
+    await Future.delayed(const Duration(milliseconds: 50));
     // Simulate user interaction delay
     return _permission;
   }
@@ -97,7 +97,7 @@ class FakeGeolocator implements GeolocatorService {
   /// Mock implementation of getLastKnownPosition
   @override
   Future<Position?> getLastKnownPosition() async {
-    await Future.delayed(Duration(milliseconds: 5));
+    await Future.delayed(const Duration(milliseconds: 5));
     if (_exception != null) throw _exception!;
     return _lastKnownPosition;
   }
@@ -113,7 +113,7 @@ class FakeGeolocator implements GeolocatorService {
     if (_exception != null) throw _exception!;
 
     if (_currentPosition == null) {
-      throw LocationServiceDisabledException();
+      throw const LocationServiceDisabledException();
     }
 
     // Simulate timeout if response delay exceeds timeLimit
@@ -130,7 +130,7 @@ class FakeGeolocator implements GeolocatorService {
     _permission = LocationPermission.whileInUse;
     _lastKnownPosition = null;
     _currentPosition = null;
-    _responseDelay = Duration(milliseconds: 100);
+    _responseDelay = const Duration(milliseconds: 100);
     _exception = null;
   }
 }

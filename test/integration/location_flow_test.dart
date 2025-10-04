@@ -5,9 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../lib/models/location_models.dart';
-import '../../lib/services/location_resolver_impl.dart';
-import '../../lib/services/location_cache.dart';
+import 'package:wildfire_mvp_v3/models/location_models.dart';
+import 'package:wildfire_mvp_v3/services/location_resolver_impl.dart';
+import 'package:wildfire_mvp_v3/services/location_cache.dart';
 import '../support/fakes.dart';
 
 void main() {
@@ -75,7 +75,7 @@ void main() {
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.whileInUse);
         fakeGeolocator.setLocationServiceEnabled(true);
-        fakeGeolocator.setResponseDelay(Duration(milliseconds: 800));
+        fakeGeolocator.setResponseDelay(const Duration(milliseconds: 800));
 
         final gpsPos = TestData.createPosition(
           latitude: TestData.glasgow.latitude,
@@ -167,9 +167,9 @@ void main() {
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.whileInUse);
         fakeGeolocator.setLocationServiceEnabled(true);
-        fakeGeolocator.setResponseDelay(Duration(seconds: 3)); // Will timeout
+        fakeGeolocator.setResponseDelay(const Duration(seconds: 3)); // Will timeout
         fakeGeolocator.setException(
-            TimeoutException('GPS timeout', Duration(seconds: 2)));
+            TimeoutException('GPS timeout', const Duration(seconds: 2)));
 
         final stopwatch = Stopwatch()..start();
 
@@ -216,7 +216,7 @@ void main() {
     group('Manual Location Persistence', () {
       test('manual location persists across app restart simulation', () async {
         // Arrange - First session: save manual location
-        final testLocation = TestData.glasgow;
+        const testLocation = TestData.glasgow;
         const placeName = 'Glasgow City Centre';
 
         await locationResolver.saveManual(testLocation, placeName: placeName);
@@ -386,7 +386,7 @@ void main() {
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.whileInUse);
         fakeGeolocator.setLocationServiceEnabled(true);
-        fakeGeolocator.setResponseDelay(Duration(milliseconds: 200));
+        fakeGeolocator.setResponseDelay(const Duration(milliseconds: 200));
 
         final gpsPos = TestData.createPosition(
           latitude: TestData.glasgow.latitude,
@@ -414,7 +414,7 @@ void main() {
       test('saved manual location is immediately available in next request',
           () async {
         // Arrange
-        final testLocation = TestData.edinburgh;
+        const testLocation = TestData.edinburgh;
         const placeName = 'Test Location';
 
         // Configure GPS to fail so it uses cache
@@ -434,7 +434,7 @@ void main() {
 
       test('cache timestamp is updated on save', () async {
         // Arrange
-        final testLocation = TestData.glasgow;
+        const testLocation = TestData.glasgow;
         final beforeSave = DateTime.now().millisecondsSinceEpoch;
 
         // Act
@@ -500,7 +500,7 @@ void main() {
         fakeGeolocator.setPermission(LocationPermission.whileInUse);
         fakeGeolocator.setLocationServiceEnabled(true);
         fakeGeolocator.setException(
-            TimeoutException('GPS timeout', Duration(seconds: 2)));
+            TimeoutException('GPS timeout', const Duration(seconds: 2)));
 
         final stopwatch = Stopwatch()..start();
 
