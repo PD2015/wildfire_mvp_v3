@@ -16,13 +16,13 @@ class WildfireTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      
+
       // Primary color scheme based on brand forest green
       colorScheme: ColorScheme.fromSeed(
         seedColor: RiskPalette.brandForest,
         brightness: Brightness.light,
       ),
-      
+
       // App bar theme
       appBarTheme: const AppBarTheme(
         backgroundColor: RiskPalette.brandForest,
@@ -30,7 +30,7 @@ class WildfireTheme {
         elevation: 2,
         centerTitle: true,
       ),
-      
+
       // Card theme for consistent elevation and colors
       cardTheme: CardThemeData(
         elevation: 2,
@@ -39,7 +39,7 @@ class WildfireTheme {
         ),
         color: RiskPalette.white,
       ),
-      
+
       // Button themes with accessibility compliance
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -51,7 +51,7 @@ class WildfireTheme {
           ),
         ),
       ),
-      
+
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: RiskPalette.brandForest,
@@ -62,7 +62,7 @@ class WildfireTheme {
           ),
         ),
       ),
-      
+
       // Text theme with appropriate contrast
       textTheme: const TextTheme(
         headlineLarge: TextStyle(
@@ -84,15 +84,15 @@ class WildfireTheme {
           fontWeight: FontWeight.w500,
         ),
       ),
-      
+
       // Icon theme
       iconTheme: const IconThemeData(
         color: RiskPalette.midGray,
       ),
-      
+
       // Scaffold background
       scaffoldBackgroundColor: RiskPalette.white,
-      
+
       // Divider theme
       dividerTheme: const DividerThemeData(
         color: RiskPalette.lightGray,
@@ -100,19 +100,19 @@ class WildfireTheme {
       ),
     );
   }
-  
+
   /// Dark theme configuration
   static ThemeData get dark {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      
+
       // Primary color scheme for dark mode
       colorScheme: ColorScheme.fromSeed(
         seedColor: RiskPalette.brandForest,
         brightness: Brightness.dark,
       ),
-      
+
       // App bar theme for dark mode
       appBarTheme: const AppBarTheme(
         backgroundColor: RiskPalette.darkGray,
@@ -120,7 +120,7 @@ class WildfireTheme {
         elevation: 2,
         centerTitle: true,
       ),
-      
+
       // Card theme for dark mode
       cardTheme: CardThemeData(
         elevation: 2,
@@ -129,7 +129,7 @@ class WildfireTheme {
         ),
         color: RiskPalette.darkGray,
       ),
-      
+
       // Button themes for dark mode
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -141,7 +141,7 @@ class WildfireTheme {
           ),
         ),
       ),
-      
+
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: RiskPalette.white,
@@ -152,7 +152,7 @@ class WildfireTheme {
           ),
         ),
       ),
-      
+
       // Text theme for dark mode
       textTheme: const TextTheme(
         headlineLarge: TextStyle(
@@ -174,15 +174,15 @@ class WildfireTheme {
           fontWeight: FontWeight.w500,
         ),
       ),
-      
+
       // Icon theme for dark mode
       iconTheme: const IconThemeData(
         color: RiskPalette.lightGray,
       ),
-      
+
       // Scaffold background for dark mode
       scaffoldBackgroundColor: RiskPalette.black,
-      
+
       // Divider theme for dark mode
       dividerTheme: const DividerThemeData(
         color: RiskPalette.midGray,

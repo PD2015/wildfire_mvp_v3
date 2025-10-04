@@ -12,7 +12,8 @@ import 'models/risk_level.dart';
 import 'services/models/fire_risk.dart';
 
 // Core imports
-import 'package:dartz/dartz.dart' hide State; // Hide dartz State to avoid conflict with Flutter State
+import 'package:dartz/dartz.dart'
+    hide State; // Hide dartz State to avoid conflict with Flutter State
 
 // App imports
 import 'app.dart';
@@ -33,7 +34,7 @@ void main() async {
 
   // Initialize services using composition root pattern
   final services = await _initializeServices();
-  
+
   // Create home controller with injected services
   final homeController = HomeController(
     locationResolver: services.locationResolver,
@@ -42,7 +43,7 @@ void main() async {
 
   // Create app lifecycle manager
   final lifecycleManager = AppLifecycleManager(homeController);
-  
+
   // Start the app
   runApp(WildFireAppRoot(
     homeController: homeController,
@@ -63,13 +64,13 @@ class ServiceContainer {
 
 /// Initialize all services with proper dependency wiring
 Future<ServiceContainer> _initializeServices() async {
-    // Initialize location resolver (A4)
+  // Initialize location resolver (A4)
   final LocationResolver locationResolver = LocationResolverImpl();
-  
+
   // Initialize fire risk service (A2) - simplified for T004
   // TODO: Wire full orchestrated FireRiskService in T005
   final FireRiskService fireRiskService = _SimplifiedFireRiskService();
-  
+
   return ServiceContainer(
     locationResolver: locationResolver,
     fireRiskService: fireRiskService,
@@ -91,7 +92,8 @@ class WildFireAppRoot extends StatefulWidget {
   State<WildFireAppRoot> createState() => _WildFireAppRootState();
 }
 
-class _WildFireAppRootState extends State<WildFireAppRoot> with WidgetsBindingObserver {
+class _WildFireAppRootState extends State<WildFireAppRoot>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -120,7 +122,7 @@ class _WildFireAppRootState extends State<WildFireAppRoot> with WidgetsBindingOb
 class AppLifecycleManager {
   final HomeController _homeController;
   Timer? _debounceTimer;
-  
+
   static const Duration _debounceDuration = Duration(milliseconds: 500);
 
   AppLifecycleManager(this._homeController);

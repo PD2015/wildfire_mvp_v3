@@ -27,32 +27,33 @@ class WildFireApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'WildFire Risk Assessment',
-      
+
       // Theme configuration with official Scottish colors
       theme: WildfireTheme.light,
       darkTheme: WildfireTheme.dark,
       themeMode: ThemeMode.system,
-      
+
       // Accessibility and localization
       debugShowCheckedModeBanner: false,
-      
+
       // Initial route configuration
       home: HomeScreen(controller: homeController),
-      
+
       // Error handling for navigation
       builder: (context, child) {
         // Error boundary for unhandled exceptions
         ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
           return _buildErrorWidget(context, errorDetails);
         };
-        
+
         return child ?? const SizedBox.shrink();
       },
     );
   }
 
   /// Builds error widget for unhandled exceptions
-  Widget _buildErrorWidget(BuildContext context, FlutterErrorDetails errorDetails) {
+  Widget _buildErrorWidget(
+      BuildContext context, FlutterErrorDetails errorDetails) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Error'),
@@ -97,8 +98,8 @@ class WildFireApp extends StatelessWidget {
                 child: Text(
                   errorDetails.toString(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontFamily: 'monospace',
-                  ),
+                        fontFamily: 'monospace',
+                      ),
                 ),
               ),
             ],

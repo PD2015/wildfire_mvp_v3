@@ -140,6 +140,258 @@ if (cached.isSome()) {
 - Fire polygon rendering
 - Multi-user accounts
 
+# A6 Home Screen Architecture
+
+## HomeState Management
+
+**State Model (Sealed Class Hierarchy)**:
+```dart
+sealed class HomeState extends Equatable {
+  const HomeState();
+}
+
+class HomeLoading extends HomeState {
+  const HomeLoading();
+  // Display: Loading indicator with skeleton UI
+}
+
+class HomeSuccess extends HomeState {  
+  final FireRisk fireRisk;
+  final LatLng location;
+  final String formattedLocation;
+  
+  // Display: RiskBanner with live data, timestamp, source chip
+}
+
+class HomeError extends HomeState {
+  final String message;
+  final FireRisk? cachedRisk;  // May have cached data despite error
+  final LatLng? location;
+  
+  // Display: Error message + cached data (if available) + retry button
+}
+```
+
+## HomeController (ChangeNotifier Pattern)
+
+**State Management**:  
+- Extends `ChangeNotifier` for reactive UI updates
+- Constructor injection: `LocationResolver`, `FireRiskService`  
+- Methods: `load()`, `retry()`, `setManualLocation(LatLng)`
+- 8-second global deadline inherited from FireRiskService (A2)
+- Re-entrancy protection: disable retry during loading
+
+**Controller Lifecycle**:
+```dart
+HomeController({
+  required LocationResolver locationResolver,
+  required FireRiskService fireRiskService,
+}) {
+  // Auto-load on initialization
+  WidgetsBinding.instance.addPostFrameCallback((_) => load());
+}
+
+Future<void> load() async {
+  if (_isLoading) return; // Re-entrancy protection
+  
+  state = HomeLoading();
+  notifyListeners();
+  
+  try {
+    // Step 1: Resolve location
+    final locationResult = await locationResolver.getLatLon();
+    final location = locationResult.fold(
+      (error) => throw LocationException(error.toString()),
+      (latLng) => latLng,
+    );
+    
+    // Step 2: Get fire risk data  
+    final riskResult = await fireRiskService.getCurrent(
+      lat: location.latitude,
+      lon: location.longitude,
+    );
+    
+    riskResult.fold(
+      (error) => state = HomeError(
+        message: error.message,
+        cachedRisk: error.cachedData, // May include cached FireRisk
+        location: location,
+      ),
+      (fireRisk) => state = HomeSuccess(
+        fireRisk: fireRisk,
+        location: location,
+        formattedLocation: _formatLocation(location),
+      ),
+    );
+  } catch (e) {
+    state = HomeError(message: e.toString(), location: null);
+  }
+  
+  notifyListeners();
+}
+```
+
+**Privacy Compliance (C2)**:
+- All location logging uses `logRedact()` helper
+- No raw coordinates in logs or user-facing strings
+- Location formatting rounds to 2 decimal places maximum
+
+## HomeScreen UI Rendering Rules
+
+**State-Based Rendering**:
+```dart
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(title: Text('Wildfire Risk')),
+    body: Consumer<HomeController>(
+      builder: (context, controller, child) {
+        return switch (controller.state) {
+          HomeLoading() => _buildLoadingState(),
+          HomeSuccess(fireRisk: final risk, location: final loc) => 
+            _buildSuccessState(risk, loc),
+          HomeError(message: final msg, cachedRisk: final cached, location: final loc) => 
+            _buildErrorState(msg, cached, loc),
+        };
+      },
+    ),
+  );
+}
+```
+
+**Loading State**:
+- Skeleton UI with RiskBanner placeholder
+- Loading indicator with semantic label "Loading wildfire risk data"
+- No interactive elements during loading
+
+**Success State**:
+- RiskBanner component with live FireRisk data
+- Timestamp display: "Updated {relative time}" (e.g., "Updated 2 minutes ago")
+- Source chip: "Live", "EFFIS", "SEPA" based on `fireRisk.source`
+- Manual location button (44dp minimum) with semantic label
+
+**Error State with Cached Data**:
+- Error message at top with retry button (44dp minimum)
+- RiskBanner displays cached data with "Cached" badge
+- Clear visual distinction between error message and cached data
+- Timestamp shows cache age: "Cached data from {relative time}"
+
+**Error State without Cache**:
+- Error message with retry button
+- Mock data displayed with "Mock data" label
+- Clear indication this is fallback/sample data
+
+## Accessibility Compliance (C3)
+
+**Touch Targets**:
+- All interactive elements ≥44dp (iOS) / ≥48dp (Android) 
+- Retry button, manual location button, RiskBanner (if tappable)
+
+**Semantic Labels**:
+- Loading: "Loading wildfire risk data"
+- Retry: "Retry loading wildfire risk"
+- Manual location: "Set manual location"
+- RiskBanner includes: risk level, relative time, data source
+
+**Screen Reader Support**:
+- State announcements on loading/success/error transitions
+- Structured heading hierarchy in error states
+- Context-aware descriptions for cached vs live data
+
+## Manual Location Flow
+
+**Integration with LocationResolver (A4)**:
+1. GPS/cached location fails → `LocationResolver.getLatLng()` returns `Left(LocationError)`
+2. HomeController catches error → sets state to show manual entry option
+3. User taps "Set Manual Location" → opens `ManualLocationDialog`
+4. Dialog validates coordinates (-90≤lat≤90, -180≤lon≤180)
+5. On success → calls `LocationResolver.saveManual(LatLng, placeName?)`
+6. HomeController calls `load()` again → uses cached manual location
+
+**Manual Location Dialog**:
+- Two text inputs: Latitude, Longitude
+- Real-time validation with error messages
+- Save button disabled until valid coordinates entered
+- Cancel option returns to previous state
+
+## Retry and Timeout Handling
+
+**Retry Logic**:
+- Retry button available in all error states
+- Calls `HomeController.retry()` → identical to `load()`
+- Button disabled during loading to prevent re-entrancy
+- No limit on retry attempts (user-controlled)
+
+**Timeout Enforcement**:
+- 8-second global deadline from FireRiskService
+- No additional timeout at HomeController level
+- Loading state shows indefinitely until service responds or times out
+- Service timeout becomes HomeError state with retry option
+
+**Refresh on App Resume**:
+- AppLifecycleObserver in main.dart detects app resume
+- Debounced call to `HomeController.refresh()` after 500ms delay
+- Prevents excessive API calls during rapid app switching
+
+## Performance and Memory
+
+**Memory Management**:
+- HomeController properly disposed via widget lifecycle
+- Service instances shared via composition root (singleton pattern)
+- No memory leaks from listeners or streams
+
+**Performance Targets**:
+- Time to first skeleton: <100ms
+- Data loading deadline: 8s (service budget)
+- UI animations: 60fps
+- Memory usage: <50MB for home screen
+
+**Caching Strategy**:
+- FireRisk data cached automatically by CacheService (A5)
+- Location coordinates cached by LocationResolver (A4)
+- No additional UI-level caching required
+
+## Integration Testing Coverage
+
+**6 Core Scenarios**:
+1. **EFFIS Success**: Live data from EFFIS with proper source labeling
+2. **SEPA Success**: Scotland location → SEPA fallback with source chip
+3. **Cache Fallback**: Services fail → error state with cached data badge
+4. **Mock Fallback**: All fail → error state with mock data clearly labeled
+5. **Manual Location**: GPS denied → manual entry flow → success
+6. **Retry Flow**: Error state → retry button → loading → success
+
+**Additional Test Coverage**:
+- Dark mode rendering for all risk levels
+- Accessibility semantic labels and touch targets
+- Privacy compliance (no raw coordinates in logs)
+- Controller lifecycle (dispose without leaks)
+- Re-entrancy protection during loading
+- Scotland boundary detection accuracy
+
+## Constitutional Compliance Verification
+
+**C1: Code Quality**: 
+- `flutter analyze` passes with zero warnings
+- `dart format` enforced in CI
+- Test coverage >90% for HomeController and HomeScreen
+
+**C3: Accessibility**:
+- Widget tests verify ≥44dp touch targets
+- Semantic labels tested for screen readers
+- Color contrast meets WCAG AA standards
+
+**C4: Trust & Transparency**:
+- Timestamp visible in all success states
+- Source labeling (Live/Cached/Mock) always displayed
+- Official Scottish wildfire colors only
+- Clear error messages with context
+
+**C5: Resilience**:
+- Error states always provide retry mechanism
+- No silent failures (all errors surfaced to user)
+- Graceful degradation with cached/mock data
+- Re-entrancy protection prevents race conditions
+
 ## References
 - Constitution v1.0 (root)
 - `docs/DATA-SOURCES.md`

@@ -1,0 +1,251 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [ main, develop, 'feature/*', '**-a*-**' ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  analyze:
+    name: Analyze Code
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+        cache: true
+        
+    - name: Cache pub dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ${{ env.PUB_CACHE }}
+          ~/.pub-cache
+        key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pub-
+          
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Verify formatting
+      run: dart format --output=none --set-exit-if-changed .
+      
+    - name: Analyze project source
+      run: flutter analyze --no-fatal-infos
+      
+    - name: Check for hardcoded secrets (C2 compliance)
+      run: |
+        if grep -R --include="*.dart" -E "(api_key|apiKey|API_KEY|secret|Secret|SECRET|password|Password|PASSWORD|token|Token|TOKEN).*=.*['\"]" lib/; then
+          echo "❌ C2 FAIL: Hardcoded secret detected"
+          exit 1
+        else
+          echo "✅ C2 PASS: No hardcoded secrets found"
+        fi
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+        cache: true
+        
+    - name: Cache pub dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ${{ env.PUB_CACHE }}
+          ~/.pub-cache
+        key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pub-
+          
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Run unit tests
+      run: flutter test --coverage
+      
+    - name: Run integration tests
+      run: flutter test test/integration/
+      
+    - name: Check test coverage
+      run: |
+        # Install lcov for coverage reporting
+        sudo apt-get update
+        sudo apt-get install -y lcov
+        
+        # Generate coverage report
+        genhtml coverage/lcov.info -o coverage/html
+        
+        # Check coverage percentage
+        COVERAGE=$(lcov --summary coverage/lcov.info 2>/dev/null | grep lines | grep -o '[0-9.]*%')
+        echo "Test coverage: $COVERAGE"
+        
+        # Verify minimum coverage (>90% for C1 compliance)
+        COVERAGE_NUM=$(echo $COVERAGE | sed 's/%//')
+        if (( $(echo "$COVERAGE_NUM < 90" | bc -l) )); then
+          echo "❌ C1 FAIL: Test coverage $COVERAGE is below 90%"
+          exit 1
+        else
+          echo "✅ C1 PASS: Test coverage $COVERAGE meets requirement"
+        fi
+        
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: coverage/lcov.info
+        flags: unittests
+        name: wildfire-mvp-coverage
+
+  constitutional-compliance:
+    name: Constitutional Compliance (C1-C5)
+    runs-on: ubuntu-latest
+    needs: [analyze, test]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+        cache: true
+        
+    - name: Cache pub dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ${{ env.PUB_CACHE }}
+          ~/.pub-cache
+        key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pub-
+          
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Make constitution gates executable
+      run: chmod +x scripts/constitution-gates.sh
+      
+    - name: Run constitutional compliance checks
+      run: bash scripts/constitution-gates.sh
+      
+    - name: Verify accessibility compliance (C3)
+      run: |
+        echo "🔍 Checking for accessibility compliance..."
+        
+        # Check for semantic labels in widgets
+        if ! grep -r "Semantics\|semanticLabel\|excludeSemantics" lib/ > /dev/null; then
+          echo "⚠️  C3 WARNING: No semantic labels found, verify accessibility"
+        else
+          echo "✅ C3 PASS: Semantic labels detected"
+        fi
+        
+        # Check for proper touch target sizes
+        if ! grep -r "kMinInteractiveDimension\|44\|48" test/ > /dev/null; then
+          echo "⚠️  C3 WARNING: No touch target size tests found"
+        else
+          echo "✅ C3 PASS: Touch target size tests detected"
+        fi
+        
+    - name: Verify transparency compliance (C4)
+      run: |
+        echo "🔍 Checking for transparency compliance..."
+        
+        # Check for timestamp display
+        if ! grep -r "Updated\|Cached\|timestamp\|observedAt" lib/ > /dev/null; then
+          echo "❌ C4 FAIL: No timestamp/freshness indicators found"
+          exit 1
+        else
+          echo "✅ C4 PASS: Timestamp indicators found"
+        fi
+        
+        # Check for source labeling
+        if ! grep -r "source\|Source\|EFFIS\|SEPA\|Mock" lib/ > /dev/null; then
+          echo "❌ C4 FAIL: No data source labeling found"
+          exit 1
+        else
+          echo "✅ C4 PASS: Data source labeling found"
+        fi
+        
+    - name: Verify resilience compliance (C5)
+      run: |
+        echo "🔍 Checking for resilience compliance..."
+        
+        # Check for error handling
+        if ! grep -r "try\|catch\|Either\|Left\|Right" lib/ > /dev/null; then
+          echo "❌ C5 FAIL: No error handling patterns found"
+          exit 1
+        else
+          echo "✅ C5 PASS: Error handling patterns found"
+        fi
+        
+        # Check for retry mechanisms
+        if ! grep -r "retry\|Retry" lib/ > /dev/null; then
+          echo "❌ C5 FAIL: No retry mechanisms found"
+          exit 1
+        else
+          echo "✅ C5 PASS: Retry mechanisms found"
+        fi
+
+  build-test:
+    name: Build Test
+    runs-on: ubuntu-latest
+    needs: [constitutional-compliance]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+        cache: true
+        
+    - name: Cache pub dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ${{ env.PUB_CACHE }}
+          ~/.pub-cache
+        key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pub-
+          
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Build APK (Android)
+      run: flutter build apk --debug
+      
+    - name: Build Web
+      run: flutter build web --debug
+      
+    - name: Build iOS (dry run)
+      run: flutter build ios --debug --no-codesign
+      
+    - name: Verify builds completed
+      run: |
+        echo "✅ Android APK build: $(ls -la build/app/outputs/flutter-apk/app-debug.apk 2>/dev/null && echo 'SUCCESS' || echo 'FAILED')"
+        echo "✅ Web build: $(ls -la build/web/index.html 2>/dev/null && echo 'SUCCESS' || echo 'FAILED')"
+        echo "✅ iOS build: $(ls -la build/ios/Debug-iphonesimulator/ 2>/dev/null && echo 'SUCCESS' || echo 'FAILED')"

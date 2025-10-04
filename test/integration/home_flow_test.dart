@@ -40,17 +40,18 @@ class MockLocationResolver implements LocationResolver {
   }
 
   @override
-  Future<Either<LocationError, LatLng>> getLatLon({bool allowDefault = true}) async {
+  Future<Either<LocationError, LatLng>> getLatLon(
+      {bool allowDefault = true}) async {
     getLatLonCallCount++;
-    
+
     if (_returnError && _errorToReturn != null) {
       return Left(_errorToReturn!);
     }
-    
+
     if (_successLocation != null) {
       return Right(_successLocation!);
     }
-    
+
     // Default to Edinburgh
     return Right(const LatLng(55.9533, -3.1883));
   }
@@ -88,9 +89,10 @@ class MockFireRiskService implements FireRiskService {
   }
 
   @override
-  Future<Either<ApiError, FireRisk>> getCurrent({required double lat, required double lon, Duration? deadline}) async {
+  Future<Either<ApiError, FireRisk>> getCurrent(
+      {required double lat, required double lon, Duration? deadline}) async {
     getCurrentCallCount++;
-    
+
     if (responseDelay != null) {
       await Future.delayed(responseDelay!);
     }
@@ -102,7 +104,7 @@ class MockFireRiskService implements FireRiskService {
     if (_successData != null) {
       return Right(_successData!);
     }
-    
+
     // Default to success with EFFIS data
     return Right(FireRisk(
       level: RiskLevel.moderate,
@@ -118,7 +120,7 @@ class MockFireRiskService implements FireRiskService {
 ///
 /// Tests 6 critical scenarios with controlled service behavior:
 /// 1. EFFIS success flow → live data with 'EFFIS' source chip
-/// 2. SEPA success flow (Scotland coords) → 'SEPA' source chip  
+/// 2. SEPA success flow (Scotland coords) → 'SEPA' source chip
 /// 3. Cache fallback flow → Error state with cached data + 'Cached' badge
 /// 4. Mock fallback flow → Error state with 'Mock' source label
 /// 5. GPS denied → manual entry → success with coordinates
@@ -205,14 +207,14 @@ void main() {
         // Act
         await tester.pumpWidget(buildTestApp(homeController));
         await tester.pump(); // Initial frame
-        
+
         // Trigger load and wait for state change
         await tester.pump(const Duration(milliseconds: 100));
 
         // Assert - Should show success state with EFFIS source
         expect(find.text('EFFIS'), findsAtLeastNWidgets(1));
         expect(find.textContaining('Updated'), findsAtLeastNWidgets(1));
-        
+
         // Verify service calls
         expect(mockLocationResolver.getLatLonCallCount, equals(1));
         expect(mockFireRiskService.getCurrentCallCount, equals(1));
@@ -240,7 +242,8 @@ void main() {
     });
 
     group('Scenario 2: SEPA Success Flow (Scotland)', () {
-      testWidgets('shows SEPA source chip for Scotland coordinates', (tester) async {
+      testWidgets('shows SEPA source chip for Scotland coordinates',
+          (tester) async {
         // Arrange
         final testRisk = createFireRisk(
           level: RiskLevel.moderate,
@@ -260,14 +263,15 @@ void main() {
         // Assert - Should show SEPA source
         expect(find.text('SEPA'), findsAtLeastNWidgets(1));
         expect(find.textContaining('Updated'), findsAtLeastNWidgets(1));
-        
+
         // Verify Scotland coordinates were used
         expect(mockFireRiskService.getCurrentCallCount, equals(1));
       });
     });
 
     group('Scenario 3: Cache Fallback Flow', () {
-      testWidgets('shows error state with cached data and Cached badge', (tester) async {
+      testWidgets('shows error state with cached data and Cached badge',
+          (tester) async {
         // Arrange
         mockLocationResolver.mockSuccessWithLocation(edinburgh);
         mockFireRiskService.mockError(ApiError(message: 'Network error'));
@@ -286,10 +290,10 @@ void main() {
       testWidgets('retry button works after error', (tester) async {
         // Arrange
         mockLocationResolver.mockSuccessWithLocation(edinburgh);
-        
+
         // First call fails
         mockFireRiskService.mockError(ApiError(message: 'Network error'));
-        
+
         homeController = createController();
         await tester.pumpWidget(buildTestApp(homeController));
         await tester.pump(const Duration(milliseconds: 100));
@@ -299,7 +303,8 @@ void main() {
 
         // Reset mock to success for retry
         mockFireRiskService.reset();
-        mockFireRiskService.mockSuccess(createFireRisk(source: DataSource.effis));
+        mockFireRiskService
+            .mockSuccess(createFireRisk(source: DataSource.effis));
 
         // Act - Tap retry button
         await tester.tap(find.text('Retry'));
@@ -351,19 +356,20 @@ void main() {
       testWidgets('succeeds after manual location entry', (tester) async {
         // Arrange - Start with location error and successful fire risk service
         mockLocationResolver.mockError(LocationError.permissionDenied);
-        mockFireRiskService.mockSuccess(createFireRisk(source: DataSource.effis));
+        mockFireRiskService
+            .mockSuccess(createFireRisk(source: DataSource.effis));
 
         homeController = createController();
         await tester.pumpWidget(buildTestApp(homeController));
         await tester.pump(); // Initial render
-        
+
         // Should show error state initially
         expect(find.text('Set Location'), findsOneWidget);
 
         // Act - Set manual location (this updates the location resolver mock)
         mockLocationResolver.reset();
         mockLocationResolver.mockSuccessWithLocation(edinburgh);
-        
+
         // Trigger retry which will use the updated location
         await tester.tap(find.text('Retry'));
         await tester.pump(const Duration(milliseconds: 100));
@@ -391,7 +397,8 @@ void main() {
 
         // Mock successful retry
         mockFireRiskService.reset();
-        mockFireRiskService.mockSuccess(createFireRisk(source: DataSource.effis));
+        mockFireRiskService
+            .mockSuccess(createFireRisk(source: DataSource.effis));
 
         // Act - Tap retry
         await tester.tap(find.text('Retry'));
@@ -408,7 +415,8 @@ void main() {
         // Arrange
         mockLocationResolver.mockSuccessWithLocation(edinburgh);
         mockFireRiskService.responseDelay = const Duration(milliseconds: 500);
-        mockFireRiskService.mockSuccess(createFireRisk(source: DataSource.effis));
+        mockFireRiskService
+            .mockSuccess(createFireRisk(source: DataSource.effis));
 
         homeController = createController();
         await tester.pumpWidget(buildTestApp(homeController));
@@ -464,14 +472,15 @@ void main() {
         // Assert - Services are called with coordinates
         expect(mockLocationResolver.getLatLonCallCount, equals(1));
         expect(mockFireRiskService.getCurrentCallCount, equals(1));
-        
+
         // In real implementation, would verify log content uses redacted coordinates
         expect(true, isTrue); // Placeholder for actual log verification
       });
     });
 
     group('Controller Lifecycle', () {
-      testWidgets('controller can be created and used successfully', (tester) async {
+      testWidgets('controller can be created and used successfully',
+          (tester) async {
         // Arrange
         mockLocationResolver.mockSuccessWithLocation(edinburgh);
         mockFireRiskService.mockSuccess(createFireRisk());
@@ -489,7 +498,8 @@ void main() {
       testWidgets('controller state changes work correctly', (tester) async {
         // Arrange
         mockLocationResolver.mockSuccessWithLocation(edinburgh);
-        mockFireRiskService.mockSuccess(createFireRisk(source: DataSource.effis));
+        mockFireRiskService
+            .mockSuccess(createFireRisk(source: DataSource.effis));
 
         homeController = createController();
         await tester.pumpWidget(buildTestApp(homeController));
@@ -508,7 +518,7 @@ void main() {
         // Arrange
         mockLocationResolver.mockSuccessWithLocation(edinburgh);
         mockFireRiskService.mockError(ApiError(message: 'Test error'));
-        
+
         homeController = createController();
 
         // Act
@@ -533,7 +543,7 @@ void main() {
         // Arrange
         mockLocationResolver.mockSuccessWithLocation(edinburgh);
         mockFireRiskService.mockError(ApiError(message: 'Test error'));
-        
+
         homeController = createController();
 
         // Act
