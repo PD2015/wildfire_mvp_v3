@@ -13,6 +13,30 @@ import 'cache_error.dart';
 ///
 /// Provides persistent caching of FireRisk data with 6-hour TTL enforcement,
 /// 100-entry capacity limit, and least-recently-used eviction policy.
+///
+/// ## Cache Policies
+/// - **TTL**: 6-hour expiration with lazy cleanup on read operations
+/// - **Capacity**: Maximum 100 entries with LRU eviction when full
+/// - **Keys**: Geohash precision-5 (~4.9km spatial resolution) for privacy
+/// - **Timestamps**: UTC discipline prevents timezone corruption errors
+/// - **Versioning**: JSON entries include version field for migration safety
+///
+/// ## Privacy Compliance (C2)
+/// - Uses geohash spatial keys instead of raw coordinates in storage
+/// - ~4.9km resolution provides inherent coordinate obfuscation
+/// - No raw latitude/longitude values stored in SharedPreferences keys
+/// - Cache operations log geohash keys, never raw coordinates
+///
+/// ## Resilience (C5)
+/// - Graceful degradation: corruption/errors return cache miss (none())
+/// - Version checking prevents deserialization failures on format changes
+/// - Clock injection enables deterministic testing of TTL behavior
+/// - Atomic SharedPreferences operations prevent partial state corruption
+///
+/// ## Performance
+/// - Read operations: <200ms target with lazy expiration cleanup
+/// - Write operations: <100ms target with LRU maintenance
+/// - Non-blocking: All operations avoid UI thread blocking
 class FireRiskCacheImpl implements FireRiskCache {
   final SharedPreferences _prefs;
   final Clock _clock;
@@ -31,6 +55,18 @@ class FireRiskCacheImpl implements FireRiskCache {
   })  : _prefs = prefs,
         _clock = clock ?? SystemClock();
 
+  /// Retrieve cached FireRisk data by geohash key with TTL enforcement
+  ///
+  /// Performs lazy expiration cleanup: expired entries (>6h) are automatically
+  /// removed and treated as cache miss. Successful reads update LRU access time
+  /// and mark returned FireRisk with [Freshness.cached].
+  ///
+  /// Privacy: Uses geohash key instead of raw coordinates for storage lookup.
+  /// Resilience: Corrupted JSON entries gracefully return cache miss.
+  ///
+  /// Returns:
+  /// - [Some<FireRisk>] with freshness=cached if valid entry found
+  /// - [None] if key not found, expired, or corrupted
   @override
   Future<Option<FireRisk>> get(String geohashKey) async {
     try {
@@ -57,6 +93,12 @@ class FireRiskCacheImpl implements FireRiskCache {
     }
   }
 
+  /// Store FireRisk data by coordinates with geohash spatial keying
+  ///
+  /// Converts coordinates to precision-5 geohash (~4.9km resolution) for
+  /// privacy-compliant storage. Delegates to [setWithKey] for actual storage.
+  ///
+  /// Privacy: Raw coordinates never stored, only geohash spatial keys.
   @override
   Future<Either<CacheError, void>> set({
     required double lat,
@@ -67,6 +109,20 @@ class FireRiskCacheImpl implements FireRiskCache {
     return await setWithKey(geohashKey: geohash, data: data);
   }
 
+  /// Store FireRisk data with explicit geohash key and LRU maintenance
+  ///
+  /// Creates versioned JSON cache entry with UTC timestamp and stores in
+  /// SharedPreferences. Updates access time for LRU tracking and enforces
+  /// 100-entry capacity limit with LRU eviction when full.
+  ///
+  /// Operations performed atomically:
+  /// 1. Serialize entry with version field and UTC timestamp
+  /// 2. Store in SharedPreferences with geohash-prefixed key
+  /// 3. Update LRU access time for this entry
+  /// 4. Update total entry count metadata
+  /// 5. Enforce capacity limit with LRU eviction if needed
+  ///
+  /// Returns [Right(void)] on success, [Left(CacheError)] on failure.
   @override
   Future<Either<CacheError, void>> setWithKey({
     required String geohashKey,
@@ -102,6 +158,14 @@ class FireRiskCacheImpl implements FireRiskCache {
     }
   }
 
+  /// Remove specific cache entry and update LRU metadata
+  ///
+  /// Removes entry from SharedPreferences storage and cleans up associated
+  /// LRU access log entry. Updates total entry count to maintain accurate
+  /// capacity tracking for LRU eviction decisions.
+  ///
+  /// Returns true if entry existed and was removed, false otherwise.
+  /// Gracefully handles corruption by returning false on any exception.
   @override
   Future<bool> remove(String geohashKey) async {
     try {
@@ -116,6 +180,14 @@ class FireRiskCacheImpl implements FireRiskCache {
     }
   }
 
+  /// Clear all cache data and reset metadata atomically
+  ///
+  /// Removes all fire risk cache entries from SharedPreferences and resets
+  /// metadata including total entry count, LRU access log, and cleanup timestamp.
+  /// Provides complete cache reset capability for testing and maintenance.
+  ///
+  /// Handles corruption gracefully by silently continuing on removal failures.
+  /// Always attempts to reset metadata to ensure consistent state.
   @override
   Future<void> clear() async {
     try {
@@ -137,6 +209,15 @@ class FireRiskCacheImpl implements FireRiskCache {
     }
   }
 
+  /// Retrieve cache metadata with LRU access tracking
+  ///
+  /// Returns current cache state including total entry count, last cleanup
+  /// timestamp, and LRU access log for eviction decisions. Initializes
+  /// default metadata if not found in SharedPreferences.
+  ///
+  /// Gracefully handles JSON corruption by returning safe default metadata
+  /// with zero entries and current timestamp. Essential for capacity
+  /// management and LRU eviction algorithm operation.
   @override
   Future<CacheMetadata> getMetadata() async {
     try {
@@ -164,6 +245,16 @@ class FireRiskCacheImpl implements FireRiskCache {
     }
   }
 
+  /// Remove expired entries and corrupted data with TTL enforcement
+  ///
+  /// Scans all cache entries and removes those exceeding 6-hour TTL or
+  /// containing corrupted JSON. Updates LRU access log and entry count
+  /// metadata after cleanup. Records cleanup timestamp for observability.
+  ///
+  /// Returns count of entries removed for monitoring and debugging.
+  /// Handles corruption gracefully by removing invalid entries and
+  /// continuing cleanup process. Essential for maintaining cache health
+  /// and preventing unbounded growth in production environments.
   @override
   Future<int> cleanup() async {
     int removedCount = 0;

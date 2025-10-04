@@ -35,13 +35,13 @@ void main() {
       // Initialize SharedPreferences with empty mock data
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Create fake clock starting at specific time
       fakeClock = FakeClock(DateTime.utc(2025, 10, 4, 12, 0, 0));
-      
+
       // Create cache with fake clock
       cache = FireRiskCacheImpl(prefs: prefs, clock: fakeClock);
-      
+
       // Create test FireRisk data
       testFireRisk = FireRisk(
         level: RiskLevel.high,
@@ -55,7 +55,8 @@ void main() {
     group('TTL Enforcement', () {
       test('Case 1: set → advance +7h → get returns none()', () async {
         // Store entry
-        final result = await cache.set(lat: 55.9533, lon: -3.1883, data: testFireRisk);
+        final result =
+            await cache.set(lat: 55.9533, lon: -3.1883, data: testFireRisk);
         expect(result.isRight(), true);
 
         // Advance time by 7 hours (past 6h TTL)
@@ -87,7 +88,9 @@ void main() {
     });
 
     group('LRU Eviction', () {
-      test('Case 2: fill cache entries; access first; add more → LRU eviction works', () async {
+      test(
+          'Case 2: fill cache entries; access first; add more → LRU eviction works',
+          () async {
         // Fill cache with multiple entries
         for (int i = 0; i < 25; i++) {
           final lat = 55.0 + i * 0.01;
@@ -95,7 +98,8 @@ void main() {
         }
 
         // Access the first entry to make it recently used
-        final firstGeohash = GeohashUtils.encode(55.0, -3.0); // Should be 'gcvbg'
+        final firstGeohash =
+            GeohashUtils.encode(55.0, -3.0); // Should be 'gcvbg'
         final accessed = await cache.get(firstGeohash);
         expect(accessed.isSome(), true);
 
@@ -113,10 +117,12 @@ void main() {
     });
 
     group('Metadata and Edge Cases', () {
-      test('Case 3: metadata.accessLog empty → lruKey==null and no crash during cleanup', () async {
+      test(
+          'Case 3: metadata.accessLog empty → lruKey==null and no crash during cleanup',
+          () async {
         // Get metadata when cache is empty
         final metadata = await cache.getMetadata();
-        
+
         expect(metadata.accessLog.isEmpty, true);
         expect(metadata.lruKey, null);
         expect(metadata.totalEntries, 0);
@@ -139,17 +145,20 @@ void main() {
     });
 
     group('JSON Version and Corruption Handling', () {
-      test('Case 4: unsupported version in stored JSON → get returns none() (graceful)', () async {
+      test(
+          'Case 4: unsupported version in stored JSON → get returns none() (graceful)',
+          () async {
         final prefs = await SharedPreferences.getInstance();
-        
+
         // Manually store entry with unsupported version
         final badJson = jsonEncode({
           'version': '2.0', // Unsupported version
-          'timestamp': DateTime.utc(2025, 10, 4, 12, 0, 0).millisecondsSinceEpoch,
+          'timestamp':
+              DateTime.utc(2025, 10, 4, 12, 0, 0).millisecondsSinceEpoch,
           'geohash': 'gcvwr',
           'data': testFireRisk.toJson(),
         });
-        
+
         await prefs.setString('cache_entry_gcvwr', badJson);
 
         // Should gracefully handle unsupported version and return cache miss
@@ -157,9 +166,10 @@ void main() {
         expect(result.isNone(), true);
       });
 
-      test('Case 5: corrupt JSON string → get returns none() (graceful)', () async {
+      test('Case 5: corrupt JSON string → get returns none() (graceful)',
+          () async {
         final prefs = await SharedPreferences.getInstance();
-        
+
         // Manually store corrupt JSON
         await prefs.setString('cache_entry_gcvwr', 'invalid json string');
 
@@ -170,15 +180,16 @@ void main() {
 
       test('malformed entry data handled gracefully', () async {
         final prefs = await SharedPreferences.getInstance();
-        
+
         // Store JSON with missing required fields
         final badJson = jsonEncode({
           'version': '1.0',
-          'timestamp': DateTime.utc(2025, 10, 4, 12, 0, 0).millisecondsSinceEpoch,
+          'timestamp':
+              DateTime.utc(2025, 10, 4, 12, 0, 0).millisecondsSinceEpoch,
           'geohash': 'gcvwr',
           'data': {'incomplete': 'data'}, // Missing FireRisk fields
         });
-        
+
         await prefs.setString('cache_entry_gcvwr', badJson);
 
         // Should gracefully handle malformed data
@@ -188,14 +199,15 @@ void main() {
     });
 
     group('Freshness and Data Integrity', () {
-      test('Case 6: on hit → returned FireRisk has freshness==Freshness.cached', () async {
+      test('Case 6: on hit → returned FireRisk has freshness==Freshness.cached',
+          () async {
         // Store live data
         final liveRisk = testFireRisk.copyWith(freshness: Freshness.live);
         await cache.set(lat: 55.9533, lon: -3.1883, data: liveRisk);
 
         // Retrieve cached data
         final cached = await cache.get('gcvwr');
-        
+
         expect(cached.isSome(), true);
         cached.fold(
           () => fail('Expected some value'),
@@ -209,7 +221,8 @@ void main() {
     });
 
     group('Geohash Determinism', () {
-      test('Case 7: geohash determinism: encode(55.9533,-3.1883)== "gcvwr"', () async {
+      test('Case 7: geohash determinism: encode(55.9533,-3.1883)== "gcvwr"',
+          () async {
         final geohash = GeohashUtils.encode(55.9533, -3.1883);
         expect(geohash, 'gcvwr');
 
@@ -225,7 +238,7 @@ void main() {
         // Retrieve using manually computed geohash
         final manualGeohash = GeohashUtils.encode(55.9533, -3.1883);
         final cached = await cache.get(manualGeohash);
-        
+
         expect(cached.isSome(), true);
         expect(manualGeohash, 'gcvwr');
       });
@@ -235,7 +248,7 @@ void main() {
       test('remove operation works correctly', () async {
         // Store entry
         await cache.set(lat: 55.9533, lon: -3.1883, data: testFireRisk);
-        
+
         // Verify it exists
         final before = await cache.get('gcvwr');
         expect(before.isSome(), true);
@@ -278,7 +291,7 @@ void main() {
         await cache.getMetadata();
 
         stopwatch.stop();
-        
+
         // Should complete well under performance targets
         expect(stopwatch.elapsedMilliseconds, lessThan(500));
       });

@@ -167,7 +167,8 @@ void main() {
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.whileInUse);
         fakeGeolocator.setLocationServiceEnabled(true);
-        fakeGeolocator.setResponseDelay(const Duration(seconds: 3)); // Will timeout
+        fakeGeolocator
+            .setResponseDelay(const Duration(seconds: 3)); // Will timeout
         fakeGeolocator.setException(
             TimeoutException('GPS timeout', const Duration(seconds: 2)));
 

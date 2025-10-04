@@ -96,6 +96,44 @@ _logger.info('Location: $lat,$lon'); // NEVER do this
 - Graceful corruption handling → never crash, fallback to Scotland centroid
 - Web/emulator platform detection → skip GPS attempts, use cache/manual/default
 
+## CacheService (A5)
+
+Local cache for FireRisk data with 6-hour TTL and geohash spatial keying.
+
+**Architecture**:
+- **Storage**: SharedPreferences with JSON serialization
+- **Keying**: Geohash precision 5 (~4.9km spatial resolution)
+- **TTL**: 6-hour expiration with lazy cleanup
+- **Size**: Max 100 entries with LRU eviction
+- **Timestamps**: UTC discipline prevents timezone corruption
+- **Privacy**: Geohash keys provide inherent coordinate obfuscation
+
+**Integration** (FireRiskService fallback tier 3):
+```dart
+// Cache lookup in fallback chain
+final geohash = GeohashUtils.encode(lat, lon, precision: 5);
+final cached = await cacheService.get(geohash);
+if (cached.isSome()) {
+  return cached.value; // Already marked freshness=cached
+}
+// Continue to mock fallback...
+```
+
+**Performance Targets**:
+- Read operations: <200ms target
+- Write operations: <100ms target
+- Non-blocking UI thread operations
+
+**Privacy Compliance (C2)**:
+- Geohash keys in SharedPreferences (no raw coordinates)
+- ~4.9km spatial resolution prevents precise location identification
+- All cache operations use geohash logging instead of raw lat/lon
+
+**Resilience (C5)**:
+- Corruption-safe JSON parsing with graceful cache miss fallback
+- Version field in stored entries prevents deserialization errors
+- Clock injection enables deterministic TTL testing
+
 ## Non-Goals
 - Emergency compliance or alert certification
 - Push notifications

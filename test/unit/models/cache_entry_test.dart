@@ -98,7 +98,8 @@ void main() {
         fakeClock.setTime(baseTime.add(const Duration(hours: 6)));
         expect(entry.isExpired(fakeClock), isFalse); // Exactly 6 hours
 
-        fakeClock.setTime(baseTime.add(const Duration(hours: 6, milliseconds: 1)));
+        fakeClock
+            .setTime(baseTime.add(const Duration(hours: 6, milliseconds: 1)));
         expect(entry.isExpired(fakeClock), isTrue); // Just over 6 hours
       });
 
@@ -111,7 +112,7 @@ void main() {
 
         fakeClock.setTime(baseTime.add(const Duration(hours: 7)));
         expect(entry.isExpired(fakeClock), isTrue);
-        
+
         fakeClock.setTime(baseTime.add(const Duration(days: 1)));
         expect(entry.isExpired(fakeClock), isTrue);
       });
