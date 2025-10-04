@@ -76,7 +76,7 @@ import 'effis_service.dart';
 /// - Invalid coordinates → Non-retryable validation error
 /// - Malformed JSON response → Non-retryable parsing error
 class EffisServiceImpl implements EffisService {
-  static const String _baseUrl = 'https://ies-ows.jrc.ec.europa.eu/gwis';
+  static const String _baseUrl = 'https://ies-ows.jrc.ec.europa.eu/gwis';  // GWIS - proven working
   static const String _userAgent = 'WildFire/0.1 (prototype)';
   static const String _acceptHeader = 'application/json,*/*;q=0.8';
 
@@ -492,7 +492,7 @@ class EffisServiceImpl implements EffisService {
         final fwiValue = double.tryParse(fwiString ?? '');
         
         if (fwiValue != null) {
-          print('🎉 REAL EFFIS FWI VALUE: $fwiValue from nasa_geos5.query layer');
+          print('🎉 REAL GWIS FWI VALUE: $fwiValue from nasa_geos5.query layer');
           
           return Right(EffisFwiResult(
             fwi: fwiValue, // Actual FWI from EFFIS nasa_geos5.query layer

@@ -525,4 +525,60 @@ AFTER:  🔥🔥🔥 FIRE RISK RESULT: RiskLevel.high from DataSource.effis (FWI
 
 **GWIS Data Authority**: The integration leverages NASA's Goddard Earth Observing System Model (GEOS-5), the same atmospheric modeling system used by international wildfire management agencies and research institutions worldwide.
 
-**This research establishes the definitive foundation for GWIS/EFFIS WMS integration in the WildFire MVP application, providing authentic fire weather intelligence from the Global Wildfire Information System.**
+---
+
+## 🔄 EFFIS Direct Access Investigation (2025-10-04)
+
+### **Evaluation of Recommended EFFIS Configuration**
+
+Based on external analysis suggesting EFFIS layers are queryable, we conducted comprehensive testing of the recommended configuration:
+
+**Recommended Pattern (from EFFIS documentation)**:
+```
+https://maps.effis.emergency.copernicus.eu/effis
+?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo
+&SRS=EPSG:4326&LAYERS=ecmwf007.fwi&QUERY_LAYERS=ecmwf007.fwi
+&BBOX={lon_min},{lat_min},{lon_max},{lat_max}
+&WIDTH=256&HEIGHT=256&X=128&Y=128
+&TIME=YYYY-MM-DD&INFO_FORMAT=text/plain
+```
+
+### **Testing Results Summary**
+
+| Test Configuration | Result | Details |
+|-------------------|---------|---------|
+| **EFFIS ecmwf007.fwi** | ❌ LayerNotDefined | `queryable="0"` in GetCapabilities |
+| **EFFIS mf010.fwi** | ❌ LayerNotDefined | `queryable="0"` in GetCapabilities |  
+| **EFFIS mf010.query** | ⚠️ Limited Response | Returns "Feature 0:" only, no numeric values |
+| **GWIS nasa_geos5.query** | ✅ Full Success | Returns complete FWI data with numeric values |
+
+### **Key Findings**
+
+**EFFIS Limitations Identified**:
+1. **Layer Accessibility**: FWI layers marked as non-queryable in GetCapabilities
+2. **Cascaded Layers**: `ecmwf007.fwi` shows `cascaded="1"` preventing direct queries
+3. **Data Format**: Query responses lack the detailed numeric structure of GWIS
+4. **Documentation Gap**: Official documentation claims vs actual service behavior mismatch
+
+**GWIS Advantages Confirmed**:
+1. **Proven Reliability**: Consistent numeric FWI values (26.00584, 28.343298)
+2. **Rich Data Structure**: Complete 6-index Canadian Fire Weather System
+3. **Global Coverage**: NASA GEOS-5 model provides worldwide coverage
+4. **Service Stability**: No access restrictions or configuration barriers
+
+### **Final Decision: GWIS Retained**
+
+**Conclusion**: Despite documented recommendations for EFFIS direct access, **practical testing demonstrates GWIS remains the superior integration path** for reliable fire weather data retrieval.
+
+**Production Configuration** (Verified Working):
+```yaml
+endpoint: "https://ies-ows.jrc.ec.europa.eu/gwis"
+layer: "nasa_geos5.query"
+data_source: "GWIS (Global Wildfire Information System)"
+response_format: "value_0 = 'XX.XXXXXX'" # Real FWI values
+geographic_coverage: "Global (NASA GEOS-5 model)"
+```
+
+---
+
+**This research establishes the definitive foundation for GWIS integration in the WildFire MVP application, providing authentic fire weather intelligence from the Global Wildfire Information System, with comprehensive evaluation of alternative EFFIS approaches.**
