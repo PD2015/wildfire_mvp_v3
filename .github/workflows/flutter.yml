@@ -49,6 +49,13 @@ jobs:
       - name: Run tests (C1, C5)
         run: flutter test --platform=chrome --reporter expanded
 
+      - name: LocationResolver tests (A4 validation)
+        run: |
+          echo "Running A4 LocationResolver test suite..."
+          flutter test test/unit/services/location_resolver_test.dart --platform=chrome
+          flutter test test/widget/manual_location_dialog_test.dart --platform=chrome  
+          flutter test test/integration/location_flow_test.dart --platform=chrome
+
       - name: Secret scan with gitleaks (C2)
         uses: gitleaks/gitleaks-action@v2
         with:

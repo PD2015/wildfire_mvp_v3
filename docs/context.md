@@ -55,6 +55,47 @@ getCurrent(lat, lon) → FireRisk
 - No raw coordinates or place names in logs or telemetry
 - Geographic resolution ~1.1km prevents exact location identification
 
+## LocationResolver Service (A4)
+**Headless Location Architecture** — service provides coordinates, UI handles prompts:
+
+**5-Tier Fallback Chain** (2.5s total budget):
+```
+getLatLon(allowDefault) → Either<LocationError, LatLng>
+    ↓
+[1. Last Known Position] (<100ms) → Available? → Return immediately
+    ↓ Unavailable
+[2. GPS Fix] (2s timeout) → Permission granted? → GPS coordinates
+    ↓ Denied/Failed
+[3. SharedPreferences Cache] (<100ms) → Manual location cached? → Return cached
+    ↓ No cache
+[4. Manual Entry] → allowDefault=false? → Left(LocationError) → Caller opens dialog
+    ↓ allowDefault=true
+[5. Scotland Centroid] → LatLng(56.5, -4.2) [rural/central bias avoidance]
+```
+
+**Scotland Centroid Choice**: `LatLng(56.5, -4.2)` represents central rural location, avoiding urban bias toward Edinburgh/Glasgow while remaining within Scotland's geographic center for representative wildfire risk data.
+
+**Privacy & Logging (C2)**:
+```dart
+// CORRECT: Privacy-preserving coordinate logging
+_logger.info('Location resolved: ${LocationUtils.logRedact(lat, lon)}');
+// Outputs: "Location resolved: 56.50,-4.20"
+
+// WRONG: Raw coordinates expose PII - violates C2 gate
+_logger.info('Location: $lat,$lon'); // NEVER do this
+```
+
+**Integration Pattern** (A6/Home responsibility):
+- LocationResolver returns `Left(LocationError)` when manual entry needed
+- A6/Home opens `ManualLocationDialog` on receiving `Left(...)`
+- User enters coordinates → A6/Home calls `saveManual(LatLng, placeName?)`
+- Subsequent calls use cached coordinates from tier 3
+
+**Persistence & Resilience (C5)**:
+- SharedPreferences with version compatibility (`manual_location_version: '1.0'`)
+- Graceful corruption handling → never crash, fallback to Scotland centroid
+- Web/emulator platform detection → skip GPS attempts, use cache/manual/default
+
 ## Non-Goals
 - Emergency compliance or alert certification
 - Push notifications
