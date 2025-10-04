@@ -206,8 +206,12 @@ class EffisServiceImpl implements EffisService {
 
   /// Builds WMS GetFeatureInfo URL for EFFIS service
   Uri _buildWmsUrl(double lat, double lon) {
-    // Use nasa_geos5.fwi layer (verified from EFFIS GetCapabilities)
-    // Alternative layers: nasa.fwi_gpm.fwi, fwi_gadm_admin1.fwi, fwi_gadm_admin2.fwi
+    // ✅ VERIFIED CONFIGURATION (2025-10-04)
+    // Layer: nasa_geos5.fwi - confirmed working from GetCapabilities
+    // Format: text/plain - verified as supported INFO_FORMAT
+    // Alternative layers available: nasa.fwi_gpm.fwi, fwi_gadm_admin1.fwi, fwi_gadm_admin2.fwi
+    // Failed layers: ecmwf.fwi, fwi, gwis.fwi.mosaics.c_1 (all return LayerNotDefined)
+    // Failed formats: application/json, text/xml (both return Unsupported INFO_FORMAT)
     
     // Transform WGS84 coordinates to Web Mercator (EPSG:3857) bounds
     final webMercatorX = lon * 20037508.34 / 180;
@@ -444,10 +448,19 @@ class EffisServiceImpl implements EffisService {
   }
 
   /// Parse text/plain response from EFFIS WMS
+  /// 
+  /// ✅ VERIFIED WORKING (2025-10-04)
+  /// - Handles text/plain format responses from EFFIS WMS  
+  /// - Gracefully manages "Search returned no results" case
+  /// - Ready for FWI data extraction when temporal parameters resolved
+  /// 
+  /// Current status: Service responds correctly but typically returns no data
+  /// Next step: Investigate TIME parameter for temporal data access
   Future<Either<ApiError, EffisFwiResult>> _parseEffisXmlResponse(String responseBody) async {
     print('🔍 Parsing EFFIS text/plain response...');
     
-    // Handle "Search returned no results" case
+    // Handle "Search returned no results" case (most common current response)
+    // This indicates the service is working but no data available for coordinates/time
     if (responseBody.contains('Search returned no results')) {
       return Left(ApiError(
         message: 'No FWI data available for this location at this time',
