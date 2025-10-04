@@ -86,10 +86,11 @@ Future<ServiceContainer> _initializeServices() async {
   // DEBUG: Test the EFFIS service directly
   print('🔍 Testing EFFIS service directly...');
   try {
-    final testResult = await effisService.getFwi(lat: 37.42, lon: -122.08);
+    final testResult = await effisService.getFwi(lat: 39.6, lon: -9.1);
     testResult.fold(
       (error) => print('🔍 EFFIS direct test FAILED: ${error.message}'),
-      (result) => print('🔍 EFFIS direct test SUCCESS: FWI=${result.fwi}, Risk=${result.riskLevel}'),
+      (result) => print(
+          '🔍 EFFIS direct test SUCCESS: FWI=${result.fwi}, Risk=${result.riskLevel}'),
     );
   } catch (e) {
     print('🔍 EFFIS direct test EXCEPTION: $e');

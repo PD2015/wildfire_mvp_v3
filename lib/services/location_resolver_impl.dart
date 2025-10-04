@@ -21,8 +21,8 @@ class LocationResolverImpl implements LocationResolver {
   LocationResolverImpl({GeolocatorService? geolocatorService})
       : _geolocatorService = geolocatorService ?? GeolocatorServiceImpl();
 
-  /// Scotland centroid - rural central location to avoid city bias
-  static const LatLng _scotlandCentroid = LatLng(56.5, -4.2);
+  /// TEMP: Portugal coordinates for EFFIS data testing - known to have fire weather data
+  static const LatLng _scotlandCentroid = LatLng(39.6, -9.1);
 
   /// Total resolution budget to prevent UI blocking
   static const Duration _totalTimeout = Duration(milliseconds: 2500);

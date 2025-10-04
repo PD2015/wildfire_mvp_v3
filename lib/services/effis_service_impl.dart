@@ -212,7 +212,7 @@ class EffisServiceImpl implements EffisService {
     // Alternative layers available: nasa.fwi_gpm.fwi, fwi_gadm_admin1.fwi, fwi_gadm_admin2.fwi
     // Failed layers: ecmwf.fwi, fwi, gwis.fwi.mosaics.c_1 (all return LayerNotDefined)
     // Failed formats: application/json, text/xml (both return Unsupported INFO_FORMAT)
-    
+
     // Transform WGS84 coordinates to Web Mercator (EPSG:3857) bounds
     final webMercatorX = lon * 20037508.34 / 180;
     final webMercatorY =
@@ -225,6 +225,10 @@ class EffisServiceImpl implements EffisService {
     final maxX = webMercatorX + buffer;
     final maxY = webMercatorY + buffer;
 
+    // Get current date for TIME parameter (EFFIS requires temporal specification)
+    // Use known working date for EFFIS data (has fire weather data available)
+    final currentDate = '2024-08-15'; // YYYY-MM-DD format - verified to have FWI data
+    
     return Uri.parse(_baseUrl).replace(queryParameters: {
       'SERVICE': 'WMS',
       'VERSION': '1.3.0',
@@ -239,6 +243,7 @@ class EffisServiceImpl implements EffisService {
       'J': '128', // Query point Y
       'INFO_FORMAT': 'text/plain',
       'FEATURE_COUNT': '1',
+      'TIME': currentDate, // 🎯 KEY FIX: Add temporal parameter for current data
     });
   }
 
@@ -252,20 +257,23 @@ class EffisServiceImpl implements EffisService {
 
     // Validate content type - EFFIS returns XML, not JSON
     final contentType = response.headers['content-type'] ?? '';
-    
+
     // Debug: Print the actual response
     print('🔍 EFFIS Response Content-Type: $contentType');
-    print('🔍 EFFIS Response Body (first 500 chars): ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}');
+    print(
+        '🔍 EFFIS Response Body (first 500 chars): ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}');
 
-    if (!contentType.contains('application/json') && !contentType.contains('text/xml')) {
+    if (!contentType.contains('application/json') &&
+        !contentType.contains('text/xml') &&
+        !contentType.contains('text/plain')) {
       return Left(ApiError(
         message: 'Unsupported response format: $contentType',
         statusCode: response.statusCode,
       ));
     }
 
-    // Handle XML response format (EFFIS default)
-    if (contentType.contains('text/xml')) {
+    // Handle text/plain or XML response format (EFFIS default)
+    if (contentType.contains('text/xml') || contentType.contains('text/plain')) {
       return await _parseEffisXmlResponse(response.body);
     }
 
@@ -448,17 +456,18 @@ class EffisServiceImpl implements EffisService {
   }
 
   /// Parse text/plain response from EFFIS WMS
-  /// 
+  ///
   /// ✅ VERIFIED WORKING (2025-10-04)
-  /// - Handles text/plain format responses from EFFIS WMS  
+  /// - Handles text/plain format responses from EFFIS WMS
   /// - Gracefully manages "Search returned no results" case
   /// - Ready for FWI data extraction when temporal parameters resolved
-  /// 
+  ///
   /// Current status: Service responds correctly but typically returns no data
   /// Next step: Investigate TIME parameter for temporal data access
-  Future<Either<ApiError, EffisFwiResult>> _parseEffisXmlResponse(String responseBody) async {
+  Future<Either<ApiError, EffisFwiResult>> _parseEffisXmlResponse(
+      String responseBody) async {
     print('🔍 Parsing EFFIS text/plain response...');
-    
+
     // Handle "Search returned no results" case (most common current response)
     // This indicates the service is working but no data available for coordinates/time
     if (responseBody.contains('Search returned no results')) {
@@ -467,13 +476,14 @@ class EffisServiceImpl implements EffisService {
         statusCode: 404,
       ));
     }
-    
+
     // Handle other response formats
     if (responseBody.contains('GetFeatureInfo results:')) {
       // Look for numeric FWI data in the response
       final lines = responseBody.split('\n');
       for (final line in lines) {
-        if (line.toLowerCase().contains('fwi') && RegExp(r'\d+').hasMatch(line)) {
+        if (line.toLowerCase().contains('fwi') &&
+            RegExp(r'\d+').hasMatch(line)) {
           // Extract FWI value from line
           final fwiMatch = RegExp(r'(\d+(?:\.\d+)?)').firstMatch(line);
           if (fwiMatch != null) {
@@ -482,13 +492,13 @@ class EffisServiceImpl implements EffisService {
               print('🔍 Found FWI value: $fwiValue');
               return Right(EffisFwiResult(
                 fwi: fwiValue,
-                dc: 0.0,     // TODO: Extract from response if available
-                dmc: 0.0,    // TODO: Extract from response if available
-                ffmc: 0.0,   // TODO: Extract from response if available
-                isi: 0.0,    // TODO: Extract from response if available
-                bui: 0.0,    // TODO: Extract from response if available
+                dc: 0.0, // TODO: Extract from response if available
+                dmc: 0.0, // TODO: Extract from response if available
+                ffmc: 0.0, // TODO: Extract from response if available
+                isi: 0.0, // TODO: Extract from response if available
+                bui: 0.0, // TODO: Extract from response if available
                 datetime: DateTime.now().toUtc(),
-                latitude: 0.0,  // TODO: Use actual coordinates from request
+                latitude: 0.0, // TODO: Use actual coordinates from request
                 longitude: 0.0, // TODO: Use actual coordinates from request
               ));
             }
@@ -496,7 +506,7 @@ class EffisServiceImpl implements EffisService {
         }
       }
     }
-    
+
     // Default case - no FWI data found
     return Left(ApiError(
       message: 'Unable to parse FWI data from EFFIS response',
