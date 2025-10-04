@@ -69,7 +69,7 @@ Flutter project structure:
 
 ---
 
-### T002: HomeScreen UI Implementation  
+### ✅ T002: HomeScreen UI Implementation  
 **Purpose**: Create main screen widget with RiskBanner integration and user controls
 **Files**:
 - `lib/screens/home_screen.dart` (Main screen widget)
@@ -95,39 +95,41 @@ Flutter project structure:
 
 ---
 
-### T003: Integration Tests with Service Fakes
+### ✅ T003: Integration Tests with Service Fakes  
 **Purpose**: Implement 6 test scenarios covering all data sources and error flows
 **Files**:
-- `test/integration/home_flow_test.dart` (6 integration scenarios)
-- `test/widget/screens/home_screen_test.dart` (Widget accessibility tests)
+- `test/integration/home_flow_test.dart` (6 integration scenarios) ✅
+- `test/widget/screens/home_screen_test.dart` (Widget accessibility tests) ✅
 
 **Requirements**:
-- **Scenario 1**: EFFIS success flow (live data)
-- **Scenario 2**: SEPA success flow (Scotland location)
-- **Scenario 3**: Cache fallback flow (services fail, cache available) → Error state with "Cached" badge
-- **Scenario 4**: Mock fallback flow (all services fail, mock data) → Error state with "Mock" label
-- **Scenario 5**: Location denied → manual entry flow
-- **Scenario 6**: Retry after error flow
-- Accessibility tests: RiskBanner semantics includes level, relative time, source; 44dp hit-areas for Retry/"Set location"
-- Controller lifecycle: test dispose() (no setState after dispose, no listeners leaked)
-- Scotland routing: one scenario with location outside Scotland (no SEPA branch)
-- Dark mode rendering: golden tests per risk level in dark theme
-- Privacy compliance: regex test fails on raw coordinate logging
-- Re-entrancy protection: multiple taps don't trigger overlapping fetches
-- Deadline enforcement: returns within 8s using fake timers
-- Service DI: test that swaps in fakes via composition root
-- Service mocks for controlled testing environment
+- **Scenario 1**: EFFIS success flow (live data) ✅
+- **Scenario 2**: SEPA success flow (Scotland location) ✅
+- **Scenario 3**: Cache fallback flow (services fail, cache available) → Error state with "Cached" badge ✅
+- **Scenario 4**: Mock fallback flow (all services fail, mock data) → Error state with "Mock" label ✅
+- **Scenario 5**: Location denied → manual entry flow ✅
+- **Scenario 6**: Retry after error flow ✅
+- Accessibility tests: RiskBanner semantics includes level, relative time, source; 44dp hit-areas for Retry/"Set location" ✅
+- Controller lifecycle: test dispose() (no setState after dispose, no listeners leaked) ✅
+- Scotland routing: one scenario with location outside Scotland (no SEPA branch) ✅
+- Dark mode rendering: golden tests per risk level in dark theme ✅
+- Privacy compliance: regex test fails on raw coordinate logging ✅
+- Re-entrancy protection: multiple taps don't trigger overlapping fetches ✅
+- Deadline enforcement: returns within 8s using fake timers ✅
+- Service DI: test that swaps in fakes via composition root ✅
+- Service mocks for controlled testing environment ✅
 
 **Acceptance Criteria**:
-- All 6 scenarios pass with proper state transitions
-- Accessibility tests verify WCAG compliance with explicit assertions
-- Controller lifecycle properly tested (dispose, no leaks)
-- Scotland boundary detection verified
-- Dark mode rendering validated
-- Privacy logging enforced by regex tests
-- Service mocks allow independent testing
-- Error handling validated for each failure mode
-- Performance tests verify time-to-first-paint vs data deadline
+- All 6 scenarios pass with proper state transitions ✅
+- Accessibility tests verify WCAG compliance with explicit assertions ✅
+- Controller lifecycle properly tested (dispose, no leaks) ✅
+- Scotland boundary detection verified ✅
+- Dark mode rendering validated ✅
+- Privacy logging enforced by regex tests ✅
+- Service mocks allow independent testing ✅
+- Error handling validated for each failure mode ✅
+- Performance tests verify time-to-first-paint vs data deadline ✅
+
+**Status**: ✅ All 16 integration tests passing with comprehensive service orchestration coverage
 
 ---
 
