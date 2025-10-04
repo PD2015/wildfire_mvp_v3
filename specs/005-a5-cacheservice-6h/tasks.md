@@ -27,7 +27,7 @@
 
 ---
 
-## T001: Core Interfaces & Geohash Implementation [P]
+## T001: Core Interfaces & Geohash Implementation [P] ✅
 **Files**: `lib/utils/geohash_utils.dart`, `lib/models/cache_entry.dart`, `lib/services/cache_service.dart`
 **Labels**: spec:A5, gate:C1, gate:C2
 
