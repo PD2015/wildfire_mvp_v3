@@ -39,7 +39,7 @@ Implement core cache infrastructure with geohash spatial keying and generic inte
      /// Encode coordinates to geohash string at precision 5 (~4.9km)
      static String encode(double lat, double lon, {int precision = 5}) {
        // Standard geohash algorithm implementation
-       // Edinburgh (55.9533, -3.1883) → "gcpue"
+       // Edinburgh (55.9533, -3.1883) → "gcvwr"
      }
      
      /// Validate geohash format (base32, valid characters only)
@@ -49,7 +49,21 @@ Implement core cache infrastructure with geohash spatial keying and generic inte
    }
    ```
 
-2. **Create CacheEntry model** in `lib/models/cache_entry.dart`:
+2. **Create Clock interface and CacheEntry model**:
+   
+   `lib/utils/clock.dart`:
+   ```dart
+   abstract class Clock {
+     DateTime nowUtc();
+   }
+   
+   class SystemClock implements Clock {
+     @override
+     DateTime nowUtc() => DateTime.now().toUtc();
+   }
+   ```
+   
+   `lib/models/cache_entry.dart`:
    ```dart
    class CacheEntry<T> extends Equatable {
      const CacheEntry({
@@ -60,30 +74,79 @@ Implement core cache infrastructure with geohash spatial keying and generic inte
      });
      
      final T data;
-     final DateTime timestamp;
+     final DateTime timestamp; // Always UTC
      final String geohash;
      final String version;
      
-     Duration get age => DateTime.now().difference(timestamp);
-     bool get isExpired => age > const Duration(hours: 6);
+     Duration age(Clock clock) {
+       assert(timestamp.isUtc, 'Timestamp must be UTC');
+       return clock.nowUtc().difference(timestamp);
+     }
      
-     // JSON serialization with version field
+     bool isExpired(Clock clock) => age(clock) > const Duration(hours: 6);
+     
+     // JSON serialization with version field and version checking
      Map<String, dynamic> toJson(Map<String, dynamic> Function(T) toJsonT);
-     factory CacheEntry.fromJson(Map<String, dynamic> json, T Function(Map<String, dynamic>) fromJsonT);
+     factory CacheEntry.fromJson(Map<String, dynamic> json, T Function(Map<String, dynamic>) fromJsonT) {
+       final version = json['version'] as String? ?? '1.0';
+       if (version != '1.0') {
+         throw UnsupportedVersionError(version);
+       }
+       // ... rest of deserialization
+     }
    }
    ```
 
 3. **Create CacheService interface** in `lib/services/cache_service.dart`:
    ```dart
+3. **Create CacheError taxonomy and CacheService interface**:
+   
+   `lib/services/cache/cache_error.dart`:
+   ```dart
+   sealed class CacheError extends Equatable {
+     const CacheError();
+   }
+   
+   class StorageError extends CacheError {
+     const StorageError(this.message, [this.cause]);
+     final String message;
+     final Object? cause;
+     
+     @override
+     List<Object?> get props => [message, cause];
+   }
+   
+   class SerializationError extends CacheError {
+     const SerializationError(this.message, [this.cause]);
+     final String message;
+     final Object? cause;
+     
+     @override
+     List<Object?> get props => [message, cause];
+   }
+   
+   class UnsupportedVersionError extends CacheError {
+     const UnsupportedVersionError(this.version);
+     final String version;
+     
+     @override
+     List<Object?> get props => [version];
+   }
+   ```
+   
+   `lib/services/cache_service.dart`:
+   ```dart
    abstract class CacheService<T> {
      Future<Option<T>> get(String geohashKey);
      Future<Either<CacheError, void>> set({required double lat, required double lon, required T data});
+     Future<Either<CacheError, void>> setWithKey({required String geohashKey, required T data});
      Future<bool> remove(String geohashKey);
      Future<void> clear();
+     
+     // Metadata and maintenance
      Future<CacheMetadata> getMetadata();
-   }
-   
-   abstract class FireRiskCache extends CacheService<FireRisk> {
+     Future<int> cleanup(); // LRU eviction
+   }   abstract class FireRiskCache extends CacheService<FireRisk> {
      // FireRisk-specific convenience methods
      Future<Option<FireRisk>> getForCoordinates(double lat, double lon);
    }
@@ -124,8 +187,11 @@ Implement FireRiskCache with TTL enforcement, LRU eviction, and SharedPreference
      final Map<String, DateTime> accessLog;
      
      bool get isFull => totalEntries >= 100;
-     String? get lruKey => accessLog.entries
-       .reduce((a, b) => a.value.isBefore(b.value) ? a : b).key;
+     String? get lruKey {
+       if (accessLog.isEmpty) return null;
+       return accessLog.entries
+         .reduce((a, b) => a.value.isBefore(b.value) ? a : b).key;
+     }
    }
    ```
 
@@ -133,8 +199,13 @@ Implement FireRiskCache with TTL enforcement, LRU eviction, and SharedPreference
    ```dart
    class FireRiskCacheImpl implements FireRiskCache {
      final SharedPreferences _prefs;
+     final Clock _clock;
      static const String _metadataKey = 'cache_metadata';
      static const String _entryKeyPrefix = 'cache_entry_';
+     
+     FireRiskCacheImpl({required SharedPreferences prefs, Clock? clock})
+       : _prefs = prefs,
+         _clock = clock ?? SystemClock();
      
      @override
      Future<Option<FireRisk>> get(String geohashKey) async {
@@ -143,7 +214,7 @@ Implement FireRiskCache with TTL enforcement, LRU eviction, and SharedPreference
          if (jsonStr == null) return none();
          
          final entry = CacheEntry.fromJson(jsonDecode(jsonStr), FireRisk.fromJson);
-         if (entry.isExpired) {
+         if (entry.isExpired(_clock)) {
            await remove(geohashKey); // Cleanup expired entry
            return none();
          }
@@ -220,7 +291,7 @@ Create comprehensive test suite covering TTL expiry, corruption handling, and si
        await cache.set(lat: 55.9533, lon: -3.1883, data: testFireRisk);
        
        // Mock time 7 hours later
-       when(mockClock.now()).thenReturn(DateTime.now().add(Duration(hours: 7)));
+       when(mockClock.nowUtc()).thenReturn(DateTime.now().toUtc().add(Duration(hours: 7)));
        
        final result = await cache.get('gcpue');
        expect(result.isNone(), true);
@@ -240,6 +311,14 @@ Create comprehensive test suite covering TTL expiry, corruption handling, and si
        
        final metadata = await cache.getMetadata();
        expect(metadata.totalEntries, equals(100));
+     });
+     
+     test('unsupported version throws UnsupportedVersionError', () async {
+       // Store malformed JSON with unsupported version
+       final badJson = '{"version":"2.0","timestamp":1234567890,"geohash":"gcvwr","data":{}}';
+       await mockPrefs.setString('cache_entry_gcvwr', badJson);
+       
+       expect(() => cache.get('gcvwr'), throwsA(isA<UnsupportedVersionError>()));
      });
      
      test('corrupted JSON handled gracefully', () async {
@@ -359,10 +438,12 @@ Complete implementation with comprehensive documentation and CI validation:
 - [ ] CI pipeline passes: flutter analyze, flutter test, dart format
 - [ ] Documentation includes architecture overview and integration examples
 - [ ] Inline code documentation covers all public APIs
-- [ ] Privacy compliance examples demonstrate C2 gate compliance
+- [ ] Privacy regex testing: `/\d{2}\.\d{4,}/` must never match log output
 - [ ] Performance characteristics documented with targets
 - [ ] Usage examples show proper error handling and fallback patterns
 - [ ] Constitutional compliance (C1, C2, C5) documented with concrete examples
+- [ ] Concurrency safety: document SharedPreferences atomicity assumptions
+- [ ] Version field validation in JSON parsing prevents deserialization errors
 
 ---
 
