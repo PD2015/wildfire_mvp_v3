@@ -206,6 +206,9 @@ class EffisServiceImpl implements EffisService {
 
   /// Builds WMS GetFeatureInfo URL for EFFIS service
   Uri _buildWmsUrl(double lat, double lon) {
+    // Use nasa_geos5.fwi layer (verified from EFFIS GetCapabilities)
+    // Alternative layers: nasa.fwi_gpm.fwi, fwi_gadm_admin1.fwi, fwi_gadm_admin2.fwi
+    
     // Transform WGS84 coordinates to Web Mercator (EPSG:3857) bounds
     final webMercatorX = lon * 20037508.34 / 180;
     final webMercatorY =
@@ -222,15 +225,15 @@ class EffisServiceImpl implements EffisService {
       'SERVICE': 'WMS',
       'VERSION': '1.3.0',
       'REQUEST': 'GetFeatureInfo',
-      'LAYERS': 'gwis.fwi.mosaics.c_1',
-      'QUERY_LAYERS': 'gwis.fwi.mosaics.c_1',
+      'LAYERS': 'nasa_geos5.fwi',
+      'QUERY_LAYERS': 'nasa_geos5.fwi',
       'CRS': 'EPSG:3857',
       'BBOX': '$minX,$minY,$maxX,$maxY',
       'WIDTH': '256',
       'HEIGHT': '256',
       'I': '128', // Query point X
       'J': '128', // Query point Y
-      'INFO_FORMAT': 'application/json',
+      'INFO_FORMAT': 'text/plain',
       'FEATURE_COUNT': '1',
     });
   }
@@ -440,13 +443,51 @@ class EffisServiceImpl implements EffisService {
     return Duration(milliseconds: totalDelayMs.toInt());
   }
 
-  /// Temporary method to parse XML response from EFFIS WMS
-  Future<Either<ApiError, EffisFwiResult>> _parseEffisXmlResponse(String xmlBody) async {
-    print('🔍 Parsing EFFIS XML response...');
+  /// Parse text/plain response from EFFIS WMS
+  Future<Either<ApiError, EffisFwiResult>> _parseEffisXmlResponse(String responseBody) async {
+    print('🔍 Parsing EFFIS text/plain response...');
     
-    // For now, return an error to see the XML structure
+    // Handle "Search returned no results" case
+    if (responseBody.contains('Search returned no results')) {
+      return Left(ApiError(
+        message: 'No FWI data available for this location at this time',
+        statusCode: 404,
+      ));
+    }
+    
+    // Handle other response formats
+    if (responseBody.contains('GetFeatureInfo results:')) {
+      // Look for numeric FWI data in the response
+      final lines = responseBody.split('\n');
+      for (final line in lines) {
+        if (line.toLowerCase().contains('fwi') && RegExp(r'\d+').hasMatch(line)) {
+          // Extract FWI value from line
+          final fwiMatch = RegExp(r'(\d+(?:\.\d+)?)').firstMatch(line);
+          if (fwiMatch != null) {
+            final fwiValue = double.tryParse(fwiMatch.group(1)!);
+            if (fwiValue != null) {
+              print('🔍 Found FWI value: $fwiValue');
+              return Right(EffisFwiResult(
+                fwi: fwiValue,
+                dc: 0.0,     // TODO: Extract from response if available
+                dmc: 0.0,    // TODO: Extract from response if available
+                ffmc: 0.0,   // TODO: Extract from response if available
+                isi: 0.0,    // TODO: Extract from response if available
+                bui: 0.0,    // TODO: Extract from response if available
+                datetime: DateTime.now().toUtc(),
+                latitude: 0.0,  // TODO: Use actual coordinates from request
+                longitude: 0.0, // TODO: Use actual coordinates from request
+              ));
+            }
+          }
+        }
+      }
+    }
+    
+    // Default case - no FWI data found
     return Left(ApiError(
-      message: 'XML parsing not yet implemented - see debug output for structure',
+      message: 'Unable to parse FWI data from EFFIS response',
+      statusCode: 422,
     ));
   }
 }
