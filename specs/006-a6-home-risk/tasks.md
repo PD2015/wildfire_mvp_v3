@@ -3,8 +3,9 @@
 **Input**: Design documents from `/specs/006-a6-home-risk/`
 **Prerequisites**: plan.md (required), research.md, data-model.md, contracts/
 
-## Execution Flow (main)
-```
+## Execution Flow (main- **T003.3** (SEPA): Loading → Success with live data, SEPA source chip  
+- **T003.4** (Cache): Error state with cached color + "Cached" badge (consistent with A3), retry available
+- **T003.5** (Mock): Error state with "Mock" source label (consistent with A3)``
 1. Load plan.md from feature directory ✓
    → Extract: Dart 3.0+ with Flutter SDK, ChangeNotifier, existing A1-A5 services
 2. Load optional design documents: ✓
@@ -53,8 +54,10 @@ Flutter project structure:
 - HomeState sealed class with Loading/Success/Error states
 - HomeController with ChangeNotifier extending pattern
 - Service injection for LocationResolver and FireRiskService
-- load(), retry(), setManualLocation() methods
+- load(), retry(), setManualLocation() methods with 8s global deadline (inherited from A2)
+- Retry disabled during loading to prevent re-entrancy
 - Proper error handling and state transitions
+- Redacted logging using `logRedact()` helper (no raw lat/lon)
 - Constitutional compliance: C5 (error states visible, no silent failures)
 
 **Acceptance Criteria**:
@@ -70,7 +73,9 @@ Flutter project structure:
 **Purpose**: Create main screen widget with RiskBanner integration and user controls
 **Files**:
 - `lib/screens/home_screen.dart` (Main screen widget)
-- `lib/widgets/manual_location_dialog.dart` (Coordinate entry dialog)
+
+**A4 Integration**:
+- Open the A4 `ManualLocationDialog` and call `saveManual()` on success
 
 **Requirements**:
 - StatefulWidget with HomeController integration
@@ -99,19 +104,30 @@ Flutter project structure:
 **Requirements**:
 - **Scenario 1**: EFFIS success flow (live data)
 - **Scenario 2**: SEPA success flow (Scotland location)
-- **Scenario 3**: Cache fallback flow (services fail, cache available)
-- **Scenario 4**: Mock fallback flow (all services fail, mock data)
+- **Scenario 3**: Cache fallback flow (services fail, cache available) → Error state with "Cached" badge
+- **Scenario 4**: Mock fallback flow (all services fail, mock data) → Error state with "Mock" label
 - **Scenario 5**: Location denied → manual entry flow
 - **Scenario 6**: Retry after error flow
-- Accessibility tests: semantic labels, 44dp touch targets
+- Accessibility tests: RiskBanner semantics includes level, relative time, source; 44dp hit-areas for Retry/"Set location"
+- Controller lifecycle: test dispose() (no setState after dispose, no listeners leaked)
+- Scotland routing: one scenario with location outside Scotland (no SEPA branch)
+- Dark mode rendering: golden tests per risk level in dark theme
+- Privacy compliance: regex test fails on raw coordinate logging
+- Re-entrancy protection: multiple taps don't trigger overlapping fetches
+- Deadline enforcement: returns within 8s using fake timers
+- Service DI: test that swaps in fakes via composition root
 - Service mocks for controlled testing environment
 
 **Acceptance Criteria**:
 - All 6 scenarios pass with proper state transitions
-- Accessibility tests verify WCAG compliance
+- Accessibility tests verify WCAG compliance with explicit assertions
+- Controller lifecycle properly tested (dispose, no leaks)
+- Scotland boundary detection verified
+- Dark mode rendering validated
+- Privacy logging enforced by regex tests
 - Service mocks allow independent testing
 - Error handling validated for each failure mode
-- Performance tests verify <200ms load times
+- Performance tests verify time-to-first-paint vs data deadline
 
 ---
 
@@ -124,15 +140,16 @@ Flutter project structure:
 **Requirements**:
 - MaterialApp with HomeScreen as initial route
 - Theme configuration with official Scottish risk colors (C4 compliance)
-- Service locator setup for production HomeController
-- Proper dependency injection for A1-A5 services
+- Wire A1-A5 services via constructors/Providers in main.dart (composition-root DI)
+- App lifecycle listener for debounced `controller.refresh()` on resume
 - Error boundary for unhandled exceptions
 
 **Acceptance Criteria**:
 - App launches to HomeScreen successfully
 - Theme uses approved color palette
-- Services properly injected and available
+- Services properly injected via composition root (no service locator)
 - Navigation structure supports future screens
+- App lifecycle refresh works on foreground resume
 - Error handling prevents app crashes
 
 ---
@@ -215,27 +232,29 @@ MockFireRiskService.mockAllFail(); // Triggers mock fallback
 
 ## Constitutional Compliance Verification
 
-### C1: Code Quality & Tests
-- `flutter analyze` passes with zero issues
+### C1: Code Quality & Tests (Provable via CI)
+- `flutter analyze` passes with zero issues in T005 CI validation
 - `flutter test` achieves >90% coverage
 - Code formatted with `dart format`
 
-### C3: Accessibility (UI features only)
-- Interactive elements ≥44dp touch targets
-- Semantic labels for screen readers
+### C3: Accessibility (Provable via Widget Tests)
+- Explicit assertions for semantics text and 44dp hit-areas in T003
+- RiskBanner semantic labels include level, relative time, and source
+- Interactive elements verified ≥44dp touch targets
 - Color contrast meets WCAG AA standards
 
-### C4: Trust & Transparency
+### C4: Trust & Transparency (Provable via UI Tests)
+- Assert "Updated {relative}" + source chip visible in Success state
+- Assert "Cached" badge appears in Error(cached) state (mirrors A3 tests)
 - Official Scottish wildfire risk colors only
-- "Last Updated" timestamp visible
-- Data source labeling (Live/Cached/Mock)
-- Cached data badges when using stale data
+- Data source labeling (Live/Cached/Mock) verified in tests
 
-### C5: Resilience & Test Coverage
-- Network timeouts handled by service layer
+### C5: Resilience & Test Coverage (Provable via Integration Tests)
+- Tests for re-entrancy protection (no double fetch)
+- Deadline enforcement honored (8s timeout with fake timers)
+- Fallback scenarios tested with controlled service mocks
 - Error states visible with retry options
-- Fallback data shown when available
-- Integration tests cover error flows
+- Integration tests cover all error flows
 
 ## Success Criteria
 
@@ -248,7 +267,8 @@ MockFireRiskService.mockAllFail(); // Triggers mock fallback
 - [x] Documentation updated with architecture details
 
 **Performance Targets**:
-- Home screen load: <200ms
+- Time to first paint: skeleton visible immediately
+- Data deadline: 8s global timeout (A2 budget)
 - UI animations: 60fps
 - Memory usage: No leaks on controller dispose
 - Test execution: All scenarios <30s total
