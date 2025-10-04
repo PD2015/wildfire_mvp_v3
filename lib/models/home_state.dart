@@ -24,7 +24,7 @@ sealed class HomeState extends Equatable {
 class HomeStateLoading extends HomeState {
   /// Whether this loading state is from a retry action
   final bool isRetry;
-  
+
   /// Timestamp when loading operation started
   final DateTime startTime;
 
@@ -37,7 +37,8 @@ class HomeStateLoading extends HomeState {
   List<Object?> get props => [isRetry, startTime];
 
   @override
-  String toString() => 'HomeStateLoading(isRetry: $isRetry, startTime: $startTime)';
+  String toString() =>
+      'HomeStateLoading(isRetry: $isRetry, startTime: $startTime)';
 }
 
 /// Successfully loaded state with all required display data
@@ -48,10 +49,10 @@ class HomeStateLoading extends HomeState {
 class HomeStateSuccess extends HomeState {
   /// Current fire risk assessment data
   final FireRisk riskData;
-  
+
   /// Location information used for the risk assessment
   final LatLng location;
-  
+
   /// When this risk data was last fetched (for "Updated X ago" display)
   final DateTime lastUpdated;
 
@@ -65,7 +66,8 @@ class HomeStateSuccess extends HomeState {
   List<Object?> get props => [riskData, location, lastUpdated];
 
   @override
-  String toString() => 'HomeStateSuccess(riskData: $riskData, location: $location, lastUpdated: $lastUpdated)';
+  String toString() =>
+      'HomeStateSuccess(riskData: $riskData, location: $location, lastUpdated: $lastUpdated)';
 }
 
 /// Error state with optional cached data for graceful degradation
@@ -76,14 +78,14 @@ class HomeStateSuccess extends HomeState {
 class HomeStateError extends HomeState {
   /// Human-readable error message for debugging and user display
   final String errorMessage;
-  
+
   /// Optional cached fire risk data to display during error conditions
   /// Enables graceful degradation when fresh data is unavailable
   final FireRisk? cachedData;
-  
+
   /// Optional location context for cached data display
   final LatLng? cachedLocation;
-  
+
   /// Whether retry functionality should be available to the user
   final bool canRetry;
 
@@ -98,8 +100,10 @@ class HomeStateError extends HomeState {
   bool get hasCachedData => cachedData != null && cachedLocation != null;
 
   @override
-  List<Object?> get props => [errorMessage, cachedData, cachedLocation, canRetry];
+  List<Object?> get props =>
+      [errorMessage, cachedData, cachedLocation, canRetry];
 
   @override
-  String toString() => 'HomeStateError(errorMessage: $errorMessage, hasCachedData: $hasCachedData, canRetry: $canRetry)';
+  String toString() =>
+      'HomeStateError(errorMessage: $errorMessage, hasCachedData: $hasCachedData, canRetry: $canRetry)';
 }

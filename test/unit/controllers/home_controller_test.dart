@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dartz/dartz.dart';
 
@@ -32,18 +31,20 @@ class MockLocationResolver implements LocationResolver {
   }
 
   @override
-  Future<Either<LocationError, LatLng>> getLatLon({bool allowDefault = true}) async {
+  Future<Either<LocationError, LatLng>> getLatLon(
+      {bool allowDefault = true}) async {
     loggedCalls.add('getLatLon(allowDefault: $allowDefault)');
     if (_getLatLonResult != null) {
       return _getLatLonResult!;
     }
     // Default success case
-    return Right(LatLng(55.9533, -3.1883)); // Edinburgh
+        return const Right(LatLng(55.9533, -3.1883)); // Edinburgh
   }
 
   @override
   Future<void> saveManual(LatLng location, {String? placeName}) async {
-    loggedCalls.add('saveManual(${location.latitude}, ${location.longitude}, placeName: $placeName)');
+    loggedCalls.add(
+        'saveManual(${location.latitude}, ${location.longitude}, placeName: $placeName)');
     if (_saveManualThrows) {
       throw Exception('Save manual failed');
     }
@@ -70,7 +71,8 @@ class MockFireRiskService implements FireRiskService {
     required double lon,
     Duration? deadline,
   }) async {
-    loggedCalls.add('getCurrent(lat: $lat, lon: $lon, deadline: ${deadline?.inSeconds ?? 8}s)');
+    loggedCalls.add(
+        'getCurrent(lat: $lat, lon: $lon, deadline: ${deadline?.inSeconds ?? 8}s)');
     if (_getCurrentResult != null) {
       return _getCurrentResult!;
     }
@@ -173,7 +175,8 @@ void main() {
         final states = <HomeState>[];
         controller.addListener(() => states.add(controller.state));
 
-        mockLocationResolver.mockGetLatLon(Left(LocationError.permissionDenied));
+        mockLocationResolver
+            .mockGetLatLon(const Left(LocationError.permissionDenied));
 
         // Act
         await controller.load();
@@ -193,8 +196,9 @@ void main() {
         final states = <HomeState>[];
         controller.addListener(() => states.add(controller.state));
 
-        mockLocationResolver.mockGetLatLon(Right(TestData.edinburgh));
-        mockFireRiskService.mockGetCurrent(Left(TestData.createApiError(message: 'Service unavailable')));
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockFireRiskService.mockGetCurrent(
+            Left(TestData.createApiError(message: 'Service unavailable')));
 
         // Act
         await controller.load();
@@ -211,7 +215,8 @@ void main() {
     });
 
     group('Retry Operation', () {
-      test('retry transitions through Loading (isRetry=true) to Success', () async {
+      test('retry transitions through Loading (isRetry=true) to Success',
+          () async {
         // Arrange
         final states = <HomeState>[];
         controller.addListener(() => states.add(controller.state));
@@ -236,14 +241,16 @@ void main() {
         final states = <HomeState>[];
         controller.addListener(() => states.add(controller.state));
 
-        mockLocationResolver.mockGetLatLon(Right(TestData.glasgow));
+        mockLocationResolver.mockGetLatLon(const Right(TestData.glasgow));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act
-        await controller.setManualLocation(TestData.glasgow, placeName: 'Glasgow');
+        await controller.setManualLocation(TestData.glasgow,
+            placeName: 'Glasgow');
 
         // Assert
-        expect(mockLocationResolver.loggedCalls, contains('saveManual(55.8642, -4.2518, placeName: Glasgow)'));
+        expect(mockLocationResolver.loggedCalls,
+            contains('saveManual(55.8642, -4.2518, placeName: Glasgow)'));
         expect(states.length, equals(2)); // Loading -> Success
         expect(states[1], isA<HomeStateSuccess>());
 
@@ -290,7 +297,11 @@ void main() {
         await future3;
 
         // Assert
-        expect(mockLocationResolver.loggedCalls.where((call) => call.startsWith('getLatLon')).length, equals(1));
+        expect(
+            mockLocationResolver.loggedCalls
+                .where((call) => call.startsWith('getLatLon'))
+                .length,
+            equals(1));
         expect(controller.isLoading, isFalse);
       });
 
@@ -309,7 +320,11 @@ void main() {
         await loadFuture;
 
         // Assert - manual location call should be ignored
-        expect(mockLocationResolver.loggedCalls.where((call) => call.startsWith('saveManual')).length, equals(0));
+        expect(
+            mockLocationResolver.loggedCalls
+                .where((call) => call.startsWith('saveManual'))
+                .length,
+            equals(0));
       });
     });
 
@@ -318,7 +333,7 @@ void main() {
         // This test would require more sophisticated timer mocking
         // For now, we'll verify the timeout setup exists
         expect(controller.isLoading, isFalse);
-        
+
         // The actual timeout behavior would need fake timers to test properly
         // This is a structural test to ensure the timeout mechanism exists
       });
@@ -342,16 +357,23 @@ void main() {
     });
 
     group('Dispose Cleanup', () {
-      test('dispose cleans up resources', () {
-        // Act
-        controller.dispose();
-
-        // Assert - verify controller is in a clean disposed state
-        expect(controller.isLoading, isFalse);
+      test('dispose cleans up resources without throwing', () {
+        // Create a separate controller for this test to avoid tearDown conflicts
+        final testController = HomeController(
+          locationResolver: mockLocationResolver,
+          fireRiskService: mockFireRiskService,
+        );
+        
+        // Verify controller is in good state before disposal
+        expect(testController.isLoading, isFalse);
+        
+        // Act - dispose should complete without throwing
+        expect(() => testController.dispose(), returnsNormally);
+        
+        // Note: Cannot access controller properties after disposal
+        // as it throws in debug mode. The test verifies disposal succeeds.
       });
-    });
-
-    group('Privacy Compliance (C2)', () {
+    });    group('Privacy Compliance (C2)', () {
       test('logs use redacted coordinates', () async {
         // This test verifies that the controller uses LocationUtils.logRedact
         // The actual log redaction testing is done in the LocationUtils tests
@@ -372,7 +394,8 @@ void main() {
     group('Constitutional Compliance', () {
       test('C5: Error states are visible with retry capability', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(Left(LocationError.gpsUnavailable));
+        mockLocationResolver
+            .mockGetLatLon(const Left(LocationError.gpsUnavailable));
 
         // Act
         await controller.load();
@@ -386,8 +409,9 @@ void main() {
 
       test('C4: Success state includes source attribution', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(Right(TestData.edinburgh));
-        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk(source: DataSource.sepa)));
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockFireRiskService.mockGetCurrent(
+            Right(TestData.createFireRisk(source: DataSource.sepa)));
 
         // Act
         await controller.load();
