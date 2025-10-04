@@ -38,7 +38,7 @@ class MockLocationResolver implements LocationResolver {
       return _getLatLonResult!;
     }
     // Default success case
-        return const Right(LatLng(55.9533, -3.1883)); // Edinburgh
+    return const Right(LatLng(55.9533, -3.1883)); // Edinburgh
   }
 
   @override
@@ -363,17 +363,18 @@ void main() {
           locationResolver: mockLocationResolver,
           fireRiskService: mockFireRiskService,
         );
-        
+
         // Verify controller is in good state before disposal
         expect(testController.isLoading, isFalse);
-        
+
         // Act - dispose should complete without throwing
         expect(() => testController.dispose(), returnsNormally);
-        
+
         // Note: Cannot access controller properties after disposal
         // as it throws in debug mode. The test verifies disposal succeeds.
       });
-    });    group('Privacy Compliance (C2)', () {
+    });
+    group('Privacy Compliance (C2)', () {
       test('logs use redacted coordinates', () async {
         // This test verifies that the controller uses LocationUtils.logRedact
         // The actual log redaction testing is done in the LocationUtils tests
