@@ -7,6 +7,7 @@ Auto-generated from all feature plans. Last updated: 2025-10-02
 - Dart 3.0+ with Flutter SDK + flutter_bloc, equatable, http (inherited from A2), dartz (Either type from A2) (003-a3-riskbanner-home)
 - N/A (widget consumes A2 FireRiskService data) (003-a3-riskbanner-home)
 - Dart 3.0+ with Flutter SDK + geolocator, permission_handler, shared_preferences, dartz (Either type from A1-A3) (004-a4-locationresolver-low)
+- Dart 3.0+ with Flutter SDK + shared_preferences, dartz (Either type), equatable, crypto (geohash encoding) (005-a5-cacheservice-6h)
 
 ## Project Structure
 ```
@@ -21,6 +22,7 @@ tests/
 Dart 3.0+ with Flutter SDK: Follow standard conventions
 
 ## Recent Changes
+- 005-a5-cacheservice-6h: Added CacheService with 6h TTL, geohash spatial keying, LRU eviction, SharedPreferences storage
 - 004-a4-locationresolver-low: Added LocationResolver with GPS→cached→manual→default fallback, SharedPreferences persistence, permission handling
 - 003-a3-riskbanner-home: Added Dart 3.0+ with Flutter SDK + flutter_bloc, equatable, http (inherited from A2), dartz (Either type from A2)
 - 001-spec-a1-effisservice: Added Dart 3.0+ with Flutter SDK + http package, dartz (Either type), equatable (value objects)
@@ -323,6 +325,178 @@ String _logRedact(double lat, double lon) {
 
 // WRONG: Full precision exposes PII
 _logger.info('Location: $lat,$lon'); // Violates C2 constitutional gate
+```
+
+## CacheService Implementation Patterns
+
+### Generic Cache Service Architecture
+```dart
+// Generic cache interface with TTL and spatial keying
+abstract class CacheService<T> {
+  Future<Option<T>> get(String geohashKey);
+  Future<Either<CacheError, void>> set({required double lat, required double lon, required T data});
+  Future<bool> remove(String geohashKey);
+  Future<void> clear();
+  Future<CacheMetadata> getMetadata();
+  Future<int> cleanup(); // LRU eviction
+}
+
+// FireRisk-specific implementation
+class FireRiskCacheImpl implements FireRiskCache {
+  final SharedPreferences _prefs;
+  final GeohashUtils _geohash;
+  
+  Future<Option<FireRisk>> get(String geohashKey) async {
+    final entry = await _loadEntry(geohashKey);
+    if (entry.isEmpty || entry.value.isExpired) return none();
+    
+    // Mark as cached freshness
+    final cachedRisk = entry.value.data.copyWith(freshness: Freshness.cached);
+    await _updateAccessTime(geohashKey); // LRU tracking
+    return some(cachedRisk);
+  }
+}
+```
+
+### Geohash Spatial Keying
+```dart
+// Consistent spatial cache keys (precision 5 = ~4.9km resolution)
+class GeohashUtils {
+  static String encode(double lat, double lon, {int precision = 5}) {
+    // Standard geohash algorithm implementation
+    // Edinburgh (55.9533, -3.1883) → "gcpue"
+    // Glasgow (55.8642, -4.2518) → "gcpuv"
+  }
+  
+  static GeohashBounds bounds(String geohash) {
+    // Decode geohash to bounding box for spatial queries
+  }
+}
+
+// Usage in cache operations
+final geohashKey = GeohashUtils.encode(lat, lon, precision: 5);
+final cached = await cacheService.get(geohashKey);
+_logger.debug('Cache lookup for ${LocationUtils.logRedact(lat, lon)} → $geohashKey');
+```
+
+### TTL Enforcement with LRU Eviction
+```dart
+// Cache entry with TTL checking
+class CacheEntry<T> extends Equatable {
+  final T data;
+  final DateTime timestamp;
+  final String geohash;
+  
+  Duration get age => DateTime.now().difference(timestamp);
+  bool get isExpired => age > Duration(hours: 6);
+  
+  // JSON serialization with version field for migration support
+  Map<String, dynamic> toJson(Map<String, dynamic> Function(T) toJsonT) {
+    return {
+      'version': '1.0',
+      'timestamp': timestamp.millisecondsSinceEpoch,
+      'geohash': geohash,
+      'data': toJsonT(data),
+    };
+  }
+}
+
+// LRU eviction when cache reaches 100 entries
+class CacheMetadata extends Equatable {
+  final int totalEntries;
+  final Map<String, DateTime> accessLog;
+  
+  bool get isFull => totalEntries >= 100;
+  String? get lruKey => accessLog.entries
+    .reduce((a, b) => a.value.isBefore(b.value) ? a : b).key;
+}
+```
+
+### FireRiskService Cache Integration
+```dart
+// Optional cache dependency in FireRiskService fallback chain
+FireRiskServiceImpl({
+  required EffisService effisService,     // Tier 1: EFFIS (3s timeout)
+  SepaService? sepaService,               // Tier 2: SEPA (2s timeout, Scotland only)
+  CacheService<FireRisk>? cacheService,   // Tier 3: Cache (200ms timeout) ← A5
+  required MockService mockService,       // Tier 4: Mock (never fails)
+  OrchestratorTelemetry? telemetry,
+});
+
+// Cache integration in fallback chain
+Future<Either<ServiceError, FireRisk>> getCurrent({required double lat, required double lon}) async {
+  // ... EFFIS attempt fails, SEPA attempt fails ...
+  
+  // Tier 3: Cache attempt (A5 integration)
+  if (cacheService != null) {
+    final geohash = GeohashUtils.encode(lat, lon, precision: 5);
+    final cached = await cacheService!.get(geohash).timeout(Duration(milliseconds: 200));
+    
+    if (cached.isSome()) {
+      _telemetry?.recordSuccess(source: TelemetrySource.cache);
+      _logger.info('Cache hit for ${GeographicUtils.logRedact(lat, lon)}');
+      return Right(cached.value); // Already marked with Freshness.cached
+    }
+    
+    _telemetry?.recordMiss(source: TelemetrySource.cache);
+  }
+  
+  // Tier 4: Mock fallback (never fails)
+  return await mockService.getCurrent(lat: lat, lon: lon);
+}
+```
+
+### Testing Cache Services
+```dart
+group('CacheService TTL and LRU', () {
+  testWidgets('expired entries return cache miss', (tester) async {
+    // Store entry
+    await cacheService.set(lat: 55.9533, lon: -3.1883, data: fireRisk);
+    
+    // Mock 7 hours later
+    final mockTime = DateTime.now().add(Duration(hours: 7));
+    when(mockClock.now()).thenReturn(mockTime);
+    
+    final result = await cacheService.get('gcpue');
+    expect(result.isNone(), true);
+  });
+  
+  testWidgets('LRU eviction removes oldest accessed entry', (tester) async {
+    // Fill cache to 100 entries
+    for (int i = 0; i < 100; i++) {
+      await cacheService.set(lat: 55.0 + i * 0.01, lon: -3.0, data: fireRisk);
+    }
+    
+    // Access first entry to make it recent
+    await cacheService.get(GeohashUtils.encode(55.0, -3.0));
+    
+    // Add 101st entry (should trigger eviction)
+    await cacheService.set(lat: 56.0, lon: -3.0, data: fireRisk);
+    
+    // Verify first entry still exists (was recently accessed)
+    final firstEntry = await cacheService.get(GeohashUtils.encode(55.0, -3.0));
+    expect(firstEntry.isSome(), true);
+    
+    // Verify oldest unaccessed entry was removed
+    final metadata = await cacheService.getMetadata();
+    expect(metadata.totalEntries, 100);
+  });
+});
+```
+
+### Privacy-Compliant Cache Logging
+```dart
+// CORRECT: Use geohash keys and coordinate redaction
+final geohash = GeohashUtils.encode(lat, lon, precision: 5);
+_logger.debug('Cache operation for ${LocationUtils.logRedact(lat, lon)} → $geohash');
+// Outputs: "Cache operation for 55.95,-3.19 → gcpue"
+
+// CORRECT: Geohash provides inherent privacy (4.9km resolution)
+_logger.info('Cache stored for geohash: $geohash');
+// Safe: geohash resolution prevents precise location inference
+
+// WRONG: Raw coordinates in cache logs
+_logger.info('Cached data for $lat, $lon'); // Violates C2 gate
 ```
 
 <!-- MANUAL ADDITIONS START -->
