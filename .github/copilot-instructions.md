@@ -8,6 +8,8 @@ Auto-generated from all feature plans. Last updated: 2025-10-02
 - N/A (widget consumes A2 FireRiskService data) (003-a3-riskbanner-home)
 - Dart 3.0+ with Flutter SDK + geolocator, permission_handler, shared_preferences, dartz (Either type from A1-A3) (004-a4-locationresolver-low)
 - Dart 3.0+ with Flutter SDK + shared_preferences, dartz (Either type), equatable, crypto (geohash encoding) (005-a5-cacheservice-6h)
+- Dart 3.0+ with Flutter SDK + ChangeNotifier (preferred for HomeController), existing LocationResolver (A4), FireRiskService (A2), CacheService (A5) (006-a6-home-risk)
+- SharedPreferences for manual location persistence, existing cache system (006-a6-home-risk)
 
 ## Project Structure
 ```
@@ -22,11 +24,9 @@ tests/
 Dart 3.0+ with Flutter SDK: Follow standard conventions
 
 ## Recent Changes
+- 006-a6-home-risk: Added Dart 3.0+ with Flutter SDK + ChangeNotifier (preferred for HomeController), existing LocationResolver (A4), FireRiskService (A2), CacheService (A5)
 - 005-a5-cacheservice-6h: Added CacheService with 6h TTL, geohash spatial keying, LRU eviction, SharedPreferences storage
 - 004-a4-locationresolver-low: Added LocationResolver with GPS→cached→manual→default fallback, SharedPreferences persistence, permission handling
-- 003-a3-riskbanner-home: Added Dart 3.0+ with Flutter SDK + flutter_bloc, equatable, http (inherited from A2), dartz (Either type from A2)
-- 001-spec-a1-effisservice: Added Dart 3.0+ with Flutter SDK + http package, dartz (Either type), equatable (value objects)
-- 002-spec-a2-fireriskservice: Added FireRiskService orchestration with fallback chain, geographic utilities, telemetry, privacy compliance
 
 ## FireRiskService Implementation Patterns
 
