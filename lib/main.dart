@@ -38,7 +38,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Clear cached location for testing Portugal coordinates
-  // await _clearCachedLocation(); // COMMENTED OUT: Test mode disabled - uncomment to force Portugal coords
+  // await _clearCachedLocation(); // COMMENTED OUT: Cache clearing fixed, now disabled
   
   // Initialize services using composition root pattern
   final services = await _initializeServices();
@@ -73,10 +73,12 @@ class ServiceContainer {
 /// Clear cached location for testing (currently commented out in main())
 Future<void> _clearCachedLocation() async {
   final prefs = await SharedPreferences.getInstance();
+  await prefs.remove('manual_location_version'); // This was missing!
   await prefs.remove('manual_location_lat');
   await prefs.remove('manual_location_lon');
   await prefs.remove('manual_location_place');
-  print('🧹 Cleared cached location - will use Portugal coordinates');
+  await prefs.remove('manual_location_timestamp'); // This was missing!
+  print('🧹 Cleared cached location completely - all keys removed');
 }
 
 /// Initialize all services with proper dependency wiring

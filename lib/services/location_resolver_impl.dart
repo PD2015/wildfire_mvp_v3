@@ -23,9 +23,9 @@ class LocationResolverImpl implements LocationResolver {
 
   /// Scotland centroid coordinates for default fallback location
   // ORIGINAL: static const LatLng _scotlandCentroid = LatLng(55.8642, -4.2518);
-  // TEST MODE: Portugal coordinates for EFFIS data testing - known to have fire weather data
-  // static const LatLng _scotlandCentroid = LatLng(39.6, -9.1); // COMMENTED OUT: Test mode disabled
-  static const LatLng _scotlandCentroid = LatLng(55.8642, -4.2518);
+  // TEST MODE: Aviemore coordinates to test UK fire risk services
+  static const LatLng _scotlandCentroid = LatLng(57.2, -3.8); // Aviemore, UK - emulator GPS workaround
+  // static const LatLng _scotlandCentroid = LatLng(55.8642, -4.2518);
 
   /// Total resolution budget to prevent UI blocking
   static const Duration _totalTimeout = Duration(milliseconds: 2500);
@@ -54,29 +54,32 @@ class LocationResolverImpl implements LocationResolver {
         return await _fallbackToCache(allowDefault);
       }
 
-      // Tier 1: Last known device position (instant)
-      final lastKnownResult = await _tryLastKnownPosition();
-      if (lastKnownResult.isRight()) {
-        final coords = lastKnownResult.getOrElse(() => _scotlandCentroid);
-        debugPrint(
-            'Location resolved via last known: ${LocationUtils.logRedact(coords.latitude, coords.longitude)}');
-        return Right(coords);
-      }
+      // Tier 1: Skip last known position to force fresh GPS (emulator has stale coordinates)
+      // TEMPORARILY DISABLED: Last known device position (instant)
+      // final lastKnownResult = await _tryLastKnownPosition();
+      // if (lastKnownResult.isRight()) {
+      //   final coords = lastKnownResult.getOrElse(() => _scotlandCentroid);
+      //   debugPrint(
+      //       'Location resolved via last known: ${LocationUtils.logRedact(coords.latitude, coords.longitude)}');
+      //   return Right(coords);
+      // }
 
-      // Tier 2: GPS fix with timeout (within total budget)
-      final remainingTime =
-          _totalTimeout.inMilliseconds - stopwatch.elapsedMilliseconds;
-      if (remainingTime > 0) {
-        final gpsTimeout = Duration(
-            milliseconds: remainingTime.clamp(0, _gpsTimeout.inMilliseconds));
-        final gpsResult = await _tryGpsFix(gpsTimeout);
-        if (gpsResult.isRight()) {
-          final coords = gpsResult.getOrElse(() => _scotlandCentroid);
-          debugPrint(
-              'Location resolved via GPS: ${LocationUtils.logRedact(coords.latitude, coords.longitude)}');
-          return Right(coords);
-        }
-      }
+      // Tier 1: GPS fix temporarily bypassed due to emulator GPS issues
+      // Force use of Aviemore coordinates to test UK fire risk services (EFFIS + SEPA)
+      debugPrint('GPS temporarily bypassed - using Aviemore coordinates for UK testing');
+      // final remainingTime =
+      //     _totalTimeout.inMilliseconds - stopwatch.elapsedMilliseconds;
+      // if (remainingTime > 0) {
+      //   final gpsTimeout = Duration(
+      //       milliseconds: remainingTime.clamp(0, _gpsTimeout.inMilliseconds));
+      //   final gpsResult = await _tryGpsFix(gpsTimeout);
+      //   if (gpsResult.isRight()) {
+      //     final coords = gpsResult.getOrElse(() => _scotlandCentroid);
+      //     debugPrint(
+      //         'Location resolved via GPS: ${LocationUtils.logRedact(coords.latitude, coords.longitude)}');
+      //     return Right(coords);
+      //   }
+      // }
 
       // Tier 3: SharedPreferences cached manual location
       final cacheResult = await _tryCache();
