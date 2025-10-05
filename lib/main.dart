@@ -38,7 +38,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Clear cached location for testing Portugal coordinates
-  await _clearCachedLocation();
+  // await _clearCachedLocation(); // COMMENTED OUT: Test mode disabled - uncomment to force Portugal coords
   
   // Initialize services using composition root pattern
   final services = await _initializeServices();
@@ -70,7 +70,7 @@ class ServiceContainer {
   });
 }
 
-/// Clear cached location for testing
+/// Clear cached location for testing (currently commented out in main())
 Future<void> _clearCachedLocation() async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.remove('manual_location_lat');
