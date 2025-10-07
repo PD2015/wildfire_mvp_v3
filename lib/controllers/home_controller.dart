@@ -4,7 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:dartz/dartz.dart';
 
 import '../models/home_state.dart';
-import '../models/location_models.dart';
+import '../models/lat_lng.dart';
+import '../models/fire_risk.dart';
 import '../services/location_resolver.dart';
 import '../services/fire_risk_service.dart';
 import '../utils/location_utils.dart';

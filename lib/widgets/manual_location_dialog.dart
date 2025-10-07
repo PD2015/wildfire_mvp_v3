@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../models/location_models.dart';
+import '../models/lat_lng.dart';
 
 /// Manual location entry dialog with coordinate validation and accessibility compliance.
 ///

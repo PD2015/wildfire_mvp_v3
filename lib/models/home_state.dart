@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import '../services/models/fire_risk.dart';
-import 'location_models.dart';
+import 'lat_lng.dart';
+import 'fire_risk.dart';
 
 /// Sealed class hierarchy representing all possible states of the Home screen
 ///

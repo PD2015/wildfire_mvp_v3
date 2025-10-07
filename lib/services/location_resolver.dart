@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
-import '../models/location_models.dart';
+import '../models/lat_lng.dart';
+import '../models/location_error.dart';
 
 /// Abstract interface for location resolution service
 ///
