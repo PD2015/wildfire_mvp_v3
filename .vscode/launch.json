@@ -1,0 +1,47 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug (macOS)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "deviceId": "macos",
+            "console": "debugConsole"
+        },
+        {
+            "name": "Profile (macOS)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "deviceId": "macos",
+            "flutterMode": "profile",
+            "console": "debugConsole"
+        },
+        {
+            "name": "Release (macOS)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "deviceId": "macos",
+            "flutterMode": "release",
+            "console": "debugConsole"
+        },
+        {
+            "name": "Debug (Chrome)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "deviceId": "chrome",
+            "console": "debugConsole"
+        },
+        {
+            "name": "Debug (iOS Simulator)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "deviceId": "ios",
+            "console": "debugConsole"
+        }
+    ]
+}
