@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dartz/dartz.dart';
@@ -53,7 +52,7 @@ class MockLocationResolver implements LocationResolver {
     }
 
     // Default to Edinburgh
-    return Right(const LatLng(55.9533, -3.1883));
+    return const Right(LatLng(55.9533, -3.1883));
   }
 
   @override

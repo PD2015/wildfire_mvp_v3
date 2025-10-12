@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'controllers/home_controller.dart';
 import 'screens/home_screen.dart';
+import 'features/map/screens/map_screen.dart';
 import 'theme/wildfire_theme.dart';
 
 /// WildFire application root widget
@@ -18,14 +20,28 @@ class WildFireApp extends StatelessWidget {
   /// Home controller with injected services
   final HomeController homeController;
 
-  const WildFireApp({
+  WildFireApp({
     super.key,
     required this.homeController,
   });
 
+  /// Router configuration with go_router
+  late final GoRouter _router = GoRouter(
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) => HomeScreen(controller: homeController),
+      ),
+      GoRoute(
+        path: '/map',
+        builder: (context, state) => const MapScreen(),
+      ),
+    ],
+  );
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'WildFire Risk Assessment',
 
       // Theme configuration with official Scottish colors
@@ -36,8 +52,8 @@ class WildFireApp extends StatelessWidget {
       // Accessibility and localization
       debugShowCheckedModeBanner: false,
 
-      // Initial route configuration
-      home: HomeScreen(controller: homeController),
+      // Router configuration
+      routerConfig: _router,
 
       // Error handling for navigation
       builder: (context, child) {
@@ -92,7 +108,7 @@ class WildFireApp extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12.0),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceVariant,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Text(

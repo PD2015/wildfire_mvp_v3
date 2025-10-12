@@ -77,7 +77,8 @@ import 'effis_service.dart';
 /// - Invalid coordinates → Non-retryable validation error
 /// - Malformed JSON response → Non-retryable parsing error
 class EffisServiceImpl implements EffisService {
-  static const String _baseUrl = 'https://ies-ows.jrc.ec.europa.eu/gwis';  // GWIS - proven working
+  static const String _baseUrl =
+      'https://ies-ows.jrc.ec.europa.eu/gwis'; // GWIS - proven working
   static const String _userAgent = 'WildFire/0.1 (prototype)';
   static const String _acceptHeader = 'application/json,*/*;q=0.8';
 
@@ -201,7 +202,7 @@ class EffisServiceImpl implements EffisService {
           level: 1000,
           error: e,
         );
-        
+
         // Handle network exceptions
         lastError = _mapExceptionToApiError(e);
 
@@ -246,23 +247,28 @@ class EffisServiceImpl implements EffisService {
 
     // Get current date for TIME parameter (EFFIS requires temporal specification)
     // Use known working date for EFFIS data (has fire weather data available)
-    final currentDate = '2024-08-15'; // YYYY-MM-DD format - verified to have FWI data
-    
+    const currentDate =
+        '2024-08-15'; // YYYY-MM-DD format - verified to have FWI data
+
     return Uri.parse(_baseUrl).replace(queryParameters: {
       'SERVICE': 'WMS',
       'VERSION': '1.3.0',
       'REQUEST': 'GetFeatureInfo',
-      'LAYERS': 'nasa_geos5.query', // Query layer provides actual numeric FWI values
+      'LAYERS':
+          'nasa_geos5.query', // Query layer provides actual numeric FWI values
       'QUERY_LAYERS': 'nasa_geos5.query',
-      'CRS': 'EPSG:4326', // 🎯 BREAKTHROUGH: Use same coordinate system as successful manual test
+      'CRS':
+          'EPSG:4326', // 🎯 BREAKTHROUGH: Use same coordinate system as successful manual test
       'BBOX': '$minLat,$minLon,$maxLat,$maxLon',
       'WIDTH': '256',
       'HEIGHT': '256',
       'I': '128', // Query point X
       'J': '128', // Query point Y
-      'INFO_FORMAT': 'text/plain', // EFFIS provides data existence confirmation, not explicit FWI values
+      'INFO_FORMAT':
+          'text/plain', // EFFIS provides data existence confirmation, not explicit FWI values
       'FEATURE_COUNT': '1',
-      'TIME': currentDate, // 🎯 KEY FIX: Add temporal parameter for current data
+      'TIME':
+          currentDate, // 🎯 KEY FIX: Add temporal parameter for current data
     });
   }
 
@@ -282,11 +288,11 @@ class EffisServiceImpl implements EffisService {
       'Response Content-Type: $contentType, Status: ${response.statusCode}',
       name: 'EffisService.response',
     );
-    
+
     // Log response body in debug mode only (can be large)
     if (response.body.isNotEmpty) {
-      final bodyPreview = response.body.length > 500 
-          ? '${response.body.substring(0, 500)}...' 
+      final bodyPreview = response.body.length > 500
+          ? '${response.body.substring(0, 500)}...'
           : response.body;
       developer.log(
         'Response body (${response.body.length} chars): $bodyPreview',
@@ -305,10 +311,11 @@ class EffisServiceImpl implements EffisService {
     }
 
     // Handle GML XML response format (contains actual FWI values)
-    if (contentType.contains('application/vnd.ogc.gml') || contentType.contains('text/xml')) {
+    if (contentType.contains('application/vnd.ogc.gml') ||
+        contentType.contains('text/xml')) {
       return await _parseEffisGmlResponse(response.body);
     }
-    
+
     // Handle text/plain format (limited data)
     if (contentType.contains('text/plain')) {
       return await _parseEffisXmlResponse(response.body);
@@ -503,7 +510,8 @@ class EffisServiceImpl implements EffisService {
   /// Next step: Investigate TIME parameter for temporal data access
   Future<Either<ApiError, EffisFwiResult>> _parseEffisXmlResponse(
       String responseBody) async {
-    developer.log('Parsing EFFIS text/plain response', name: 'EffisService.parser');
+    developer.log('Parsing EFFIS text/plain response',
+        name: 'EffisService.parser');
 
     // Handle "Search returned no results" case (most common current response)
     // This indicates the service is working but no data available for coordinates/time
@@ -516,31 +524,34 @@ class EffisServiceImpl implements EffisService {
 
     // Handle other response formats
     if (responseBody.contains('GetFeatureInfo results:')) {
-      developer.log('Processing GetFeatureInfo results', name: 'EffisService.parser');
-      
+      developer.log('Processing GetFeatureInfo results',
+          name: 'EffisService.parser');
+
       // Parse nasa_geos5.query response for actual FWI values
       // Response format: "value_0 = 'X.XXXXXX'" where value_0 is the FWI
-      final fwiMatch = RegExp(r"value_0 = '([0-9.]+)'").firstMatch(responseBody);
-      
+      final fwiMatch =
+          RegExp(r"value_0 = '([0-9.]+)'").firstMatch(responseBody);
+
       if (fwiMatch != null) {
         final fwiString = fwiMatch.group(1);
         final fwiValue = double.tryParse(fwiString ?? '');
-        
+
         if (fwiValue != null) {
           developer.log(
             'REAL GWIS FWI VALUE: $fwiValue from nasa_geos5.query layer',
             name: 'EffisService.parser.success',
           );
-          
+
           return Right(EffisFwiResult(
             fwi: fwiValue, // Actual FWI from EFFIS nasa_geos5.query layer
-            dc: 0.0,   // TODO: Extract value_3 if needed
-            dmc: 0.0,  // TODO: Extract value_2 if needed  
+            dc: 0.0, // TODO: Extract value_3 if needed
+            dmc: 0.0, // TODO: Extract value_2 if needed
             ffmc: 0.0, // TODO: Extract value_1 if needed
-            isi: 0.0,  // TODO: Extract value_4 if needed
-            bui: 0.0,  // TODO: Extract value_5 if needed
+            isi: 0.0, // TODO: Extract value_4 if needed
+            bui: 0.0, // TODO: Extract value_5 if needed
             datetime: DateTime.now().toUtc(),
-            latitude: 39.6, // Portugal test coordinates - TODO: pass actual coordinates
+            latitude:
+                39.6, // Portugal test coordinates - TODO: pass actual coordinates
             longitude: -9.1,
           ));
         } else {
@@ -551,7 +562,7 @@ class EffisServiceImpl implements EffisService {
           );
         }
       }
-      
+
       // Look for numeric FWI data in the response
       final lines = responseBody.split('\n');
       for (final line in lines) {
@@ -562,7 +573,8 @@ class EffisServiceImpl implements EffisService {
           if (fwiMatch != null) {
             final fwiValue = double.tryParse(fwiMatch.group(1)!);
             if (fwiValue != null) {
-              developer.log('Found FWI value: $fwiValue', name: 'EffisService.parser');
+              developer.log('Found FWI value: $fwiValue',
+                  name: 'EffisService.parser');
               return Right(EffisFwiResult(
                 fwi: fwiValue,
                 dc: 0.0, // TODO: Extract from response if available
@@ -588,7 +600,7 @@ class EffisServiceImpl implements EffisService {
   }
 
   /// Parses EFFIS GML XML response to extract real FWI values
-  /// 
+  ///
   /// GML format provides structured XML with actual fire weather data:
   /// <msGMLOutput>
   ///   <nasa_geos5.fwi_layer>
@@ -600,8 +612,9 @@ class EffisServiceImpl implements EffisService {
   /// </msGMLOutput>
   Future<Either<ApiError, EffisFwiResult>> _parseEffisGmlResponse(
       String responseBody) async {
-    developer.log('Parsing EFFIS GML response', name: 'EffisService.parser.gml');
-    
+    developer.log('Parsing EFFIS GML response',
+        name: 'EffisService.parser.gml');
+
     if (responseBody.isNotEmpty) {
       developer.log(
         'GML response length: ${responseBody.length} chars',
@@ -613,15 +626,18 @@ class EffisServiceImpl implements EffisService {
     if (responseBody.contains('<nasa_geos5.fwi_feature>')) {
       // Try to extract FWI value from GML structure
       // Look for numeric values in the feature element
-      final RegExp fwiPattern = RegExp(r'<fwi[^>]*>([0-9]+\.?[0-9]*)</fwi>', caseSensitive: false);
-      final RegExp valuePattern = RegExp(r'>([0-9]+\.?[0-9]*)<', caseSensitive: false);
-      
+      final RegExp fwiPattern =
+          RegExp(r'<fwi[^>]*>([0-9]+\.?[0-9]*)</fwi>', caseSensitive: false);
+      final RegExp valuePattern =
+          RegExp(r'>([0-9]+\.?[0-9]*)<', caseSensitive: false);
+
       // First try to find explicit <fwi> tags
       RegExpMatch? fwiMatch = fwiPattern.firstMatch(responseBody);
       if (fwiMatch != null) {
         final fwiValue = double.tryParse(fwiMatch.group(1)!);
         if (fwiValue != null) {
-          developer.log('Found explicit FWI value: $fwiValue', name: 'EffisService.parser.gml');
+          developer.log('Found explicit FWI value: $fwiValue',
+              name: 'EffisService.parser.gml');
           return Right(EffisFwiResult(
             fwi: fwiValue,
             dc: 0.0,
@@ -635,14 +651,15 @@ class EffisServiceImpl implements EffisService {
           ));
         }
       }
-      
+
       // If no explicit FWI tag, look for any numeric values in feature
       final allMatches = valuePattern.allMatches(responseBody);
       for (final match in allMatches) {
         final numericValue = double.tryParse(match.group(1)!);
         if (numericValue != null && numericValue > 0 && numericValue < 100) {
           // Reasonable FWI range is 0-100
-          developer.log('Found potential FWI value in GML: $numericValue', name: 'EffisService.parser.gml');
+          developer.log('Found potential FWI value in GML: $numericValue',
+              name: 'EffisService.parser.gml');
           return Right(EffisFwiResult(
             fwi: numericValue,
             dc: 0.0,
@@ -656,9 +673,10 @@ class EffisServiceImpl implements EffisService {
           ));
         }
       }
-      
+
       // Feature exists but no numeric value found - return a reasonable default
-      developer.log('GML feature exists but no FWI value found - using default', name: 'EffisService.parser.gml', level: 900);
+      developer.log('GML feature exists but no FWI value found - using default',
+          name: 'EffisService.parser.gml', level: 900);
       return Right(EffisFwiResult(
         fwi: 8.5, // Reasonable default for areas with fire weather data
         dc: 0.0,

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 // Service imports
 import 'services/fire_risk_service.dart';
@@ -39,7 +38,7 @@ void main() async {
 
   // Clear cached location for testing Portugal coordinates
   // await _clearCachedLocation(); // COMMENTED OUT: Cache clearing fixed, now disabled
-  
+
   // Initialize services using composition root pattern
   final services = await _initializeServices();
 
@@ -70,17 +69,6 @@ class ServiceContainer {
   });
 }
 
-/// Clear cached location for testing (currently commented out in main())
-Future<void> _clearCachedLocation() async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.remove('manual_location_version'); // This was missing!
-  await prefs.remove('manual_location_lat');
-  await prefs.remove('manual_location_lon');
-  await prefs.remove('manual_location_place');
-  await prefs.remove('manual_location_timestamp'); // This was missing!
-  print('🧹 Cleared cached location completely - all keys removed');
-}
-
 /// Initialize all services with proper dependency wiring
 Future<ServiceContainer> _initializeServices() async {
   // Initialize location resolver (A4)
@@ -99,16 +87,16 @@ Future<ServiceContainer> _initializeServices() async {
   final MockService mockService = MockService.defaultStrategy();
 
   // DEBUG: Test the EFFIS service directly
-  print('🔍 Testing EFFIS service directly...');
+  debugPrint('🔍 Testing EFFIS service directly...');
   try {
     final testResult = await effisService.getFwi(lat: 39.6, lon: -9.1);
     testResult.fold(
-      (error) => print('🔍 EFFIS direct test FAILED: ${error.message}'),
-      (result) => print(
+      (error) => debugPrint('🔍 EFFIS direct test FAILED: ${error.message}'),
+      (result) => debugPrint(
           '🔍 EFFIS direct test SUCCESS: FWI=${result.fwi}, Risk=${result.riskLevel}'),
     );
   } catch (e) {
-    print('🔍 EFFIS direct test EXCEPTION: $e');
+    debugPrint('🔍 EFFIS direct test EXCEPTION: $e');
   }
 
   // Initialize full orchestrated fire risk service (A2)

@@ -25,9 +25,8 @@ void main() {
       // Set up SharedPreferences mock
       SharedPreferences.setMockInitialValues({});
 
-      // Create location resolver with dependency injection
-      locationResolver =
-          LocationResolverImpl(geolocatorService: fakeGeolocator);
+      // Create location resolver
+      locationResolver = LocationResolverImpl();
     });
 
     tearDown(() {

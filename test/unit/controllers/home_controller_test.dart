@@ -152,7 +152,7 @@ void main() {
         final states = <HomeState>[];
         controller.addListener(() => states.add(controller.state));
 
-        mockLocationResolver.mockGetLatLon(Right(TestData.edinburgh));
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act
@@ -221,7 +221,7 @@ void main() {
         final states = <HomeState>[];
         controller.addListener(() => states.add(controller.state));
 
-        mockLocationResolver.mockGetLatLon(Right(TestData.edinburgh));
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act
@@ -281,11 +281,11 @@ void main() {
     group('Re-entrancy Protection', () {
       test('load() ignores subsequent calls while loading', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(Right(TestData.edinburgh));
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Set up normal successful responses
-        mockLocationResolver.mockGetLatLon(Right(TestData.edinburgh));
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
 
         // Act
         final future1 = controller.load();
@@ -307,7 +307,7 @@ void main() {
 
       test('setManualLocation ignores calls while loading', () async {
         // Arrange - create a slow-loading scenario
-        mockLocationResolver.mockGetLatLon(Right(TestData.edinburgh));
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Start a load operation
@@ -345,7 +345,7 @@ void main() {
         int notificationCount = 0;
         controller.addListener(() => notificationCount++);
 
-        mockLocationResolver.mockGetLatLon(Right(TestData.edinburgh));
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act
@@ -380,7 +380,7 @@ void main() {
         // The actual log redaction testing is done in the LocationUtils tests
         // We verify the controller doesn't expose raw coordinates in state
 
-        mockLocationResolver.mockGetLatLon(Right(TestData.edinburgh));
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         await controller.load();

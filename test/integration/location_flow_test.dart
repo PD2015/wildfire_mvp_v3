@@ -30,10 +30,7 @@ void main() {
     setUp(() {
       fakeGeolocator = FakeGeolocator();
       fakeTimer = FakeTimer();
-      locationResolver =
-          LocationResolverImpl(geolocatorService: fakeGeolocator);
-
-      // Reset SharedPreferences
+      locationResolver = LocationResolverImpl(); // Reset SharedPreferences
       SharedPreferences.setMockInitialValues({});
     });
 

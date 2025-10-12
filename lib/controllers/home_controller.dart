@@ -185,8 +185,9 @@ class HomeController extends ChangeNotifier {
           developer.log(
               'Fire risk data obtained: ${value.level} from ${value.source}',
               name: 'HomeController');
-          print(
-              '🔥🔥🔥 FIRE RISK RESULT: ${value.level} from ${value.source} (FWI: ${value.fwi})');
+          developer.log(
+              '🔥🔥🔥 FIRE RISK RESULT: ${value.level} from ${value.source} (FWI: ${value.fwi})',
+              name: 'HomeController');
           _finishLoading();
           _updateState(HomeStateSuccess(
             riskData: value,

@@ -178,7 +178,8 @@ class FireRiskServiceImpl implements FireRiskService {
 
     try {
       // Attempt 1: EFFIS (always first, global coverage)
-      developer.log('Attempting EFFIS service', name: 'FireRiskService.tier1.effis');
+      developer.log('Attempting EFFIS service',
+          name: 'FireRiskService.tier1.effis');
       _telemetry.onFallbackDepth(fallbackDepth);
       final effisResult =
           await _attemptEffis(lat, lon, stopwatch, effectiveDeadline);
@@ -190,12 +191,14 @@ class FireRiskServiceImpl implements FireRiskService {
         _telemetry.onComplete(TelemetrySource.effis, stopwatch.elapsed);
         return Right(effisResult);
       }
-      developer.log('EFFIS failed - falling back to next service', name: 'FireRiskService.tier1.effis', level: 900);
+      developer.log('EFFIS failed - falling back to next service',
+          name: 'FireRiskService.tier1.effis', level: 900);
       fallbackDepth++;
 
       // Attempt 2: SEPA (only for Scotland coordinates)
       if (_sepaService != null && GeographicUtils.isInScotland(lat, lon)) {
-        developer.log('Attempting SEPA service (Scotland detected)', name: 'FireRiskService.tier2.sepa');
+        developer.log('Attempting SEPA service (Scotland detected)',
+            name: 'FireRiskService.tier2.sepa');
         _telemetry.onFallbackDepth(fallbackDepth);
         final sepaResult =
             await _attemptSepa(lat, lon, stopwatch, effectiveDeadline);
@@ -207,17 +210,22 @@ class FireRiskServiceImpl implements FireRiskService {
           _telemetry.onComplete(TelemetrySource.sepa, stopwatch.elapsed);
           return Right(sepaResult);
         }
-        developer.log('SEPA failed - falling back to next service', name: 'FireRiskService.tier2.sepa', level: 900);
+        developer.log('SEPA failed - falling back to next service',
+            name: 'FireRiskService.tier2.sepa', level: 900);
         fallbackDepth++;
       } else if (_sepaService != null) {
-        developer.log('SEPA service available but coordinates not in Scotland - skipping', name: 'FireRiskService.tier2.sepa');
+        developer.log(
+            'SEPA service available but coordinates not in Scotland - skipping',
+            name: 'FireRiskService.tier2.sepa');
       } else {
-        developer.log('SEPA service not configured - skipping', name: 'FireRiskService.tier2.sepa');
+        developer.log('SEPA service not configured - skipping',
+            name: 'FireRiskService.tier2.sepa');
       }
 
       // Attempt 3: Cache (if available and time remaining)
       if (_cacheService != null) {
-        developer.log('Attempting Cache service', name: 'FireRiskService.tier3.cache');
+        developer.log('Attempting Cache service',
+            name: 'FireRiskService.tier3.cache');
         _telemetry.onFallbackDepth(fallbackDepth);
         final cacheResult =
             await _attemptCache(lat, lon, stopwatch, effectiveDeadline);
@@ -229,14 +237,17 @@ class FireRiskServiceImpl implements FireRiskService {
           _telemetry.onComplete(TelemetrySource.cache, stopwatch.elapsed);
           return Right(cacheResult);
         }
-        developer.log('Cache failed or empty - falling back to mock', name: 'FireRiskService.tier3.cache', level: 900);
+        developer.log('Cache failed or empty - falling back to mock',
+            name: 'FireRiskService.tier3.cache', level: 900);
         fallbackDepth++;
       } else {
-        developer.log('Cache service not configured - skipping', name: 'FireRiskService.tier3.cache');
+        developer.log('Cache service not configured - skipping',
+            name: 'FireRiskService.tier3.cache');
       }
 
       // Final fallback: Mock (guaranteed to succeed)
-      developer.log('Using Mock service as final fallback', name: 'FireRiskService.tier4.mock', level: 900);
+      developer.log('Using Mock service as final fallback',
+          name: 'FireRiskService.tier4.mock', level: 900);
       _telemetry.onFallbackDepth(fallbackDepth);
       final mockResult = await _attemptMock(lat, lon);
       developer.log(

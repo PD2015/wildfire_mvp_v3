@@ -2,36 +2,25 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:dartz/dartz.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/location_models.dart';
 import '../utils/location_utils.dart';
 import 'location_resolver.dart';
-import 'geolocator_service.dart';
 
 /// Concrete implementation of LocationResolver with 5-tier fallback strategy
 ///
 /// Provides headless location resolution with privacy-compliant logging
 /// and graceful handling of platform limitations and permission changes.
 class LocationResolverImpl implements LocationResolver {
-  final GeolocatorService _geolocatorService;
-
-  /// Create LocationResolver with optional geolocator service dependency
-  /// Uses production GeolocatorServiceImpl by default
-  LocationResolverImpl({GeolocatorService? geolocatorService})
-      : _geolocatorService = geolocatorService ?? GeolocatorServiceImpl();
+  /// Create LocationResolver
+  LocationResolverImpl();
 
   /// Scotland centroid coordinates for default fallback location
   // ORIGINAL: static const LatLng _scotlandCentroid = LatLng(55.8642, -4.2518);
   // TEST MODE: Aviemore coordinates to test UK fire risk services
-  static const LatLng _scotlandCentroid = LatLng(57.2, -3.8); // Aviemore, UK - emulator GPS workaround
+  static const LatLng _scotlandCentroid =
+      LatLng(57.2, -3.8); // Aviemore, UK - emulator GPS workaround
   // static const LatLng _scotlandCentroid = LatLng(55.8642, -4.2518);
-
-  /// Total resolution budget to prevent UI blocking
-  static const Duration _totalTimeout = Duration(milliseconds: 2500);
-
-  /// GPS-specific timeout
-  static const Duration _gpsTimeout = Duration(seconds: 2);
 
   /// Cache keys for SharedPreferences persistence
   static const String _versionKey = 'manual_location_version';
@@ -66,7 +55,8 @@ class LocationResolverImpl implements LocationResolver {
 
       // Tier 1: GPS fix temporarily bypassed due to emulator GPS issues
       // Force use of Aviemore coordinates to test UK fire risk services (EFFIS + SEPA)
-      debugPrint('GPS temporarily bypassed - using Aviemore coordinates for UK testing');
+      debugPrint(
+          'GPS temporarily bypassed - using Aviemore coordinates for UK testing');
       // final remainingTime =
       //     _totalTimeout.inMilliseconds - stopwatch.elapsedMilliseconds;
       // if (remainingTime > 0) {
@@ -113,67 +103,6 @@ class LocationResolverImpl implements LocationResolver {
       stopwatch.stop();
       debugPrint(
           'Total location resolution time: ${stopwatch.elapsedMilliseconds}ms');
-    }
-  }
-
-  /// Attempts to get last known position (Tier 1)
-  Future<Either<LocationError, LatLng>> _tryLastKnownPosition() async {
-    try {
-      final position = await _geolocatorService.getLastKnownPosition();
-
-      if (position != null) {
-        final coords = LatLng(position.latitude, position.longitude);
-        if (coords.isValid) {
-          return Right(coords);
-        }
-      }
-
-      return const Left(LocationError.gpsUnavailable);
-    } catch (e) {
-      debugPrint('Last known position error: $e');
-      return const Left(LocationError.gpsUnavailable);
-    }
-  }
-
-  /// Attempts GPS fix with timeout (Tier 2)
-  Future<Either<LocationError, LatLng>> _tryGpsFix(Duration timeout) async {
-    try {
-      // Check location services
-      if (!await _geolocatorService.isLocationServiceEnabled()) {
-        return const Left(LocationError.gpsUnavailable);
-      }
-
-      // Check and request permissions
-      var permission = await _geolocatorService.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await _geolocatorService.requestPermission();
-      }
-
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        return const Left(LocationError.permissionDenied);
-      }
-
-      // Get current position with timeout
-      final position = await _geolocatorService.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.medium,
-        timeLimit: timeout,
-      );
-
-      final coords = LatLng(position.latitude, position.longitude);
-      if (coords.isValid) {
-        return Right(coords);
-      }
-
-      return const Left(LocationError.invalidInput);
-    } on TimeoutException {
-      return const Left(LocationError.timeout);
-    } catch (e) {
-      debugPrint('GPS fix error: $e');
-      if (e.toString().toLowerCase().contains('permission')) {
-        return const Left(LocationError.permissionDenied);
-      }
-      return const Left(LocationError.gpsUnavailable);
     }
   }
 
