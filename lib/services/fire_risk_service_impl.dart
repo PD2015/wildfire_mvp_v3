@@ -12,6 +12,7 @@
 library fire_risk_service_impl;
 
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'package:dartz/dartz.dart';
 import '../models/api_error.dart';
 import '../models/risk_level.dart';
@@ -155,15 +156,21 @@ class FireRiskServiceImpl implements FireRiskService {
     final stopwatch = Stopwatch()..start();
 
     // Enhanced debug logging for orchestration flow
-    print('🔥 === FIRE RISK SERVICE ORCHESTRATION START ===');
-    print('🔥 Coordinates: ${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}');
-    print('🔥 Deadline: ${effectiveDeadline.inSeconds}s');
-    print('🔥 Available services: EFFIS${_sepaService != null ? ', SEPA' : ''}${_cacheService != null ? ', Cache' : ''}, Mock (fallback)');
+    developer.log(
+      'Orchestration START - Coordinates: ${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}, '
+      'Deadline: ${effectiveDeadline.inSeconds}s, '
+      'Available: EFFIS${_sepaService != null ? ', SEPA' : ''}${_cacheService != null ? ', Cache' : ''}, Mock',
+      name: 'FireRiskService.orchestration',
+    );
 
     // Validate coordinates first
     final coordinateValidation = _validateCoordinates(lat, lon);
     if (coordinateValidation != null) {
-      print('🔥 ❌ COORDINATE VALIDATION FAILED: ${coordinateValidation.message}');
+      developer.log(
+        'Coordinate validation failed: ${coordinateValidation.message}',
+        name: 'FireRiskService.validation',
+        level: 900, // Warning level
+      );
       return Left(coordinateValidation);
     }
 
@@ -171,71 +178,86 @@ class FireRiskServiceImpl implements FireRiskService {
 
     try {
       // Attempt 1: EFFIS (always first, global coverage)
-      print('🔥 [TIER 1] Attempting EFFIS service...');
+      developer.log('Attempting EFFIS service', name: 'FireRiskService.tier1.effis');
       _telemetry.onFallbackDepth(fallbackDepth);
       final effisResult =
           await _attemptEffis(lat, lon, stopwatch, effectiveDeadline);
       if (effisResult != null) {
-        print('🔥 ✅ SUCCESS: EFFIS returned ${effisResult.level} (FWI: ${effisResult.fwi}) in ${stopwatch.elapsedMilliseconds}ms');
-        print('🔥 === ORCHESTRATION COMPLETE: DataSource.effis ===');
+        developer.log(
+          'SUCCESS: EFFIS returned ${effisResult.level} (FWI: ${effisResult.fwi}) in ${stopwatch.elapsedMilliseconds}ms',
+          name: 'FireRiskService.success',
+        );
         _telemetry.onComplete(TelemetrySource.effis, stopwatch.elapsed);
         return Right(effisResult);
       }
-      print('🔥 ❌ EFFIS failed - falling back to next service');
+      developer.log('EFFIS failed - falling back to next service', name: 'FireRiskService.tier1.effis', level: 900);
       fallbackDepth++;
 
       // Attempt 2: SEPA (only for Scotland coordinates)
       if (_sepaService != null && GeographicUtils.isInScotland(lat, lon)) {
-        print('🔥 [TIER 2] Attempting SEPA service (Scotland detected)...');
+        developer.log('Attempting SEPA service (Scotland detected)', name: 'FireRiskService.tier2.sepa');
         _telemetry.onFallbackDepth(fallbackDepth);
         final sepaResult =
             await _attemptSepa(lat, lon, stopwatch, effectiveDeadline);
         if (sepaResult != null) {
-          print('🔥 ✅ SUCCESS: SEPA returned ${sepaResult.level} (FWI: ${sepaResult.fwi}) in ${stopwatch.elapsedMilliseconds}ms');
-          print('🔥 === ORCHESTRATION COMPLETE: DataSource.sepa ===');
+          developer.log(
+            'SUCCESS: SEPA returned ${sepaResult.level} (FWI: ${sepaResult.fwi}) in ${stopwatch.elapsedMilliseconds}ms',
+            name: 'FireRiskService.success',
+          );
           _telemetry.onComplete(TelemetrySource.sepa, stopwatch.elapsed);
           return Right(sepaResult);
         }
-        print('🔥 ❌ SEPA failed - falling back to next service');
+        developer.log('SEPA failed - falling back to next service', name: 'FireRiskService.tier2.sepa', level: 900);
         fallbackDepth++;
       } else if (_sepaService != null) {
-        print('🔥 [TIER 2] SEPA service available but coordinates not in Scotland - skipping');
+        developer.log('SEPA service available but coordinates not in Scotland - skipping', name: 'FireRiskService.tier2.sepa');
       } else {
-        print('🔥 [TIER 2] SEPA service not configured - skipping');
+        developer.log('SEPA service not configured - skipping', name: 'FireRiskService.tier2.sepa');
       }
 
       // Attempt 3: Cache (if available and time remaining)
       if (_cacheService != null) {
-        print('🔥 [TIER 3] Attempting Cache service...');
+        developer.log('Attempting Cache service', name: 'FireRiskService.tier3.cache');
         _telemetry.onFallbackDepth(fallbackDepth);
         final cacheResult =
             await _attemptCache(lat, lon, stopwatch, effectiveDeadline);
         if (cacheResult != null) {
-          print('🔥 ✅ SUCCESS: Cache returned ${cacheResult.level} (${cacheResult.source} origin, ${cacheResult.freshness}) in ${stopwatch.elapsedMilliseconds}ms');
-          print('🔥 === ORCHESTRATION COMPLETE: DataSource.cache (originally ${cacheResult.source}) ===');
+          developer.log(
+            'SUCCESS: Cache returned ${cacheResult.level} (${cacheResult.source} origin, ${cacheResult.freshness}) in ${stopwatch.elapsedMilliseconds}ms',
+            name: 'FireRiskService.success',
+          );
           _telemetry.onComplete(TelemetrySource.cache, stopwatch.elapsed);
           return Right(cacheResult);
         }
-        print('🔥 ❌ Cache failed or empty - falling back to mock');
+        developer.log('Cache failed or empty - falling back to mock', name: 'FireRiskService.tier3.cache', level: 900);
         fallbackDepth++;
       } else {
-        print('🔥 [TIER 3] Cache service not configured - skipping');
+        developer.log('Cache service not configured - skipping', name: 'FireRiskService.tier3.cache');
       }
 
       // Final fallback: Mock (guaranteed to succeed)
-      print('🔥 [TIER 4] Using Mock service as final fallback...');
+      developer.log('Using Mock service as final fallback', name: 'FireRiskService.tier4.mock', level: 900);
       _telemetry.onFallbackDepth(fallbackDepth);
       final mockResult = await _attemptMock(lat, lon);
-      print('🔥 ✅ SUCCESS: Mock returned ${mockResult.level} (FWI: ${mockResult.fwi}) in ${stopwatch.elapsedMilliseconds}ms');
-      print('🔥 === ORCHESTRATION COMPLETE: DataSource.mock ===');
+      developer.log(
+        'SUCCESS: Mock returned ${mockResult.level} (FWI: ${mockResult.fwi}) in ${stopwatch.elapsedMilliseconds}ms',
+        name: 'FireRiskService.success',
+      );
       _telemetry.onComplete(TelemetrySource.mock, stopwatch.elapsed);
       return Right(mockResult);
     } catch (e) {
       // Absolute fallback - should never happen due to mock guarantee
-      print('🔥 💥 EXCEPTION in orchestration: $e');
-      print('🔥 [EMERGENCY] Using Mock service as exception fallback...');
+      developer.log(
+        'EXCEPTION in orchestration: $e - Using Mock service as emergency fallback',
+        name: 'FireRiskService.emergency',
+        level: 1000, // Severe level
+        error: e,
+      );
       final mockResult = await _mockService.getCurrent(lat: lat, lon: lon);
-      print('🔥 ✅ EMERGENCY SUCCESS: Mock returned ${mockResult.level}');
+      developer.log(
+        'EMERGENCY SUCCESS: Mock returned ${mockResult.level}',
+        name: 'FireRiskService.emergency',
+      );
       _telemetry.onComplete(TelemetrySource.mock, stopwatch.elapsed);
       return Right(mockResult);
     }
@@ -263,7 +285,11 @@ class FireRiskServiceImpl implements FireRiskService {
   Future<FireRisk?> _attemptEffis(
       double lat, double lon, Stopwatch stopwatch, Duration deadline) async {
     if (stopwatch.elapsed >= deadline) {
-      print('🔥   EFFIS: Deadline exceeded (${stopwatch.elapsed} >= $deadline)');
+      developer.log(
+        'Deadline exceeded (${stopwatch.elapsed} >= $deadline)',
+        name: 'FireRiskService.effis',
+        level: 900,
+      );
       return null;
     }
 
@@ -271,7 +297,10 @@ class FireRiskServiceImpl implements FireRiskService {
     final timeoutDuration =
         remainingTime < _effisTimeout ? remainingTime : _effisTimeout;
 
-    print('🔥   EFFIS: Attempting with ${timeoutDuration.inSeconds}s timeout (${remainingTime.inSeconds}s remaining)');
+    developer.log(
+      'Attempting with ${timeoutDuration.inSeconds}s timeout (${remainingTime.inSeconds}s remaining)',
+      name: 'FireRiskService.effis',
+    );
     _telemetry.onAttemptStart(TelemetrySource.effis);
     final attemptStopwatch = Stopwatch()..start();
 
@@ -285,11 +314,18 @@ class FireRiskServiceImpl implements FireRiskService {
 
       return result.fold(
         (error) {
-          print('🔥   EFFIS: API error - ${error.message}');
+          developer.log(
+            'API error: ${error.message}',
+            name: 'FireRiskService.effis',
+            level: 900,
+          );
           return null;
         },
         (effisFwi) {
-          print('🔥   EFFIS: API success - FWI=${effisFwi.fwi}, Risk=${effisFwi.riskLevel}');
+          developer.log(
+            'API success - FWI=${effisFwi.fwi}, Risk=${effisFwi.riskLevel}',
+            name: 'FireRiskService.effis',
+          );
           return FireRisk.fromEffis(
             level: effisFwi.riskLevel,
             fwi: effisFwi.fwi,
@@ -298,7 +334,12 @@ class FireRiskServiceImpl implements FireRiskService {
         },
       );
     } catch (e) {
-      print('🔥   EFFIS: Exception - $e');
+      developer.log(
+        'Exception: $e',
+        name: 'FireRiskService.effis',
+        level: 1000,
+        error: e,
+      );
       _telemetry.onAttemptEnd(
           TelemetrySource.effis, attemptStopwatch.elapsed, false);
       return null;

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:math';
 import 'package:dartz/dartz.dart';
@@ -156,11 +157,10 @@ class EffisServiceImpl implements EffisService {
         final uri = _buildWmsUrl(lat, lon);
 
         // DEBUG: Log the exact request details
-        print('🌐 EFFIS HTTP REQUEST:');
-        print('   URL: $uri');
-        print('   Headers: User-Agent: $_userAgent, Accept: $_acceptHeader');
-        print('   Timeout: ${timeout.inSeconds}s');
-        print('   Attempt: ${attemptCount + 1}/${maxRetries + 1}');
+        developer.log(
+          'HTTP REQUEST - URL: $uri, Timeout: ${timeout.inSeconds}s, Attempt: ${attemptCount + 1}/${maxRetries + 1}',
+          name: 'EffisService.http',
+        );
 
         // Execute HTTP request with timeout
         final stopwatch = Stopwatch()..start();
@@ -174,11 +174,10 @@ class EffisServiceImpl implements EffisService {
         stopwatch.stop();
 
         // DEBUG: Log the response details
-        print('📡 EFFIS HTTP RESPONSE:');
-        print('   Status: ${response.statusCode}');
-        print('   Headers: ${response.headers}');
-        print('   Duration: ${stopwatch.elapsedMilliseconds}ms');
-        print('   Body Length: ${response.body.length} chars');
+        developer.log(
+          'HTTP RESPONSE - Status: ${response.statusCode}, Duration: ${stopwatch.elapsedMilliseconds}ms, Body: ${response.body.length} chars',
+          name: 'EffisService.http',
+        );
 
         // Process response
         final result = await _processResponse(response);
@@ -196,10 +195,12 @@ class EffisServiceImpl implements EffisService {
         lastError = error;
       } catch (e) {
         // DEBUG: Log network exceptions
-        print('❌ EFFIS NETWORK ERROR:');
-        print('   Exception: $e');
-        print('   Type: ${e.runtimeType}');
-        print('   Attempt: ${attemptCount + 1}/${maxRetries + 1}');
+        developer.log(
+          'NETWORK ERROR - Exception: $e, Type: ${e.runtimeType}, Attempt: ${attemptCount + 1}/${maxRetries + 1}',
+          name: 'EffisService.network',
+          level: 1000,
+          error: e,
+        );
         
         // Handle network exceptions
         lastError = _mapExceptionToApiError(e);
@@ -276,13 +277,22 @@ class EffisServiceImpl implements EffisService {
     // Validate content type - EFFIS returns XML, not JSON
     final contentType = response.headers['content-type'] ?? '';
 
-    // Debug: Print the actual response
-    print('🔍 EFFIS Response Content-Type: $contentType');
-    print('🔍 EFFIS Response Status: ${response.statusCode}');
-    print('🔍 EFFIS Response Headers: ${response.headers}');
-    print('🔍 EFFIS Response Body (full): ${response.body}');
-    print(
-        '🔍 EFFIS Response Body (first 500 chars): ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}');
+    // Debug: Log the actual response details
+    developer.log(
+      'Response Content-Type: $contentType, Status: ${response.statusCode}',
+      name: 'EffisService.response',
+    );
+    
+    // Log response body in debug mode only (can be large)
+    if (response.body.isNotEmpty) {
+      final bodyPreview = response.body.length > 500 
+          ? '${response.body.substring(0, 500)}...' 
+          : response.body;
+      developer.log(
+        'Response body (${response.body.length} chars): $bodyPreview',
+        name: 'EffisService.response.body',
+      );
+    }
 
     if (!contentType.contains('application/json') &&
         !contentType.contains('text/xml') &&
@@ -493,7 +503,7 @@ class EffisServiceImpl implements EffisService {
   /// Next step: Investigate TIME parameter for temporal data access
   Future<Either<ApiError, EffisFwiResult>> _parseEffisXmlResponse(
       String responseBody) async {
-    print('🔍 Parsing EFFIS text/plain response...');
+    developer.log('Parsing EFFIS text/plain response', name: 'EffisService.parser');
 
     // Handle "Search returned no results" case (most common current response)
     // This indicates the service is working but no data available for coordinates/time
@@ -506,7 +516,7 @@ class EffisServiceImpl implements EffisService {
 
     // Handle other response formats
     if (responseBody.contains('GetFeatureInfo results:')) {
-      print('🔍 Full EFFIS response: $responseBody');
+      developer.log('Processing GetFeatureInfo results', name: 'EffisService.parser');
       
       // Parse nasa_geos5.query response for actual FWI values
       // Response format: "value_0 = 'X.XXXXXX'" where value_0 is the FWI
@@ -517,7 +527,10 @@ class EffisServiceImpl implements EffisService {
         final fwiValue = double.tryParse(fwiString ?? '');
         
         if (fwiValue != null) {
-          print('🎉 REAL GWIS FWI VALUE: $fwiValue from nasa_geos5.query layer');
+          developer.log(
+            'REAL GWIS FWI VALUE: $fwiValue from nasa_geos5.query layer',
+            name: 'EffisService.parser.success',
+          );
           
           return Right(EffisFwiResult(
             fwi: fwiValue, // Actual FWI from EFFIS nasa_geos5.query layer
@@ -531,7 +544,11 @@ class EffisServiceImpl implements EffisService {
             longitude: -9.1,
           ));
         } else {
-          print('⚠️ EFFIS returned invalid FWI value: $fwiString');
+          developer.log(
+            'EFFIS returned invalid FWI value: $fwiString',
+            name: 'EffisService.parser',
+            level: 900,
+          );
         }
       }
       
@@ -545,7 +562,7 @@ class EffisServiceImpl implements EffisService {
           if (fwiMatch != null) {
             final fwiValue = double.tryParse(fwiMatch.group(1)!);
             if (fwiValue != null) {
-              print('🔍 Found FWI value: $fwiValue');
+              developer.log('Found FWI value: $fwiValue', name: 'EffisService.parser');
               return Right(EffisFwiResult(
                 fwi: fwiValue,
                 dc: 0.0, // TODO: Extract from response if available
@@ -583,8 +600,14 @@ class EffisServiceImpl implements EffisService {
   /// </msGMLOutput>
   Future<Either<ApiError, EffisFwiResult>> _parseEffisGmlResponse(
       String responseBody) async {
-    print('🔍 Parsing EFFIS GML response...');
-    print('🔍 Full GML response: $responseBody');
+    developer.log('Parsing EFFIS GML response', name: 'EffisService.parser.gml');
+    
+    if (responseBody.isNotEmpty) {
+      developer.log(
+        'GML response length: ${responseBody.length} chars',
+        name: 'EffisService.parser.gml',
+      );
+    }
 
     // Check if response contains actual feature data
     if (responseBody.contains('<nasa_geos5.fwi_feature>')) {
@@ -598,7 +621,7 @@ class EffisServiceImpl implements EffisService {
       if (fwiMatch != null) {
         final fwiValue = double.tryParse(fwiMatch.group(1)!);
         if (fwiValue != null) {
-          print('🎉 Found explicit FWI value: $fwiValue');
+          developer.log('Found explicit FWI value: $fwiValue', name: 'EffisService.parser.gml');
           return Right(EffisFwiResult(
             fwi: fwiValue,
             dc: 0.0,
@@ -619,7 +642,7 @@ class EffisServiceImpl implements EffisService {
         final numericValue = double.tryParse(match.group(1)!);
         if (numericValue != null && numericValue > 0 && numericValue < 100) {
           // Reasonable FWI range is 0-100
-          print('🎉 Found potential FWI value in GML: $numericValue');
+          developer.log('Found potential FWI value in GML: $numericValue', name: 'EffisService.parser.gml');
           return Right(EffisFwiResult(
             fwi: numericValue,
             dc: 0.0,
@@ -635,7 +658,7 @@ class EffisServiceImpl implements EffisService {
       }
       
       // Feature exists but no numeric value found - return a reasonable default
-      print('🔍 GML feature exists but no FWI value found - using default');
+      developer.log('GML feature exists but no FWI value found - using default', name: 'EffisService.parser.gml', level: 900);
       return Right(EffisFwiResult(
         fwi: 8.5, // Reasonable default for areas with fire weather data
         dc: 0.0,
