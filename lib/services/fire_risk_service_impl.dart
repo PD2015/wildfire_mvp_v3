@@ -154,9 +154,16 @@ class FireRiskServiceImpl implements FireRiskService {
     final effectiveDeadline = deadline ?? _defaultDeadline;
     final stopwatch = Stopwatch()..start();
 
+    // Enhanced debug logging for orchestration flow
+    print('🔥 === FIRE RISK SERVICE ORCHESTRATION START ===');
+    print('🔥 Coordinates: ${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}');
+    print('🔥 Deadline: ${effectiveDeadline.inSeconds}s');
+    print('🔥 Available services: EFFIS${_sepaService != null ? ', SEPA' : ''}${_cacheService != null ? ', Cache' : ''}, Mock (fallback)');
+
     // Validate coordinates first
     final coordinateValidation = _validateCoordinates(lat, lon);
     if (coordinateValidation != null) {
+      print('🔥 ❌ COORDINATE VALIDATION FAILED: ${coordinateValidation.message}');
       return Left(coordinateValidation);
     }
 
@@ -164,47 +171,71 @@ class FireRiskServiceImpl implements FireRiskService {
 
     try {
       // Attempt 1: EFFIS (always first, global coverage)
+      print('🔥 [TIER 1] Attempting EFFIS service...');
       _telemetry.onFallbackDepth(fallbackDepth);
       final effisResult =
           await _attemptEffis(lat, lon, stopwatch, effectiveDeadline);
       if (effisResult != null) {
+        print('🔥 ✅ SUCCESS: EFFIS returned ${effisResult.level} (FWI: ${effisResult.fwi}) in ${stopwatch.elapsedMilliseconds}ms');
+        print('🔥 === ORCHESTRATION COMPLETE: DataSource.effis ===');
         _telemetry.onComplete(TelemetrySource.effis, stopwatch.elapsed);
         return Right(effisResult);
       }
+      print('🔥 ❌ EFFIS failed - falling back to next service');
       fallbackDepth++;
 
       // Attempt 2: SEPA (only for Scotland coordinates)
       if (_sepaService != null && GeographicUtils.isInScotland(lat, lon)) {
+        print('🔥 [TIER 2] Attempting SEPA service (Scotland detected)...');
         _telemetry.onFallbackDepth(fallbackDepth);
         final sepaResult =
             await _attemptSepa(lat, lon, stopwatch, effectiveDeadline);
         if (sepaResult != null) {
+          print('🔥 ✅ SUCCESS: SEPA returned ${sepaResult.level} (FWI: ${sepaResult.fwi}) in ${stopwatch.elapsedMilliseconds}ms');
+          print('🔥 === ORCHESTRATION COMPLETE: DataSource.sepa ===');
           _telemetry.onComplete(TelemetrySource.sepa, stopwatch.elapsed);
           return Right(sepaResult);
         }
+        print('🔥 ❌ SEPA failed - falling back to next service');
         fallbackDepth++;
+      } else if (_sepaService != null) {
+        print('🔥 [TIER 2] SEPA service available but coordinates not in Scotland - skipping');
+      } else {
+        print('🔥 [TIER 2] SEPA service not configured - skipping');
       }
 
       // Attempt 3: Cache (if available and time remaining)
       if (_cacheService != null) {
+        print('🔥 [TIER 3] Attempting Cache service...');
         _telemetry.onFallbackDepth(fallbackDepth);
         final cacheResult =
             await _attemptCache(lat, lon, stopwatch, effectiveDeadline);
         if (cacheResult != null) {
+          print('🔥 ✅ SUCCESS: Cache returned ${cacheResult.level} (${cacheResult.source} origin, ${cacheResult.freshness}) in ${stopwatch.elapsedMilliseconds}ms');
+          print('🔥 === ORCHESTRATION COMPLETE: DataSource.cache (originally ${cacheResult.source}) ===');
           _telemetry.onComplete(TelemetrySource.cache, stopwatch.elapsed);
           return Right(cacheResult);
         }
+        print('🔥 ❌ Cache failed or empty - falling back to mock');
         fallbackDepth++;
+      } else {
+        print('🔥 [TIER 3] Cache service not configured - skipping');
       }
 
       // Final fallback: Mock (guaranteed to succeed)
+      print('🔥 [TIER 4] Using Mock service as final fallback...');
       _telemetry.onFallbackDepth(fallbackDepth);
       final mockResult = await _attemptMock(lat, lon);
+      print('🔥 ✅ SUCCESS: Mock returned ${mockResult.level} (FWI: ${mockResult.fwi}) in ${stopwatch.elapsedMilliseconds}ms');
+      print('🔥 === ORCHESTRATION COMPLETE: DataSource.mock ===');
       _telemetry.onComplete(TelemetrySource.mock, stopwatch.elapsed);
       return Right(mockResult);
     } catch (e) {
       // Absolute fallback - should never happen due to mock guarantee
+      print('🔥 💥 EXCEPTION in orchestration: $e');
+      print('🔥 [EMERGENCY] Using Mock service as exception fallback...');
       final mockResult = await _mockService.getCurrent(lat: lat, lon: lon);
+      print('🔥 ✅ EMERGENCY SUCCESS: Mock returned ${mockResult.level}');
       _telemetry.onComplete(TelemetrySource.mock, stopwatch.elapsed);
       return Right(mockResult);
     }
@@ -231,12 +262,16 @@ class FireRiskServiceImpl implements FireRiskService {
   /// Attempts to get data from EFFIS service with timeout
   Future<FireRisk?> _attemptEffis(
       double lat, double lon, Stopwatch stopwatch, Duration deadline) async {
-    if (stopwatch.elapsed >= deadline) return null;
+    if (stopwatch.elapsed >= deadline) {
+      print('🔥   EFFIS: Deadline exceeded (${stopwatch.elapsed} >= $deadline)');
+      return null;
+    }
 
     final remainingTime = deadline - stopwatch.elapsed;
     final timeoutDuration =
         remainingTime < _effisTimeout ? remainingTime : _effisTimeout;
 
+    print('🔥   EFFIS: Attempting with ${timeoutDuration.inSeconds}s timeout (${remainingTime.inSeconds}s remaining)');
     _telemetry.onAttemptStart(TelemetrySource.effis);
     final attemptStopwatch = Stopwatch()..start();
 
@@ -249,14 +284,21 @@ class FireRiskServiceImpl implements FireRiskService {
           TelemetrySource.effis, attemptStopwatch.elapsed, result.isRight());
 
       return result.fold(
-        (error) => null,
-        (effisFwi) => FireRisk.fromEffis(
-          level: effisFwi.riskLevel,
-          fwi: effisFwi.fwi,
-          observedAt: effisFwi.datetime,
-        ),
+        (error) {
+          print('🔥   EFFIS: API error - ${error.message}');
+          return null;
+        },
+        (effisFwi) {
+          print('🔥   EFFIS: API success - FWI=${effisFwi.fwi}, Risk=${effisFwi.riskLevel}');
+          return FireRisk.fromEffis(
+            level: effisFwi.riskLevel,
+            fwi: effisFwi.fwi,
+            observedAt: effisFwi.datetime,
+          );
+        },
       );
     } catch (e) {
+      print('🔥   EFFIS: Exception - $e');
       _telemetry.onAttemptEnd(
           TelemetrySource.effis, attemptStopwatch.elapsed, false);
       return null;

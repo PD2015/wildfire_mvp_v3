@@ -278,6 +278,9 @@ class EffisServiceImpl implements EffisService {
 
     // Debug: Print the actual response
     print('🔍 EFFIS Response Content-Type: $contentType');
+    print('🔍 EFFIS Response Status: ${response.statusCode}');
+    print('🔍 EFFIS Response Headers: ${response.headers}');
+    print('🔍 EFFIS Response Body (full): ${response.body}');
     print(
         '🔍 EFFIS Response Body (first 500 chars): ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}');
 
