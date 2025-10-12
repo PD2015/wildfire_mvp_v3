@@ -110,11 +110,11 @@ void main() {
         expect(requestUri.path, equals('/gwis'));
         expect(requestUri.queryParameters['VERSION'], equals('1.3.0'));
         expect(requestUri.queryParameters['REQUEST'], equals('GetFeatureInfo'));
-        expect(requestUri.queryParameters['LAYERS'], equals('ecmwf.fwi'));
-        expect(requestUri.queryParameters['QUERY_LAYERS'], equals('ecmwf.fwi'));
-        expect(requestUri.queryParameters['CRS'], equals('EPSG:3857'));
+        expect(requestUri.queryParameters['LAYERS'], equals('nasa_geos5.query'));
+        expect(requestUri.queryParameters['QUERY_LAYERS'], equals('nasa_geos5.query'));
+        expect(requestUri.queryParameters['CRS'], equals('EPSG:4326'));
         expect(requestUri.queryParameters['INFO_FORMAT'],
-            equals('application/json'));
+            equals('text/plain'));
         expect(requestUri.queryParameters['FEATURE_COUNT'], equals('1'));
       });
     });
