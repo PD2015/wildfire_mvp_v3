@@ -10,6 +10,8 @@ Auto-generated from all feature plans. Last updated: 2025-10-02
 - Dart 3.0+ with Flutter SDK + shared_preferences, dartz (Either type), equatable, crypto (geohash encoding) (005-a5-cacheservice-6h)
 - Dart 3.0+ with Flutter SDK + ChangeNotifier (preferred for HomeController), existing LocationResolver (A4), FireRiskService (A2), CacheService (A5) (006-a6-home-risk)
 - SharedPreferences for manual location persistence, existing cache system (006-a6-home-risk)
+- Dart 3.0+ with Flutter SDK (existing project setup) + go_router (routing), flutter_test (testing) (010-a9-add-blank)
+- N/A (UI navigation feature only) (010-a9-add-blank)
 
 ## Project Structure
 ```
@@ -24,9 +26,9 @@ tests/
 Dart 3.0+ with Flutter SDK: Follow standard conventions
 
 ## Recent Changes
+- 010-a9-add-blank: Added Dart 3.0+ with Flutter SDK (existing project setup) + go_router (routing), flutter_test (testing)
 - 006-a6-home-risk: Added Dart 3.0+ with Flutter SDK + ChangeNotifier (preferred for HomeController), existing LocationResolver (A4), FireRiskService (A2), CacheService (A5)
 - 005-a5-cacheservice-6h: Added CacheService with 6h TTL, geohash spatial keying, LRU eviction, SharedPreferences storage
-- 004-a4-locationresolver-low: Added LocationResolver with GPS→cached→manual→default fallback, SharedPreferences persistence, permission handling
 
 ## FireRiskService Implementation Patterns
 
