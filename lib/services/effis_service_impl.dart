@@ -155,7 +155,15 @@ class EffisServiceImpl implements EffisService {
         // Construct WMS GetFeatureInfo URL
         final uri = _buildWmsUrl(lat, lon);
 
+        // DEBUG: Log the exact request details
+        print('🌐 EFFIS HTTP REQUEST:');
+        print('   URL: $uri');
+        print('   Headers: User-Agent: $_userAgent, Accept: $_acceptHeader');
+        print('   Timeout: ${timeout.inSeconds}s');
+        print('   Attempt: ${attemptCount + 1}/${maxRetries + 1}');
+
         // Execute HTTP request with timeout
+        final stopwatch = Stopwatch()..start();
         final response = await _httpClient.get(
           uri,
           headers: {
@@ -163,6 +171,14 @@ class EffisServiceImpl implements EffisService {
             'Accept': _acceptHeader,
           },
         ).timeout(timeout);
+        stopwatch.stop();
+
+        // DEBUG: Log the response details
+        print('📡 EFFIS HTTP RESPONSE:');
+        print('   Status: ${response.statusCode}');
+        print('   Headers: ${response.headers}');
+        print('   Duration: ${stopwatch.elapsedMilliseconds}ms');
+        print('   Body Length: ${response.body.length} chars');
 
         // Process response
         final result = await _processResponse(response);
@@ -179,6 +195,12 @@ class EffisServiceImpl implements EffisService {
 
         lastError = error;
       } catch (e) {
+        // DEBUG: Log network exceptions
+        print('❌ EFFIS NETWORK ERROR:');
+        print('   Exception: $e');
+        print('   Type: ${e.runtimeType}');
+        print('   Attempt: ${attemptCount + 1}/${maxRetries + 1}');
+        
         // Handle network exceptions
         lastError = _mapExceptionToApiError(e);
 
