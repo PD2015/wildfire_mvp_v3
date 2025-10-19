@@ -9,7 +9,7 @@ import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 
 /// MapController manages state for MapScreen
-/// 
+///
 /// Orchestrates location resolution, fire data fetching, risk assessment.
 class MapController extends ChangeNotifier {
   final LocationResolver _locationResolver;
@@ -17,7 +17,7 @@ class MapController extends ChangeNotifier {
   final FireRiskService _fireRiskService;
 
   MapState _state = const MapLoading();
-  
+
   MapState get state => _state;
 
   MapController({
@@ -36,7 +36,7 @@ class MapController extends ChangeNotifier {
     try {
       // Step 1: Resolve location
       final locationResult = await _locationResolver.getLatLon();
-      
+
       final LatLng centerLocation = locationResult.fold(
         (error) {
           // Fallback to Scotland centroid if location fails
@@ -71,9 +71,8 @@ class MapController extends ChangeNotifier {
           _state = MapSuccess(
             incidents: incidents,
             centerLocation: centerLocation,
-            freshness: incidents.isEmpty 
-                ? Freshness.live 
-                : incidents.first.freshness,
+            freshness:
+                incidents.isEmpty ? Freshness.live : incidents.first.freshness,
             lastUpdated: DateTime.now(),
           );
         },
@@ -91,12 +90,13 @@ class MapController extends ChangeNotifier {
   /// Refresh fire data for visible map region
   Future<void> refreshMapData(LatLngBounds visibleBounds) async {
     final previousState = _state;
-    
+
     _state = const MapLoading();
     notifyListeners();
 
     try {
-      final firesResult = await _fireLocationService.getActiveFires(visibleBounds);
+      final firesResult =
+          await _fireLocationService.getActiveFires(visibleBounds);
 
       firesResult.fold(
         (error) {
@@ -117,9 +117,8 @@ class MapController extends ChangeNotifier {
           _state = MapSuccess(
             incidents: incidents,
             centerLocation: visibleBounds.center,
-            freshness: incidents.isEmpty 
-                ? Freshness.live 
-                : incidents.first.freshness,
+            freshness:
+                incidents.isEmpty ? Freshness.live : incidents.first.freshness,
             lastUpdated: DateTime.now(),
           );
         },
@@ -129,8 +128,10 @@ class MapController extends ChangeNotifier {
     } catch (e) {
       _state = MapError(
         message: 'Refresh failed: $e',
-        cachedIncidents: previousState is MapSuccess ? previousState.incidents : null,
-        lastKnownLocation: previousState is MapSuccess ? previousState.centerLocation : null,
+        cachedIncidents:
+            previousState is MapSuccess ? previousState.incidents : null,
+        lastKnownLocation:
+            previousState is MapSuccess ? previousState.centerLocation : null,
       );
       notifyListeners();
     }

@@ -4,6 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'controllers/home_controller.dart';
 import 'screens/home_screen.dart';
 import 'features/map/screens/map_screen.dart';
+import 'features/map/controllers/map_controller.dart';
+import 'services/location_resolver.dart';
+import 'services/fire_location_service.dart';
+import 'services/fire_risk_service.dart';
 import 'theme/wildfire_theme.dart';
 
 /// WildFire application root widget
@@ -19,10 +23,16 @@ import 'theme/wildfire_theme.dart';
 class WildFireApp extends StatelessWidget {
   /// Home controller with injected services
   final HomeController homeController;
+  final LocationResolver locationResolver;
+  final FireLocationService fireLocationService;
+  final FireRiskService fireRiskService;
 
   WildFireApp({
     super.key,
     required this.homeController,
+    required this.locationResolver,
+    required this.fireLocationService,
+    required this.fireRiskService,
   });
 
   /// Router configuration with go_router
@@ -34,7 +44,15 @@ class WildFireApp extends StatelessWidget {
       ),
       GoRoute(
         path: '/map',
-        builder: (context, state) => const MapScreen(),
+        builder: (context, state) {
+          // Create MapController with required services
+          final mapController = MapController(
+            locationResolver: locationResolver,
+            fireLocationService: fireLocationService,
+            fireRiskService: fireRiskService,
+          );
+          return MapScreen(controller: mapController);
+        },
       ),
     ],
   );

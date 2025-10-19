@@ -10,6 +10,9 @@ import 'services/location_resolver_impl.dart';
 import 'services/contracts/service_contracts.dart';
 import 'services/effis_service_impl.dart';
 import 'services/mock_service.dart';
+import 'services/fire_location_service.dart';
+import 'services/fire_location_service_impl.dart';
+import 'services/mock_fire_service.dart';
 
 // Model imports
 import 'models/api_error.dart';
@@ -55,6 +58,7 @@ void main() async {
   runApp(WildFireAppRoot(
     homeController: homeController,
     lifecycleManager: lifecycleManager,
+    services: services,
   ));
 }
 
@@ -62,10 +66,12 @@ void main() async {
 class ServiceContainer {
   final LocationResolver locationResolver;
   final FireRiskService fireRiskService;
+  final FireLocationService fireLocationService;
 
   ServiceContainer({
     required this.locationResolver,
     required this.fireRiskService,
+    required this.fireLocationService,
   });
 }
 
@@ -107,9 +113,17 @@ Future<ServiceContainer> _initializeServices() async {
     // TODO: Add cache service when implemented
   );
 
+  // Initialize fire location service (A10 - mock-first)
+  final mockFireService = MockFireService();
+  final FireLocationService fireLocationService = FireLocationServiceImpl(
+    mockService: mockFireService,
+    // TODO: Add EFFIS WFS when implemented (T016)
+  );
+
   return ServiceContainer(
     locationResolver: locationResolver,
     fireRiskService: fireRiskService,
+    fireLocationService: fireLocationService,
   );
 }
 
@@ -117,11 +131,13 @@ Future<ServiceContainer> _initializeServices() async {
 class WildFireAppRoot extends StatefulWidget {
   final HomeController homeController;
   final AppLifecycleManager lifecycleManager;
+  final ServiceContainer services;
 
   const WildFireAppRoot({
     super.key,
     required this.homeController,
     required this.lifecycleManager,
+    required this.services,
   });
 
   @override
@@ -150,7 +166,12 @@ class _WildFireAppRootState extends State<WildFireAppRoot>
 
   @override
   Widget build(BuildContext context) {
-    return WildFireApp(homeController: widget.homeController);
+    return WildFireApp(
+      homeController: widget.homeController,
+      locationResolver: widget.services.locationResolver,
+      fireLocationService: widget.services.fireLocationService,
+      fireRiskService: widget.services.fireRiskService,
+    );
   }
 }
 
