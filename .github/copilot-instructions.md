@@ -4,13 +4,13 @@ Auto-generated from all feature plans. Last updated: 2025-10-19
 
 ## Active Technologies
 - **A1** (EffisService): Dart 3.0+, Flutter SDK, http, dartz (Either type), equatable (value objects)
-- **A2** (FireRiskService): flutter_bloc, http, dartz (inherits from A1)
+- **A2** (FireRiskService): http, dartz (services only), equatable (inherits from A1)
 - **A3** (RiskBanner): Widget layer consuming A2 FireRiskService data
 - **A4** (LocationResolver): geolocator, permission_handler, shared_preferences, dartz
-- **A5** (CacheService): shared_preferences, dartz, equatable, crypto (geohash encoding)
+- **A5** (CacheService): shared_preferences, dartz, equatable, internal geohash encoder
 - **A6** (HomeController): ChangeNotifier, LocationResolver (A4), FireRiskService (A2), CacheService (A5)
 - **A9** (MapScreen): go_router, flutter_test (navigation scaffold)
-- **A10** (Google Maps MVP): google_maps_flutter ^2.5.0, go_router 14.8.1, http, dartz, equatable, flutter_bloc
+- **A10** (Google Maps MVP): google_maps_flutter ^2.5.0 (Android/iOS only), go_router, http, dartz (services only), equatable, ChangeNotifier
 
 ## Project Structure
 ```
@@ -33,11 +33,16 @@ test/
 
 ## Commands
 ```bash
-# Run app with live EFFIS data
-flutter run -d macos --dart-define=MAP_LIVE_DATA=true
+# Current app (A1-A9) runs on macOS for development
+flutter run -d macos --dart-define=MAP_LIVE_DATA=true  # Live EFFIS data
+flutter run -d macos --dart-define=MAP_LIVE_DATA=false # Mock data (default)
 
-# Run app with mock data (testing - default)
-flutter run -d macos --dart-define=MAP_LIVE_DATA=false
+# A10 Google Maps requires Android/iOS (google_maps_flutter limitation)
+flutter run -d android --dart-define=MAP_LIVE_DATA=false # Android emulator
+flutter run -d ios --dart-define=MAP_LIVE_DATA=false     # iOS simulator
+
+# Environment file support (for secrets management)
+flutter run --dart-define-from-file=env/dev.env.json
 
 # Run all tests
 flutter test
@@ -62,8 +67,10 @@ flutter clean && flutter pub get
 Dart 3.0+ with Flutter SDK: Follow standard conventions
 - Use sealed classes for state hierarchies (MapState, etc.)
 - Prefer const constructors for immutable objects
-- Use dartz Either<L,R> for error handling (no exceptions in business logic)
+- Use dartz Either<L,R> for error handling in **services only** (no exceptions in business logic)
+- **UI layer never imports dartz**: Controllers unwrap Either to plain states, widgets receive plain data
 - Always use GeographicUtils.logRedact() for coordinate logging (C2 compliance)
+- Commit messages follow Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`
 
 ## Recent Changes
 - **2025-10-19**: A10 Google Maps MVP - Added google_maps_flutter ^2.5.0, MapController state management, FireLocationService with EFFIS WFS integration
@@ -82,10 +89,23 @@ class GeographicUtils {
   // Scotland boundary detection (for SEPA service routing)
   static bool isInScotland(double lat, double lon);
   
-  // Geohash encoding for spatial cache keys
+  // Geohash encoding for spatial cache keys (uses GeohashUtils internal encoder)
   static String geohash(double lat, double lon, {int precision = 5});
 }
 ```
+
+### GeohashUtils (lib/utils/geohash_utils.dart)
+Internal base32 geohash encoder (no external dependencies):
+```dart
+class GeohashUtils {
+  // Standard geohash algorithm with base32 encoding
+  static String encode(double lat, double lon, {int precision = 5});
+  
+  // Validate geohash string format
+  static bool isValid(String geohash);
+}
+```
+Edinburgh (55.9533, -3.1883) → "gcvwr" at precision 5 (~4.9km resolution)
 
 ### LocationUtils (lib/utils/location_utils.dart)
 App-level location utilities:
@@ -582,6 +602,52 @@ _logger.info('Cache stored for geohash: $geohash');
 // WRONG: Raw coordinates in cache logs
 _logger.info('Cached data for $lat, $lon'); // Violates C2 gate
 ```
+
+## FWI Accessibility & UI Requirements (C3/C4 Compliance)
+
+Fire Weather Index must be displayed with accessible UI components following Scottish colour palette:
+
+| FWI Range | Risk Level | UI Token | Requirements |
+|----------:|------------|----------|--------------|
+| 0-4.99 | Very Low | `riskVeryLow` | Risk chip + "Last updated: [UTC timestamp]" |
+| 5-11.99 | Low | `riskLow` | Risk chip + "Last updated: [UTC timestamp]" |
+| 12-20.99 | Moderate | `riskModerate` | Risk chip + "Last updated: [UTC timestamp]" |
+| 21-37.99 | High | `riskHigh` | Risk chip + "Last updated: [UTC timestamp]" |
+| 38-49.99 | Very High | `riskVeryHigh` | Risk chip + "Last updated: [UTC timestamp]" |
+| ≥50 | Extreme | `riskExtreme` | Risk chip + "Last updated: [UTC timestamp]" |
+
+**Accessibility Requirements**:
+- All touch targets ≥44dp (iOS) / ≥48dp (Android)
+- Sufficient color contrast for Scottish palette tokens
+- Timestamp in UTC with clear timezone indicator
+- Screen reader support via Semantics widgets
+
+## Environment & Secrets Management
+
+**No secrets in repository**: Use `--dart-define-from-file` for API keys and configuration:
+
+```bash
+# Development environment (local testing)
+flutter run --dart-define-from-file=env/dev.env.json
+
+# Production environment (release builds)
+flutter build apk --dart-define-from-file=env/prod.env.json
+```
+
+**Example `env/dev.env.json`**:
+```json
+{
+  "MAP_LIVE_DATA": "false",
+  "EFFIS_BASE_URL": "https://ies-ows.jrc.ec.europa.eu/",
+  "GOOGLE_MAPS_API_KEY_ANDROID": "YOUR_KEY_HERE",
+  "GOOGLE_MAPS_API_KEY_IOS": "YOUR_KEY_HERE"
+}
+```
+
+**Security Rules**:
+- Add `env/*.env.json` to `.gitignore`
+- Restrict Google Maps API keys by package name (Android) and bundle ID (iOS)
+- Set up billing alerts at 50% and 80% of free tier quotas
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
