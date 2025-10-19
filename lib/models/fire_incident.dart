@@ -83,8 +83,8 @@ class FireIncident extends Equatable {
     }
 
     // Parse area - support both EFFIS (area_ha) and Mock (areaHectares) formats
-    final areaHa = properties['area_ha'] as num? ?? 
-                   properties['areaHectares'] as num?;
+    final areaHa =
+        properties['area_ha'] as num? ?? properties['areaHectares'] as num?;
 
     return FireIncident(
       id: json['id']?.toString() ?? properties['fid']?.toString() ?? 'unknown',
@@ -98,8 +98,8 @@ class FireIncident extends Equatable {
             DateTime.now().toIso8601String(),
       ),
       intensity: intensity,
-      description: properties['description']?.toString() ?? 
-                   properties['country']?.toString(),
+      description: properties['description']?.toString() ??
+          properties['country']?.toString(),
       areaHectares: areaHa?.toDouble(),
     );
   }

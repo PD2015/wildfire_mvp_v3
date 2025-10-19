@@ -62,7 +62,8 @@ class RiskResultChip extends StatelessWidget {
     final sourceLabel = _getSourceLabel();
 
     return Semantics(
-      label: 'Fire risk: $riskLabel, ${fireRisk.fwi != null ? 'FWI ${fireRisk.fwi!.toStringAsFixed(1)}' : 'FWI unavailable'}, Source: $sourceLabel, Last updated: ${_formatTimestamp()}',
+      label:
+          'Fire risk: $riskLabel, ${fireRisk.fwi != null ? 'FWI ${fireRisk.fwi!.toStringAsFixed(1)}' : 'FWI unavailable'}, Source: $sourceLabel, Last updated: ${_formatTimestamp()}',
       child: Card(
         elevation: 4,
         color: riskColor,

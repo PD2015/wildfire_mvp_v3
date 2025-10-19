@@ -21,7 +21,7 @@ class RiskCheckButton extends StatelessWidget {
 
   Future<void> _checkRisk(BuildContext context) async {
     final state = controller.state;
-    
+
     // Get current map center location
     if (state is! MapSuccess) {
       ScaffoldMessenger.of(context).showSnackBar(

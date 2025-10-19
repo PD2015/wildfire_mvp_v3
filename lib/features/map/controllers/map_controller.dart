@@ -58,7 +58,8 @@ class MapController extends ChangeNotifier {
       );
 
       // Step 3: Fetch fire incidents
-      print('🗺️ MapController: Fetching fires for bounds: SW(${bounds.southwest.latitude},${bounds.southwest.longitude}) NE(${bounds.northeast.latitude},${bounds.northeast.longitude})');
+      print(
+          '🗺️ MapController: Fetching fires for bounds: SW(${bounds.southwest.latitude},${bounds.southwest.longitude}) NE(${bounds.northeast.latitude},${bounds.northeast.longitude})');
       final firesResult = await _fireLocationService.getActiveFires(bounds);
 
       firesResult.fold(
@@ -72,8 +73,10 @@ class MapController extends ChangeNotifier {
         (incidents) {
           print('🗺️ MapController: Loaded ${incidents.length} fire incidents');
           if (incidents.isNotEmpty) {
-            print('🗺️ MapController: First incident: ${incidents.first.description} at ${incidents.first.location.latitude},${incidents.first.location.longitude}');
-            print('🗺️ MapController: Freshness: ${incidents.first.freshness}, Source: ${incidents.first.source}');
+            print(
+                '🗺️ MapController: First incident: ${incidents.first.description} at ${incidents.first.location.latitude},${incidents.first.location.longitude}');
+            print(
+                '🗺️ MapController: Freshness: ${incidents.first.freshness}, Source: ${incidents.first.source}');
           }
           _state = MapSuccess(
             incidents: incidents,

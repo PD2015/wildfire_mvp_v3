@@ -126,12 +126,13 @@ class LocationResolverImpl implements LocationResolver {
         // Scotland is between latitudes 54.5-60.9 and longitudes -8.6 to -0.7
         final isValidLatitude = lat >= 54.0 && lat <= 61.0;
         final isValidLongitude = lon >= -9.0 && lon <= 0.0;
-        
+
         if (isValidLatitude && isValidLongitude) {
           return Right(LatLng(lat, lon));
         } else {
           // Clear corrupted cache (likely has wrong sign on longitude)
-          debugPrint('Invalid cached coordinates: lat=$lat, lon=$lon. Clearing cache.');
+          debugPrint(
+              'Invalid cached coordinates: lat=$lat, lon=$lon. Clearing cache.');
           await prefs.remove(_latKey);
           await prefs.remove(_lonKey);
           await prefs.remove(_versionKey);

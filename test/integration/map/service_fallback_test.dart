@@ -7,12 +7,13 @@ import 'package:flutter_test/flutter_test.dart';
 /// Skipped until T016-T018 (EFFIS WFS, SEPA, Cache integration) complete.
 void main() {
   group('Service Fallback Chain Integration Tests', () {
-    test('EFFIS timeout (>8s) falls back to SEPA (Scotland coords only)',
-        () {}, skip: true);
+    test('EFFIS timeout (>8s) falls back to SEPA (Scotland coords only)', () {},
+        skip: true);
 
     test(
         'SEPA failure falls back to Cache (returns cached incidents with freshness=cached)',
-        () {}, skip: true);
+        () {},
+        skip: true);
 
     test('Cache empty falls back to Mock (never fails)', () {}, skip: true);
 
@@ -23,6 +24,7 @@ void main() {
 
     test(
         'telemetry records all attempts (EffisAttempt, SepaAttempt, CacheHit, MockFallback)',
-        () {}, skip: true);
+        () {},
+        skip: true);
   }, skip: 'EFFIS/SEPA/Cache integration pending (T016-T018)');
 }

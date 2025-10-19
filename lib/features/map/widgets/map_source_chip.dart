@@ -55,7 +55,7 @@ class MapSourceChip extends StatelessWidget {
   String _formatTimestamp() {
     final now = DateTime.now();
     final difference = now.difference(lastUpdated);
-    
+
     if (difference.inMinutes < 1) {
       return 'Just now';
     } else if (difference.inMinutes < 60) {
