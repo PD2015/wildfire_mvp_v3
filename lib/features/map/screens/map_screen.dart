@@ -63,6 +63,8 @@ class _MapScreenState extends State<MapScreen> {
 
   void _updateMarkers(MapSuccess state) {
     _markers = state.incidents.map((incident) {
+      debugPrint('🎯 Creating marker: id=${incident.id}, intensity="${incident.intensity}", desc=${incident.description}');
+      
       return Marker(
         markerId: MarkerId(incident.id),
         position: LatLng(
@@ -71,24 +73,34 @@ class _MapScreenState extends State<MapScreen> {
         ),
         icon: _getMarkerIcon(incident.intensity),
         infoWindow: InfoWindow(
-          title: 'Fire Incident',
-          snippet: '${incident.intensity.toUpperCase()} - ${incident.source.name}',
+          title: incident.description ?? 'Fire Incident',
+          snippet: '${incident.intensity.toUpperCase()} - ${incident.areaHectares?.toStringAsFixed(1) ?? "?"} ha',
+          anchor: const Offset(0.5, 0.0), // Fix anchor to prevent screen shift
         ),
+        onTap: () {
+          debugPrint('🎯 Marker tapped: ${incident.description} (${incident.intensity})');
+        },
       );
     }).toSet();
   }
 
   BitmapDescriptor _getMarkerIcon(String intensity) {
     // Use color-coded markers based on intensity
+    // Hue values: 0=Red, 30=Orange, 45=Gold, 60=Yellow, 120=Green, 240=Blue, 300=Magenta
+    debugPrint('🎨 Getting marker icon for intensity: "$intensity"');
     switch (intensity) {
       case 'high':
-        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+        debugPrint('🎨 Using RED marker (high) - hue 0');
+        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed); // 0.0 - bright red
       case 'moderate':
-        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
+        debugPrint('🎨 Using ORANGE marker (moderate) - hue 30');
+        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange); // 30.0 - orange
       case 'low':
-        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow);
+        debugPrint('🎨 Using CYAN marker (low) - hue 180');
+        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan); // 180.0 - bright cyan/turquoise
       default:
-        return BitmapDescriptor.defaultMarker;
+        debugPrint('🎨 Using VIOLET marker (unknown intensity) - hue 270');
+        return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet); // 270.0 - violet for debugging
     }
   }
 

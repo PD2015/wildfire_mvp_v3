@@ -45,29 +45,36 @@ class MapController extends ChangeNotifier {
         (location) => location,
       );
 
-      // Step 2: Create default bbox around location (~10km radius)
+      // Step 2: Create default bbox around location (~220km radius to cover all of Scotland)
       final bounds = LatLngBounds(
         southwest: LatLng(
-          centerLocation.latitude - 0.1,
-          centerLocation.longitude - 0.1,
+          centerLocation.latitude - 2.0,
+          centerLocation.longitude - 2.0,
         ),
         northeast: LatLng(
-          centerLocation.latitude + 0.1,
-          centerLocation.longitude + 0.1,
+          centerLocation.latitude + 2.0,
+          centerLocation.longitude + 2.0,
         ),
       );
 
       // Step 3: Fetch fire incidents
+      print('🗺️ MapController: Fetching fires for bounds: SW(${bounds.southwest.latitude},${bounds.southwest.longitude}) NE(${bounds.northeast.latitude},${bounds.northeast.longitude})');
       final firesResult = await _fireLocationService.getActiveFires(bounds);
 
       firesResult.fold(
         (error) {
+          print('🗺️ MapController: Error loading fires: ${error.message}');
           _state = MapError(
             message: 'Failed to load fire data: ${error.message}',
             lastKnownLocation: centerLocation,
           );
         },
         (incidents) {
+          print('🗺️ MapController: Loaded ${incidents.length} fire incidents');
+          if (incidents.isNotEmpty) {
+            print('🗺️ MapController: First incident: ${incidents.first.description} at ${incidents.first.location.latitude},${incidents.first.location.longitude}');
+            print('🗺️ MapController: Freshness: ${incidents.first.freshness}, Source: ${incidents.first.source}');
+          }
           _state = MapSuccess(
             incidents: incidents,
             centerLocation: centerLocation,

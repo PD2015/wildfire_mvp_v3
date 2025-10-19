@@ -1,10 +1,10 @@
 /// Feature flags for A10 Google Maps MVP
-/// 
+///
 /// Controls live data vs mock data usage and EFFIS WFS configuration.
 class FeatureFlags {
   /// Control live EFFIS data vs mock data
   /// Default: false (mock-first development per C5)
-  /// 
+  ///
   /// Usage:
   /// ```bash
   /// flutter run --dart-define=MAP_LIVE_DATA=true

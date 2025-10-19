@@ -8,7 +8,7 @@ import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 
 /// Mock fire service that loads data from assets/mock/active_fires.json
-/// 
+///
 /// Never-fail fallback for development and offline testing.
 class MockFireService implements FireLocationService {
   List<FireIncident>? _cachedIncidents;
@@ -20,7 +20,8 @@ class MockFireService implements FireLocationService {
     }
 
     try {
-      final jsonString = await rootBundle.loadString('assets/mock/active_fires.json');
+      final jsonString =
+          await rootBundle.loadString('assets/mock/active_fires.json');
       final jsonData = json.decode(jsonString) as Map<String, dynamic>;
       final features = jsonData['features'] as List<dynamic>;
 

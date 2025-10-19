@@ -4,7 +4,7 @@ import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 
 /// Sealed base class for map state hierarchy
-/// 
+///
 /// Implementation: TBD in T010
 sealed class MapState extends Equatable {
   const MapState();
@@ -37,15 +37,17 @@ class MapSuccess extends MapState {
   /// Validation per data-model.md
   void _validate() {
     if (!centerLocation.isValid) {
-      throw ArgumentError('MapSuccess centerLocation must have valid coordinates');
+      throw ArgumentError(
+          'MapSuccess centerLocation must have valid coordinates');
     }
     if (lastUpdated.isAfter(DateTime.now())) {
       throw ArgumentError('MapSuccess lastUpdated must not be in the future');
     }
   }
-  
+
   @override
-  List<Object?> get props => [incidents, centerLocation, freshness, lastUpdated];
+  List<Object?> get props =>
+      [incidents, centerLocation, freshness, lastUpdated];
 }
 
 /// Error state with optional cached data

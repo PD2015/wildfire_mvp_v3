@@ -3,10 +3,10 @@ import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 
 /// Fire incident data model for map markers
-/// 
+///
 /// Represents active fire or burnt area incident from EFFIS WFS,
 /// SEPA, Cache, or Mock sources.
-/// 
+///
 /// Implementation: TBD in T009
 class FireIncident extends Equatable {
   final String id;
@@ -43,14 +43,15 @@ class FireIncident extends Equatable {
       throw ArgumentError('FireIncident timestamp must not be in the future');
     }
     if (!['low', 'moderate', 'high'].contains(intensity)) {
-      throw ArgumentError('FireIncident intensity must be "low", "moderate", or "high"');
+      throw ArgumentError(
+          'FireIncident intensity must be "low", "moderate", or "high"');
     }
     if (areaHectares != null && areaHectares! <= 0) {
       throw ArgumentError('FireIncident areaHectares must be > 0');
     }
   }
 
-  /// Parse EFFIS WFS GeoJSON Feature
+  /// Parse EFFIS WFS GeoJSON Feature or Mock data
   factory FireIncident.fromJson(Map<String, dynamic> json) {
     final geometry = json['geometry'] as Map<String, dynamic>;
     final coordinates = geometry['coordinates'] as List<dynamic>;
@@ -60,20 +61,30 @@ class FireIncident extends Equatable {
     final lon = (coordinates[0] as num).toDouble();
     final lat = (coordinates[1] as num).toDouble();
 
-    // Parse intensity from EFFIS properties (simplified classification)
-    final areaHa = properties['area_ha'] as num?;
+    // Parse intensity - prefer explicit intensity field, fallback to area calculation
     String intensity;
-    if (areaHa != null) {
-      if (areaHa < 10) {
-        intensity = 'low';
-      } else if (areaHa < 30) {
-        intensity = 'moderate';
-      } else {
-        intensity = 'high';
-      }
+    if (properties.containsKey('intensity')) {
+      // Mock data has explicit intensity field
+      intensity = properties['intensity'] as String;
     } else {
-      intensity = 'moderate'; // Default if no area data
+      // EFFIS data - calculate from area_ha
+      final areaHa = properties['area_ha'] as num?;
+      if (areaHa != null) {
+        if (areaHa < 10) {
+          intensity = 'low';
+        } else if (areaHa < 30) {
+          intensity = 'moderate';
+        } else {
+          intensity = 'high';
+        }
+      } else {
+        intensity = 'moderate'; // Default if no area data
+      }
     }
+
+    // Parse area - support both EFFIS (area_ha) and Mock (areaHectares) formats
+    final areaHa = properties['area_ha'] as num? ?? 
+                   properties['areaHectares'] as num?;
 
     return FireIncident(
       id: json['id']?.toString() ?? properties['fid']?.toString() ?? 'unknown',
@@ -81,12 +92,14 @@ class FireIncident extends Equatable {
       source: DataSource.effis, // Will be overridden by service layer
       freshness: Freshness.live,
       timestamp: DateTime.parse(
-        properties['lastupdate']?.toString() ?? 
-        properties['firedate']?.toString() ?? 
-        DateTime.now().toIso8601String(),
+        properties['timestamp']?.toString() ??
+            properties['lastupdate']?.toString() ??
+            properties['firedate']?.toString() ??
+            DateTime.now().toIso8601String(),
       ),
       intensity: intensity,
-      description: properties['country']?.toString(),
+      description: properties['description']?.toString() ?? 
+                   properties['country']?.toString(),
       areaHectares: areaHa?.toDouble(),
     );
   }
