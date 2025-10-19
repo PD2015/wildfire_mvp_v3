@@ -12,6 +12,8 @@ Auto-generated from all feature plans. Last updated: 2025-10-02
 - SharedPreferences for manual location persistence, existing cache system (006-a6-home-risk)
 - Dart 3.0+ with Flutter SDK (existing project setup) + go_router (routing), flutter_test (testing) (010-a9-add-blank)
 - N/A (UI navigation feature only) (010-a9-add-blank)
+- Dart 3.0+ with Flutter SDK 3.35.5 + google_maps_flutter ^2.5.0, go_router 14.8.1, http, dartz (Either), equatable, flutter_bloc (inherited from A2/A6) (011-a10-google-maps)
+- SharedPreferences for cache (inherited from A5 CacheService), no new storage requirements (011-a10-google-maps)
 
 ## Project Structure
 ```
@@ -26,9 +28,9 @@ tests/
 Dart 3.0+ with Flutter SDK: Follow standard conventions
 
 ## Recent Changes
+- 011-a10-google-maps: Added Dart 3.0+ with Flutter SDK 3.35.5 + google_maps_flutter ^2.5.0, go_router 14.8.1, http, dartz (Either), equatable, flutter_bloc (inherited from A2/A6)
 - 010-a9-add-blank: Added Dart 3.0+ with Flutter SDK (existing project setup) + go_router (routing), flutter_test (testing)
 - 006-a6-home-risk: Added Dart 3.0+ with Flutter SDK + ChangeNotifier (preferred for HomeController), existing LocationResolver (A4), FireRiskService (A2), CacheService (A5)
-- 005-a5-cacheservice-6h: Added CacheService with 6h TTL, geohash spatial keying, LRU eviction, SharedPreferences storage
 
 ## FireRiskService Implementation Patterns
 
