@@ -1,11 +1,38 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:dartz/dartz.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
+import 'package:wildfire_mvp_v3/models/api_error.dart';
+import 'package:wildfire_mvp_v3/models/effis_fire.dart';
+import 'package:wildfire_mvp_v3/models/effis_fwi_result.dart';
 import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 import 'package:wildfire_mvp_v3/services/fire_location_service_impl.dart';
 import 'package:wildfire_mvp_v3/services/mock_fire_service.dart';
+import 'package:wildfire_mvp_v3/services/effis_service.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
+
+/// Mock EFFIS service that always returns empty (forces fallback to Mock)
+class _MockEffisService implements EffisService {
+  @override
+  Future<Either<ApiError, EffisFwiResult>> getFwi({
+    required double lat,
+    required double lon,
+    Duration timeout = const Duration(seconds: 30),
+    int maxRetries = 3,
+  }) async {
+    return Left(ApiError(message: 'Mock EFFIS always fails'));
+  }
+
+  @override
+  Future<Either<ApiError, List<EffisFire>>> getActiveFires(
+    LatLngBounds bounds, {
+    Duration timeout = const Duration(seconds: 8),
+  }) async {
+    // Return empty to force fallback to MockFireService
+    return Left(ApiError(message: 'Mock EFFIS always fails'));
+  }
+}
 
 /// T004: Contract test for FireLocationService.getActiveFires()
 ///
@@ -17,11 +44,16 @@ void main() {
   group('FireLocationService Contract Tests', () {
     late FireLocationService service;
     late MockFireService mockService;
+    late _MockEffisService effisService;
 
     setUp(() {
-      // Initialize with real implementation using mock service
+      // Initialize with real implementation using mock services
       mockService = MockFireService();
-      service = FireLocationServiceImpl(mockService: mockService);
+      effisService = _MockEffisService();
+      service = FireLocationServiceImpl(
+        effisService: effisService,
+        mockService: mockService,
+      );
     });
 
     test('Mock service returns List<FireIncident>', () async {

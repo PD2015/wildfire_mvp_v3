@@ -7,7 +7,10 @@ import 'package:dartz/dartz.dart';
 import 'package:http/http.dart' as http;
 import '../models/api_error.dart';
 import '../models/effis_fwi_result.dart';
+import '../models/effis_fire.dart';
+import '../models/lat_lng_bounds.dart';
 import 'effis_service.dart';
+import 'utils/geo_utils.dart';
 
 /// Production implementation of EffisService using EFFIS WMS GetFeatureInfo
 ///
@@ -695,5 +698,145 @@ class EffisServiceImpl implements EffisService {
       message: 'No fire weather data available in GML response',
       statusCode: 404,
     ));
+  }
+
+  @override
+  Future<Either<ApiError, List<EffisFire>>> getActiveFires(
+    LatLngBounds bounds, {
+    Duration timeout = const Duration(seconds: 8),
+  }) async {
+    developer.log(
+      'EFFIS WFS request for bbox: ${GeographicUtils.logRedact(bounds.southwest.latitude, bounds.southwest.longitude)} to ${GeographicUtils.logRedact(bounds.northeast.latitude, bounds.northeast.longitude)}',
+      name: 'EffisService.getActiveFires',
+    );
+
+    // Construct WFS bbox query
+    // Format: minLon,minLat,maxLon,maxLat (west,south,east,north)
+    final bboxStr = bounds.toBboxString();
+
+    final uri = Uri(
+      scheme: 'https',
+      host: 'ies-ows.jrc.ec.europa.eu',
+      path: '/wfs',
+      queryParameters: {
+        'service': 'WFS',
+        'version': '2.0.0',
+        'request': 'GetFeature',
+        'typeName': 'ms:burnt_areas_current_year',
+        'bbox': bboxStr,
+        'outputFormat': 'application/json',
+        'srsName': 'EPSG:4326', // WGS84 lat/lon
+      },
+    );
+
+    developer.log(
+      'EFFIS WFS URL: $uri',
+      name: 'EffisService.getActiveFires',
+    );
+
+    try {
+      final response = await _httpClient
+          .get(uri, headers: {
+        'User-Agent': 'WildfireApp/1.0',
+        'Accept': 'application/json',
+      }).timeout(timeout);
+
+      developer.log(
+        'EFFIS WFS response: status=${response.statusCode}, body length=${response.body.length}',
+        name: 'EffisService.getActiveFires',
+      );
+
+      if (response.statusCode == 404) {
+        // 404 means no fires in region - return empty list (not an error)
+        developer.log(
+          'EFFIS WFS returned 404 - no fires in bbox',
+          name: 'EffisService.getActiveFires',
+        );
+        return const Right([]);
+      }
+
+      if (response.statusCode != 200) {
+        return Left(ApiError(
+          message: 'EFFIS WFS request failed',
+          statusCode: response.statusCode,
+        ));
+      }
+
+      // Parse GeoJSON FeatureCollection
+      final jsonData = json.decode(response.body) as Map<String, dynamic>;
+      final features = jsonData['features'] as List<dynamic>?;
+
+      if (features == null || features.isEmpty) {
+        // Empty features array means no fires in region (valid state)
+        developer.log(
+          'EFFIS WFS returned empty features - no fires in bbox',
+          name: 'EffisService.getActiveFires',
+        );
+        return const Right([]);
+      }
+
+      // Parse features to EffisFire objects
+      final fires = <EffisFire>[];
+      for (final feature in features) {
+        try {
+          final fire = EffisFire.fromJson(feature as Map<String, dynamic>);
+          fires.add(fire);
+          developer.log(
+            'Parsed EFFIS fire: ${fire.id}, area=${fire.areaHectares.toStringAsFixed(1)}ha, location=${GeographicUtils.logRedact(fire.location.latitude, fire.location.longitude)}',
+            name: 'EffisService.getActiveFires',
+          );
+        } catch (e) {
+          developer.log(
+            'Failed to parse EFFIS WFS feature: $e',
+            name: 'EffisService.getActiveFires',
+            level: 900, // Warning
+          );
+          // Skip malformed features, continue parsing
+        }
+      }
+
+      developer.log(
+        'EFFIS WFS returned ${fires.length} fires',
+        name: 'EffisService.getActiveFires',
+      );
+
+      return Right(fires);
+    } on TimeoutException catch (e) {
+      developer.log(
+        'EFFIS WFS timeout after ${timeout.inSeconds}s: $e',
+        name: 'EffisService.getActiveFires',
+        level: 900,
+      );
+      return Left(ApiError(
+        message: 'EFFIS WFS request timed out after ${timeout.inSeconds}s',
+      ));
+    } on SocketException catch (e) {
+      developer.log(
+        'EFFIS WFS network error: $e',
+        name: 'EffisService.getActiveFires',
+        level: 900,
+      );
+      return Left(ApiError(
+        message: 'Network error connecting to EFFIS WFS',
+      ));
+    } on FormatException catch (e) {
+      developer.log(
+        'EFFIS WFS JSON parse error: $e',
+        name: 'EffisService.getActiveFires',
+        level: 1000, // Error
+      );
+      return Left(ApiError(
+        message: 'Failed to parse EFFIS WFS response',
+      ));
+    } catch (e) {
+      developer.log(
+        'EFFIS WFS unexpected error: $e',
+        name: 'EffisService.getActiveFires',
+        level: 1000,
+      );
+      return Left(ApiError(
+        message: 'Unexpected error querying EFFIS WFS: $e',
+      ));
+    }
   }
 }

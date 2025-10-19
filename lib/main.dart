@@ -7,7 +7,8 @@ import 'services/fire_risk_service.dart';
 import 'services/fire_risk_service_impl.dart';
 import 'services/location_resolver.dart';
 import 'services/location_resolver_impl.dart';
-import 'services/contracts/service_contracts.dart';
+import 'services/contracts/service_contracts.dart' as contracts;
+import 'services/effis_service.dart';
 import 'services/effis_service_impl.dart';
 import 'services/mock_service.dart';
 import 'services/fire_location_service.dart';
@@ -86,8 +87,9 @@ Future<ServiceContainer> _initializeServices() async {
   // Initialize EFFIS service implementation (A1)
   final effisServiceImpl = EffisServiceImpl(httpClient: httpClient);
 
-  // Create adapter to match contract interface
-  final EffisService effisService = _EffisServiceAdapter(effisServiceImpl);
+  // Create adapter to match contract interface for FireRiskService
+  final contracts.EffisService effisServiceAdapter =
+      _EffisServiceAdapter(effisServiceImpl);
 
   // Initialize mock service for fallback
   final MockService mockService = MockService.defaultStrategy();
@@ -95,7 +97,7 @@ Future<ServiceContainer> _initializeServices() async {
   // DEBUG: Test the EFFIS service directly
   debugPrint('🔍 Testing EFFIS service directly...');
   try {
-    final testResult = await effisService.getFwi(lat: 39.6, lon: -9.1);
+    final testResult = await effisServiceAdapter.getFwi(lat: 39.6, lon: -9.1);
     testResult.fold(
       (error) => debugPrint('🔍 EFFIS direct test FAILED: ${error.message}'),
       (result) => debugPrint(
@@ -107,17 +109,19 @@ Future<ServiceContainer> _initializeServices() async {
 
   // Initialize full orchestrated fire risk service (A2)
   final FireRiskService fireRiskService = FireRiskServiceImpl(
-    effisService: effisService,
+    effisService: effisServiceAdapter,
     mockService: mockService,
     // TODO: Add SEPA service when implemented
     // TODO: Add cache service when implemented
   );
 
-  // Initialize fire location service (A10 - mock-first)
+  // Initialize fire location service (A10 - EFFIS WFS + Mock fallback)
   final mockFireService = MockFireService();
   final FireLocationService fireLocationService = FireLocationServiceImpl(
+    effisService: effisServiceImpl,
     mockService: mockFireService,
-    // TODO: Add EFFIS WFS when implemented (T016)
+    // TODO: Add SEPA service when implemented (T017)
+    // TODO: Add cache service when implemented (T018)
   );
 
   return ServiceContainer(
@@ -206,7 +210,7 @@ class AppLifecycleManager {
 }
 
 /// Adapter to bridge EFFIS implementation with contract interface
-class _EffisServiceAdapter implements EffisService {
+class _EffisServiceAdapter implements contracts.EffisService {
   final EffisServiceImpl _impl;
 
   _EffisServiceAdapter(this._impl);

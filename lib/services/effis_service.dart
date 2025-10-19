@@ -1,6 +1,8 @@
 import 'package:dartz/dartz.dart';
 import '../models/api_error.dart';
 import '../models/effis_fwi_result.dart';
+import '../models/effis_fire.dart';
+import '../models/lat_lng_bounds.dart';
 
 /// Abstract interface for EFFIS Fire Weather Index service
 ///
@@ -65,5 +67,55 @@ abstract class EffisService {
     required double lon,
     Duration timeout = const Duration(seconds: 30),
     int maxRetries = 3,
+  });
+
+  /// Retrieves active fires from EFFIS WFS (Web Feature Service) for given bounding box
+  ///
+  /// Returns Either<ApiError, List<EffisFire>> where:
+  /// - Left: Structured error information for all failure cases
+  /// - Right: List of active fires from EFFIS burnt areas layer
+  ///
+  /// Parameters:
+  /// - [bounds]: Geographic bounding box to query for fires
+  /// - [timeout]: Request timeout duration (default: 8 seconds for map loads)
+  ///
+  /// WFS Query Details:
+  /// - Endpoint: ies-ows.jrc.ec.europa.eu/wfs
+  /// - Layer: burnt_areas_current_year (updated daily)
+  /// - Format: GeoJSON FeatureCollection
+  /// - Projection: EPSG:4326 (WGS84 lat/lon)
+  ///
+  /// Error Handling:
+  /// - 404/Empty → Returns Right([]) (no fires in region, not an error)
+  /// - 503/5xx → ApiError with serviceUnavailable reason
+  /// - Timeout → ApiError with general reason
+  /// - Malformed JSON → ApiError with general reason
+  ///
+  /// Preconditions:
+  /// - bounds must be valid (southwest < northeast)
+  /// - timeout must be positive duration
+  ///
+  /// Postconditions:
+  /// - Never throws exceptions - all errors returned as ApiError
+  /// - Network requests respect timeout parameter
+  /// - Coordinates in logs limited to 2 decimal places for privacy (C2)
+  /// - Empty results return Right([]), not Left (valid state)
+  ///
+  /// Example:
+  /// ```dart
+  /// final bounds = LatLngBounds(
+  ///   southwest: LatLng(55.0, -5.0),
+  ///   northeast: LatLng(59.0, -1.0),
+  /// );
+  /// final result = await effisService.getActiveFires(bounds);
+  ///
+  /// result.fold(
+  ///   (error) => print('Error: ${error.message}'),
+  ///   (fires) => print('Found ${fires.length} fires'),
+  /// );
+  /// ```
+  Future<Either<ApiError, List<EffisFire>>> getActiveFires(
+    LatLngBounds bounds, {
+    Duration timeout = const Duration(seconds: 8),
   });
 }
