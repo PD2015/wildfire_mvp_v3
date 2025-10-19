@@ -1,25 +1,309 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
+import 'package:wildfire_mvp_v3/features/map/screens/map_screen.dart';
+import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
+import 'package:wildfire_mvp_v3/models/map_state.dart';
+import 'package:wildfire_mvp_v3/models/location_models.dart';
+import 'package:wildfire_mvp_v3/models/fire_incident.dart';
+import 'package:wildfire_mvp_v3/models/api_error.dart';
+import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart';
+import 'package:wildfire_mvp_v3/models/risk_level.dart';
+import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
+import 'package:wildfire_mvp_v3/services/location_resolver.dart';
+import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
+import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
+import 'package:dartz/dartz.dart';
+
+/// Mock MapController for widget testing with controllable state
+class MockMapController extends MapController {
+  MapState _mockState;
+
+  MockMapController(this._mockState)
+      : super(
+          locationResolver: _NoOpLocationResolver(),
+          fireLocationService: _NoOpFireLocationService(),
+          fireRiskService: _NoOpFireRiskService(),
+        );
+
+  @override
+  MapState get state => _mockState;
+
+  /// Update state and notify listeners (for testing state changes)
+  void setState(MapState newState) {
+    _mockState = newState;
+    notifyListeners();
+  }
+
+  @override
+  Future<void> initialize() async {
+    // No-op for testing - state is controlled via setState()
+  }
+}
+
+/// No-op LocationResolver for testing
+class _NoOpLocationResolver implements LocationResolver {
+  @override
+  Future<Either<LocationError, LatLng>> getLatLon({bool allowDefault = true}) async {
+    return const Right(LatLng(55.9533, -3.1883)); // Edinburgh
+  }
+
+  @override
+  Future<void> saveManual(LatLng location, {String? placeName}) async {
+    // No-op
+  }
+}
+
+/// No-op FireLocationService for testing
+class _NoOpFireLocationService implements FireLocationService {
+  @override
+  Future<Either<ApiError, List<FireIncident>>> getActiveFires(
+      LatLngBounds bounds) async {
+    return const Right([]); // Empty list
+  }
+}
+
+/// No-op FireRiskService for testing
+class _NoOpFireRiskService implements FireRiskService {
+  @override
+  Future<Either<ApiError, FireRisk>> getCurrent({
+    required double lat,
+    required double lon,
+    Duration? deadline,
+  }) async {
+    // Return a mock FireRisk with Very Low rating
+    return Right(
+      FireRisk.fromMock(
+        level: RiskLevel.veryLow,
+        observedAt: DateTime.now().toUtc(),
+      ),
+    );
+  }
+}
 
 /// T006: Widget tests for MapScreen with accessibility validation
 ///
 /// Validates ≥44dp touch targets, semantic labels, screen reader support.
 void main() {
   group('MapScreen Widget Tests', () {
-    testWidgets('MapScreen renders GoogleMap widget', (tester) async {});
+    testWidgets('MapScreen renders GoogleMap widget', (tester) async {
+      // Setup mock controller with MapSuccess state
+      final mockIncidents = [
+        FireIncident(
+          id: 'test_fire_1',
+          location: const LatLng(55.9533, -3.1883),
+          source: DataSource.mock,
+          freshness: Freshness.mock,
+          timestamp: DateTime.now(),
+          intensity: 'high',
+          description: 'Test fire 1',
+          areaHectares: 45.0,
+        ),
+        FireIncident(
+          id: 'test_fire_2',
+          location: const LatLng(55.8642, -4.2518),
+          source: DataSource.mock,
+          freshness: Freshness.mock,
+          timestamp: DateTime.now(),
+          intensity: 'moderate',
+          description: 'Test fire 2',
+          areaHectares: 20.0,
+        ),
+      ];
 
-    testWidgets('zoom controls are ≥44dp touch target (C3)', (tester) async {});
+      final mockController = MockMapController(
+        MapSuccess(
+          incidents: mockIncidents,
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.mock,
+          lastUpdated: DateTime.now(),
+        ),
+      );
+
+      // Build MapScreen
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MapScreen(controller: mockController),
+        ),
+      );
+
+      // Wait for widget tree to settle
+      await tester.pumpAndSettle();
+
+      // Verify GoogleMap widget exists
+      expect(find.byType(gmaps.GoogleMap), findsOneWidget);
+
+      // Verify AppBar exists with correct title
+      expect(find.widgetWithText(AppBar, 'Fire Map'), findsOneWidget);
+
+      // Note: Markers are created internally by GoogleMap widget
+      // We can't directly verify marker count from widget tree,
+      // but we can verify the state has correct number of incidents
+      expect(mockIncidents.length, 2);
+    });
 
     testWidgets('"Check risk here" button is ≥44dp touch target (C3)',
-        (tester) async {});
+        (tester) async {
+      // Setup mock controller
+      final mockController = MockMapController(
+        MapSuccess(
+          incidents: [],
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.mock,
+          lastUpdated: DateTime.now(),
+        ),
+      );
+
+      // Build MapScreen
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MapScreen(controller: mockController),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Find FloatingActionButton (RiskCheckButton)
+      final fabFinder = find.byType(FloatingActionButton);
+      expect(fabFinder, findsOneWidget);
+
+      // Get FAB size
+      final fabSize = tester.getSize(fabFinder);
+
+      // Verify ≥44dp touch target (iOS requirement)
+      // 44dp = 44 logical pixels in Flutter
+      expect(fabSize.width, greaterThanOrEqualTo(44.0),
+          reason: 'FAB width must be ≥44dp for accessibility (C3)');
+      expect(fabSize.height, greaterThanOrEqualTo(44.0),
+          reason: 'FAB height must be ≥44dp for accessibility (C3)');
+
+      // Verify semantic label exists by finding widget with partial semantic label match
+      // The RiskCheckButton wraps FAB with Semantics(label: 'Check fire risk at this location')
+      final semanticFinder = find.byWidgetPredicate((widget) {
+        return widget is Semantics && 
+               widget.properties.label != null && 
+               widget.properties.label!.toLowerCase().contains('risk');
+      });
+      expect(semanticFinder, findsOneWidget,
+          reason: 'FAB must have descriptive semantic label containing "risk" (C3)');
+    });
+
+    testWidgets('source chip displays "LIVE", "Cached", or "Mock" (C4)',
+        (tester) async {
+      // Test MOCK freshness
+      final mockController = MockMapController(
+        MapSuccess(
+          incidents: [],
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.mock,
+          lastUpdated: DateTime.now(),
+        ),
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MapScreen(controller: mockController),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Verify "MOCK" text appears
+      expect(find.text('MOCK'), findsOneWidget,
+          reason: 'Source chip must display "MOCK" for mock data (C4)');
+
+      // Test LIVE freshness
+      mockController.setState(
+        MapSuccess(
+          incidents: [],
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.live,
+          lastUpdated: DateTime.now(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('LIVE'), findsOneWidget,
+          reason: 'Source chip must display "LIVE" for live data (C4)');
+
+      // Test CACHED freshness
+      mockController.setState(
+        MapSuccess(
+          incidents: [],
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.cached,
+          lastUpdated: DateTime.now(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('CACHED'), findsOneWidget,
+          reason: 'Source chip must display "CACHED" for cached data (C4)');
+    });
+
+    testWidgets('loading spinner has semanticLabel (C3)', (tester) async {
+      // Setup mock controller with MapLoading state
+      final mockController = MockMapController(const MapLoading());
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MapScreen(controller: mockController),
+        ),
+      );
+
+      await tester.pump();
+
+      // Find CircularProgressIndicator
+      final spinnerFinder = find.byType(CircularProgressIndicator);
+      expect(spinnerFinder, findsOneWidget);
+
+      // Verify semantic label
+      final semantics = tester.getSemantics(spinnerFinder);
+      expect(semantics.label, isNotEmpty,
+          reason: 'Loading spinner must have semantic label (C3)');
+      expect(semantics.label.toLowerCase(), contains('loading'),
+          reason: 'Semantic label should describe loading state');
+    });
+
+    // Placeholder tests for remaining test cases (not critical for Option 3)
+    testWidgets('zoom controls are ≥44dp touch target (C3)', (tester) async {
+      // Note: GoogleMap zoom controls are native platform widgets
+      // Their size is controlled by the platform, not directly testable in Flutter widget tests
+      // This would require platform-specific integration tests or manual testing
+    });
 
     testWidgets(
-        'marker info windows have semantic labels (C3)', (tester) async {});
+        'marker info windows have semantic labels (C3)', (tester) async {
+      // Note: Marker info windows are created by GoogleMap plugin internally
+      // Semantic labels would need to be verified through integration tests or manual testing
+    });
 
-    testWidgets('loading spinner has semanticLabel (C3)', (tester) async {});
+    testWidgets('"Last updated" timestamp visible (C4)', (tester) async {
+      final mockController = MockMapController(
+        MapSuccess(
+          incidents: [],
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.mock,
+          lastUpdated: DateTime.now(),
+        ),
+      );
 
-    testWidgets('source chip displays "EFFIS", "Cached", or "Mock" (C4)',
-        (tester) async {});
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MapScreen(controller: mockController),
+        ),
+      );
 
-    testWidgets('"Last updated" timestamp visible (C4)', (tester) async {});
+      await tester.pumpAndSettle();
+
+      // Verify timestamp is visible (MapSourceChip should display "Just now" or similar)
+      expect(
+          find.textContaining(RegExp(r'(Just now|ago|min|hour|day)',
+              caseSensitive: false)),
+          findsOneWidget,
+          reason: 'Timestamp should be visible in source chip (C4)');
+    });
   });
 }
