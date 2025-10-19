@@ -47,14 +47,15 @@ Flutter project structure:
 
 **Files**:
 - `pubspec.yaml` (add dependency)
-- `android/app/src/main/AndroidManifest.xml` (add meta-data for API key)
-- `ios/Runner/AppDelegate.swift` (add GMSServices.provideAPIKey)
+- `android/app/src/main/AndroidManifest.xml` (add meta-data for API key, location permissions)
+- `ios/Runner/Info.plist` (add `<key>GMSApiKey</key><string>...</string>` **or** keep `AppDelegate.swift` with `GMSServices.provideAPIKey`)
 
 **Acceptance Criteria**:
 - ✅ google_maps_flutter ^2.5.0 in dependencies
 - ✅ Android minSdkVersion ≥21 (already set)
 - ✅ iOS platform version ≥15 (already set)
 - ✅ API key placeholders configured (no hardcoded keys - C2)
+- ✅ Android has `ACCESS_FINE_LOCATION` (and, if needed, `ACCESS_COARSE_LOCATION`) declared; iOS has `NSLocationWhenInUseUsageDescription`
 - ✅ flutter pub get succeeds
 - ✅ flutter analyze passes (C1)
 
@@ -114,7 +115,7 @@ Flutter project structure:
 - ✅ Test SEPA fallback when EFFIS times out (Scotland coordinates only)
 - ✅ Test Cache fallback returns FireIncident with freshness=cached
 - ✅ Test Mock fallback never fails (returns mock data)
-- ✅ Test bbox validation (southwest < northeast)
+- ✅ Test bbox validation (southwest < northeast, lon/lat axis order matches EFFIS WFS expectations)
 - ✅ Test 8s timeout per service tier
 - ✅ Test coordinate logging uses GeographicUtils.logRedact() (C2)
 - ✅ All tests FAIL (implementation doesn't exist yet)
@@ -174,7 +175,7 @@ Flutter project structure:
 - ✅ Test complete flow: MockLocationResolver → MockFireLocationService → markers rendered
 - ✅ Test marker tap opens info window with fire details
 - ✅ Test source chip reflects data source (EFFIS/SEPA/Cache/Mock)
-- ✅ Test empty incidents (no fires) displays "No active fires in this region"
+- ✅ Test empty incidents (no fires) displays "No active fires in this region. Pan or zoom to refresh"
 - ✅ Test MAP_LIVE_DATA=false uses mock data (default)
 - ✅ Test completes in <3s (performance requirement)
 - ✅ All tests FAIL (implementation doesn't exist yet)
@@ -319,7 +320,7 @@ Flutter project structure:
 - ✅ Displays fire incident markers (use flame icon)
 - ✅ Marker tap opens FireMarkerInfoWindow with details
 - ✅ Shows MapSourceChip ("EFFIS", "Cached", "Mock") based on freshness (C4)
-- ✅ Shows "Last updated: [UTC time]" (C4)
+- ✅ Shows "Last updated: [UTC time]" in ISO-8601 format truncated to minutes (C4)
 - ✅ Loading state shows centered CircularProgressIndicator with semanticLabel (C3)
 - ✅ Error state shows SnackBar with message + cached data if available
 - ✅ Widget tests T006 now fully pass
@@ -340,7 +341,7 @@ Flutter project structure:
 - ✅ Button has semanticLabel "Check fire risk at this location" (C3)
 - ✅ On tap: calls MapController.checkRiskAt(map center or long-press location)
 - ✅ Displays RiskResultChip with Scottish colour tokens (C4)
-- ✅ Shows risk level, FWI value, "Last updated" timestamp (C4)
+- ✅ Shows risk level, FWI value, "Last updated" timestamp in ISO-8601 format truncated to minutes (C4)
 - ✅ Shows source ("EFFIS", "SEPA", "Cached", "Mock") (C4)
 - ✅ Widget tests validate accessibility
 
@@ -360,11 +361,13 @@ Flutter project structure:
 
 **Acceptance Criteria**:
 - ✅ New method: `Future<Either<ApiError, List<FireIncident>>> getActiveFires(LatLngBounds bounds)`
-- ✅ WFS endpoint: `ies-ows.jrc.ec.europa.eu/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=burnt_areas_current_year&outputFormat=application/json&bbox={bbox}`
+- ✅ Base URL and layer name read from env (`EFFIS_BASE_URL`, `EFFIS_WFS_LAYER_ACTIVE`)
+- ✅ Example shape: `/wfs?service=WFS&version=2.0.0&request=GetFeature&typeName=$EFFIS_WFS_LAYER_ACTIVE&outputFormat=application/json&bbox={bbox}`
 - ✅ Parses GeoJSON FeatureCollection → List<FireIncident>
 - ✅ 8s timeout
 - ✅ Error handling (network errors, parse errors)
 - ✅ Logging uses GeographicUtils.logRedact() (C2)
+- ✅ Contract fixture parsing validated against `test/fixtures/effis_wfs_burnt_areas_response.json`
 - ✅ Unit tests pass
 
 **Constitutional Gates**: C2 (Secrets & Logging), C5 (Resilience)
@@ -399,7 +402,8 @@ Flutter project structure:
 - `lib/services/cache/fire_incident_cache.dart` (new - adapter for CacheService<FireIncident>)
 
 **Acceptance Criteria**:
-- ✅ Cache key: geohash of bbox center (precision 5 = ~4.9km)
+- ✅ Cache key: geohash of bbox center (precision 5 = ~4.9km)  
+  _Note:_ Acceptable for MVP; may over-reuse cache across large map pans. Consider viewport-corners hashing in A11+ if needed.
 - ✅ TTL: 6 hours
 - ✅ Cache hit returns List<FireIncident> with freshness=cached
 - ✅ Cache miss proceeds to Mock fallback
@@ -424,7 +428,7 @@ Flutter project structure:
 - ✅ When false: FireLocationService skips EFFIS/SEPA, goes directly to Mock
 - ✅ When true: FireLocationService uses full fallback chain (EFFIS → SEPA → Cache → Mock)
 - ✅ Widget shows "Demo Data" chip when mock active (C4)
-- ✅ Tests default to MAP_LIVE_DATA=false
+- ✅ CI and tests default to MAP_LIVE_DATA=false via `--dart-define-from-file=env/ci.env.json`
 - ✅ Documentation updated with flag usage
 
 **Constitutional Gates**: C4 (Trust & Transparency), C5 (Mock-first dev principle)
@@ -463,7 +467,7 @@ Flutter project structure:
 - ✅ All touch targets ≥44dp (iOS) / ≥48dp (Android) (C3)
 - ✅ Zoom controls, markers, buttons pass touch target test
 - ✅ All interactive elements have semanticLabels (C3)
-- ✅ Scottish colour tokens have ≥4.5:1 contrast ratio (C4)
+- ✅ Scottish colour tokens have ≥4.5:1 contrast ratio verified by script or unit snapshot (C4)
 - ✅ Risk chips readable on map background
 - ✅ Screen reader test: VoiceOver (iOS) and TalkBack (Android) announce all elements correctly
 - ✅ color_guard.sh passes (no unauthorized colors)
@@ -518,7 +522,7 @@ Flutter project structure:
 
 **Acceptance Criteria**:
 - ✅ Map interactive in ≤3s from tap (A10 requirement)
-- ✅ 50 markers render without jank (60fps maintained)
+- ✅ 50 markers render within frame budget (measure raster/UI frame build times via timeline summary rather than raw FPS)
 - ✅ Memory usage ≤75MB on MapScreen
 - ✅ Camera movements smooth (no dropped frames)
 - ✅ Service timeout ≤8s per tier (inherited from A2)
@@ -560,6 +564,7 @@ Flutter project structure:
 - ✅ Data freshness validation (burnt_areas_current_year updates daily)
 - ✅ Fallback chain verification (SEPA → Cache → Mock)
 - ✅ Incident response: EFFIS down → notify users, rely on Cache
+- ✅ Operator action: "Flip to Cached/Mock" procedure with Slack/StatusPage template snippet
 - ✅ Contact escalation path (EFFIS support)
 
 **Constitutional Gates**: C5 (Resilience)
@@ -575,6 +580,7 @@ Flutter project structure:
 
 **Acceptance Criteria**:
 - ✅ Privacy: Coordinate logging uses GeographicUtils.logRedact() (2dp precision) - C2
+- ✅ Privacy: Logs include geohash + redacted coords only, never raw lat/lon or device IDs
 - ✅ Privacy: No fire location data stored locally (cache only for performance)
 - ✅ Accessibility: All touch targets ≥44dp documented - C3
 - ✅ Accessibility: Screen reader support documented (semantic labels) - C3
