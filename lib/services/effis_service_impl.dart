@@ -735,8 +735,7 @@ class EffisServiceImpl implements EffisService {
     );
 
     try {
-      final response = await _httpClient
-          .get(uri, headers: {
+      final response = await _httpClient.get(uri, headers: {
         'User-Agent': 'WildfireApp/1.0',
         'Accept': 'application/json',
       }).timeout(timeout);

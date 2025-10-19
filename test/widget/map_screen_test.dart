@@ -44,7 +44,8 @@ class MockMapController extends MapController {
 /// No-op LocationResolver for testing
 class _NoOpLocationResolver implements LocationResolver {
   @override
-  Future<Either<LocationError, LatLng>> getLatLon({bool allowDefault = true}) async {
+  Future<Either<LocationError, LatLng>> getLatLon(
+      {bool allowDefault = true}) async {
     return const Right(LatLng(55.9533, -3.1883)); // Edinburgh
   }
 
@@ -180,12 +181,13 @@ void main() {
       // Verify semantic label exists by finding widget with partial semantic label match
       // The RiskCheckButton wraps FAB with Semantics(label: 'Check fire risk at this location')
       final semanticFinder = find.byWidgetPredicate((widget) {
-        return widget is Semantics && 
-               widget.properties.label != null && 
-               widget.properties.label!.toLowerCase().contains('risk');
+        return widget is Semantics &&
+            widget.properties.label != null &&
+            widget.properties.label!.toLowerCase().contains('risk');
       });
       expect(semanticFinder, findsOneWidget,
-          reason: 'FAB must have descriptive semantic label containing "risk" (C3)');
+          reason:
+              'FAB must have descriptive semantic label containing "risk" (C3)');
     });
 
     testWidgets('source chip displays "LIVE", "Cached", or "Mock" (C4)',
@@ -274,8 +276,8 @@ void main() {
       // This would require platform-specific integration tests or manual testing
     });
 
-    testWidgets(
-        'marker info windows have semantic labels (C3)', (tester) async {
+    testWidgets('marker info windows have semantic labels (C3)',
+        (tester) async {
       // Note: Marker info windows are created by GoogleMap plugin internally
       // Semantic labels would need to be verified through integration tests or manual testing
     });
@@ -300,8 +302,8 @@ void main() {
 
       // Verify timestamp is visible (MapSourceChip should display "Just now" or similar)
       expect(
-          find.textContaining(RegExp(r'(Just now|ago|min|hour|day)',
-              caseSensitive: false)),
+          find.textContaining(
+              RegExp(r'(Just now|ago|min|hour|day)', caseSensitive: false)),
           findsOneWidget,
           reason: 'Timestamp should be visible in source chip (C4)');
     });
