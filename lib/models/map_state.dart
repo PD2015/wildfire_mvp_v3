@@ -25,14 +25,24 @@ class MapSuccess extends MapState {
   final Freshness freshness;
   final DateTime lastUpdated;
 
-  const MapSuccess({
+  MapSuccess({
     required this.incidents,
     required this.centerLocation,
     required this.freshness,
     required this.lastUpdated,
-  });
+  }) {
+    _validate();
+  }
 
-  /// TODO: T010 - Implement validation (valid centerLocation)
+  /// Validation per data-model.md
+  void _validate() {
+    if (!centerLocation.isValid) {
+      throw ArgumentError('MapSuccess centerLocation must have valid coordinates');
+    }
+    if (lastUpdated.isAfter(DateTime.now())) {
+      throw ArgumentError('MapSuccess lastUpdated must not be in the future');
+    }
+  }
   
   @override
   List<Object?> get props => [incidents, centerLocation, freshness, lastUpdated];
@@ -44,13 +54,20 @@ class MapError extends MapState {
   final List<FireIncident>? cachedIncidents;
   final LatLng? lastKnownLocation;
 
-  const MapError({
+  MapError({
     required this.message,
     this.cachedIncidents,
     this.lastKnownLocation,
-  });
+  }) {
+    _validate();
+  }
 
-  /// TODO: T010 - Implement validation (non-empty message)
+  /// Validation per data-model.md
+  void _validate() {
+    if (message.isEmpty) {
+      throw ArgumentError('MapError message must be non-empty');
+    }
+  }
 
   @override
   List<Object?> get props => [message, cachedIncidents, lastKnownLocation];
