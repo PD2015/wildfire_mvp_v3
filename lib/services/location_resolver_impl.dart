@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:dartz/dartz.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/location_models.dart';
-import '../utils/location_utils.dart';
+import 'utils/geo_utils.dart';
 import 'location_resolver.dart';
 
 /// Concrete implementation of LocationResolver with 5-tier fallback strategy
@@ -76,7 +76,7 @@ class LocationResolverImpl implements LocationResolver {
       if (cacheResult.isRight()) {
         final coords = cacheResult.getOrElse(() => _scotlandCentroid);
         debugPrint(
-            'Location resolved via cache: ${LocationUtils.logRedact(coords.latitude, coords.longitude)}');
+            'Location resolved via cache: ${GeographicUtils.logRedact(coords.latitude, coords.longitude)}');
         return Right(coords);
       }
 
@@ -89,13 +89,13 @@ class LocationResolverImpl implements LocationResolver {
 
       // Tier 5: Scotland centroid default
       debugPrint(
-          'Location resolved via default: ${LocationUtils.logRedact(_scotlandCentroid.latitude, _scotlandCentroid.longitude)}');
+          'Location resolved via default: ${GeographicUtils.logRedact(_scotlandCentroid.latitude, _scotlandCentroid.longitude)}');
       return const Right(_scotlandCentroid);
     } catch (e) {
       debugPrint('Location resolution error: $e');
       if (allowDefault) {
         debugPrint(
-            'Falling back to default: ${LocationUtils.logRedact(_scotlandCentroid.latitude, _scotlandCentroid.longitude)}');
+            'Falling back to default: ${GeographicUtils.logRedact(_scotlandCentroid.latitude, _scotlandCentroid.longitude)}');
         return const Right(_scotlandCentroid);
       }
       return const Left(LocationError.gpsUnavailable);
@@ -170,7 +170,7 @@ class LocationResolverImpl implements LocationResolver {
       ]);
 
       debugPrint(
-          'Manual location saved: ${LocationUtils.logRedact(location.latitude, location.longitude)}${placeName != null ? ' ($placeName)' : ''}');
+          'Manual location saved: ${GeographicUtils.logRedact(location.latitude, location.longitude)}${placeName != null ? ' ($placeName)' : ''}');
     } catch (e) {
       debugPrint('Failed to save manual location: $e');
       rethrow;

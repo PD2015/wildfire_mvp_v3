@@ -1,36 +1,109 @@
 # wildfire_mvp_v3 Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2025-10-02
+Auto-generated from all feature plans. Last updated: 2025-10-19
 
 ## Active Technologies
-- Dart 3.0+ with Flutter SDK + http package, dartz (Either type), equatable (value objects) (001-spec-a1-effisservice)
-- Dart 3.0+ with Flutter SDK + flutter_bloc, equatable, http (inherited from A2), dartz (Either type from A2) (003-a3-riskbanner-home)
-- N/A (widget consumes A2 FireRiskService data) (003-a3-riskbanner-home)
-- Dart 3.0+ with Flutter SDK + geolocator, permission_handler, shared_preferences, dartz (Either type from A1-A3) (004-a4-locationresolver-low)
-- Dart 3.0+ with Flutter SDK + shared_preferences, dartz (Either type), equatable, crypto (geohash encoding) (005-a5-cacheservice-6h)
-- Dart 3.0+ with Flutter SDK + ChangeNotifier (preferred for HomeController), existing LocationResolver (A4), FireRiskService (A2), CacheService (A5) (006-a6-home-risk)
-- SharedPreferences for manual location persistence, existing cache system (006-a6-home-risk)
-- Dart 3.0+ with Flutter SDK (existing project setup) + go_router (routing), flutter_test (testing) (010-a9-add-blank)
-- N/A (UI navigation feature only) (010-a9-add-blank)
-- Dart 3.0+ with Flutter SDK 3.35.5 + google_maps_flutter ^2.5.0, go_router 14.8.1, http, dartz (Either), equatable, flutter_bloc (inherited from A2/A6) (011-a10-google-maps)
-- SharedPreferences for cache (inherited from A5 CacheService), no new storage requirements (011-a10-google-maps)
+- **A1** (EffisService): Dart 3.0+, Flutter SDK, http, dartz (Either type), equatable (value objects)
+- **A2** (FireRiskService): flutter_bloc, http, dartz (inherits from A1)
+- **A3** (RiskBanner): Widget layer consuming A2 FireRiskService data
+- **A4** (LocationResolver): geolocator, permission_handler, shared_preferences, dartz
+- **A5** (CacheService): shared_preferences, dartz, equatable, crypto (geohash encoding)
+- **A6** (HomeController): ChangeNotifier, LocationResolver (A4), FireRiskService (A2), CacheService (A5)
+- **A9** (MapScreen): go_router, flutter_test (navigation scaffold)
+- **A10** (Google Maps MVP): google_maps_flutter ^2.5.0, go_router 14.8.1, http, dartz, equatable, flutter_bloc
 
 ## Project Structure
 ```
-src/
-tests/
+lib/
+├── features/        # Feature-based organization (map/, home/)
+├── models/          # Data models (LatLng, FireRisk, etc.)
+├── services/        # Business logic & API integration
+│   └── utils/       # Service utilities (geo_utils.dart)
+├── controllers/     # State management (ChangeNotifier)
+├── utils/           # App-wide utilities (location_utils.dart)
+├── widgets/         # Reusable UI components
+└── theme/           # App theming & colors
+
+test/
+├── unit/            # Unit tests
+├── widget/          # Widget tests
+├── integration/     # Integration tests
+└── contract/        # API contract tests
 ```
 
 ## Commands
-# Add commands for Dart 3.0+ with Flutter SDK
+```bash
+# Run app with live EFFIS data
+flutter run -d macos --dart-define=MAP_LIVE_DATA=true
+
+# Run app with mock data (testing - default)
+flutter run -d macos --dart-define=MAP_LIVE_DATA=false
+
+# Run all tests
+flutter test
+
+# Run specific test suite
+flutter test test/integration/map/
+
+# Format code
+dart format lib/ test/
+
+# Analyze code
+flutter analyze
+
+# Run constitution gates (C1-C5)
+./.specify/scripts/bash/constitution-gates.sh
+
+# Clean build artifacts
+flutter clean && flutter pub get
+```
 
 ## Code Style
 Dart 3.0+ with Flutter SDK: Follow standard conventions
+- Use sealed classes for state hierarchies (MapState, etc.)
+- Prefer const constructors for immutable objects
+- Use dartz Either<L,R> for error handling (no exceptions in business logic)
+- Always use GeographicUtils.logRedact() for coordinate logging (C2 compliance)
 
 ## Recent Changes
-- 011-a10-google-maps: Added Dart 3.0+ with Flutter SDK 3.35.5 + google_maps_flutter ^2.5.0, go_router 14.8.1, http, dartz (Either), equatable, flutter_bloc (inherited from A2/A6)
-- 010-a9-add-blank: Added Dart 3.0+ with Flutter SDK (existing project setup) + go_router (routing), flutter_test (testing)
-- 006-a6-home-risk: Added Dart 3.0+ with Flutter SDK + ChangeNotifier (preferred for HomeController), existing LocationResolver (A4), FireRiskService (A2), CacheService (A5)
+- **2025-10-19**: A10 Google Maps MVP - Added google_maps_flutter ^2.5.0, MapController state management, FireLocationService with EFFIS WFS integration
+- **2025-10-02**: A9 MapScreen scaffold - Added go_router navigation, blank map placeholder
+- **2025-10-02**: A6 HomeController - Added ChangeNotifier pattern with LocationResolver, FireRiskService, CacheService integration
+
+## Utility Classes Reference
+
+### GeographicUtils (lib/services/utils/geo_utils.dart)
+Primary geographic utility class for service layer operations:
+```dart
+class GeographicUtils {
+  // Privacy-compliant coordinate logging (C2 compliance)
+  static String logRedact(double lat, double lon);  // "55.95,-3.19"
+  
+  // Scotland boundary detection (for SEPA service routing)
+  static bool isInScotland(double lat, double lon);
+  
+  // Geohash encoding for spatial cache keys
+  static String geohash(double lat, double lon, {int precision = 5});
+}
+```
+
+### LocationUtils (lib/utils/location_utils.dart)
+App-level location utilities:
+```dart
+class LocationUtils {
+  // Coordinate validation
+  static bool isValidCoordinate(double lat, double lon);
+  
+  // Privacy-compliant coordinate logging (C2 compliance) for app layer
+  static String logRedact(double lat, double lon);  // "55.95,-3.19"
+}
+```
+
+**Layer-Appropriate Usage**:
+- Use `GeographicUtils.logRedact()` in **service layer** (`lib/services/**`)
+- Use `LocationUtils.logRedact()` in **app layer** (`lib/controllers/**`, `lib/widgets/**`)
+- Both provide identical C2-compliant 2-decimal precision logging
+- This maintains clean architecture separation between service and app concerns
 
 ## FireRiskService Implementation Patterns
 
@@ -72,11 +145,15 @@ expect(attempts.map((e) => e.source), [
 ```
 
 ### Privacy-Compliant Logging
-Always use coordinate redaction in logs:
+Always use coordinate redaction in logs (layer-appropriate utility):
 ```dart
-// CORRECT: Privacy-preserving logging
+// CORRECT: Service layer logging
 _logger.info('Attempting EFFIS for ${GeographicUtils.logRedact(lat, lon)}');
 // Outputs: "Attempting EFFIS for 55.95,-3.19"
+
+// CORRECT: App layer logging  
+_logger.info('User location: ${LocationUtils.logRedact(lat, lon)}');
+// Outputs: "User location: 55.95,-3.19"
 
 // WRONG: Raw coordinates expose PII
 _logger.info('Attempting EFFIS for $lat,$lon'); // Violates C2 gate
@@ -118,7 +195,10 @@ abstract class CacheService {
 ```dart
 // LocationResolver implements 4-tier fallback strategy
 class LocationResolverImpl implements LocationResolver {
-  static const LatLng _scotlandCentroid = LatLng(55.8642, -4.2518);
+  /// Scotland centroid coordinates for default fallback location
+  /// Production: LatLng(55.8642, -4.2518) - Glasgow area
+  /// Test Override: LatLng(57.2, -3.8) - Aviemore (for UK fire risk testing)
+  static const LatLng _scotlandCentroid = LatLng(57.2, -3.8);
   
   @override
   Future<Either<LocationError, LatLng>> getLatLon() async {
@@ -319,13 +399,13 @@ group('LocationResolver Fallback Chain', () {
 
 ### Privacy-Compliant Location Logging
 ```dart
-// CORRECT: Limited precision logging
-_logger.info('Location resolved: ${_logRedact(coords.latitude, coords.longitude)}');
+// CORRECT: Service layer uses GeographicUtils
+_logger.info('Location resolved: ${GeographicUtils.logRedact(coords.latitude, coords.longitude)}');
 // Outputs: "Location resolved: 55.95,-3.19"
 
-String _logRedact(double lat, double lon) {
-  return '${lat.toStringAsFixed(2)},${lon.toStringAsFixed(2)}';
-}
+// CORRECT: App layer uses LocationUtils
+_logger.info('Location resolved: ${LocationUtils.logRedact(coords.latitude, coords.longitude)}');
+// Outputs: "Location resolved: 55.95,-3.19"
 
 // WRONG: Full precision exposes PII
 _logger.info('Location: $lat,$lon'); // Violates C2 constitutional gate
@@ -492,7 +572,7 @@ group('CacheService TTL and LRU', () {
 ```dart
 // CORRECT: Use geohash keys and coordinate redaction
 final geohash = GeohashUtils.encode(lat, lon, precision: 5);
-_logger.debug('Cache operation for ${LocationUtils.logRedact(lat, lon)} → $geohash');
+_logger.debug('Cache operation for ${GeographicUtils.logRedact(lat, lon)} → $geohash');
 // Outputs: "Cache operation for 55.95,-3.19 → gcpue"
 
 // CORRECT: Geohash provides inherent privacy (4.9km resolution)
