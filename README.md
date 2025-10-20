@@ -12,6 +12,7 @@ A Flutter mobile application that provides real-time wildfire risk assessment us
 - **Risk Assessment**: Automatic risk level categorization (low, moderate, high, very high, extreme)
 - **Robust Error Handling**: Comprehensive error management with retry logic
 - **Offline Resilience**: Graceful handling of network issues with exponential backoff
+- **Demo Mode Transparency**: Prominent "DEMO DATA" chip when using mock data (C4 compliance)
 - **Production Ready**: 84.3% test coverage with 56/56 tests passing
 
 ## 🏗️ Architecture
@@ -164,6 +165,32 @@ flutter test
 # Run the app
 flutter run
 ```
+
+### Feature Flags
+
+#### MAP_LIVE_DATA
+Controls whether the app uses live EFFIS data or mock data for testing.
+
+**Usage**:
+```bash
+# Demo mode (default) - uses mock data, shows "DEMO DATA" chip
+flutter run --dart-define=MAP_LIVE_DATA=false
+
+# Production mode - uses live EFFIS data
+flutter run --dart-define=MAP_LIVE_DATA=true
+
+# Environment file approach
+flutter run --dart-define-from-file=env/dev.env.json
+```
+
+**Behavior**:
+- **false** (default): Uses mock data, displays prominent amber "DEMO DATA" chip on map
+- **true**: Uses live EFFIS WFS data, displays standard green/orange/blue source chip
+
+**CI Configuration**:
+The `env/ci.env.json` file defaults to `MAP_LIVE_DATA=false` to ensure tests run predictably with mock data.
+
+**Constitutional Compliance**: This feature supports C4 (Trust & Transparency) by clearly indicating when demo/mock data is being used.
 
 ## 🌐 API Integration
 

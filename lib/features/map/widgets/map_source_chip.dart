@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
+import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 
 /// MapSourceChip displays the data source and freshness indicator
 ///
 /// Shows where the fire data is coming from (EFFIS/SEPA/Cache/Mock)
-/// and when it was last updated.
+/// and when it was last updated. Displays prominent "Demo Data" chip
+/// when MAP_LIVE_DATA=false for user transparency (T019, C4).
 ///
 /// Constitutional compliance:
-/// - C3: Accessible with semantic labels
-/// - C4: Uses theme colors for consistency
+/// - C3: Accessible with semantic labels and ≥44dp touch targets
+/// - C4: Trust & Transparency - clear demo data indicator
+/// - C5: Mock-first development principle
 class MapSourceChip extends StatelessWidget {
   final Freshness source;
   final DateTime lastUpdated;
@@ -69,6 +72,46 @@ class MapSourceChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Show prominent "Demo Data" chip when using mock data in development mode
+    final bool isDemoMode = !FeatureFlags.mapLiveData && source == Freshness.mock;
+    
+    if (isDemoMode) {
+      return Semantics(
+        label: 'Demo Data - For testing purposes only',
+        child: Card(
+          elevation: 6,
+          color: Colors.amber.shade50,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            side: BorderSide(color: Colors.amber.shade700, width: 2),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.science_outlined,
+                  size: 20,
+                  color: Colors.amber.shade900,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'DEMO DATA',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.amber.shade900,
+                        letterSpacing: 1.2,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Standard source chip for live/cached data
     return Semantics(
       label: 'Data source: ${_getSourceLabel()}, updated ${_formatTimestamp()}',
       child: Card(

@@ -190,9 +190,9 @@ void main() {
               'FAB must have descriptive semantic label containing "risk" (C3)');
     });
 
-    testWidgets('source chip displays "LIVE", "Cached", or "Mock" (C4)',
+    testWidgets('source chip displays "DEMO DATA", "LIVE", or "CACHED" (C4, T019)',
         (tester) async {
-      // Test MOCK freshness
+      // Test MOCK freshness - shows "DEMO DATA" when MAP_LIVE_DATA=false (default)
       final mockController = MockMapController(
         MapSuccess(
           incidents: [],
@@ -210,9 +210,9 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Verify "MOCK" text appears
-      expect(find.text('MOCK'), findsOneWidget,
-          reason: 'Source chip must display "MOCK" for mock data (C4)');
+      // Verify "DEMO DATA" text appears (T019 - prominent demo mode indicator)
+      expect(find.text('DEMO DATA'), findsOneWidget,
+          reason: 'Source chip must display "DEMO DATA" for mock data when MAP_LIVE_DATA=false (C4, T019)');
 
       // Test LIVE freshness
       mockController.setState(
@@ -282,12 +282,13 @@ void main() {
       // Semantic labels would need to be verified through integration tests or manual testing
     });
 
-    testWidgets('"Last updated" timestamp visible (C4)', (tester) async {
+    testWidgets('"Last updated" timestamp visible for live/cached data (C4)', (tester) async {
+      // Test with LIVE data (not demo mode)
       final mockController = MockMapController(
         MapSuccess(
           incidents: [],
           centerLocation: const LatLng(55.9, -3.2),
-          freshness: Freshness.mock,
+          freshness: Freshness.live,
           lastUpdated: DateTime.now(),
         ),
       );
@@ -300,12 +301,34 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Verify timestamp is visible (MapSourceChip should display "Just now" or similar)
+      // Verify timestamp is visible for live data (MapSourceChip should display "Just now" or similar)
       expect(
           find.textContaining(
               RegExp(r'(Just now|ago|min|hour|day)', caseSensitive: false)),
           findsOneWidget,
-          reason: 'Timestamp should be visible in source chip (C4)');
+          reason: 'Timestamp should be visible in source chip for live data (C4)');
+      
+      // Test with CACHED data
+      mockController.setState(
+        MapSuccess(
+          incidents: [],
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.cached,
+          lastUpdated: DateTime.now(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Verify timestamp still visible for cached data
+      expect(
+          find.textContaining(
+              RegExp(r'(Just now|ago|min|hour|day)', caseSensitive: false)),
+          findsOneWidget,
+          reason: 'Timestamp should be visible in source chip for cached data (C4)');
+      
+      // Note: DEMO DATA chip (mock + MAP_LIVE_DATA=false) intentionally does not show timestamp
+      // to distinguish it visually from production data sources (T019)
     });
   });
 }
