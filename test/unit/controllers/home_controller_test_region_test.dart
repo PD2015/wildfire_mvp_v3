@@ -63,7 +63,7 @@ void main() {
         await controller.load();
 
         // Wait for async operations
-        await Future.delayed(Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
 
         // Assert: With default TEST_REGION=scotland in tests, this becomes an error
         // In production with TEST_REGION=portugal, it would succeed with Portugal coords

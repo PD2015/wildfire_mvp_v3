@@ -8,15 +8,17 @@ class LatLngBounds extends Equatable {
   final LatLng southwest;
   final LatLng northeast;
 
-  LatLngBounds({
+  /// Const constructor for compile-time constant bounds
+  const LatLngBounds({
     required this.southwest,
     required this.northeast,
-  }) {
-    _validate();
-  }
+  });
 
-  /// Validation per data-model.md
-  void _validate() {
+  /// Factory constructor with validation
+  factory LatLngBounds.validated({
+    required LatLng southwest,
+    required LatLng northeast,
+  }) {
     if (!southwest.isValid || !northeast.isValid) {
       throw ArgumentError('LatLngBounds coordinates must be valid');
     }
@@ -28,6 +30,7 @@ class LatLngBounds extends Equatable {
       throw ArgumentError(
           'LatLngBounds southwest.longitude must be < northeast.longitude');
     }
+    return LatLngBounds(southwest: southwest, northeast: northeast);
   }
 
   /// Computed properties

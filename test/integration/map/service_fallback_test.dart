@@ -86,9 +86,9 @@ void main() {
 
       // Wide bounds covering all of Scotland to ensure mock fires are included
       // Mock fires: Edinburgh (55.9533, -3.1883), Glasgow (55.8642, -4.2518), Aviemore (57.2, -3.8)
-      testBounds = LatLngBounds(
-        southwest: const LatLng(54.0, -8.0),
-        northeast: const LatLng(61.0, -0.5),
+      testBounds = const LatLngBounds(
+        southwest: LatLng(54.0, -8.0),
+        northeast: LatLng(61.0, -0.5),
       );
     });
 

@@ -1,4 +1,7 @@
-import 'dart:convert';
+// Debug script for testing FireIncident serialization
+// NOTE: print() is intentional for debug output
+// ignore_for_file: avoid_print
+
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';

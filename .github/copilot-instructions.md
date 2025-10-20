@@ -788,5 +788,148 @@ dart format lib/ test/
 3. Run `flutter test` - All tests pass
 4. Commit with conventional commit message
 
+### Test-Specific Const Patterns
+
+**Const Test Data**:
+Use `const` for all compile-time constant test data to improve test performance and catch errors early.
+
+```dart
+// ❌ WRONG: Non-const test data when values are constant
+final testBounds = LatLngBounds(
+  southwest: LatLng(55.0, -4.0),
+  northeast: LatLng(56.0, -3.0),
+);
+final testLocation = LatLng(55.9533, -3.1883);
+final emptyIncidents = [];
+
+// ✅ CORRECT: Const test data
+const testBounds = LatLngBounds(
+  southwest: LatLng(55.0, -4.0),
+  northeast: LatLng(56.0, -3.0),
+);
+const testLocation = LatLng(55.9533, -3.1883);
+const emptyIncidents = <FireIncident>[];
+
+// ✅ CORRECT: Const in constructor arguments
+final state = MapSuccess(
+  incidents: const [],              // const empty list
+  centerLocation: const LatLng(55.9, -3.2),  // const coordinates
+  freshness: Freshness.mock,
+  lastUpdated: DateTime.now(),      // Runtime value, not const
+);
+```
+
+**Const vs Final in Tests**:
+- Use `const` for test data that's truly constant (coordinates, bounds, etc.)
+- Use `final` for values created at runtime (DateTime.now(), mock responses, etc.)
+
+```dart
+// ✅ CORRECT: const for compile-time constants
+const testLat = 55.9533;
+const testLon = -3.1883;
+const testCoordinates = LatLng(55.9533, -3.1883);
+
+// ✅ CORRECT: final for runtime values
+final testTimestamp = DateTime.now();
+final testState = MapSuccess(...);
+final mockResponse = await service.getData();
+```
+
+**Model Const Constructors**:
+Models should provide both const constructors (for test data) and validated factories (for runtime checks).
+
+```dart
+// Model design pattern:
+class LatLngBounds {
+  final LatLng southwest;
+  final LatLng northeast;
+  
+  // Const constructor for test data (no validation)
+  const LatLngBounds({required this.southwest, required this.northeast});
+  
+  // Validated factory for production (throws on invalid data)
+  factory LatLngBounds.validated({required LatLng southwest, required LatLng northeast}) {
+    if (southwest.latitude >= northeast.latitude) {
+      throw ArgumentError('Invalid bounds');
+    }
+    return LatLngBounds(southwest: southwest, northeast: northeast);
+  }
+}
+
+// Usage in tests:
+const validBounds = LatLngBounds(southwest: LatLng(55.0, -4.0), northeast: LatLng(56.0, -3.0));
+
+// Test validation logic:
+expect(
+  () => LatLngBounds.validated(southwest: const LatLng(56.0, -3.0), northeast: const LatLng(55.0, -4.0)),
+  throwsArgumentError,
+);
+```
+
+**Print Statements in Tests**:
+`print()` is acceptable in performance tests and debug scripts, but must be documented with analyzer ignore directive.
+
+```dart
+// ✅ CORRECT: Performance test with print() for metrics reporting
+// test/performance/map_performance_test.dart
+// NOTE: print() statements are intentional in performance tests for reporting metrics
+// ignore_for_file: avoid_print
+
+testWidgets('Map loads within 3s', (tester) async {
+  final stopwatch = Stopwatch()..start();
+  // ... test code ...
+  stopwatch.stop();
+  print('✅ Map load time: ${stopwatch.elapsedMilliseconds}ms');  // OK with ignore directive
+});
+
+// ✅ CORRECT: Debug script
+// test_ser.dart
+// Debug script for testing serialization
+// NOTE: print() is intentional for debug output
+// ignore_for_file: avoid_print
+
+void main() {
+  final json = model.toJson();
+  print('Serialized: $json');  // OK with ignore directive
+}
+
+// ❌ WRONG: print() in production code (lib/)
+void processData() {
+  print('Processing...');  // Use debugPrint() instead
+}
+```
+
+**Empty List Literals**:
+Always use `const []` for empty list literals in immutable constructors.
+
+```dart
+// ❌ WRONG: Non-const empty list
+final state = MapSuccess(
+  incidents: [],  // Triggers prefer_const_literals_to_create_immutables
+  centerLocation: testLocation,
+  freshness: Freshness.mock,
+  lastUpdated: DateTime.now(),
+);
+
+// ✅ CORRECT: Const empty list
+final state = MapSuccess(
+  incidents: const [],  // or const <FireIncident>[] for explicit type
+  centerLocation: testLocation,
+  freshness: Freshness.mock,
+  lastUpdated: DateTime.now(),
+);
+```
+
+**Batch Fixing Const Issues**:
+Use `sed` for batch const fixes when the pattern is repetitive.
+
+```bash
+# Replace all `incidents: []` with `incidents: const []`
+sed -i '' 's/incidents: \[\],/incidents: const [],/g' test/widget/map_screen_test.dart
+
+# Replace all `final testBounds = LatLngBounds` with `const testBounds = LatLngBounds`
+sed -i '' 's/final testBounds = LatLngBounds/const testBounds = LatLngBounds/g' test/**/*.dart
+```
+
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

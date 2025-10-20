@@ -148,7 +148,7 @@ void main() {
       // Setup mock controller
       final mockController = MockMapController(
         MapSuccess(
-          incidents: [],
+          incidents: const [],
           centerLocation: const LatLng(55.9, -3.2),
           freshness: Freshness.mock,
           lastUpdated: DateTime.now(),
@@ -196,7 +196,7 @@ void main() {
       // Test MOCK freshness - shows "DEMO DATA" when MAP_LIVE_DATA=false (default)
       final mockController = MockMapController(
         MapSuccess(
-          incidents: [],
+          incidents: const [],
           centerLocation: const LatLng(55.9, -3.2),
           freshness: Freshness.mock,
           lastUpdated: DateTime.now(),
@@ -219,7 +219,7 @@ void main() {
       // Test LIVE freshness
       mockController.setState(
         MapSuccess(
-          incidents: [],
+          incidents: const [],
           centerLocation: const LatLng(55.9, -3.2),
           freshness: Freshness.live,
           lastUpdated: DateTime.now(),
@@ -234,7 +234,7 @@ void main() {
       // Test CACHED freshness
       mockController.setState(
         MapSuccess(
-          incidents: [],
+          incidents: const [],
           centerLocation: const LatLng(55.9, -3.2),
           freshness: Freshness.cached,
           lastUpdated: DateTime.now(),
@@ -289,7 +289,7 @@ void main() {
       // Test with LIVE data (not demo mode)
       final mockController = MockMapController(
         MapSuccess(
-          incidents: [],
+          incidents: const [],
           centerLocation: const LatLng(55.9, -3.2),
           freshness: Freshness.live,
           lastUpdated: DateTime.now(),
@@ -315,7 +315,7 @@ void main() {
       // Test with CACHED data
       mockController.setState(
         MapSuccess(
-          incidents: [],
+          incidents: const [],
           centerLocation: const LatLng(55.9, -3.2),
           freshness: Freshness.cached,
           lastUpdated: DateTime.now(),

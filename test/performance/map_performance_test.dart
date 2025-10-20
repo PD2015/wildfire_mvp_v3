@@ -19,6 +19,9 @@
 // - Memory usage: ~60MB on MapScreen (within 75MB budget)
 // - Camera movements: Smooth pan/zoom, no dropped frames
 //
+// NOTE: print() statements are intentional in performance tests for reporting metrics
+// ignore_for_file: avoid_print
+
 // These tests serve as specification for performance requirements (C5).
 // Actual performance validation done via manual testing and profiling.
 
@@ -218,7 +221,7 @@ void main() {
       final stopwatch = Stopwatch()..start();
 
       // Simulate camera movements by refreshing map data with different bounds
-      final bounds1 = LatLngBounds(
+      const bounds1 = LatLngBounds(
         southwest: LatLng(55.0, -4.0),
         northeast: LatLng(56.0, -3.0),
       );
@@ -227,7 +230,7 @@ void main() {
       await tester.pump();
       await tester.pumpAndSettle();
 
-      final bounds2 = LatLngBounds(
+      const bounds2 = LatLngBounds(
         southwest: LatLng(56.0, -5.0),
         northeast: LatLng(57.0, -4.0),
       );
@@ -314,7 +317,7 @@ class MockLocationResolver implements LocationResolver {
       {bool allowDefault = true}) async {
     // Simulate GPS delay (typical: 500-1000ms)
     await Future.delayed(const Duration(milliseconds: 100));
-    return Right(LatLng(55.9533, -3.1883)); // Edinburgh
+    return const Right(LatLng(55.9533, -3.1883)); // Edinburgh
   }
 
   @override
@@ -327,7 +330,7 @@ class MockFireLocationService implements FireLocationService {
   List<FireIncident> _incidents = [
     FireIncident(
       id: 'mock_fire_001',
-      location: LatLng(55.9533, -3.1883),
+      location: const LatLng(55.9533, -3.1883),
       source: DataSource.mock,
       freshness: Freshness.mock,
       timestamp: DateTime.now(),
@@ -335,7 +338,7 @@ class MockFireLocationService implements FireLocationService {
     ),
     FireIncident(
       id: 'mock_fire_002',
-      location: LatLng(55.8642, -4.2518),
+      location: const LatLng(55.8642, -4.2518),
       source: DataSource.mock,
       freshness: Freshness.mock,
       timestamp: DateTime.now(),
@@ -343,7 +346,7 @@ class MockFireLocationService implements FireLocationService {
     ),
     FireIncident(
       id: 'mock_fire_003',
-      location: LatLng(57.1497, -2.0943),
+      location: const LatLng(57.1497, -2.0943),
       source: DataSource.mock,
       freshness: Freshness.mock,
       timestamp: DateTime.now(),

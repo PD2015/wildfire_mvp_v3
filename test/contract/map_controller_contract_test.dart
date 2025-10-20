@@ -22,8 +22,8 @@ void main() {
     test('MapSuccess state has valid structure', () {
       // Verify MapSuccess contract: incidents, centerLocation, freshness, lastUpdated
       final state = MapSuccess(
-        incidents: [],
-        centerLocation: LatLng(55.9533, -3.1883),
+        incidents: const [],
+        centerLocation: const LatLng(55.9533, -3.1883),
         freshness: Freshness.mock,
         lastUpdated: DateTime.now(),
       );
@@ -55,7 +55,7 @@ void main() {
 
     test('LatLngBounds validation works', () {
       // Verify LatLngBounds contract used by refreshMapData
-      final validBounds = LatLngBounds(
+      const validBounds = LatLngBounds(
         southwest: LatLng(55.0, -5.0),
         northeast: LatLng(59.0, -1.0),
       );
@@ -67,9 +67,9 @@ void main() {
 
       // Invalid bounds should throw
       expect(
-        () => LatLngBounds(
-          southwest: LatLng(59.0, -1.0),
-          northeast: LatLng(55.0, -5.0),
+        () => LatLngBounds.validated(
+          southwest: const LatLng(59.0, -1.0),
+          northeast: const LatLng(55.0, -5.0),
         ),
         throwsArgumentError,
       );
@@ -81,8 +81,8 @@ void main() {
       expect(loading, isA<MapState>());
 
       final success = MapSuccess(
-        incidents: [],
-        centerLocation: LatLng(55.9533, -3.1883),
+        incidents: const [],
+        centerLocation: const LatLng(55.9533, -3.1883),
         freshness: Freshness.mock,
         lastUpdated: DateTime.now(),
       );
@@ -96,8 +96,8 @@ void main() {
       // Verify validation in MapSuccess
       expect(
         () => MapSuccess(
-          incidents: [],
-          centerLocation: LatLng(999, 999), // Invalid
+          incidents: const [],
+          centerLocation: const LatLng(999, 999), // Invalid
           freshness: Freshness.mock,
           lastUpdated: DateTime.now(),
         ),

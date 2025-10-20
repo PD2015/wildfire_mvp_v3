@@ -58,7 +58,7 @@ void main() {
 
     test('Mock service returns List<FireIncident>', () async {
       // Test with Scotland bounds (contains all 3 mock fires)
-      final bounds = LatLngBounds(
+      const bounds = LatLngBounds(
         southwest: LatLng(55.0, -5.0),
         northeast: LatLng(59.0, -1.0),
       );
@@ -72,7 +72,7 @@ void main() {
 
     test('Service filters fires by bbox (Scotland coordinates)', () async {
       // Test with bounds that only include Edinburgh area
-      final edinburghBounds = LatLngBounds(
+      const edinburghBounds = LatLngBounds(
         southwest: LatLng(55.9, -3.3),
         northeast: LatLng(56.0, -3.1),
       );
@@ -87,7 +87,7 @@ void main() {
 
     test('Mock service returns FireIncident with freshness=mock', () async {
       // Test that mock service marks incidents correctly
-      final bounds = LatLngBounds(
+      const bounds = LatLngBounds(
         southwest: LatLng(55.0, -5.0),
         northeast: LatLng(59.0, -1.0),
       );
@@ -102,7 +102,7 @@ void main() {
 
     test('Mock service never fails', () async {
       // Mock service should always return Right, even with empty results
-      final bounds = LatLngBounds(
+      const bounds = LatLngBounds(
         southwest: LatLng(55.0, -5.0),
         northeast: LatLng(59.0, -1.0),
       );
@@ -115,18 +115,18 @@ void main() {
     });
 
     test('bbox validation (southwest < northeast)', () {
-      // Invalid bbox (northeast < southwest) should throw
+      // Invalid bbox (northeast < southwest) should throw with validated constructor
       expect(
-        () => LatLngBounds(
-          southwest: LatLng(59.0, -1.0), // Higher latitude
-          northeast: LatLng(55.0, -5.0), // Lower latitude
+        () => LatLngBounds.validated(
+          southwest: const LatLng(59.0, -1.0), // Higher latitude
+          northeast: const LatLng(55.0, -5.0), // Lower latitude
         ),
         throwsA(isA<ArgumentError>()),
       );
 
       // Valid bbox should not throw
       expect(
-        () => LatLngBounds(
+        () => const LatLngBounds(
           southwest: LatLng(55.0, -5.0),
           northeast: LatLng(59.0, -1.0),
         ),
@@ -136,7 +136,7 @@ void main() {
 
     test('Mock service responds quickly (performance check)', () async {
       // Mock service should be fast (no network calls)
-      final bounds = LatLngBounds(
+      const bounds = LatLngBounds(
         southwest: LatLng(55.0, -5.0),
         northeast: LatLng(59.0, -1.0),
       );
@@ -151,7 +151,7 @@ void main() {
 
     test('empty bbox returns empty list (no fires in region)', () async {
       // Test with bounds outside Scotland (no mock fires)
-      final londonBounds = LatLngBounds(
+      const londonBounds = LatLngBounds(
         southwest: LatLng(51.0, -1.0),
         northeast: LatLng(52.0, 0.0),
       );

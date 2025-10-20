@@ -120,10 +120,10 @@ void main() {
       ];
 
       // Edinburgh coordinates within same ~4.9km geohash cell
-      final lat1 = 55.9533;
-      final lon1 = -3.1883;
-      final lat2 = 55.9550; // ~1.9km north
-      final lon2 = -3.1900; // ~100m west
+      const lat1 = 55.9533;
+      const lon1 = -3.1883;
+      const lat2 = 55.9550; // ~1.9km north
+      const lon2 = -3.1900; // ~100m west
 
       // Act: Store at first location
       await cache.set(lat: lat1, lon: lon1, data: incidents1);

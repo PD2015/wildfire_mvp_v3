@@ -34,9 +34,9 @@ void main() {
     late FireLocationServiceImpl service;
 
     // Test bounds
-    final testBounds = LatLngBounds(
-      southwest: const LatLng(55.0, -4.0),
-      northeast: const LatLng(56.0, -3.0),
+    const testBounds = LatLngBounds(
+      southwest: LatLng(55.0, -4.0),
+      northeast: LatLng(56.0, -3.0),
     );
 
     // Test fire incidents
@@ -213,9 +213,9 @@ void main() {
 
       test('handles small bboxes correctly', () async {
         // Arrange: Very small bbox (1km²)
-        final smallBounds = LatLngBounds(
-          southwest: const LatLng(55.9500, -3.1900),
-          northeast: const LatLng(55.9600, -3.1800),
+        const smallBounds = LatLngBounds(
+          southwest: LatLng(55.9500, -3.1900),
+          northeast: LatLng(55.9600, -3.1800),
         );
 
         when(mockMockService.getActiveFires(any))
@@ -231,9 +231,9 @@ void main() {
 
       test('handles large bboxes correctly', () async {
         // Arrange: Very large bbox (entire Scotland)
-        final largeBounds = LatLngBounds(
-          southwest: const LatLng(54.6, -8.6),
-          northeast: const LatLng(60.9, -0.7),
+        const largeBounds = LatLngBounds(
+          southwest: LatLng(54.6, -8.6),
+          northeast: LatLng(60.9, -0.7),
         );
 
         when(mockMockService.getActiveFires(any))
