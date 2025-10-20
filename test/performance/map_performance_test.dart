@@ -51,7 +51,7 @@ void main() {
       mockLocationResolver = MockLocationResolver();
       mockFireLocationService = MockFireLocationService();
       mockFireRiskService = MockFireRiskService();
-      
+
       mapController = MapController(
         locationResolver: mockLocationResolver,
         fireLocationService: mockFireLocationService,
@@ -67,7 +67,7 @@ void main() {
         (WidgetTester tester) async {
       // ACCEPTANCE: Map interactive ≤3s (T035 requirement)
       // Measures time from MapScreen build to first marker visible
-      
+
       final stopwatch = Stopwatch()..start();
 
       await tester.pumpWidget(
@@ -103,7 +103,7 @@ void main() {
         (WidgetTester tester) async {
       // ACCEPTANCE: 50 markers without dropped frames (T035 requirement)
       // Measures frame build times during marker rendering
-      
+
       // Create 50 mock fire incidents
       final incidents = List.generate(
         50,
@@ -137,7 +137,7 @@ void main() {
 
       await tester.pump();
       await mapController.initialize();
-      
+
       // Pump multiple frames to render all markers
       for (int i = 0; i < 10; i++) {
         await tester.pump(const Duration(milliseconds: 16)); // ~60fps
@@ -166,7 +166,7 @@ void main() {
       // ACCEPTANCE: Memory usage ≤75MB (T035 requirement)
       // Note: Precise memory measurement requires platform channels or profiling tools.
       // This test verifies no memory leaks during create/dispose cycles.
-      
+
       const cycles = 3;
 
       for (int i = 0; i < cycles; i++) {
@@ -204,7 +204,7 @@ void main() {
         (WidgetTester tester) async {
       // ACCEPTANCE: Camera movements smooth, no excessive frame drops (T035)
       // Measures responsiveness during pan/zoom operations
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: MapScreen(controller: mapController),
@@ -222,7 +222,7 @@ void main() {
         southwest: LatLng(55.0, -4.0),
         northeast: LatLng(56.0, -3.0),
       );
-      
+
       await mapController.refreshMapData(bounds1);
       await tester.pump();
       await tester.pumpAndSettle();
@@ -231,7 +231,7 @@ void main() {
         southwest: LatLng(56.0, -5.0),
         northeast: LatLng(57.0, -4.0),
       );
-      
+
       await mapController.refreshMapData(bounds2);
       await tester.pump();
       await tester.pumpAndSettle();
@@ -245,17 +245,18 @@ void main() {
         reason: 'Camera movements should not block UI',
       );
 
-      print('✅ P4: Camera movements completed in ${stopwatch.elapsedMilliseconds}ms');
+      print(
+          '✅ P4: Camera movements completed in ${stopwatch.elapsedMilliseconds}ms');
     });
 
     testWidgets('P5: EFFIS WFS timeout respected (8s service tier)',
         (WidgetTester tester) async {
       // ACCEPTANCE: EFFIS WFS timeout ≤8s (T035 requirement, inherited from A2)
       // Verifies service layer timeout enforcement
-      
+
       // Note: This is a smoke test. Actual timeout testing done in
       // test/unit/services/fire_location_service_test.dart
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: MapScreen(controller: mapController),
@@ -279,13 +280,14 @@ void main() {
       // Verify state is success (not timeout)
       expect(mapController.state, isA<MapSuccess>());
 
-      print('✅ P5: Service call completed in ${stopwatch.elapsedMilliseconds}ms');
+      print(
+          '✅ P5: Service call completed in ${stopwatch.elapsedMilliseconds}ms');
     });
 
     test('P6: Performance baseline metrics documented', () {
       // This test exists to document baseline performance metrics
       // Update these values after running tests on target hardware
-      
+
       const performanceBaselines = {
         'map_load_time_ms': 3000, // ≤3s requirement
         'marker_count_without_jank': 50, // T020 lazy rendering threshold
@@ -308,7 +310,8 @@ void main() {
 
 class MockLocationResolver implements LocationResolver {
   @override
-  Future<Either<LocationError, LatLng>> getLatLon({bool allowDefault = true}) async {
+  Future<Either<LocationError, LatLng>> getLatLon(
+      {bool allowDefault = true}) async {
     // Simulate GPS delay (typical: 500-1000ms)
     await Future.delayed(const Duration(milliseconds: 100));
     return Right(LatLng(55.9533, -3.1883)); // Edinburgh
