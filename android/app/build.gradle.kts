@@ -29,11 +29,12 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         
-        // Google Maps API Key from environment or default to placeholder for development
+        // Google Maps API Key - reusing iOS key (configured with no restrictions for development)
+        // In production, use --dart-define-from-file with platform-specific restricted keys
         manifestPlaceholders["GOOGLE_MAPS_API_KEY_ANDROID"] = 
             project.findProperty("GOOGLE_MAPS_API_KEY_ANDROID")?.toString() 
             ?: System.getenv("GOOGLE_MAPS_API_KEY_ANDROID") 
-            ?: "YOUR_API_KEY_HERE"
+            ?: "AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA"
     }
 
     buildTypes {
