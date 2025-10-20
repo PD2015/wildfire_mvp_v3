@@ -39,8 +39,8 @@ class MapController extends ChangeNotifier {
 
       final LatLng centerLocation = locationResult.fold(
         (error) {
-          // Fallback to Scotland centroid if location fails
-          return const LatLng(55.8642, -4.2518); // Glasgow area
+          // Fallback to Aviemore (test location for UK fire risk testing)
+          return const LatLng(57.2, -3.8); // Aviemore, Scotland
         },
         (location) => location,
       );

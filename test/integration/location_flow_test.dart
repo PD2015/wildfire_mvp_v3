@@ -102,11 +102,11 @@ void main() {
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.denied);
 
-        // Set up cached manual location
+        // Set up cached manual location (using Edinburgh - within Scotland bounds)
         SharedPreferences.setMockInitialValues({
           'manual_location_version': '1.0',
-          'manual_location_lat': TestData.london.latitude,
-          'manual_location_lon': TestData.london.longitude,
+          'manual_location_lat': TestData.edinburgh.latitude,
+          'manual_location_lon': TestData.edinburgh.longitude,
           'manual_location_timestamp': DateTime.now().millisecondsSinceEpoch,
         });
 
@@ -116,8 +116,8 @@ void main() {
         // Assert
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
-        expect(location.latitude, closeTo(TestData.london.latitude, 0.001));
-        expect(location.longitude, closeTo(TestData.london.longitude, 0.001));
+        expect(location.latitude, closeTo(TestData.edinburgh.latitude, 0.001));
+        expect(location.longitude, closeTo(TestData.edinburgh.longitude, 0.001));
       });
 
       test('Tier 4: allowDefault=false returns Left when manual entry needed',

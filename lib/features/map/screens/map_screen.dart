@@ -66,6 +66,11 @@ class _MapScreenState extends State<MapScreen> {
       debugPrint(
           '🎯 Creating marker: id=${incident.id}, intensity="${incident.intensity}", desc=${incident.description}');
 
+      // Ensure title is never null
+      final title = incident.description?.isNotEmpty == true
+          ? incident.description!
+          : 'Fire Incident #${incident.id}';
+
       return Marker(
         markerId: MarkerId(incident.id),
         position: LatLng(
@@ -74,14 +79,13 @@ class _MapScreenState extends State<MapScreen> {
         ),
         icon: _getMarkerIcon(incident.intensity),
         infoWindow: InfoWindow(
-          title: incident.description ?? 'Fire Incident',
+          title: title,
           snippet:
               '${incident.intensity.toUpperCase()} - ${incident.areaHectares?.toStringAsFixed(1) ?? "?"} ha',
-          anchor: const Offset(0.5, 0.0), // Fix anchor to prevent screen shift
+          // Remove anchor to prevent screen shift - let Google Maps handle it
         ),
         onTap: () {
-          debugPrint(
-              '🎯 Marker tapped: ${incident.description} (${incident.intensity})');
+          debugPrint('🎯 Marker tapped: $title (${incident.intensity})');
         },
       );
     }).toSet();
@@ -133,6 +137,7 @@ class _MapScreenState extends State<MapScreen> {
         MapError() => _buildErrorView(state),
       },
       floatingActionButton: RiskCheckButton(controller: _controller),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }
 
@@ -157,7 +162,16 @@ class _MapScreenState extends State<MapScreen> {
             myLocationButtonEnabled: true,
             myLocationEnabled: true,
             zoomControlsEnabled: true,
+            zoomGesturesEnabled: true, // Enable pinch-to-zoom
+            scrollGesturesEnabled: true,
+            tiltGesturesEnabled: true,
+            rotateGesturesEnabled: true,
             mapToolbarEnabled: false,
+            // Add padding to prevent FAB from overlapping GPS button
+            padding: const EdgeInsets.only(
+              bottom: 80.0, // Room for FAB
+              right: 16.0,
+            ),
           ),
         ),
         // Source chip positioned at top

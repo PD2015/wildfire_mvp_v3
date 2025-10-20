@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:dartz/dartz.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/location_models.dart';
 import 'utils/geo_utils.dart';
@@ -43,33 +44,16 @@ class LocationResolverImpl implements LocationResolver {
         return await _fallbackToCache(allowDefault);
       }
 
-      // Tier 1: Skip last known position to force fresh GPS (emulator has stale coordinates)
-      // TEMPORARILY DISABLED: Last known device position (instant)
-      // final lastKnownResult = await _tryLastKnownPosition();
-      // if (lastKnownResult.isRight()) {
-      //   final coords = lastKnownResult.getOrElse(() => _scotlandCentroid);
-      //   debugPrint(
-      //       'Location resolved via last known: ${LocationUtils.logRedact(coords.latitude, coords.longitude)}');
-      //   return Right(coords);
-      // }
-
-      // Tier 1: GPS fix temporarily bypassed due to emulator GPS issues
-      // Force use of Aviemore coordinates to test UK fire risk services (EFFIS + SEPA)
-      debugPrint(
-          'GPS temporarily bypassed - using Aviemore coordinates for UK testing');
-      // final remainingTime =
-      //     _totalTimeout.inMilliseconds - stopwatch.elapsedMilliseconds;
-      // if (remainingTime > 0) {
-      //   final gpsTimeout = Duration(
-      //       milliseconds: remainingTime.clamp(0, _gpsTimeout.inMilliseconds));
-      //   final gpsResult = await _tryGpsFix(gpsTimeout);
-      //   if (gpsResult.isRight()) {
-      //     final coords = gpsResult.getOrElse(() => _scotlandCentroid);
-      //     debugPrint(
-      //         'Location resolved via GPS: ${LocationUtils.logRedact(coords.latitude, coords.longitude)}');
-      //     return Right(coords);
-      //   }
-      // }
+      // Tier 1 & 2: Try GPS with timeout
+      final gpsResult = await _tryGps();
+      if (gpsResult.isRight()) {
+        final coords = gpsResult.getOrElse(() => _scotlandCentroid);
+        debugPrint(
+            'Location resolved via GPS: ${GeographicUtils.logRedact(coords.latitude, coords.longitude)}');
+        return Right(coords);
+      } else {
+        debugPrint('GPS unavailable: ${gpsResult.fold((e) => e, (r) => '')}');
+      }
 
       // Tier 3: SharedPreferences cached manual location
       final cacheResult = await _tryCache();
@@ -103,6 +87,46 @@ class LocationResolverImpl implements LocationResolver {
       stopwatch.stop();
       debugPrint(
           'Total location resolution time: ${stopwatch.elapsedMilliseconds}ms');
+    }
+  }
+
+  /// Tier 1-2: Try GPS (last known + fresh fix with 3s timeout)
+  /// Returns coordinates or error if GPS unavailable
+  Future<Either<String, LatLng>> _tryGps() async {
+    try {
+      // Check if location services are enabled
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        return const Left('Location services disabled');
+      }
+
+      // Check permission status
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          return const Left('Location permission denied');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        return const Left('Location permission permanently denied');
+      }
+
+      // Try last known position first (instant, may be stale)
+      final lastKnown = await Geolocator.getLastKnownPosition();
+      if (lastKnown != null) {
+        return Right(LatLng(lastKnown.latitude, lastKnown.longitude));
+      }
+
+      // Get fresh position with timeout
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+        timeLimit: const Duration(seconds: 3),
+      );
+
+      return Right(LatLng(position.latitude, position.longitude));
+    } catch (e) {
+      return Left('GPS error: $e');
     }
   }
 
