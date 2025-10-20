@@ -9,6 +9,7 @@ import 'services/location_resolver.dart';
 import 'services/fire_location_service.dart';
 import 'services/fire_risk_service.dart';
 import 'theme/wildfire_theme.dart';
+import 'widgets/bottom_nav.dart';
 
 /// WildFire application root widget
 ///
@@ -35,24 +36,36 @@ class WildFireApp extends StatelessWidget {
     required this.fireRiskService,
   });
 
-  /// Router configuration with go_router
+  /// Router configuration with go_router and bottom navigation
   late final GoRouter _router = GoRouter(
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => HomeScreen(controller: homeController),
-      ),
-      GoRoute(
-        path: '/map',
-        builder: (context, state) {
-          // Create MapController with required services
-          final mapController = MapController(
-            locationResolver: locationResolver,
-            fireLocationService: fireLocationService,
-            fireRiskService: fireRiskService,
+      ShellRoute(
+        builder: (context, state, child) {
+          return Scaffold(
+            body: child,
+            bottomNavigationBar: AppBottomNav(
+              currentPath: state.uri.path,
+            ),
           );
-          return MapScreen(controller: mapController);
         },
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => HomeScreen(controller: homeController),
+          ),
+          GoRoute(
+            path: '/map',
+            builder: (context, state) {
+              // Create MapController with required services
+              final mapController = MapController(
+                locationResolver: locationResolver,
+                fireLocationService: fireLocationService,
+                fireRiskService: fireRiskService,
+              );
+              return MapScreen(controller: mapController);
+            },
+          ),
+        ],
       ),
     ],
   );

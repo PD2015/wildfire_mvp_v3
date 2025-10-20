@@ -8,7 +8,6 @@ import 'services/fire_risk_service_impl.dart';
 import 'services/location_resolver.dart';
 import 'services/location_resolver_impl.dart';
 import 'services/contracts/service_contracts.dart' as contracts;
-import 'services/effis_service.dart';
 import 'services/effis_service_impl.dart';
 import 'services/mock_service.dart';
 import 'services/fire_location_service.dart';

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import '../controllers/home_controller.dart';
 import '../models/home_state.dart';
@@ -260,24 +259,6 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: const Icon(Icons.location_on),
               label: const Text('Set Location'),
               style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 44.0), // C3: ≥44dp touch target
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(width: 12.0),
-
-        // Map navigation button - always available
-        Expanded(
-          child: Semantics(
-            label: 'Navigate to map screen',
-            button: true,
-            child: ElevatedButton.icon(
-              onPressed: () => context.go('/map'),
-              icon: const Icon(Icons.map_outlined),
-              label: const Text('Map'),
-              style: ElevatedButton.styleFrom(
                 minimumSize: const Size(0, 44.0), // C3: ≥44dp touch target
               ),
             ),
