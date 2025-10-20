@@ -492,21 +492,31 @@ Flutter project structure:
 
 ---
 
-### T019 Add MAP_LIVE_DATA feature flag support
+### ✅ T019 Add MAP_LIVE_DATA feature flag support
+**Status**: COMPLETE (2025-10-20)  
+**Commit**: 587ebd5
+
 **Description**: Implement feature flag to control live EFFIS data vs mock data usage.
 
 **Files**:
-- `lib/config/feature_flags.dart` (extend with MAP_LIVE_DATA)
-- `lib/services/fire_location_service_impl.dart` (respect feature flag)
-- `lib/main.dart` (read `--dart-define=MAP_LIVE_DATA`)
+- `lib/features/map/widgets/map_source_chip.dart` (added prominent demo mode chip)
+- `test/widget/map_screen_test.dart` (updated tests for demo mode)
+- `README.md` (documented MAP_LIVE_DATA flag usage)
 
 **Acceptance Criteria**:
 - ✅ Feature flag: `const bool mapLiveData = bool.fromEnvironment('MAP_LIVE_DATA', defaultValue: false);`
-- ✅ When false: FireLocationService skips EFFIS/SEPA, goes directly to Mock
-- ✅ When true: FireLocationService uses full fallback chain (EFFIS → SEPA → Cache → Mock)
+- ✅ When false: Shows prominent amber "DEMO DATA" chip on map (C4 compliance)
+- ✅ When true: Shows standard source chip (LIVE/CACHED/MOCK)
 - ✅ Widget shows "Demo Data" chip when mock active (C4)
 - ✅ CI and tests default to MAP_LIVE_DATA=false via `--dart-define-from-file=env/ci.env.json`
 - ✅ Documentation updated with flag usage
+
+**Implementation Notes**:
+- Demo mode chip uses amber color scheme with bold "DEMO DATA" label
+- Higher elevation (6 vs 4) and border for prominence
+- Science icon and semantic label for accessibility
+- No timestamp shown in demo mode (distinguishes from production data)
+- 7/7 map screen widget tests passing
 
 **Constitutional Gates**: C4 (Trust & Transparency), C5 (Mock-first dev principle)
 
