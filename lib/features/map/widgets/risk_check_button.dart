@@ -44,9 +44,9 @@ class RiskCheckButton extends StatelessWidget {
     // Check risk
     final result = await controller.checkRiskAt(location);
 
-    // Close loading indicator
+    // Close loading indicator using root navigator
     if (context.mounted) {
-      Navigator.of(context).pop();
+      Navigator.of(context, rootNavigator: true).pop();
     }
 
     // Show result
