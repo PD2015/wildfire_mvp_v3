@@ -5,11 +5,39 @@
 **Current Phase**: Phase 3.6 Testing & Cross-Platform (T031 ✅ T032 ✅ complete, T033 high priority next, T018-T019 pending)
 
 **Input**: Design documents from `/specs/011-a10-google-maps/`
-**Prerequisites**: plan.md ✅, research.md ✅, data-model.md ✅, contracts/ ✅ (fire_location_service.md, map_controller.md)
+**Prerequisites**: plan.md ✅, research.md ✅, data-model.md ✅, contracts/ ✅ (fire_location_service.md, map_controller.md### ✅ T018 Integrate CacheService for fire incident caching
+**Status**: **COMPLETE** (Commit: 6b550c8, 2025-01-20)
 
----
+**Description**: Wire FireLocationService to use CacheService for 6h TTL caching of fire incident data.
 
-## Completion Summary
+**Files**:
+- ✅ `lib/services/fire_incident_cache.dart` (new - interface for List<FireIncident> caching)
+- ✅ `lib/services/cache/fire_incident_cache_impl.dart` (new - SharedPreferences implementation)
+- ✅ `lib/services/fire_location_service_impl.dart` (3-tier fallback: EFFIS → Cache → Mock)
+- ✅ `lib/main.dart` (SharedPreferences + cache dependency injection)
+- ✅ `lib/models/fire_incident.dart` (fromCacheJson factory for deserialization)
+- ✅ `lib/utils/clock.dart` (TestClock for deterministic TTL testing)
+- ✅ `test/integration/cache/fire_incident_cache_test.dart` (6 integration tests)
+
+**Acceptance Criteria**:
+- ✅ Cache key: geohash of bbox center (precision 5 = ~4.9km)  
+  _Note:_ Acceptable for MVP; may over-reuse cache across large map pans. Consider viewport-corners hashing in A11+ if needed.
+- ✅ TTL: 6 hours with lazy expiration cleanup
+- ✅ Cache hit returns List<FireIncident> with freshness=cached
+- ✅ Cache miss proceeds to Mock fallback (200ms timeout)
+- ✅ Cache stores successful EFFIS responses automatically
+- ✅ LRU eviction when cache reaches 100 entries
+- ✅ 6 integration tests verify cache behavior (all passing)
+- ✅ All 407 project tests passing
+
+**Key Implementation Details**:
+- 3-tier fallback chain: EFFIS WFS (8s) → Cache (200ms) → Mock (never fails)
+- Cache serialization uses custom fromCacheJson/toJson (different from EFFIS GeoJSON format)
+- TestClock enables deterministic TTL testing without waiting
+- Cache operations log geohash keys (C2 compliant - no raw coordinates)
+- Graceful degradation: corruption returns cache miss, no crashes
+
+**Constitutional Gates**: C5 (Resilience - cache tier improves availability)ion Summary
 
 ### ✅ Completed Tasks (25/35)
 - **Phase 3.1 Setup**: T001 ✅ T002 ✅ T003 ✅
