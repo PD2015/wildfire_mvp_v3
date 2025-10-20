@@ -117,7 +117,8 @@ void main() {
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
         expect(location.latitude, closeTo(TestData.edinburgh.latitude, 0.001));
-        expect(location.longitude, closeTo(TestData.edinburgh.longitude, 0.001));
+        expect(
+            location.longitude, closeTo(TestData.edinburgh.longitude, 0.001));
       });
 
       test('Tier 4: allowDefault=false returns Left when manual entry needed',
