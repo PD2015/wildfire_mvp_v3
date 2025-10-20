@@ -767,7 +767,7 @@ Task T027 "Privacy and accessibility compliance statements"
 
 **Acceptance Criteria**: ✅ ALL MET
 - ✅ App runs on Android emulator (API 36, sdk gphone64 arm64)
-- ✅ Google Maps API key works (shared unrestricted key from iOS: AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA)
+- ✅ Google Maps API key works (configured via environment variable - see `env/dev.env.json.template`)
 - ✅ Zoom controls visible (Android shows them by default, unlike iOS)
 - ✅ Touch gestures work: pinch-to-zoom, pan, rotate
 - ✅ GPS centering works on Android (location resolution: 874ms)

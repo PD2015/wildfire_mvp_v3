@@ -29,12 +29,16 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         
-        // Google Maps API Key - reusing iOS key (configured with no restrictions for development)
-        // In production, use --dart-define-from-file with platform-specific restricted keys
+        // Google Maps API Key configuration
+        // SECURITY: Never commit API keys to git. Use one of these methods:
+        // 1. gradle.properties: Add GOOGLE_MAPS_API_KEY_ANDROID=your_key_here
+        // 2. Environment variable: export GOOGLE_MAPS_API_KEY_ANDROID=your_key_here
+        // 3. dart-define-from-file: flutter run --dart-define-from-file=env/dev.env.json
+        // The fallback placeholder will cause map tiles to fail (intentional for security)
         manifestPlaceholders["GOOGLE_MAPS_API_KEY_ANDROID"] = 
             project.findProperty("GOOGLE_MAPS_API_KEY_ANDROID")?.toString() 
             ?: System.getenv("GOOGLE_MAPS_API_KEY_ANDROID") 
-            ?: "AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA"
+            ?: "YOUR_API_KEY_HERE"
     }
 
     buildTypes {
