@@ -63,7 +63,7 @@ class MapController extends ChangeNotifier {
         (error) {
           // Use test region based on environment variable
           final testCenter = _getTestRegionCenter();
-          print(
+          debugPrint(
               '🗺️ Using test region: ${FeatureFlags.testRegion} at ${testCenter.latitude},${testCenter.longitude}');
           return testCenter;
         },
@@ -83,24 +83,24 @@ class MapController extends ChangeNotifier {
       );
 
       // Step 3: Fetch fire incidents
-      print(
+      debugPrint(
           '🗺️ MapController: Fetching fires for bounds: SW(${bounds.southwest.latitude},${bounds.southwest.longitude}) NE(${bounds.northeast.latitude},${bounds.northeast.longitude})');
       final firesResult = await _fireLocationService.getActiveFires(bounds);
 
       firesResult.fold(
         (error) {
-          print('🗺️ MapController: Error loading fires: ${error.message}');
+          debugPrint('🗺️ MapController: Error loading fires: ${error.message}');
           _state = MapError(
             message: 'Failed to load fire data: ${error.message}',
             lastKnownLocation: centerLocation,
           );
         },
         (incidents) {
-          print('🗺️ MapController: Loaded ${incidents.length} fire incidents');
+          debugPrint('🗺️ MapController: Loaded ${incidents.length} fire incidents');
           if (incidents.isNotEmpty) {
-            print(
+            debugPrint(
                 '🗺️ MapController: First incident: ${incidents.first.description} at ${incidents.first.location.latitude},${incidents.first.location.longitude}');
-            print(
+            debugPrint(
                 '🗺️ MapController: Freshness: ${incidents.first.freshness}, Source: ${incidents.first.source}');
           }
           _state = MapSuccess(

@@ -39,7 +39,7 @@ class LocationResolverImpl implements LocationResolver {
 
     try {
       // Platform guard: Skip GPS on web/unsupported platforms OR when TEST_REGION is explicitly set
-      final isTestRegionSet = FeatureFlags.testRegion != 'scotland';
+      const isTestRegionSet = FeatureFlags.testRegion != 'scotland';
 
       if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
         debugPrint(

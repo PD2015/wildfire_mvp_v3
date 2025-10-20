@@ -649,5 +649,144 @@ flutter build apk --dart-define-from-file=env/prod.env.json
 - Restrict Google Maps API keys by package name (Android) and bundle ID (iOS)
 - Set up billing alerts at 50% and 80% of free tier quotas
 
+## Code Quality Best Practices (flutter analyze)
+
+### Logging in Production Code
+
+**Problem**: `avoid_print` analyzer warning  
+**Solution**: Use `debugPrint()` instead of `print()` for production-safe logging
+
+```dart
+// ❌ WRONG: print() in production code triggers analyzer warning
+print('🗺️ Using test region: ${FeatureFlags.testRegion}');
+
+// ✅ CORRECT: debugPrint() is production-safe (automatically stripped in release builds)
+debugPrint('🗺️ Using test region: ${FeatureFlags.testRegion}');
+
+// Import required:
+import 'package:flutter/foundation.dart';  // For debugPrint()
+```
+
+**When to use each**:
+- `debugPrint()` - Production code (controllers, services, widgets) - preferred for most logging
+- `developer.log()` - Structured logging with tags/levels: `developer.log('message', name: 'ServiceName')`
+- `print()` - Tests only (performance tests, integration test output)
+
+### Const Constructors and Declarations
+
+**Problem**: `prefer_const_constructors`, `prefer_const_declarations` warnings  
+**Solution**: Use `const` for compile-time constants to improve performance
+
+```dart
+// ❌ WRONG: Non-const when value is constant
+final isTestRegionSet = FeatureFlags.testRegion != 'scotland';
+final location = LatLng(55.9533, -3.1883);
+
+// ✅ CORRECT: Const declarations for compile-time constants
+const isTestRegionSet = FeatureFlags.testRegion != 'scotland';
+const location = LatLng(55.9533, -3.1883);
+
+// In tests:
+// ❌ WRONG:
+final bounds = LatLngBounds(southwest: LatLng(54.0, -8.0), northeast: LatLng(61.0, 0.0));
+
+// ✅ CORRECT:
+const bounds = LatLngBounds(southwest: LatLng(54.0, -8.0), northeast: LatLng(61.0, 0.0));
+```
+
+**Rules**:
+- Use `const` for literals, constructors of immutable classes with constant values
+- Use `final` for values assigned at runtime (API responses, DateTime.now(), etc.)
+- Always use `const` in test data factories when possible
+
+### Mock API Signatures
+
+**Problem**: `invalid_override` - Mock services must match production API exactly  
+**Solution**: Always check actual service signatures when creating mocks
+
+```dart
+// ❌ WRONG: Mock uses wrong return type and parameter names
+class MockFireRiskService implements FireRiskService {
+  Future<Either<dynamic, FireRisk>> getCurrent({required double lat, required double lon}) async {
+    return Right(FireRisk(
+      level: RiskLevel.low,
+      fwi: 5.0,
+      source: DataSource.mock,
+      location: LatLng(lat, lon),      // ❌ Wrong parameter name
+      timestamp: DateTime.now(),        // ❌ Wrong parameter name
+      freshness: Freshness.live,
+    ));
+  }
+}
+
+// ✅ CORRECT: Match production signature exactly
+class MockFireRiskService implements FireRiskService {
+  @override
+  Future<Either<ApiError, FireRisk>> getCurrent({  // ✅ Correct return type
+    required double lat,
+    required double lon,
+    Duration? deadline,
+  }) async {
+    return Right(FireRisk(
+      level: RiskLevel.low,
+      fwi: 5.0,
+      source: DataSource.mock,
+      observedAt: DateTime.now().toUtc(),  // ✅ Correct parameter name
+      freshness: Freshness.live,
+    ));
+  }
+}
+
+// Import required:
+import 'package:wildfire_mvp_v3/models/api_error.dart';  // For ApiError type
+```
+
+**Checklist for mocks**:
+1. Check production service interface signature
+2. Match return type exactly (`Either<ApiError, T>` not `Either<dynamic, T>`)
+3. Match all parameter names (check constructors with required params)
+4. Import all required types (ApiError, models, etc.)
+5. Use `@override` annotation to catch signature mismatches early
+
+### Import Organization
+
+**Problem**: `unused_import` warnings  
+**Solution**: Remove unused imports, organize logically
+
+```dart
+// ✅ CORRECT: Organized imports
+import 'package:flutter_test/flutter_test.dart';  // Framework
+import 'package:dartz/dartz.dart';                // Third-party
+
+import 'package:wildfire_mvp_v3/models/api_error.dart';      // Models
+import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';  // Services
+import 'package:wildfire_mvp_v3/config/feature_flags.dart';  // Config
+```
+
+**Order**:
+1. Dart/Flutter framework imports
+2. Third-party package imports
+3. Blank line
+4. Project imports (alphabetical by path)
+
+### Running Analyzer
+
+```bash
+# Check all issues
+flutter analyze
+
+# Check specific file
+flutter analyze lib/services/fire_location_service_impl.dart
+
+# Auto-fix some issues (format only)
+dart format lib/ test/
+```
+
+**Pre-commit checklist**:
+1. Run `flutter analyze` - Should show 0 errors, minimize warnings
+2. Run `dart format .` - Auto-format code
+3. Run `flutter test` - All tests pass
+4. Commit with conventional commit message
+
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

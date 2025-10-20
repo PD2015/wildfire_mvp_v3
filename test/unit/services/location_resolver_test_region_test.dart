@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver_impl.dart';
-import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 
 /// Tests for TEST_REGION feature flag behavior in LocationResolver

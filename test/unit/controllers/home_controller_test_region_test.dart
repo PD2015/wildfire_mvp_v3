@@ -4,6 +4,7 @@ import 'package:dartz/dartz.dart';
 import 'package:wildfire_mvp_v3/controllers/home_controller.dart';
 import 'package:wildfire_mvp_v3/models/home_state.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
+import 'package:wildfire_mvp_v3/models/api_error.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
@@ -53,8 +54,7 @@ void main() {
             level: RiskLevel.moderate,
             fwi: 15.0,
             source: DataSource.effis,
-            location: const LatLng(39.6, -9.1), // Portugal test coordinates
-            timestamp: DateTime.now(),
+            observedAt: DateTime.now().toUtc(),
             freshness: Freshness.live,
           )),
         );
@@ -178,15 +178,15 @@ class MockLocationResolver implements LocationResolver {
 
 /// Mock FireRiskService for TEST_REGION testing
 class MockFireRiskService implements FireRiskService {
-  Either<dynamic, FireRisk>? _getCurrentResult;
+  Either<ApiError, FireRisk>? _getCurrentResult;
   LatLng? lastQueriedLocation;
 
-  void mockGetCurrent(Either<dynamic, FireRisk> result) {
+  void mockGetCurrent(Either<ApiError, FireRisk> result) {
     _getCurrentResult = result;
   }
 
   @override
-  Future<Either<dynamic, FireRisk>> getCurrent({
+  Future<Either<ApiError, FireRisk>> getCurrent({
     required double lat,
     required double lon,
     Duration? deadline,
@@ -197,8 +197,7 @@ class MockFireRiskService implements FireRiskService {
           level: RiskLevel.low,
           fwi: 5.0,
           source: DataSource.mock,
-          location: LatLng(lat, lon),
-          timestamp: DateTime.now(),
+          observedAt: DateTime.now().toUtc(),
           freshness: Freshness.live,
         ));
   }
