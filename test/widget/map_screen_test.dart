@@ -190,7 +190,8 @@ void main() {
               'FAB must have descriptive semantic label containing "risk" (C3)');
     });
 
-    testWidgets('source chip displays "DEMO DATA", "LIVE", or "CACHED" (C4, T019)',
+    testWidgets(
+        'source chip displays "DEMO DATA", "LIVE", or "CACHED" (C4, T019)',
         (tester) async {
       // Test MOCK freshness - shows "DEMO DATA" when MAP_LIVE_DATA=false (default)
       final mockController = MockMapController(
@@ -212,7 +213,8 @@ void main() {
 
       // Verify "DEMO DATA" text appears (T019 - prominent demo mode indicator)
       expect(find.text('DEMO DATA'), findsOneWidget,
-          reason: 'Source chip must display "DEMO DATA" for mock data when MAP_LIVE_DATA=false (C4, T019)');
+          reason:
+              'Source chip must display "DEMO DATA" for mock data when MAP_LIVE_DATA=false (C4, T019)');
 
       // Test LIVE freshness
       mockController.setState(
@@ -282,7 +284,8 @@ void main() {
       // Semantic labels would need to be verified through integration tests or manual testing
     });
 
-    testWidgets('"Last updated" timestamp visible for live/cached data (C4)', (tester) async {
+    testWidgets('"Last updated" timestamp visible for live/cached data (C4)',
+        (tester) async {
       // Test with LIVE data (not demo mode)
       final mockController = MockMapController(
         MapSuccess(
@@ -306,8 +309,9 @@ void main() {
           find.textContaining(
               RegExp(r'(Just now|ago|min|hour|day)', caseSensitive: false)),
           findsOneWidget,
-          reason: 'Timestamp should be visible in source chip for live data (C4)');
-      
+          reason:
+              'Timestamp should be visible in source chip for live data (C4)');
+
       // Test with CACHED data
       mockController.setState(
         MapSuccess(
@@ -325,8 +329,9 @@ void main() {
           find.textContaining(
               RegExp(r'(Just now|ago|min|hour|day)', caseSensitive: false)),
           findsOneWidget,
-          reason: 'Timestamp should be visible in source chip for cached data (C4)');
-      
+          reason:
+              'Timestamp should be visible in source chip for cached data (C4)');
+
       // Note: DEMO DATA chip (mock + MAP_LIVE_DATA=false) intentionally does not show timestamp
       // to distinguish it visually from production data sources (T019)
     });

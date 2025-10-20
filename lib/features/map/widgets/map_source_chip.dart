@@ -73,8 +73,9 @@ class MapSourceChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Show prominent "Demo Data" chip when using mock data in development mode
-    final bool isDemoMode = !FeatureFlags.mapLiveData && source == Freshness.mock;
-    
+    final bool isDemoMode =
+        !FeatureFlags.mapLiveData && source == Freshness.mock;
+
     if (isDemoMode) {
       return Semantics(
         label: 'Demo Data - For testing purposes only',
