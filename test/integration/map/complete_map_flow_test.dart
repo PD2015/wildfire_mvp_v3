@@ -51,7 +51,8 @@ class MockLocationResolver implements LocationResolver {
   }
 
   @override
-  Future<Either<LocationError, LatLng>> getLatLon({bool allowDefault = true}) async {
+  Future<Either<LocationError, LatLng>> getLatLon(
+      {bool allowDefault = true}) async {
     callCount++;
 
     if (_errorToReturn != null) {
@@ -99,7 +100,8 @@ class MockFireLocationService implements FireLocationService {
   }
 
   @override
-  Future<Either<ApiError, List<FireIncident>>> getActiveFires(LatLngBounds bounds) async {
+  Future<Either<ApiError, List<FireIncident>>> getActiveFires(
+      LatLngBounds bounds) async {
     callCount++;
     requestedBounds.add(bounds);
 
