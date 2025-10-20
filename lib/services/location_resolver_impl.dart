@@ -40,13 +40,13 @@ class LocationResolverImpl implements LocationResolver {
     try {
       // Platform guard: Skip GPS on web/unsupported platforms OR when TEST_REGION is explicitly set
       final isTestRegionSet = FeatureFlags.testRegion != 'scotland';
-      
+
       if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
         debugPrint(
             'Platform guard: Skipping GPS on ${kIsWeb ? 'web' : Platform.operatingSystem}');
         return await _fallbackToCache(allowDefault);
       }
-      
+
       if (isTestRegionSet) {
         debugPrint(
             'TEST_REGION=${FeatureFlags.testRegion}: Skipping GPS to use test region coordinates');

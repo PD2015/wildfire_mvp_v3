@@ -122,9 +122,9 @@ class _MapScreenState extends State<MapScreen> {
     final state = _controller.state;
 
     // Platform detection: google_maps_flutter v2.5.0 doesn't support macOS
-    final bool isMapSupported = kIsWeb || 
-        (!kIsWeb && (Platform.isAndroid || Platform.isIOS));
-    
+    final bool isMapSupported =
+        kIsWeb || (!kIsWeb && (Platform.isAndroid || Platform.isIOS));
+
     if (!isMapSupported) {
       return _buildUnsupportedPlatformView();
     }
@@ -153,7 +153,7 @@ class _MapScreenState extends State<MapScreen> {
 
   Widget _buildUnsupportedPlatformView() {
     final state = _controller.state;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Fire Map'),
@@ -206,7 +206,8 @@ class _MapScreenState extends State<MapScreen> {
                           const Divider(),
                           const SizedBox(height: 8),
                           ...state.incidents.take(5).map((incident) => Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4),
                                 child: Row(
                                   children: [
                                     Icon(
@@ -222,7 +223,9 @@ class _MapScreenState extends State<MapScreen> {
                                     Expanded(
                                       child: Text(
                                         incident.description ?? 'Fire Incident',
-                                        style: Theme.of(context).textTheme.bodyMedium,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium,
                                       ),
                                     ),
                                   ],

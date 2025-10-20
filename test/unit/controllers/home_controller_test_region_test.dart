@@ -24,7 +24,7 @@ void main() {
     setUp(() {
       mockLocationResolver = MockLocationResolver();
       mockFireRiskService = MockFireRiskService();
-      
+
       controller = HomeController(
         locationResolver: mockLocationResolver,
         fireRiskService: mockFireRiskService,
@@ -32,7 +32,8 @@ void main() {
     });
 
     group('TEST_REGION Fallback Logic', () {
-      test('should use test region coordinates when LocationResolver returns error and TEST_REGION is set',
+      test(
+          'should use test region coordinates when LocationResolver returns error and TEST_REGION is set',
           () async {
         // This test documents the expected behavior when TEST_REGION != 'scotland'
         // In actual usage with --dart-define=TEST_REGION=portugal:
@@ -67,7 +68,7 @@ void main() {
         // Assert: With default TEST_REGION=scotland in tests, this becomes an error
         // In production with TEST_REGION=portugal, it would succeed with Portugal coords
         final state = controller.state;
-        
+
         // Document expected behavior in different scenarios:
         if (FeatureFlags.testRegion == 'scotland') {
           // Test environment: LocationError should cause error state
@@ -76,7 +77,8 @@ void main() {
         } else {
           // Production with TEST_REGION set: Should use test region coordinates
           expect(state, isA<HomeStateSuccess>(),
-              reason: 'Non-scotland TEST_REGION should use fallback coordinates');
+              reason:
+                  'Non-scotland TEST_REGION should use fallback coordinates');
         }
       });
 
@@ -97,7 +99,8 @@ void main() {
         // Verify all regions are documented
         expect(
           testRegionMappings.keys,
-          containsAll(['portugal', 'spain', 'greece', 'california', 'australia']),
+          containsAll(
+              ['portugal', 'spain', 'greece', 'california', 'australia']),
           reason: 'All test regions from TEST_REGIONS.md should be mapped',
         );
 
@@ -122,7 +125,7 @@ void main() {
         // 3. HomeController uses LatLng(39.6, -9.1)
         // 4. FireRiskService queries EFFIS for Portugal coordinates
         // 5. RiskBanner displays Portugal fire risk data
-        
+
         // Verification:
         // - Check logs: "Using test region: portugal at 39.60,-9.10"
         // - Verify FireRiskService receives correct coordinates
@@ -158,13 +161,14 @@ void main() {
 /// Mock LocationResolver for TEST_REGION testing
 class MockLocationResolver implements LocationResolver {
   Either<LocationError, LatLng>? _getLatLonResult;
-  
+
   void mockGetLatLon(Either<LocationError, LatLng> result) {
     _getLatLonResult = result;
   }
 
   @override
-  Future<Either<LocationError, LatLng>> getLatLon({bool allowDefault = true}) async {
+  Future<Either<LocationError, LatLng>> getLatLon(
+      {bool allowDefault = true}) async {
     return _getLatLonResult ?? const Right(LatLng(55.9533, -3.1883));
   }
 
@@ -188,13 +192,14 @@ class MockFireRiskService implements FireRiskService {
     Duration? deadline,
   }) async {
     lastQueriedLocation = LatLng(lat, lon);
-    return _getCurrentResult ?? Right(FireRisk(
-      level: RiskLevel.low,
-      fwi: 5.0,
-      source: DataSource.mock,
-      location: LatLng(lat, lon),
-      timestamp: DateTime.now(),
-      freshness: Freshness.live,
-    ));
+    return _getCurrentResult ??
+        Right(FireRisk(
+          level: RiskLevel.low,
+          fwi: 5.0,
+          source: DataSource.mock,
+          location: LatLng(lat, lon),
+          timestamp: DateTime.now(),
+          freshness: Freshness.live,
+        ));
   }
 }

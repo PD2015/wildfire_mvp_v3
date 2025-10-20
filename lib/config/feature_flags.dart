@@ -17,7 +17,7 @@ class FeatureFlags {
 
   /// Test region for EFFIS data (for regions with typical fire activity)
   /// Options: 'scotland' (default), 'portugal', 'spain', 'greece', 'california'
-  /// 
+  ///
   /// Usage:
   /// ```bash
   /// flutter run --dart-define=TEST_REGION=portugal --dart-define=MAP_LIVE_DATA=true

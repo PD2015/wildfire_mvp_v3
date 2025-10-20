@@ -3,7 +3,7 @@ import 'package:wildfire_mvp_v3/models/location_models.dart';
 
 /// TEST_REGION Consistency Documentation Tests
 ///
-/// **Purpose**: Document expected behavior for TEST_REGION feature to ensure  
+/// **Purpose**: Document expected behavior for TEST_REGION feature to ensure
 /// UI consistency between RiskBanner (HomeController) and Map (MapController).
 ///
 /// **Critical Requirements**:
@@ -13,7 +13,7 @@ import 'package:wildfire_mvp_v3/models/location_models.dart';
 /// - Both must query same EFFIS bounding box
 ///
 /// **Why Documentation Tests?**:
-/// TEST_REGION is a compile-time constant (--dart-define) that cannot be 
+/// TEST_REGION is a compile-time constant (--dart-define) that cannot be
 /// mocked at runtime. Traditional unit/widget tests cannot modify these values.
 /// Instead, these tests document expected behavior and coordinate mappings.
 ///
@@ -26,7 +26,7 @@ import 'package:wildfire_mvp_v3/models/location_models.dart';
 /// # Test Portugal coordinates
 /// flutter run -d android --dart-define=TEST_REGION=portugal --dart-define=MAP_LIVE_DATA=true
 ///
-/// # Test California coordinates  
+/// # Test California coordinates
 /// flutter run -d android --dart-define=TEST_REGION=california --dart-define=MAP_LIVE_DATA=true
 /// ```
 void main() {

@@ -32,7 +32,7 @@ class MapController extends ChangeNotifier {
   /// Get test region coordinates based on TEST_REGION environment variable
   static LatLng _getTestRegionCenter() {
     final region = FeatureFlags.testRegion.toLowerCase();
-    
+
     switch (region) {
       case 'portugal':
         return const LatLng(39.6, -9.1); // Lisbon area
@@ -63,7 +63,8 @@ class MapController extends ChangeNotifier {
         (error) {
           // Use test region based on environment variable
           final testCenter = _getTestRegionCenter();
-          print('🗺️ Using test region: ${FeatureFlags.testRegion} at ${testCenter.latitude},${testCenter.longitude}');
+          print(
+              '🗺️ Using test region: ${FeatureFlags.testRegion} at ${testCenter.latitude},${testCenter.longitude}');
           return testCenter;
         },
         (location) => location,

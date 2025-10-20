@@ -24,16 +24,16 @@ void main() {
       // This test documents expected behavior when TEST_REGION is set
       // In practice, this would be tested via integration tests with
       // --dart-define=TEST_REGION=portugal
-      
+
       // When TEST_REGION is set to anything other than 'scotland',
       // LocationResolver should:
       // 1. Skip GPS acquisition
       // 2. Return LocationError.gpsUnavailable
       // 3. Allow controllers to use _getTestRegionCenter()
-      
+
       // This enables testing with fire-prone regions by ensuring
       // both HomeController and MapController query the same coordinates
-      
+
       expect(
         FeatureFlags.testRegion,
         'scotland', // Default in test environment
@@ -46,10 +46,10 @@ void main() {
       // 1. Try GPS (with timeout)
       // 2. Fall back to cached location
       // 3. Fall back to Scotland centroid
-      
+
       // This test verifies the default behavior is unchanged
       final result = await locationResolver.getLatLon();
-      
+
       expect(
         result.isRight(),
         isTrue,
@@ -64,14 +64,14 @@ void main() {
       test('TEST_REGION=portugal should trigger test region fallback', () {
         // Integration test command:
         // flutter test --dart-define=TEST_REGION=portugal
-        
+
         // Expected behavior:
         // 1. LocationResolver.getLatLon() returns Left(LocationError.gpsUnavailable)
         // 2. HomeController catches error, checks FeatureFlags.testRegion
         // 3. HomeController uses _getTestRegionCenter() → LatLng(39.6, -9.1)
         // 4. MapController does the same
         // 5. Both query EFFIS for Portugal coordinates
-        
+
         // Verification:
         // - Check logs for "TEST_REGION=portugal: Skipping GPS"
         // - Check logs for "Using test region: portugal at 39.60,-9.10"
@@ -81,14 +81,14 @@ void main() {
       test('TEST_REGION=california should use California coordinates', () {
         // Integration test command:
         // flutter test --dart-define=TEST_REGION=california
-        
+
         // Expected: LatLng(36.7, -119.4) for both controllers
       });
 
       test('TEST_REGION=australia should use Sydney coordinates', () {
         // Integration test command:
         // flutter test --dart-define=TEST_REGION=australia
-        
+
         // Expected: LatLng(-33.8, 151.2) for both controllers
       });
     });
@@ -97,7 +97,7 @@ void main() {
       test('test region coordinates should be logged with redaction', () {
         // When TEST_REGION is used, coordinate logging should still
         // use GeographicUtils.logRedact() for C2 compliance
-        
+
         // Expected log format: "Using test region: portugal at 39.60,-9.10"
         // NOT: "Using test region: portugal at 39.6012345,-9.1023456"
       });
