@@ -89,14 +89,16 @@ class MapController extends ChangeNotifier {
 
       firesResult.fold(
         (error) {
-          debugPrint('🗺️ MapController: Error loading fires: ${error.message}');
+          debugPrint(
+              '🗺️ MapController: Error loading fires: ${error.message}');
           _state = MapError(
             message: 'Failed to load fire data: ${error.message}',
             lastKnownLocation: centerLocation,
           );
         },
         (incidents) {
-          debugPrint('🗺️ MapController: Loaded ${incidents.length} fire incidents');
+          debugPrint(
+              '🗺️ MapController: Loaded ${incidents.length} fire incidents');
           if (incidents.isNotEmpty) {
             debugPrint(
                 '🗺️ MapController: First incident: ${incidents.first.description} at ${incidents.first.location.latitude},${incidents.first.location.longitude}');

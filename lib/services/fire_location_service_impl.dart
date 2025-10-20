@@ -67,7 +67,8 @@ class FireLocationServiceImpl implements FireLocationService {
     }
 
     // Tier 1: EFFIS WFS (8s timeout)
-    debugPrint('🔥 Tier 1: Attempting EFFIS WFS for bbox ${bounds.toBboxString()}');
+    debugPrint(
+        '🔥 Tier 1: Attempting EFFIS WFS for bbox ${bounds.toBboxString()}');
     developer.log(
       'Tier 1: Attempting EFFIS WFS for bbox ${bounds.toBboxString()}',
       name: 'FireLocationService',

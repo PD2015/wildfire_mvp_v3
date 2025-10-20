@@ -17,10 +17,10 @@ void main() {
     description: 'Test fire',
     areaHectares: 15.5,
   );
-  
+
   final json = incident.toJson();
   print('Serialized: $json');
-  
+
   final deserialized = FireIncident.fromJson(json);
   print('Deserialized: ${deserialized.id}');
 }
