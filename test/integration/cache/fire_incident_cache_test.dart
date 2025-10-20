@@ -141,14 +141,16 @@ void main() {
         final incidents = [
           FireIncident(
             id: 'fire_$i',
-            location: LatLng(50.0 + i * 0.1, -5.0 + i * 0.1), // Larger spacing for unique geohashes
+            location: LatLng(50.0 + i * 0.1,
+                -5.0 + i * 0.1), // Larger spacing for unique geohashes
             source: DataSource.effis,
             freshness: Freshness.live,
             timestamp: DateTime(2025, 1, 20, 12, 0, 0),
             intensity: 'low',
           ),
         ];
-        await cache.set(lat: 50.0 + i * 0.1, lon: -5.0 + i * 0.1, data: incidents);
+        await cache.set(
+            lat: 50.0 + i * 0.1, lon: -5.0 + i * 0.1, data: incidents);
       }
 
       // Access first entry to make it recently used

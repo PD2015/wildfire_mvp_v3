@@ -119,7 +119,8 @@ Future<ServiceContainer> _initializeServices() async {
 
   // Initialize cache service for fire incidents (T018)
   final prefs = await SharedPreferences.getInstance();
-  final FireIncidentCache fireIncidentCache = FireIncidentCacheImpl(prefs: prefs);
+  final FireIncidentCache fireIncidentCache =
+      FireIncidentCacheImpl(prefs: prefs);
 
   // Initialize fire location service (A10 - EFFIS WFS + Cache + Mock fallback)
   final mockFireService = MockFireService();

@@ -85,17 +85,18 @@ class FireIncidentCacheImpl implements FireIncidentCache {
       }
 
       await _updateAccessTime(geohashKey); // LRU tracking
-      
+
       // Extract incidents list from wrapper
       final incidents = (entry.data['incidents'] as List<dynamic>)
-          .map((item) => FireIncident.fromCacheJson(item as Map<String, dynamic>))
+          .map((item) =>
+              FireIncident.fromCacheJson(item as Map<String, dynamic>))
           .toList();
-      
+
       // Mark all incidents with cached freshness
       final cachedIncidents = incidents
           .map((incident) => incident.copyWith(freshness: Freshness.cached))
           .toList();
-      
+
       return some(cachedIncidents);
     } catch (e) {
       // Corruption handling: log error without PII, treat as cache miss (C5)
@@ -142,7 +143,7 @@ class FireIncidentCacheImpl implements FireIncidentCache {
     try {
       // Wrap list in map for CacheEntry serialization
       final wrappedData = {'incidents': data};
-      
+
       // Create cache entry with current UTC timestamp
       final entry = CacheEntry<Map<String, dynamic>>(
         data: wrappedData,
@@ -152,10 +153,10 @@ class FireIncidentCacheImpl implements FireIncidentCache {
 
       // Serialize and store entry
       final jsonStr = jsonEncode(entry.toJson((wrapper) => {
-        'incidents': (wrapper['incidents'] as List<FireIncident>)
-            .map((i) => i.toJson())
-            .toList()
-      }));
+            'incidents': (wrapper['incidents'] as List<FireIncident>)
+                .map((i) => i.toJson())
+                .toList()
+          }));
       final success =
           await _prefs.setString('$_entryKeyPrefix$geohashKey', jsonStr);
       if (!success) {
