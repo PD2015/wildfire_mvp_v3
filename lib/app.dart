@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'controllers/home_controller.dart';
@@ -88,71 +87,8 @@ class WildFireApp extends StatelessWidget {
 
       // Error handling for navigation
       builder: (context, child) {
-        // Error boundary for unhandled exceptions
-        ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
-          return _buildErrorWidget(context, errorDetails);
-        };
-
         return child ?? const SizedBox.shrink();
       },
-    );
-  }
-
-  /// Builds error widget for unhandled exceptions
-  Widget _buildErrorWidget(
-      BuildContext context, FlutterErrorDetails errorDetails) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Error'),
-        backgroundColor: Theme.of(context).colorScheme.error,
-        foregroundColor: Theme.of(context).colorScheme.onError,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64.0,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 16.0),
-            Text(
-              'Something went wrong',
-              style: Theme.of(context).textTheme.headlineMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8.0),
-            Text(
-              'The app encountered an unexpected error. Please restart the app.',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24.0),
-            if (kDebugMode) ...[
-              Text(
-                'Debug info:',
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
-              const SizedBox(height: 8.0),
-              Container(
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Text(
-                  errorDetails.toString(),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontFamily: 'monospace',
-                      ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
     );
   }
 }
