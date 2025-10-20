@@ -15,6 +15,19 @@ class FeatureFlags {
     defaultValue: false,
   );
 
+  /// Test region for EFFIS data (for regions with typical fire activity)
+  /// Options: 'scotland' (default), 'portugal', 'spain', 'greece', 'california'
+  /// 
+  /// Usage:
+  /// ```bash
+  /// flutter run --dart-define=TEST_REGION=portugal --dart-define=MAP_LIVE_DATA=true
+  /// flutter run --dart-define=TEST_REGION=spain --dart-define=MAP_LIVE_DATA=true
+  /// ```
+  static const String testRegion = String.fromEnvironment(
+    'TEST_REGION',
+    defaultValue: 'scotland',
+  );
+
   /// EFFIS base URL for WFS queries
   /// Default: European Commission JRC endpoint
   static const String effisBaseUrl = String.fromEnvironment(

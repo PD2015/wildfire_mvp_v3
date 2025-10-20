@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
@@ -119,6 +121,14 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     final state = _controller.state;
 
+    // Platform detection: google_maps_flutter v2.5.0 doesn't support macOS
+    final bool isMapSupported = kIsWeb || 
+        (!kIsWeb && (Platform.isAndroid || Platform.isIOS));
+    
+    if (!isMapSupported) {
+      return _buildUnsupportedPlatformView();
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Fire Map'),
@@ -138,6 +148,110 @@ class _MapScreenState extends State<MapScreen> {
       },
       floatingActionButton: RiskCheckButton(controller: _controller),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+    );
+  }
+
+  Widget _buildUnsupportedPlatformView() {
+    final state = _controller.state;
+    
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Fire Map'),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        elevation: 1,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.map_outlined,
+                size: 64.0,
+                color: Colors.grey,
+              ),
+              const SizedBox(height: 16.0),
+              Text(
+                'Map Not Available',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8.0),
+              Text(
+                'Google Maps is not supported on macOS.\nPlease use Android, iOS, or Web to view the fire map.',
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24.0),
+              // Still show fire data summary
+              if (state is MapSuccess) ...[
+                Card(
+                  margin: const EdgeInsets.all(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Text(
+                          '${state.incidents.length} Active Fires',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Data source: ${state.freshness.name.toUpperCase()}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        if (state.incidents.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          const Divider(),
+                          const SizedBox(height: 8),
+                          ...state.incidents.take(5).map((incident) => Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.local_fire_department,
+                                      color: incident.intensity == 'high'
+                                          ? Colors.red
+                                          : incident.intensity == 'moderate'
+                                              ? Colors.orange
+                                              : Colors.cyan,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        incident.description ?? 'Fire Incident',
+                                        style: Theme.of(context).textTheme.bodyMedium,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )),
+                          if (state.incidents.length > 5)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                '+ ${state.incidents.length - 5} more',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
+              Text(
+                'Tip: Run on Android/iOS to see interactive map',
+                style: Theme.of(context).textTheme.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -189,12 +303,40 @@ class _MapScreenState extends State<MapScreen> {
           Center(
             child: Card(
               margin: const EdgeInsets.all(24),
+              elevation: 2,
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  'No active fires detected in this region',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                  textAlign: TextAlign.center,
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline,
+                      size: 48,
+                      color: Colors.green[700],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No Active Fires Detected',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'There are currently no wildfire incidents in this region',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Data source: ${state.freshness.name.toUpperCase()}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.grey[600],
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ),
             ),

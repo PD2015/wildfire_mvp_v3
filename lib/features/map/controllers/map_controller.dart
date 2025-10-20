@@ -7,6 +7,7 @@ import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
+import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 
 /// MapController manages state for MapScreen
 ///
@@ -28,6 +29,27 @@ class MapController extends ChangeNotifier {
         _fireLocationService = fireLocationService,
         _fireRiskService = fireRiskService;
 
+  /// Get test region coordinates based on TEST_REGION environment variable
+  static LatLng _getTestRegionCenter() {
+    final region = FeatureFlags.testRegion.toLowerCase();
+    
+    switch (region) {
+      case 'portugal':
+        return const LatLng(39.6, -9.1); // Lisbon area
+      case 'spain':
+        return const LatLng(40.4, -3.7); // Madrid area
+      case 'greece':
+        return const LatLng(37.9, 23.7); // Athens area
+      case 'california':
+        return const LatLng(36.7, -119.4); // Central California
+      case 'australia':
+        return const LatLng(-33.8, 151.2); // Sydney area
+      case 'scotland':
+      default:
+        return const LatLng(57.2, -3.8); // Aviemore, Scotland
+    }
+  }
+
   /// Initialize controller and load initial map data
   Future<void> initialize() async {
     _state = const MapLoading();
@@ -39,8 +61,10 @@ class MapController extends ChangeNotifier {
 
       final LatLng centerLocation = locationResult.fold(
         (error) {
-          // Fallback to Aviemore (test location for UK fire risk testing)
-          return const LatLng(57.2, -3.8); // Aviemore, Scotland
+          // Use test region based on environment variable
+          final testCenter = _getTestRegionCenter();
+          print('🗺️ Using test region: ${FeatureFlags.testRegion} at ${testCenter.latitude},${testCenter.longitude}');
+          return testCenter;
         },
         (location) => location,
       );

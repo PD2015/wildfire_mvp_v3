@@ -40,6 +40,9 @@ class FireLocationServiceImpl implements FireLocationService {
     LatLngBounds bounds,
   ) async {
     final center = bounds.center;
+    print(
+      '🔥 FireLocationService: Starting fallback chain for bbox center ${GeographicUtils.logRedact(center.latitude, center.longitude)}',
+    );
     developer.log(
       'FireLocationService: Starting fallback chain for bbox center ${GeographicUtils.logRedact(center.latitude, center.longitude)}',
       name: 'FireLocationService',
@@ -54,6 +57,7 @@ class FireLocationServiceImpl implements FireLocationService {
 
     // Feature flag check: Skip to mock if MAP_LIVE_DATA=false
     if (!FeatureFlags.mapLiveData) {
+      print('🔥 MAP_LIVE_DATA=false - using mock data');
       developer.log(
         'MAP_LIVE_DATA=false - using mock data',
         name: 'FireLocationService',
@@ -62,6 +66,7 @@ class FireLocationServiceImpl implements FireLocationService {
     }
 
     // Tier 1: EFFIS WFS (8s timeout)
+    print('🔥 Tier 1: Attempting EFFIS WFS for bbox ${bounds.toBboxString()}');
     developer.log(
       'Tier 1: Attempting EFFIS WFS for bbox ${bounds.toBboxString()}',
       name: 'FireLocationService',
@@ -75,6 +80,7 @@ class FireLocationServiceImpl implements FireLocationService {
     final Either<ApiError, List<FireIncident>>? effisSuccess =
         effisResult.fold<Either<ApiError, List<FireIncident>>?>(
       (error) {
+        print('🔥 Tier 1 (EFFIS WFS) failed: ${error.message}');
         developer.log(
           'Tier 1 (EFFIS WFS) failed: ${error.message}',
           name: 'FireLocationService',
@@ -87,6 +93,7 @@ class FireLocationServiceImpl implements FireLocationService {
         final incidents =
             effisFires.map((fire) => fire.toFireIncident()).toList();
 
+        print('🔥 Tier 1 (EFFIS WFS) success: ${incidents.length} fires');
         developer.log(
           'Tier 1 (EFFIS WFS) success: ${incidents.length} fires',
           name: 'FireLocationService',
@@ -108,6 +115,7 @@ class FireLocationServiceImpl implements FireLocationService {
               lon: center.longitude,
               data: incidents,
             );
+            print('🔥 Cached EFFIS result at geohash $geohash');
             developer.log(
               'Cached EFFIS result at geohash $geohash',
               name: 'FireLocationService',
@@ -120,6 +128,7 @@ class FireLocationServiceImpl implements FireLocationService {
 
     // Tier 2: Cache (200ms timeout)
     if (_cache != null) {
+      print('🔥 Tier 2: Attempting cache lookup for geohash $geohash');
       developer.log(
         'Tier 2: Attempting cache lookup for geohash $geohash',
         name: 'FireLocationService',
@@ -132,6 +141,7 @@ class FireLocationServiceImpl implements FireLocationService {
 
         if (cacheResult.isSome()) {
           final incidents = cacheResult.getOrElse(() => []);
+          print('🔥 Tier 2 (Cache) hit: ${incidents.length} cached fires');
           developer.log(
             'Tier 2 (Cache) hit: ${incidents.length} cached fires',
             name: 'FireLocationService',
@@ -139,12 +149,14 @@ class FireLocationServiceImpl implements FireLocationService {
           return Right(incidents);
         }
 
+        print('🔥 Tier 2 (Cache) miss');
         developer.log(
           'Tier 2 (Cache) miss',
           name: 'FireLocationService',
           level: 900,
         );
       } catch (e) {
+        print('🔥 Tier 2 (Cache) timeout or error: $e');
         developer.log(
           'Tier 2 (Cache) timeout or error: $e',
           name: 'FireLocationService',
@@ -154,6 +166,7 @@ class FireLocationServiceImpl implements FireLocationService {
     }
 
     // Tier 3: Mock (never fails)
+    print('🔥 Tier 3: Falling back to Mock service');
     developer.log(
       'Tier 3: Falling back to Mock service',
       name: 'FireLocationService',
@@ -165,6 +178,7 @@ class FireLocationServiceImpl implements FireLocationService {
     return mockResult.fold(
       (error) {
         // This should never happen (mock never fails)
+        print('🔥 Tier 3 (Mock) unexpected failure: ${error.message}');
         developer.log(
           'Tier 3 (Mock) unexpected failure: ${error.message}',
           name: 'FireLocationService',
@@ -173,6 +187,7 @@ class FireLocationServiceImpl implements FireLocationService {
         return Left(error);
       },
       (incidents) {
+        print('🔥 Tier 3 (Mock) success: ${incidents.length} fires');
         developer.log(
           'Tier 3 (Mock) success: ${incidents.length} fires',
           name: 'FireLocationService',
