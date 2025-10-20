@@ -43,3 +43,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Environment files with secrets (defense in depth)
+# Primary protection is in env/.gitignore, this is backup
+/env/*.env.json
+!/env/*.template
+!/env/ci.env.json
