@@ -42,7 +42,7 @@ void main() {
     // Test fire incidents
     // Use timestamps in the past to avoid validation errors
     final testTimestamp = DateTime(2024, 10, 20, 12, 0);
-    
+
     final mockIncident = FireIncident(
       id: 'mock_001',
       location: const LatLng(55.5, -3.5),
@@ -81,7 +81,8 @@ void main() {
 
         // Assert: Mock service called, EFFIS not called
         verify(mockMockService.getActiveFires(testBounds)).called(1);
-        verifyNever(mockEffisService.getActiveFires(any, timeout: anyNamed('timeout')));
+        verifyNever(
+            mockEffisService.getActiveFires(any, timeout: anyNamed('timeout')));
 
         expect(result.isRight(), isTrue);
         result.fold(
@@ -122,7 +123,8 @@ void main() {
           (incidents) {
             expect(incidents.length, 2);
             expect(incidents.every((i) => i.source == DataSource.mock), isTrue);
-            expect(incidents.every((i) => i.freshness == Freshness.mock), isTrue);
+            expect(
+                incidents.every((i) => i.freshness == Freshness.mock), isTrue);
           },
         );
       });
@@ -142,7 +144,9 @@ void main() {
         // Note: This test only works if we can bypass the MAP_LIVE_DATA check
         // or if we're testing in an environment where MAP_LIVE_DATA=true
         // For now, documenting the expected behavior
-      }, skip: 'MAP_LIVE_DATA=false in test environment - cannot test EFFIS path');
+      },
+          skip:
+              'MAP_LIVE_DATA=false in test environment - cannot test EFFIS path');
 
       test('EFFIS failure falls back to Mock service', () async {
         // Arrange: EFFIS fails, Mock succeeds
@@ -152,7 +156,9 @@ void main() {
             .thenAnswer((_) async => Right([mockIncident]));
 
         // Note: Same as above - can't test without MAP_LIVE_DATA=true
-      }, skip: 'MAP_LIVE_DATA=false in test environment - cannot test EFFIS path');
+      },
+          skip:
+              'MAP_LIVE_DATA=false in test environment - cannot test EFFIS path');
     });
 
     group('Coordinate logging (C2 compliance)', () {
@@ -277,7 +283,7 @@ void main() {
       test('converts EffisFire properties correctly', () async {
         // This test documents the conversion happening at line 76:
         // final incidents = effisFires.map((fire) => fire.toFireIncident()).toList();
-        
+
         // Expected conversion:
         // - id: effis_001
         // - location: LatLng(55.5, -3.5)

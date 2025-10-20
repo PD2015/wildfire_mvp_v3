@@ -41,7 +41,8 @@ class ControllableEffisService implements EffisService {
     LatLngBounds bounds, {
     Duration timeout = const Duration(seconds: 8),
   }) async {
-    callLog.add('getActiveFires(${bounds.toBboxString()}, timeout: ${timeout.inSeconds}s)');
+    callLog.add(
+        'getActiveFires(${bounds.toBboxString()}, timeout: ${timeout.inSeconds}s)');
 
     // Simulate network delay if configured
     if (_responseDelay != null) {
@@ -104,14 +105,14 @@ void main() {
 
       // Assert: Should succeed with mock data
       expect(result.isRight(), isTrue);
-      
+
       result.fold(
         (error) => fail('Expected Right, got Left: ${error.message}'),
         (incidents) {
           // Mock service returns 0-3 incidents depending on asset availability in test environment
           // In test environment, rootBundle may not load assets, returning empty list (still Right)
           expect(incidents, isA<List<FireIncident>>());
-          
+
           // If incidents loaded, verify they're from mock source
           if (incidents.isNotEmpty) {
             expect(incidents.first.source, DataSource.mock);
@@ -124,7 +125,8 @@ void main() {
       expect(controllableEffis.callLog, isEmpty);
     });
 
-    test('EFFIS timeout (>8s) falls back to Mock when MAP_LIVE_DATA=true', () async {
+    test('EFFIS timeout (>8s) falls back to Mock when MAP_LIVE_DATA=true',
+        () async {
       // Note: This test documents expected behavior when MAP_LIVE_DATA=true
       // In actual test environment, MAP_LIVE_DATA=false so EFFIS is skipped
       // This test is skipped because we can't set MAP_LIVE_DATA=true in tests
@@ -135,10 +137,14 @@ void main() {
       // 2. Falls back to Mock (never fails)
       // 3. Returns mock data with source=mock, freshness=mock
 
-      expect(true, isTrue, reason: 'Test documented for MAP_LIVE_DATA=true scenario');
-    }, skip: 'Cannot test MAP_LIVE_DATA=true in test environment (feature flag is const)');
+      expect(true, isTrue,
+          reason: 'Test documented for MAP_LIVE_DATA=true scenario');
+    },
+        skip:
+            'Cannot test MAP_LIVE_DATA=true in test environment (feature flag is const)');
 
-    test('EFFIS 4xx/5xx error falls back to Mock when MAP_LIVE_DATA=true', () async {
+    test('EFFIS 4xx/5xx error falls back to Mock when MAP_LIVE_DATA=true',
+        () async {
       // Note: Similar to timeout test - documents expected behavior
       // Cannot be tested in unit/integration tests due to const feature flag
 
@@ -147,25 +153,28 @@ void main() {
       // 2. Falls back to Mock (never fails)
       // 3. Returns mock data
 
-      expect(true, isTrue, reason: 'Test documented for MAP_LIVE_DATA=true scenario');
-    }, skip: 'Cannot test MAP_LIVE_DATA=true in test environment (feature flag is const)');
+      expect(true, isTrue,
+          reason: 'Test documented for MAP_LIVE_DATA=true scenario');
+    },
+        skip:
+            'Cannot test MAP_LIVE_DATA=true in test environment (feature flag is const)');
 
     test('Mock service never fails (resilience principle)', () async {
       // Arrange - EFFIS not configured (will use default mock behavior)
-      
+
       // Act
       final result = await fireLocationService.getActiveFires(testBounds);
 
       // Assert
       expect(result.isRight(), isTrue);
-      
+
       result.fold(
         (error) => fail('Mock should never fail, got: ${error.message}'),
         (incidents) {
           // Mock returns Right even if assets don't load (empty list)
           // This verifies the "never fails" resilience principle
           expect(incidents, isA<List<FireIncident>>());
-          
+
           // If incidents loaded (asset bundle available), verify properties
           if (incidents.isNotEmpty) {
             // Verify all incidents have mock source
@@ -187,7 +196,9 @@ void main() {
       // This is verified in unit tests and via manual testing
 
       expect(true, isTrue, reason: 'Timeout enforcement tested in unit tests');
-    }, skip: 'EFFIS not called when MAP_LIVE_DATA=false (current test environment)');
+    },
+        skip:
+            'EFFIS not called when MAP_LIVE_DATA=false (current test environment)');
 
     test('service completes within reasonable time budget', () async {
       // Arrange
@@ -198,10 +209,10 @@ void main() {
 
       // Assert
       stopwatch.stop();
-      
+
       expect(result.isRight(), isTrue);
       expect(stopwatch.elapsedMilliseconds, lessThan(1000),
-        reason: 'With MAP_LIVE_DATA=false, should complete quickly (<1s)');
+          reason: 'With MAP_LIVE_DATA=false, should complete quickly (<1s)');
     });
 
     test('telemetry: Mock fallback is traceable via logging', () async {
@@ -214,7 +225,7 @@ void main() {
 
       // Assert
       expect(result.isRight(), isTrue);
-      
+
       // Logs emitted (verified manually or via log capture):
       // - "FireLocationService: Starting fallback chain for bbox center ..."
       // - "MAP_LIVE_DATA=false - using mock data"
@@ -225,7 +236,8 @@ void main() {
       // - "Tier 1 (EFFIS WFS) success: N fires" OR "Tier 1 (EFFIS WFS) failed: ..."
       // - "Tier 2: Falling back to Mock service"
 
-      expect(true, isTrue, reason: 'Telemetry via developer.log verified manually');
+      expect(true, isTrue,
+          reason: 'Telemetry via developer.log verified manually');
     });
   });
 }

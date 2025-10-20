@@ -15,3 +15,27 @@ class SystemClock implements Clock {
   @override
   DateTime nowUtc() => DateTime.now().toUtc();
 }
+
+/// Test clock implementation with controllable time for testing
+///
+/// Allows tests to control time progression and verify TTL behavior
+/// deterministically without waiting for actual time to pass.
+class TestClock implements Clock {
+  DateTime _currentTime;
+
+  TestClock({DateTime? initialTime})
+      : _currentTime = (initialTime ?? DateTime.now()).toUtc();
+
+  @override
+  DateTime nowUtc() => _currentTime;
+
+  /// Advance the clock by a duration
+  void advance(Duration duration) {
+    _currentTime = _currentTime.add(duration);
+  }
+
+  /// Set the clock to a specific time
+  void setTime(DateTime time) {
+    _currentTime = time.toUtc();
+  }
+}

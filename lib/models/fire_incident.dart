@@ -121,6 +121,30 @@ class FireIncident extends Equatable {
     };
   }
 
+  /// Deserialize from cache format
+  factory FireIncident.fromCacheJson(Map<String, dynamic> json) {
+    final location = json['location'] as Map<String, dynamic>;
+    return FireIncident(
+      id: json['id'] as String,
+      location: LatLng(
+        location['latitude'] as double,
+        location['longitude'] as double,
+      ),
+      source: DataSource.values.firstWhere(
+        (e) => e.toString().split('.').last == json['source'],
+        orElse: () => DataSource.mock,
+      ),
+      freshness: Freshness.values.firstWhere(
+        (e) => e.toString().split('.').last == json['freshness'],
+        orElse: () => Freshness.live,
+      ),
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      intensity: json['intensity'] as String,
+      description: json['description'] as String?,
+      areaHectares: json['areaHectares'] as double?,
+    );
+  }
+
   /// Create a copy with updated fields
   FireIncident copyWith({
     String? id,
