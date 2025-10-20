@@ -5,6 +5,7 @@ import 'package:dartz/dartz.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/location_models.dart';
+import '../config/feature_flags.dart';
 import 'utils/geo_utils.dart';
 import 'location_resolver.dart';
 
@@ -37,11 +38,21 @@ class LocationResolverImpl implements LocationResolver {
     final stopwatch = Stopwatch()..start();
 
     try {
-      // Platform guard: Skip GPS attempts on web/unsupported platforms
+      // Platform guard: Skip GPS on web/unsupported platforms OR when TEST_REGION is explicitly set
+      final isTestRegionSet = FeatureFlags.testRegion != 'scotland';
+      
       if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
         debugPrint(
             'Platform guard: Skipping GPS on ${kIsWeb ? 'web' : Platform.operatingSystem}');
         return await _fallbackToCache(allowDefault);
+      }
+      
+      if (isTestRegionSet) {
+        debugPrint(
+            'TEST_REGION=${FeatureFlags.testRegion}: Skipping GPS to use test region coordinates');
+        // Return error to trigger MapController's test region fallback
+        // Don't use default centroid when test region is explicitly set
+        return const Left(LocationError.gpsUnavailable);
       }
 
       // Tier 1 & 2: Try GPS with timeout
