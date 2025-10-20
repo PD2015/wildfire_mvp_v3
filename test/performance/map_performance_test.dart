@@ -76,14 +76,14 @@ void main() {
       // Specification test documenting P1 requirement
       // ACCEPTANCE: Map interactive ≤3s (T035 requirement)
       // Measures time from MapScreen build to first marker visible
-      
+
       const requirement = {
         'name': 'P1: Map becomes interactive',
         'deadline': '3s from navigation',
         'verification': 'Manual testing with flutter run --profile + DevTools',
         'baseline': '~800ms on Pixel 6 API 34 emulator',
       };
-      
+
       expect(requirement['deadline'], '3s from navigation');
       print('✅ P1-SPEC: Map interactive requirement documented (≤3s)');
     });

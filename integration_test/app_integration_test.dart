@@ -7,11 +7,11 @@ import 'package:wildfire_mvp_v3/screens/home_screen.dart';
 import 'package:wildfire_mvp_v3/features/map/screens/map_screen.dart';
 
 /// Full app integration tests covering navigation and state persistence
-/// 
+///
 /// REQUIREMENTS:
 /// - Run on device/emulator: `flutter test integration_test/app_integration_test.dart -d <device-id>`
 /// - Tests complete user journeys across screens
-/// 
+///
 /// VERIFIES:
 /// - Navigation between Home and Map screens
 /// - State persistence across navigation
@@ -25,7 +25,7 @@ void main() {
     testWidgets('App launches and displays home screen',
         (WidgetTester tester) async {
       // ACCEPTANCE: App launches without crash
-      
+
       app.main();
       await tester.pumpAndSettle(const Duration(seconds: 10));
 
@@ -39,7 +39,7 @@ void main() {
     testWidgets('Navigate from Home to Map screen',
         (WidgetTester tester) async {
       // ACCEPTANCE: User can navigate to map screen
-      
+
       app.main();
       await tester.pump(const Duration(seconds: 10));
       await tester.pump();
@@ -63,7 +63,7 @@ void main() {
     testWidgets('Navigate back to Home from Map screen',
         (WidgetTester tester) async {
       // ACCEPTANCE: User can navigate back to home
-      
+
       app.main();
       await tester.pump(const Duration(seconds: 10));
       await tester.pump();
@@ -100,7 +100,7 @@ void main() {
     testWidgets('Fire risk data persists across navigation',
         (WidgetTester tester) async {
       // ACCEPTANCE: Risk data doesn't re-fetch unnecessarily when navigating back
-      
+
       app.main();
       await tester.pump(const Duration(seconds: 10));
       await tester.pump();
@@ -135,7 +135,7 @@ void main() {
     testWidgets('Multiple back-and-forth navigations work correctly',
         (WidgetTester tester) async {
       // ACCEPTANCE: App handles multiple navigation cycles without issues
-      
+
       app.main();
       await tester.pump(const Duration(seconds: 10));
       await tester.pump();
@@ -143,7 +143,7 @@ void main() {
       // Navigate Home → Map → Home → Map → Home
       for (int i = 0; i < 3; i++) {
         debugPrint('🔄 Navigation cycle ${i + 1}/3');
-        
+
         // Go to Map
         await tester.tap(find.text('Map'));
         await tester.pump(const Duration(seconds: 5));
@@ -166,7 +166,7 @@ void main() {
     testWidgets('App handles rapid navigation without crashes',
         (WidgetTester tester) async {
       // ACCEPTANCE: Rapid taps don't cause navigation stack issues
-      
+
       app.main();
       await tester.pumpAndSettle(const Duration(seconds: 10));
 
@@ -174,7 +174,7 @@ void main() {
       for (int i = 0; i < 5; i++) {
         await tester.tap(find.text('Map'));
         await tester.pump(const Duration(milliseconds: 100));
-        
+
         final homeButton = find.text('Home');
         if (homeButton.evaluate().isNotEmpty) {
           await tester.tap(homeButton);
@@ -194,14 +194,14 @@ void main() {
     testWidgets('Bottom navigation (if present) highlights correct tab',
         (WidgetTester tester) async {
       // ACCEPTANCE: Active tab is visually indicated
-      
+
       app.main();
       await tester.pump(const Duration(seconds: 10));
       await tester.pump();
 
       // Look for BottomNavigationBar
       final bottomNav = find.byType(BottomNavigationBar);
-      
+
       if (bottomNav.evaluate().isEmpty) {
         debugPrint('ℹ️  No BottomNavigationBar (using alternative navigation)');
         return;
@@ -225,7 +225,7 @@ void main() {
     testWidgets('App resumes from background without data loss',
         (WidgetTester tester) async {
       // ACCEPTANCE: Data persists when app is backgrounded
-      
+
       app.main();
       await tester.pump(const Duration(seconds: 10));
       await tester.pump();
@@ -249,7 +249,7 @@ void main() {
     testWidgets('App handles memory warnings gracefully',
         (WidgetTester tester) async {
       // ACCEPTANCE: App doesn't crash on low memory
-      
+
       app.main();
       await tester.pump(const Duration(seconds: 10));
       await tester.pump();
@@ -261,7 +261,7 @@ void main() {
 
       // Simulate memory warning (platform message)
       // Note: Actual memory pressure testing requires platform-specific tools
-      
+
       // Verify app is still responsive
       final homeButton = find.text('Home');
       if (homeButton.evaluate().isNotEmpty) {
