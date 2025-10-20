@@ -1,8 +1,8 @@
 # Tasks: A10 – Google Maps MVP Map
 
-**Status**: 🔄 **In Progress** (~75% Complete - 21/27 tasks complete)  
-**Last Updated**: 2025-10-19  
-**Current Phase**: Phase 3.4 Integration (T016 ✅ EFFIS WFS complete, T017-T019 pending)
+**Status**: 🔄 **In Progress** (~73% Complete - 22/30 tasks complete)  
+**Last Updated**: 2025-10-20  
+**Current Phase**: Phase 3.4 Integration + Phase 3.6 Cross-Platform (T017 ✅ complete, T018-T019 pending, T028-T030 new)
 
 **Input**: Design documents from `/specs/011-a10-google-maps/`
 **Prerequisites**: plan.md ✅, research.md ✅, data-model.md ✅, contracts/ ✅ (fire_location_service.md, map_controller.md)
@@ -11,12 +11,13 @@
 
 ## Completion Summary
 
-### ✅ Completed Tasks (21/27)
+### ✅ Completed Tasks (22/30)
 - **Phase 3.1 Setup**: T001 ✅ T002 ✅ T003 ✅
 - **Phase 3.2 Tests**: T004 ✅ T005 ✅ T006 ✅ T007 ⚠️ T008 ⚠️ (6 skipped tests remain)
 - **Phase 3.3 Core**: T009 ✅ T010 ✅ T011 ✅ T012 ✅ T013 ✅ T014 ✅ T015 ✅
-- **Phase 3.4 Integration**: T016 ✅ T017 ⏸️ T018 ⏸️ T019 ⏸️
+- **Phase 3.4 Integration**: T016 ✅ T017 ✅ T018 ⏸️ T019 ⏸️
 - **Phase 3.5 Polish**: T020 ⏸️ T021 ✅ T022 ✅ T023 ⏸️ T024 ⏸️ T025 ⏸️ T026 ⏸️ T027 ⏸️
+- **Phase 3.6 Cross-Platform**: T028 ⏸️ T029 ⏸️ T030 ⏸️
 
 ### 🎯 Recent Milestones (Session: 2025-10-19)
 1. **T016 EFFIS WFS Integration** ✅ - `getActiveFires()` method with bbox queries, GeoJSON parsing, EffisFire model
@@ -751,18 +752,97 @@ Task T027 "Privacy and accessibility compliance statements"
 
 ---
 
+## Phase 3.6: Cross-Platform Expansion
+
+### T028 [P] Android device testing and optimization
+**Description**: Test MapScreen on Android device/emulator, verify Google Maps functionality, optimize for Android-specific UX patterns.
+
+**Files**:
+- `docs/google-maps-setup.md` (update with Android testing notes)
+- `docs/ANDROID_TESTING_SESSION.md` (new - document findings)
+
+**Acceptance Criteria**:
+- ✅ App runs on Android emulator (API 21+) or physical device
+- ✅ Google Maps API key works with SHA-1 fingerprint restriction
+- ✅ Zoom controls visible (Android shows them by default, unlike iOS)
+- ✅ Touch gestures work: pinch-to-zoom, pan, rotate
+- ✅ GPS centering works on Android (uses device/emulator location)
+- ✅ Fire markers display correctly with proper colors
+- ✅ Info windows open on marker tap without screen shift
+- ✅ FAB positioned correctly (bottom-left, no overlap)
+- ✅ Memory usage ≤75MB on Android device
+- ✅ No Android-specific crashes or performance issues
+- ✅ Document any Android-specific quirks or optimizations needed
+
+**Constitutional Gates**: C3 (Accessibility - touch targets), C5 (Resilience - cross-platform testing)
+
+---
+
+### T029 Web platform support research and implementation
+**Description**: Research google_maps_flutter web limitations, implement web-compatible map solution or document "mobile-only" status.
+
+**Files**:
+- `docs/WEB_PLATFORM_RESEARCH.md` (new - research findings)
+- `lib/features/map/screens/map_screen_web.dart` (new - if web implementation viable)
+- `lib/features/map/screens/map_screen.dart` (update with platform detection if needed)
+- `README.md` (update platform support section)
+
+**Acceptance Criteria**:
+- ✅ Research google_maps_flutter web support (currently limited/unsupported)
+- ✅ Evaluate alternatives: google_maps JavaScript API via dart:html, google_maps package
+- ✅ Decision documented: Full web support, limited web support, or mobile-only
+- ✅ If web supported: Implement web-specific MapScreen rendering
+- ✅ If web supported: Test in Chrome, Firefox, Safari browsers
+- ✅ If web supported: Document web-specific limitations (offline tiles, performance)
+- ✅ If mobile-only: Display user-friendly message on web: "Mobile app required for map features"
+- ✅ Update README.md platform support matrix
+- ✅ Tests pass on selected platforms
+
+**Constitutional Gates**: C1 (Code Quality), C4 (Trust & Transparency - clear platform support messaging)
+
+---
+
+### T030 [P] Cross-platform testing matrix and documentation
+**Description**: Complete testing across iOS, Android, and web (if supported), document platform-specific features and limitations.
+
+**Files**:
+- `docs/PLATFORM_SUPPORT.md` (new - comprehensive platform matrix)
+- `docs/google-maps-setup.md` (update with platform-specific setup)
+- `README.md` (update with platform badges)
+
+**Acceptance Criteria**:
+- ✅ Test complete flow on iOS simulator: location → markers → info windows → risk check
+- ✅ Test complete flow on Android emulator/device: location → markers → info windows → risk check
+- ✅ Test web browser (if supported) or document limitation
+- ✅ Document platform feature matrix:
+  - GPS/location services (iOS ✓, Android ✓, Web ?)
+  - Zoom controls visibility (iOS hidden, Android visible, Web ?)
+  - Gesture support (iOS ✓, Android ✓, Web ?)
+  - Performance characteristics per platform
+- ✅ Document platform-specific quirks:
+  - iOS: No visible zoom buttons (gestures only)
+  - Android: Zoom buttons visible by default
+  - Web: TBD based on T029 findings
+- ✅ Update README.md with platform badges: iOS 15+ | Android 21+ | Web (TBD)
+- ✅ All platform tests passing
+
+**Constitutional Gates**: C5 (Resilience - comprehensive cross-platform testing)
+
+---
+
 ## Task Execution Summary
 
-**Total Tasks**: 27  
-**Parallel Tasks**: 15 (marked [P])  
-**Sequential Tasks**: 12  
+**Total Tasks**: 30  
+**Parallel Tasks**: 17 (marked [P])  
+**Sequential Tasks**: 13  
 **Estimated Duration**: 
 - Setup (T001-T003): 1-2 days
 - Tests (T004-T008): 2-3 days (parallel)
 - Core (T009-T015): 4-5 days (some parallel)
 - Integration (T016-T019): 2-3 days
 - Polish (T020-T027): 2-3 days (mostly parallel)
-- **Total**: 11-16 days with parallelization
+- Cross-Platform (T028-T030): 1-2 days (parallel)
+- **Total**: 12-18 days with parallelization
 
 **Risk Mitigation**:
 - Mock data (T003) enables development before EFFIS integration
