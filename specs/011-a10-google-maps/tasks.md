@@ -1,8 +1,8 @@
 # Tasks: A10 – Google Maps MVP Map
 
-**Status**: 🔄 **In Progress** (~69% Complete - 24/35 tasks complete)  
+**Status**: 🔄 **In Progress** (~71% Complete - 25/35 tasks complete)  
 **Last Updated**: 2025-01-20  
-**Current Phase**: Phase 3.6 Testing & Cross-Platform (T031 ✅ complete, T032-T033 high priority, T018-T019 pending)
+**Current Phase**: Phase 3.6 Testing & Cross-Platform (T031 ✅ T032 ✅ complete, T033 high priority next, T018-T019 pending)
 
 **Input**: Design documents from `/specs/011-a10-google-maps/`
 **Prerequisites**: plan.md ✅, research.md ✅, data-model.md ✅, contracts/ ✅ (fire_location_service.md, map_controller.md)
@@ -11,13 +11,13 @@
 
 ## Completion Summary
 
-### ✅ Completed Tasks (24/35)
+### ✅ Completed Tasks (25/35)
 - **Phase 3.1 Setup**: T001 ✅ T002 ✅ T003 ✅
 - **Phase 3.2 Tests**: T004 ✅ T005 ✅ T006 ✅ T007 ⚠️ T008 ⚠️ (6 skipped tests remain - addressed by T033)
 - **Phase 3.3 Core**: T009 ✅ T010 ✅ T011 ✅ T012 ✅ T013 ✅ T014 ✅ T015 ✅
 - **Phase 3.4 Integration**: T016 ✅ T017 ✅ T018 ⏸️ T019 ⏸️
 - **Phase 3.5 Polish**: T020 ⏸️ T021 ✅ T022 ✅ T023 ⏸️ (→ T034) T024 ⏸️ (→ T035) T025 ⏸️ T026 ⏸️ T027 ⏸️
-- **Phase 3.6 Testing & Cross-Platform**: T028 ✅ T029 ⏸️ T030 ⏸️ T031 ✅ T032 🆕 T033 🆕 T034 🆕 T035 🆕
+- **Phase 3.6 Testing & Cross-Platform**: T028 ✅ T029 ⏸️ T030 ⏸️ T031 ✅ T032 ✅ T033 🆕 T034 🆕 T035 🆕
 
 ### 🎯 Recent Milestones (Sessions: 2025-10-19, 2025-10-20)
 1. **T016 EFFIS WFS Integration** ✅ - `getActiveFires()` method with bbox queries, GeoJSON parsing, EffisFire model
@@ -27,7 +27,7 @@
 5. **T028 Android Testing** ✅ - Shared unrestricted Google Maps API key with iOS, all map features working on Android emulator (API 36)
 
 ### ⚠️ Known Issues & Test Gaps
-1. **MapController Coverage**: 1% (very low) - **T032 addresses** with unit tests for state management
+1. ~~**MapController Coverage**: 1% (very low)~~ → **RESOLVED (T032)**: 85% (22 comprehensive tests, exceeds 80% target)
 2. ~~**FireLocationServiceImpl Coverage**: 22%~~ → **RESOLVED (T031)**: 26% (MAP_LIVE_DATA=false path fully tested; EFFIS path covered by T033 integration tests)
 3. **6 Skipped Integration Tests**: `test/integration/map/service_fallback_test.dart` - **T033 addresses** (T016 EFFIS WFS now complete)
 4. **T023 Incomplete**: End-to-end integration test - **T034 addresses** with full map flow testing
@@ -786,23 +786,25 @@ Task T027 "Privacy and accessibility compliance statements"
 
 ---
 
-### T032 [P] Unit tests for MapController state management
+### ✅ T032 [P] Unit tests for MapController state management
+**Status**: **COMPLETE** (Commit: 3c6258a, 2025-01-20)
+
 **Description**: Add comprehensive unit tests for MapController covering initialize(), refreshMapData(), state transitions, error handling.
 
 **Files**:
-- `test/unit/controllers/map_controller_test.dart` (new)
-- `test/mocks.dart` (add MockFireLocationService, MockFireRiskService)
+- ✅ `test/unit/controllers/map_controller_test.dart` (new, 649 lines, 22 tests)
+- ✅ Manual mocks: MockLocationResolver, MockFireLocationService, MockFireRiskService (following project pattern, no mockito)
 
 **Acceptance Criteria**:
-- ✅ Test initialize() → LocationResolver → FireLocationService → MapSuccess state
-- ✅ Test refreshMapData(bounds) updates incidents and triggers notifyListeners()
-- ✅ Test checkRiskAt(coords) calls FireRiskService.getCurrent()
-- ✅ Test MapError state when LocationResolver fails (displays Scotland centroid)
-- ✅ Test MapError state when FireLocationService fails (displays cached data if available)
-- ✅ Test dispose() cleans up resources
-- ✅ Test ChangeNotifier listeners receive state updates
-- ✅ Code coverage for MapController ≥80%
-- ✅ All tests pass
+- ✅ Test initialize() → LocationResolver → FireLocationService → MapSuccess state (7 tests: success, fallback to Aviemore, error, listeners, bbox, empty list, exceptions)
+- ✅ Test refreshMapData(bounds) updates incidents and triggers notifyListeners() (5 tests: update, preserve on error, loading transition, listeners, exceptions)
+- ✅ Test checkRiskAt(coords) calls FireRiskService.getCurrent() (4 tests: success, error, exceptions, coordinate passing)
+- ✅ Test MapError state when LocationResolver fails (uses Aviemore fallback)
+- ✅ Test MapError state when FireLocationService fails (preserves cached data)
+- ✅ Test dispose() cleans up resources (1 test with safe tearDown)
+- ✅ Test ChangeNotifier listeners receive state updates (3 tests: notify, multiple listeners, remove listener)
+- ✅ Code coverage for MapController improved from 1% → **85%** (62/73 lines, exceeds 80% target)
+- ✅ All 22 tests pass
 
 **Constitutional Gates**: C5 (Resilience - error state handling, Test Coverage)
 
