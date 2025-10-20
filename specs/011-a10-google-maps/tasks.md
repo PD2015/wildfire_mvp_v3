@@ -1,8 +1,8 @@
 # Tasks: A10 – Google Maps MVP Map
 
-**Status**: 🔄 **In Progress** (~77% Complete - 23/30 tasks complete)  
+**Status**: 🔄 **In Progress** (~66% Complete - 23/35 tasks complete)  
 **Last Updated**: 2025-10-20  
-**Current Phase**: Phase 3.4 Integration + Phase 3.6 Cross-Platform (T017 ✅ T028 ✅ complete, T018-T019 pending, T029-T030 new)
+**Current Phase**: Phase 3.4 Integration + Phase 3.6 Testing & Cross-Platform (T017 ✅ T028 ✅ complete, T018-T019 pending, T031-T035 new test tasks)
 
 **Input**: Design documents from `/specs/011-a10-google-maps/`
 **Prerequisites**: plan.md ✅, research.md ✅, data-model.md ✅, contracts/ ✅ (fire_location_service.md, map_controller.md)
@@ -11,13 +11,13 @@
 
 ## Completion Summary
 
-### ✅ Completed Tasks (23/30)
+### ✅ Completed Tasks (23/35)
 - **Phase 3.1 Setup**: T001 ✅ T002 ✅ T003 ✅
-- **Phase 3.2 Tests**: T004 ✅ T005 ✅ T006 ✅ T007 ⚠️ T008 ⚠️ (6 skipped tests remain)
+- **Phase 3.2 Tests**: T004 ✅ T005 ✅ T006 ✅ T007 ⚠️ T008 ⚠️ (6 skipped tests remain - addressed by T033)
 - **Phase 3.3 Core**: T009 ✅ T010 ✅ T011 ✅ T012 ✅ T013 ✅ T014 ✅ T015 ✅
 - **Phase 3.4 Integration**: T016 ✅ T017 ✅ T018 ⏸️ T019 ⏸️
-- **Phase 3.5 Polish**: T020 ⏸️ T021 ✅ T022 ✅ T023 ⏸️ T024 ⏸️ T025 ⏸️ T026 ⏸️ T027 ⏸️
-- **Phase 3.6 Cross-Platform**: T028 ✅ T029 ⏸️ T030 ⏸️
+- **Phase 3.5 Polish**: T020 ⏸️ T021 ✅ T022 ✅ T023 ⏸️ (→ T034) T024 ⏸️ (→ T035) T025 ⏸️ T026 ⏸️ T027 ⏸️
+- **Phase 3.6 Testing & Cross-Platform**: T028 ✅ T029 ⏸️ T030 ⏸️ T031 🆕 T032 🆕 T033 🆕 T034 🆕 T035 🆕
 
 ### 🎯 Recent Milestones (Sessions: 2025-10-19, 2025-10-20)
 1. **T016 EFFIS WFS Integration** ✅ - `getActiveFires()` method with bbox queries, GeoJSON parsing, EffisFire model
@@ -26,11 +26,13 @@
 4. **Mock Infrastructure** ✅ - MockMapController with no-op services for widget testing
 5. **T028 Android Testing** ✅ - Shared unrestricted Google Maps API key with iOS, all map features working on Android emulator (API 36)
 
-### ⚠️ Known Issues
-1. **MapController Coverage**: 1% (very low) - requires iOS/Android integration tests (google_maps_flutter limitation)
-2. **FireLocationService Coverage**: 22% - EFFIS → Mock fallback needs end-to-end testing on device
-3. **Pre-existing Test Failure**: location_flow_test.dart "Tier 3: Cached manual location when GPS fails" expects London coords but gets Scotland centroid (boundary enforcement working correctly)
-4. **6 Skipped Tests**: `test/integration/map/service_fallback_test.dart` - "EFFIS/SEPA/Cache integration pending (T016-T018)" - T016 now complete, can unskip 3 tests
+### ⚠️ Known Issues & Test Gaps
+1. **MapController Coverage**: 1% (very low) - **T032 addresses** with unit tests for state management
+2. **FireLocationServiceImpl Coverage**: 22% - **T031 addresses** with unit tests for fallback chain
+3. **6 Skipped Integration Tests**: `test/integration/map/service_fallback_test.dart` - **T033 addresses** (T016 EFFIS WFS now complete)
+4. **T023 Incomplete**: End-to-end integration test - **T034 addresses** with full map flow testing
+5. **T024 Missing**: Performance smoke tests - **T035 addresses** with automated performance validation
+6. **Pre-existing Test Failure**: location_flow_test.dart "Tier 3: Cached manual location when GPS fails" expects London coords but gets Scotland centroid (boundary enforcement working correctly - not a bug)
 
 ### 📊 Test Metrics
 - **Total Tests**: 364 passing ✅ 6 skipped ⏸️ 0 failing ✅
@@ -39,13 +41,14 @@
 - **Coverage Report**: `docs/TEST_COVERAGE_REPORT.md`
 - **Android Testing**: Full manual test session completed (see `docs/ANDROID_TESTING_SESSION.md`)
 
-### 🚀 Next Actions
-1. **T029**: Web platform support research - evaluate google_maps_flutter web compatibility
-2. **T030**: Complete cross-platform testing matrix - iOS, Android ✅, Web pending
-3. **T018**: Integrate CacheService for fire incident caching
-4. **T019**: Add MAP_LIVE_DATA feature flag support
-5. **T023**: Integration test for complete map interaction flow (requires iOS device)
-6. **iOS End-to-End Testing**: Run `flutter run -d ios --dart-define=MAP_LIVE_DATA=true` to verify EFFIS WFS with live fire markers
+### 🚀 Next Actions (Priority Order)
+1. **T031-T033**: Fill test coverage gaps (FireLocationServiceImpl, MapController, service fallback) - **High Priority**
+2. **T018**: Integrate CacheService for fire incident caching (enables full fallback chain)
+3. **T019**: Add MAP_LIVE_DATA feature flag support (enables live EFFIS testing)
+4. **T034-T035**: End-to-end and performance tests (after T018-T019 complete)
+5. **T029**: Web platform support research - evaluate google_maps_flutter web compatibility
+6. **T030**: Complete cross-platform testing matrix - iOS, Android ✅, Web pending
+7. **iOS End-to-End Testing**: Run `flutter run -d ios --dart-define=MAP_LIVE_DATA=true` to verify EFFIS WFS with live fire markers
 
 ---
 
@@ -755,7 +758,116 @@ Task T027 "Privacy and accessibility compliance statements"
 
 ---
 
-## Phase 3.6: Cross-Platform Expansion
+## Phase 3.6: Testing & Cross-Platform
+
+### T031 [P] Unit tests for FireLocationServiceImpl (T012 implementation)
+**Description**: Add comprehensive unit tests for FireLocationServiceImpl covering EFFIS→Mock fallback, MAP_LIVE_DATA flag, coordinate logging.
+
+**Files**:
+- `test/unit/services/fire_location_service_test.dart` (new)
+- `test/mocks.dart` (add MockEffisService if not present)
+
+**Acceptance Criteria**:
+- ✅ Test MAP_LIVE_DATA=false skips EFFIS, goes direct to Mock
+- ✅ Test MAP_LIVE_DATA=true attempts EFFIS WFS with 8s timeout
+- ✅ Test EFFIS success returns List<FireIncident> with source=effis
+- ✅ Test EFFIS failure falls back to Mock (never fails)
+- ✅ Test Mock returns data with source=mock, freshness=mock
+- ✅ Test coordinate logging uses GeographicUtils.logRedact() (C2)
+- ✅ Test bbox validation passed to EFFIS service
+- ✅ Code coverage for FireLocationServiceImpl ≥80%
+- ✅ All tests pass
+
+**Constitutional Gates**: C2 (Secrets & Logging), C5 (Test Coverage)
+
+---
+
+### T032 [P] Unit tests for MapController state management
+**Description**: Add comprehensive unit tests for MapController covering initialize(), refreshMapData(), state transitions, error handling.
+
+**Files**:
+- `test/unit/controllers/map_controller_test.dart` (new)
+- `test/mocks.dart` (add MockFireLocationService, MockFireRiskService)
+
+**Acceptance Criteria**:
+- ✅ Test initialize() → LocationResolver → FireLocationService → MapSuccess state
+- ✅ Test refreshMapData(bounds) updates incidents and triggers notifyListeners()
+- ✅ Test checkRiskAt(coords) calls FireRiskService.getCurrent()
+- ✅ Test MapError state when LocationResolver fails (displays Scotland centroid)
+- ✅ Test MapError state when FireLocationService fails (displays cached data if available)
+- ✅ Test dispose() cleans up resources
+- ✅ Test ChangeNotifier listeners receive state updates
+- ✅ Code coverage for MapController ≥80%
+- ✅ All tests pass
+
+**Constitutional Gates**: C5 (Resilience - error state handling, Test Coverage)
+
+---
+
+### T033 [P] Integration tests for EFFIS WFS → Mock fallback chain
+**Description**: Implement the 6 skipped tests in service_fallback_test.dart now that T016 EFFIS WFS is complete.
+
+**Files**:
+- `test/integration/map/service_fallback_test.dart` (unskip and implement tests)
+- `test/fixtures/effis_wfs_timeout.json` (new - simulate timeout responses)
+
+**Acceptance Criteria**:
+- ✅ Unskip all 6 tests in service_fallback_test.dart
+- ✅ Test: EFFIS timeout (mock 8s+ delay) falls back to Mock
+- ✅ Test: EFFIS 4xx/5xx error falls back to Mock
+- ✅ Test: Mock never fails (returns 3 incidents)
+- ✅ Test: Each tier respects 8s timeout (use controllable mocks)
+- ✅ Test: Telemetry records attempts (if telemetry implemented)
+- ✅ Test: MAP_LIVE_DATA=false skips EFFIS entirely
+- ✅ All 6 tests now pass
+- ✅ Integration test suite completion: 100%
+
+**Constitutional Gates**: C5 (Resilience - fallback chain verification, Test Coverage)
+
+---
+
+### T034 [P] End-to-end integration test for complete map flow (T023 implementation)
+**Description**: Implement T023 end-to-end integration test covering location → fires → marker tap → risk check → refresh.
+
+**Files**:
+- `test/integration/map/complete_map_flow_test.dart` (implement, currently incomplete)
+
+**Acceptance Criteria**:
+- ✅ Test full flow: MockLocationResolver → FireLocationService → MapController → MapScreen → markers visible
+- ✅ Test marker tap opens info window with fire details
+- ✅ Test "Check risk here" button calls FireRiskService
+- ✅ Test risk result chip displays with Scottish colors
+- ✅ Test map pan triggers refreshMapData() with new bbox
+- ✅ Test GPS denied fallback (Scotland centroid from LocationResolver)
+- ✅ Test MAP_LIVE_DATA flag toggle (mock vs EFFIS)
+- ✅ Test completes in <8s (global deadline requirement)
+- ✅ Test memory stable (no leaks after 3 cycles)
+- ✅ All assertions pass
+
+**Constitutional Gates**: C5 (Resilience - end-to-end verification)
+
+---
+
+### T035 [P] Performance tests for map interactions (T024 implementation)
+**Description**: Implement T024 performance smoke tests validating map load time, frame rate, memory usage.
+
+**Files**:
+- `test/performance/map_performance_test.dart` (new)
+- `scripts/run_performance_tests.sh` (new - automates performance testing)
+
+**Acceptance Criteria**:
+- ✅ Test: Map interactive in ≤3s from navigation (measure time to first marker rendered)
+- ✅ Test: 50 markers render without jank (measure frame build times via timeline summary)
+- ✅ Test: Memory usage ≤75MB on MapScreen (measure via DevTools or platform-specific tools)
+- ✅ Test: Camera movements smooth (no excessive frame drops)
+- ✅ Test: EFFIS WFS timeout ≤8s (service tier requirement)
+- ✅ Document baseline metrics in test file comments
+- ✅ Tests run in CI on macOS (local development baseline)
+- ✅ All performance thresholds met
+
+**Constitutional Gates**: C5 (Resilience - performance requirements)
+
+---
 
 ### T028 [P] ✅ Android device testing and optimization
 **Status**: ✅ **COMPLETE** (2025-10-20)  
@@ -842,17 +954,18 @@ Task T027 "Privacy and accessibility compliance statements"
 
 ## Task Execution Summary
 
-**Total Tasks**: 30  
-**Parallel Tasks**: 17 (marked [P])  
+**Total Tasks**: 35 (updated 2025-10-20)  
+**Parallel Tasks**: 22 (marked [P])  
 **Sequential Tasks**: 13  
 **Estimated Duration**: 
-- Setup (T001-T003): 1-2 days
-- Tests (T004-T008): 2-3 days (parallel)
-- Core (T009-T015): 4-5 days (some parallel)
-- Integration (T016-T019): 2-3 days
-- Polish (T020-T027): 2-3 days (mostly parallel)
-- Cross-Platform (T028-T030): 1-2 days (parallel)
-- **Total**: 12-18 days with parallelization
+- Setup (T001-T003): 1-2 days ✅ Complete
+- Tests (T004-T008): 2-3 days (parallel) ✅ Complete (6 skipped → T033)
+- Core (T009-T015): 4-5 days (some parallel) ✅ Complete
+- Integration (T016-T019): 2-3 days (T016-T017 ✅, T018-T019 ⏸️)
+- Polish (T020-T027): 2-3 days (mostly parallel) (T021-T022 ✅, rest ⏸️)
+- Testing & Cross-Platform (T028-T035): 2-3 days (parallel)
+  - T028 ✅, T029-T030 ⏸️, T031-T035 🆕 (1-2 days for test implementation)
+- **Total**: 14-20 days with parallelization (12-18 days original + 2 days test gap filling)
 
 **Risk Mitigation**:
 - Mock data (T003) enables development before EFFIS integration
