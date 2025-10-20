@@ -10,7 +10,7 @@ Auto-generated from all feature plans. Last updated: 2025-10-19
 - **A5** (CacheService): shared_preferences, dartz, equatable, internal geohash encoder
 - **A6** (HomeController): ChangeNotifier, LocationResolver (A4), FireRiskService (A2), CacheService (A5)
 - **A9** (MapScreen): go_router, flutter_test (navigation scaffold)
-- **A10** (Google Maps MVP): google_maps_flutter ^2.5.0 (Android/iOS only), go_router, http, dartz (services only), equatable, ChangeNotifier
+- **A10** (Google Maps MVP): google_maps_flutter ^2.5.0 (Android/iOS/Web), google_maps_flutter_web ^0.5.14+2 (auto-included), go_router, http, dartz (services only), equatable, ChangeNotifier
 
 ## Project Structure
 ```
@@ -33,16 +33,28 @@ test/
 
 ## Commands
 ```bash
-# Current app (A1-A9) runs on macOS for development
-flutter run -d macos --dart-define=MAP_LIVE_DATA=true  # Live EFFIS data
-flutter run -d macos --dart-define=MAP_LIVE_DATA=false # Mock data (default)
+# macOS has TWO deployment targets:
+# 1. macOS Desktop App (native) - Does NOT support Google Maps (A1-A9 features only)
+flutter run -d macos --dart-define=MAP_LIVE_DATA=true  # Live EFFIS data (no map)
+flutter run -d macos --dart-define=MAP_LIVE_DATA=false # Mock data (no map)
 
-# A10 Google Maps requires Android/iOS (google_maps_flutter limitation)
+# 2. macOS Web (Safari/Chrome) - DOES support Google Maps via google_maps_flutter_web
+# RECOMMENDED: Use secure script that auto-injects API key from env/dev.env.json
+./scripts/run_web.sh  # Development with API key (no watermark) ✅
+
+# Alternative: Manual run (shows watermark without API key)
+flutter run -d chrome --dart-define=MAP_LIVE_DATA=false # Web in Chrome with map
+flutter run -d chrome --dart-define=MAP_LIVE_DATA=true  # Web with live data
+
+# Mobile platforms (full Google Maps support)
 flutter run -d android --dart-define=MAP_LIVE_DATA=false # Android emulator
 flutter run -d ios --dart-define=MAP_LIVE_DATA=false     # iOS simulator
 
 # Environment file support (for secrets management)
 flutter run --dart-define-from-file=env/dev.env.json
+
+# Web deployment builds
+./scripts/build_web.sh  # Secure build with API key injection
 
 # Run all tests
 flutter test
@@ -73,6 +85,7 @@ Dart 3.0+ with Flutter SDK: Follow standard conventions
 - Commit messages follow Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`
 
 ## Recent Changes
+- **2025-10-20**: A10 Web Support - Clarified macOS web (Chrome/Safari) vs macOS desktop distinction. Google Maps works on web via google_maps_flutter_web ^0.5.14+2. Updated platform detection comments and unsupported platform messaging.
 - **2025-10-19**: A10 Google Maps MVP - Added google_maps_flutter ^2.5.0, MapController state management, FireLocationService with EFFIS WFS integration
 - **2025-10-02**: A9 MapScreen scaffold - Added go_router navigation, blank map placeholder
 - **2025-10-02**: A6 HomeController - Added ChangeNotifier pattern with LocationResolver, FireRiskService, CacheService integration

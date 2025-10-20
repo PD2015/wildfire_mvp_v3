@@ -121,7 +121,14 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     final state = _controller.state;
 
-    // Platform detection: google_maps_flutter v2.5.0 doesn't support macOS
+    // Platform detection: google_maps_flutter supports:
+    // - Web (kIsWeb=true): Uses google_maps_flutter_web with Maps JavaScript API
+    // - Mobile (Android/iOS): Uses native Google Maps SDKs
+    // - macOS desktop (kIsWeb=false && Platform.isMacOS): NOT SUPPORTED
+    //
+    // Note: "macOS" has two meanings:
+    //   1. macOS Web (Flutter web in Safari/Chrome on Mac) → SUPPORTED ✅
+    //   2. macOS Desktop (Flutter macOS native app) → NOT SUPPORTED ❌
     final bool isMapSupported =
         kIsWeb || (!kIsWeb && (Platform.isAndroid || Platform.isIOS));
 
@@ -179,7 +186,7 @@ class _MapScreenState extends State<MapScreen> {
               ),
               const SizedBox(height: 8.0),
               Text(
-                'Google Maps is not supported on macOS.\nPlease use Android, iOS, or Web to view the fire map.',
+                'Google Maps is not supported on macOS Desktop.\nPlease use Android, iOS, or Web (Safari/Chrome) to view the fire map.',
                 style: Theme.of(context).textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
@@ -247,7 +254,7 @@ class _MapScreenState extends State<MapScreen> {
               ],
               const SizedBox(height: 16),
               Text(
-                'Tip: Run on Android/iOS to see interactive map',
+                'Tip: Run with "flutter run -d chrome" to see the web map',
                 style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.center,
               ),
