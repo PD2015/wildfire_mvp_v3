@@ -1,0 +1,6 @@
+# Ignore actual environment files with secrets
+*.env.json
+
+# Allow templates and CI config to be committed
+!*.template
+!ci.env.json

@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.File
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -28,6 +31,30 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        
+        // Google Maps API Key configuration
+        // SECURITY: Never commit API keys to git. Use one of these methods:
+        // 1. local.properties: Add GOOGLE_MAPS_API_KEY_ANDROID=your_key_here
+        // 2. gradle.properties: Add GOOGLE_MAPS_API_KEY_ANDROID=your_key_here
+        // 3. Environment variable: export GOOGLE_MAPS_API_KEY_ANDROID=your_key_here
+        // Note: --dart-define values are not directly accessible in Gradle
+        // The fallback placeholder will cause map tiles to fail (intentional for security)
+        
+        // Read from local.properties first (git-ignored)
+        val localProperties = File(rootProject.projectDir, "local.properties")
+        val apiKey = if (localProperties.exists()) {
+            val properties = Properties()
+            properties.load(localProperties.inputStream())
+            properties.getProperty("GOOGLE_MAPS_API_KEY_ANDROID")
+        } else {
+            null
+        }
+        
+        manifestPlaceholders["GOOGLE_MAPS_API_KEY_ANDROID"] = 
+            apiKey
+            ?: project.findProperty("GOOGLE_MAPS_API_KEY_ANDROID")?.toString() 
+            ?: System.getenv("GOOGLE_MAPS_API_KEY_ANDROID") 
+            ?: "YOUR_API_KEY_HERE"
     }
 
     buildTypes {

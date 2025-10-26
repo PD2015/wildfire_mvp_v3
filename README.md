@@ -12,6 +12,7 @@ A Flutter mobile application that provides real-time wildfire risk assessment us
 - **Risk Assessment**: Automatic risk level categorization (low, moderate, high, very high, extreme)
 - **Robust Error Handling**: Comprehensive error management with retry logic
 - **Offline Resilience**: Graceful handling of network issues with exponential backoff
+- **Demo Mode Transparency**: Prominent "DEMO DATA" chip when using mock data (C4 compliance)
 - **Production Ready**: 84.3% test coverage with 56/56 tests passing
 
 ## 🏗️ Architecture
@@ -165,6 +166,32 @@ flutter test
 flutter run
 ```
 
+### Feature Flags
+
+#### MAP_LIVE_DATA
+Controls whether the app uses live EFFIS data or mock data for testing.
+
+**Usage**:
+```bash
+# Demo mode (default) - uses mock data, shows "DEMO DATA" chip
+flutter run --dart-define=MAP_LIVE_DATA=false
+
+# Production mode - uses live EFFIS data
+flutter run --dart-define=MAP_LIVE_DATA=true
+
+# Environment file approach
+flutter run --dart-define-from-file=env/dev.env.json
+```
+
+**Behavior**:
+- **false** (default): Uses mock data, displays prominent amber "DEMO DATA" chip on map
+- **true**: Uses live EFFIS WFS data, displays standard green/orange/blue source chip
+
+**CI Configuration**:
+The `env/ci.env.json` file defaults to `MAP_LIVE_DATA=false` to ensure tests run predictably with mock data.
+
+**Constitutional Compliance**: This feature supports C4 (Trust & Transparency) by clearly indicating when demo/mock data is being used.
+
 ## 🌐 API Integration
 
 ### EFFIS WMS Service
@@ -221,6 +248,26 @@ flutter run
 1. **Make changes** to models or services
 2. **Run tests** to verify functionality: `flutter test`
 3. **Check coverage** if needed: `flutter test --coverage`
+
+### Testing with Different Regions
+
+The app defaults to Scotland (low wildfire activity). To test with regions that typically have more fires:
+
+```bash
+# Test with Portugal (high summer fire activity)
+flutter run -d android \
+  --dart-define=TEST_REGION=portugal \
+  --dart-define=MAP_LIVE_DATA=true
+
+# Test with California
+flutter run -d ios \
+  --dart-define=TEST_REGION=california \
+  --dart-define=MAP_LIVE_DATA=true
+```
+
+**Available test regions**: `portugal`, `spain`, `greece`, `california`, `australia`
+
+📖 **See [docs/TEST_REGIONS.md](docs/TEST_REGIONS.md) for complete documentation** including fire seasons, coordinates, and troubleshooting.
 4. **Commit changes** with descriptive messages
 5. **Generate coverage reports** for documentation
 

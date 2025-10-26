@@ -1,15 +1,21 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Service imports
 import 'services/fire_risk_service.dart';
 import 'services/fire_risk_service_impl.dart';
 import 'services/location_resolver.dart';
 import 'services/location_resolver_impl.dart';
-import 'services/contracts/service_contracts.dart';
+import 'services/contracts/service_contracts.dart' as contracts;
 import 'services/effis_service_impl.dart';
 import 'services/mock_service.dart';
+import 'services/fire_location_service.dart';
+import 'services/fire_location_service_impl.dart';
+import 'services/mock_fire_service.dart';
+import 'services/fire_incident_cache.dart';
+import 'services/cache/fire_incident_cache_impl.dart';
 
 // Model imports
 import 'models/api_error.dart';
@@ -55,6 +61,7 @@ void main() async {
   runApp(WildFireAppRoot(
     homeController: homeController,
     lifecycleManager: lifecycleManager,
+    services: services,
   ));
 }
 
@@ -62,10 +69,12 @@ void main() async {
 class ServiceContainer {
   final LocationResolver locationResolver;
   final FireRiskService fireRiskService;
+  final FireLocationService fireLocationService;
 
   ServiceContainer({
     required this.locationResolver,
     required this.fireRiskService,
+    required this.fireLocationService,
   });
 }
 
@@ -80,8 +89,9 @@ Future<ServiceContainer> _initializeServices() async {
   // Initialize EFFIS service implementation (A1)
   final effisServiceImpl = EffisServiceImpl(httpClient: httpClient);
 
-  // Create adapter to match contract interface
-  final EffisService effisService = _EffisServiceAdapter(effisServiceImpl);
+  // Create adapter to match contract interface for FireRiskService
+  final contracts.EffisService effisServiceAdapter =
+      _EffisServiceAdapter(effisServiceImpl);
 
   // Initialize mock service for fallback
   final MockService mockService = MockService.defaultStrategy();
@@ -89,7 +99,7 @@ Future<ServiceContainer> _initializeServices() async {
   // DEBUG: Test the EFFIS service directly
   debugPrint('🔍 Testing EFFIS service directly...');
   try {
-    final testResult = await effisService.getFwi(lat: 39.6, lon: -9.1);
+    final testResult = await effisServiceAdapter.getFwi(lat: 39.6, lon: -9.1);
     testResult.fold(
       (error) => debugPrint('🔍 EFFIS direct test FAILED: ${error.message}'),
       (result) => debugPrint(
@@ -101,15 +111,30 @@ Future<ServiceContainer> _initializeServices() async {
 
   // Initialize full orchestrated fire risk service (A2)
   final FireRiskService fireRiskService = FireRiskServiceImpl(
-    effisService: effisService,
+    effisService: effisServiceAdapter,
     mockService: mockService,
     // TODO: Add SEPA service when implemented
     // TODO: Add cache service when implemented
   );
 
+  // Initialize cache service for fire incidents (T018)
+  final prefs = await SharedPreferences.getInstance();
+  final FireIncidentCache fireIncidentCache =
+      FireIncidentCacheImpl(prefs: prefs);
+
+  // Initialize fire location service (A10 - EFFIS WFS + Cache + Mock fallback)
+  final mockFireService = MockFireService();
+  final FireLocationService fireLocationService = FireLocationServiceImpl(
+    effisService: effisServiceImpl,
+    cache: fireIncidentCache,
+    mockService: mockFireService,
+    // TODO: Add SEPA service when implemented (T017)
+  );
+
   return ServiceContainer(
     locationResolver: locationResolver,
     fireRiskService: fireRiskService,
+    fireLocationService: fireLocationService,
   );
 }
 
@@ -117,11 +142,13 @@ Future<ServiceContainer> _initializeServices() async {
 class WildFireAppRoot extends StatefulWidget {
   final HomeController homeController;
   final AppLifecycleManager lifecycleManager;
+  final ServiceContainer services;
 
   const WildFireAppRoot({
     super.key,
     required this.homeController,
     required this.lifecycleManager,
+    required this.services,
   });
 
   @override
@@ -150,7 +177,12 @@ class _WildFireAppRootState extends State<WildFireAppRoot>
 
   @override
   Widget build(BuildContext context) {
-    return WildFireApp(homeController: widget.homeController);
+    return WildFireApp(
+      homeController: widget.homeController,
+      locationResolver: widget.services.locationResolver,
+      fireLocationService: widget.services.fireLocationService,
+      fireRiskService: widget.services.fireRiskService,
+    );
   }
 }
 
@@ -185,7 +217,7 @@ class AppLifecycleManager {
 }
 
 /// Adapter to bridge EFFIS implementation with contract interface
-class _EffisServiceAdapter implements EffisService {
+class _EffisServiceAdapter implements contracts.EffisService {
   final EffisServiceImpl _impl;
 
   _EffisServiceAdapter(this._impl);

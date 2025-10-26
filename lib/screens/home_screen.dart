@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import '../controllers/home_controller.dart';
 import '../models/home_state.dart';
@@ -161,27 +160,57 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Builds cached data information for error states with cached data
+  /// C4 Compliance: Shows timestamp and source even in error states
   Widget _buildCachedDataInfo(FireRisk cachedData) {
+    final relativeTime = formatRelativeTime(
+      utcNow: DateTime.now().toUtc(),
+      updatedUtc: cachedData.observedAt.toUtc(),
+    );
+
     return Semantics(
       label:
-          'Showing cached data from ${_getSourceDisplayName(cachedData.source)}',
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+          'Showing cached data from ${_getSourceDisplayName(cachedData.source)}, updated $relativeTime',
+      child: Column(
         children: [
-          Icon(
-            Icons.cached,
-            size: 14.0,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          // Cached data indicator row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.cached,
+                size: 14.0,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 4.0),
+              Text(
+                'Showing cached data',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
           ),
-          const SizedBox(width: 4.0),
-          Text(
-            'Showing cached data',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+          const SizedBox(height: 8.0),
+          // Timestamp and source row (C4 transparency)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.access_time,
+                size: 14.0,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 4.0),
+              Text(
+                'Updated $relativeTime',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+              const SizedBox(width: 8.0),
+              _buildSourceChip(cachedData.source, isCached: true),
+            ],
           ),
-          const SizedBox(width: 8.0),
-          _buildSourceChip(cachedData.source, isCached: true),
         ],
       ),
     );
@@ -260,24 +289,6 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: const Icon(Icons.location_on),
               label: const Text('Set Location'),
               style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 44.0), // C3: ≥44dp touch target
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(width: 12.0),
-
-        // Map navigation button - always available
-        Expanded(
-          child: Semantics(
-            label: 'Navigate to map screen',
-            button: true,
-            child: ElevatedButton.icon(
-              onPressed: () => context.go('/map'),
-              icon: const Icon(Icons.map_outlined),
-              label: const Text('Map'),
-              style: ElevatedButton.styleFrom(
                 minimumSize: const Size(0, 44.0), // C3: ≥44dp touch target
               ),
             ),

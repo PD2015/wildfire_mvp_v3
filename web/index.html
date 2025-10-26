@@ -29,8 +29,17 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>wildfire_mvp_v3</title>
+  <title>WildFire MVP - Scottish Fire Risk Assessment</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Google Maps JavaScript API (required for google_maps_flutter_web) -->
+  <!-- Web platform implementation uses Maps JavaScript API (not native SDKs) -->
+  <!-- For development: Works without API key (shows "For development purposes only" watermark) -->
+  <!-- For production: Add your Web API key: ?key=YOUR_WEB_API_KEY -->
+  <!-- API key restrictions: Set HTTP referrer restrictions in Google Cloud Console -->
+  <!--   - Development: http://localhost:* -->
+  <!--   - Production: https://yourdomain.com/* -->
+  <script src="https://maps.googleapis.com/maps/api/js"></script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

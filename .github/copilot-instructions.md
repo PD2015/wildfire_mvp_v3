@@ -1,34 +1,142 @@
 # wildfire_mvp_v3 Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2025-10-02
+Auto-generated from all feature plans. Last updated: 2025-10-19
 
 ## Active Technologies
-- Dart 3.0+ with Flutter SDK + http package, dartz (Either type), equatable (value objects) (001-spec-a1-effisservice)
-- Dart 3.0+ with Flutter SDK + flutter_bloc, equatable, http (inherited from A2), dartz (Either type from A2) (003-a3-riskbanner-home)
-- N/A (widget consumes A2 FireRiskService data) (003-a3-riskbanner-home)
-- Dart 3.0+ with Flutter SDK + geolocator, permission_handler, shared_preferences, dartz (Either type from A1-A3) (004-a4-locationresolver-low)
-- Dart 3.0+ with Flutter SDK + shared_preferences, dartz (Either type), equatable, crypto (geohash encoding) (005-a5-cacheservice-6h)
-- Dart 3.0+ with Flutter SDK + ChangeNotifier (preferred for HomeController), existing LocationResolver (A4), FireRiskService (A2), CacheService (A5) (006-a6-home-risk)
-- SharedPreferences for manual location persistence, existing cache system (006-a6-home-risk)
-- Dart 3.0+ with Flutter SDK (existing project setup) + go_router (routing), flutter_test (testing) (010-a9-add-blank)
-- N/A (UI navigation feature only) (010-a9-add-blank)
+- **A1** (EffisService): Dart 3.0+, Flutter SDK, http, dartz (Either type), equatable (value objects)
+- **A2** (FireRiskService): http, dartz (services only), equatable (inherits from A1)
+- **A3** (RiskBanner): Widget layer consuming A2 FireRiskService data
+- **A4** (LocationResolver): geolocator, permission_handler, shared_preferences, dartz
+- **A5** (CacheService): shared_preferences, dartz, equatable, internal geohash encoder
+- **A6** (HomeController): ChangeNotifier, LocationResolver (A4), FireRiskService (A2), CacheService (A5)
+- **A9** (MapScreen): go_router, flutter_test (navigation scaffold)
+- **A10** (Google Maps MVP): google_maps_flutter ^2.5.0 (Android/iOS/Web), google_maps_flutter_web ^0.5.14+2 (auto-included), go_router, http, dartz (services only), equatable, ChangeNotifier
 
 ## Project Structure
 ```
-src/
-tests/
+lib/
+├── features/        # Feature-based organization (map/, home/)
+├── models/          # Data models (LatLng, FireRisk, etc.)
+├── services/        # Business logic & API integration
+│   └── utils/       # Service utilities (geo_utils.dart)
+├── controllers/     # State management (ChangeNotifier)
+├── utils/           # App-wide utilities (location_utils.dart)
+├── widgets/         # Reusable UI components
+└── theme/           # App theming & colors
+
+test/
+├── unit/            # Unit tests
+├── widget/          # Widget tests
+├── integration/     # Integration tests
+└── contract/        # API contract tests
 ```
 
 ## Commands
-# Add commands for Dart 3.0+ with Flutter SDK
+```bash
+# macOS has TWO deployment targets:
+# 1. macOS Desktop App (native) - Does NOT support Google Maps (A1-A9 features only)
+flutter run -d macos --dart-define=MAP_LIVE_DATA=true  # Live EFFIS data (no map)
+flutter run -d macos --dart-define=MAP_LIVE_DATA=false # Mock data (no map)
+
+# 2. macOS Web (Safari/Chrome) - DOES support Google Maps via google_maps_flutter_web
+# RECOMMENDED: Use secure script that auto-injects API key from env/dev.env.json
+./scripts/run_web.sh  # Development with API key (no watermark) ✅
+
+# Alternative: Manual run (shows watermark without API key)
+flutter run -d chrome --dart-define=MAP_LIVE_DATA=false # Web in Chrome with map
+flutter run -d chrome --dart-define=MAP_LIVE_DATA=true  # Web with live data
+
+# Mobile platforms (full Google Maps support)
+flutter run -d android --dart-define=MAP_LIVE_DATA=false # Android emulator
+flutter run -d ios --dart-define=MAP_LIVE_DATA=false     # iOS simulator
+
+# Environment file support (for secrets management)
+flutter run --dart-define-from-file=env/dev.env.json
+
+# Web deployment builds
+./scripts/build_web.sh  # Secure build with API key injection
+
+# Run all tests
+flutter test
+
+# Run specific test suite
+flutter test test/integration/map/
+
+# Format code
+dart format lib/ test/
+
+# Analyze code
+flutter analyze
+
+# Run constitution gates (C1-C5)
+./.specify/scripts/bash/constitution-gates.sh
+
+# Clean build artifacts
+flutter clean && flutter pub get
+```
 
 ## Code Style
 Dart 3.0+ with Flutter SDK: Follow standard conventions
+- Use sealed classes for state hierarchies (MapState, etc.)
+- Prefer const constructors for immutable objects
+- Use dartz Either<L,R> for error handling in **services only** (no exceptions in business logic)
+- **UI layer never imports dartz**: Controllers unwrap Either to plain states, widgets receive plain data
+- Always use GeographicUtils.logRedact() for coordinate logging (C2 compliance)
+- Commit messages follow Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`
 
 ## Recent Changes
-- 010-a9-add-blank: Added Dart 3.0+ with Flutter SDK (existing project setup) + go_router (routing), flutter_test (testing)
-- 006-a6-home-risk: Added Dart 3.0+ with Flutter SDK + ChangeNotifier (preferred for HomeController), existing LocationResolver (A4), FireRiskService (A2), CacheService (A5)
-- 005-a5-cacheservice-6h: Added CacheService with 6h TTL, geohash spatial keying, LRU eviction, SharedPreferences storage
+- **2025-10-20**: A10 Web Support - Clarified macOS web (Chrome/Safari) vs macOS desktop distinction. Google Maps works on web via google_maps_flutter_web ^0.5.14+2. Updated platform detection comments and unsupported platform messaging.
+- **2025-10-19**: A10 Google Maps MVP - Added google_maps_flutter ^2.5.0, MapController state management, FireLocationService with EFFIS WFS integration
+- **2025-10-02**: A9 MapScreen scaffold - Added go_router navigation, blank map placeholder
+- **2025-10-02**: A6 HomeController - Added ChangeNotifier pattern with LocationResolver, FireRiskService, CacheService integration
+
+## Utility Classes Reference
+
+### GeographicUtils (lib/services/utils/geo_utils.dart)
+Primary geographic utility class for service layer operations:
+```dart
+class GeographicUtils {
+  // Privacy-compliant coordinate logging (C2 compliance)
+  static String logRedact(double lat, double lon);  // "55.95,-3.19"
+  
+  // Scotland boundary detection (for SEPA service routing)
+  static bool isInScotland(double lat, double lon);
+  
+  // Geohash encoding for spatial cache keys (uses GeohashUtils internal encoder)
+  static String geohash(double lat, double lon, {int precision = 5});
+}
+```
+
+### GeohashUtils (lib/utils/geohash_utils.dart)
+Internal base32 geohash encoder (no external dependencies):
+```dart
+class GeohashUtils {
+  // Standard geohash algorithm with base32 encoding
+  static String encode(double lat, double lon, {int precision = 5});
+  
+  // Validate geohash string format
+  static bool isValid(String geohash);
+}
+```
+Edinburgh (55.9533, -3.1883) → "gcvwr" at precision 5 (~4.9km resolution)
+
+### LocationUtils (lib/utils/location_utils.dart)
+App-level location utilities:
+```dart
+class LocationUtils {
+  // Coordinate validation
+  static bool isValidCoordinate(double lat, double lon);
+  
+  // Privacy-compliant coordinate logging (C2 compliance) for app layer
+  static String logRedact(double lat, double lon);  // "55.95,-3.19"
+}
+```
+
+**Layer-Appropriate Usage**:
+- Use `GeographicUtils.logRedact()` in **service layer** (`lib/services/**`)
+- Use `LocationUtils.logRedact()` in **app layer** (`lib/controllers/**`, `lib/widgets/**`)
+- Both provide identical C2-compliant 2-decimal precision logging
+- This maintains clean architecture separation between service and app concerns
 
 ## FireRiskService Implementation Patterns
 
@@ -70,11 +178,15 @@ expect(attempts.map((e) => e.source), [
 ```
 
 ### Privacy-Compliant Logging
-Always use coordinate redaction in logs:
+Always use coordinate redaction in logs (layer-appropriate utility):
 ```dart
-// CORRECT: Privacy-preserving logging
+// CORRECT: Service layer logging
 _logger.info('Attempting EFFIS for ${GeographicUtils.logRedact(lat, lon)}');
 // Outputs: "Attempting EFFIS for 55.95,-3.19"
+
+// CORRECT: App layer logging  
+_logger.info('User location: ${LocationUtils.logRedact(lat, lon)}');
+// Outputs: "User location: 55.95,-3.19"
 
 // WRONG: Raw coordinates expose PII
 _logger.info('Attempting EFFIS for $lat,$lon'); // Violates C2 gate
@@ -116,7 +228,10 @@ abstract class CacheService {
 ```dart
 // LocationResolver implements 4-tier fallback strategy
 class LocationResolverImpl implements LocationResolver {
-  static const LatLng _scotlandCentroid = LatLng(55.8642, -4.2518);
+  /// Scotland centroid coordinates for default fallback location
+  /// Production: LatLng(55.8642, -4.2518) - Glasgow area
+  /// Test Override: LatLng(57.2, -3.8) - Aviemore (for UK fire risk testing)
+  static const LatLng _scotlandCentroid = LatLng(57.2, -3.8);
   
   @override
   Future<Either<LocationError, LatLng>> getLatLon() async {
@@ -317,13 +432,13 @@ group('LocationResolver Fallback Chain', () {
 
 ### Privacy-Compliant Location Logging
 ```dart
-// CORRECT: Limited precision logging
-_logger.info('Location resolved: ${_logRedact(coords.latitude, coords.longitude)}');
+// CORRECT: Service layer uses GeographicUtils
+_logger.info('Location resolved: ${GeographicUtils.logRedact(coords.latitude, coords.longitude)}');
 // Outputs: "Location resolved: 55.95,-3.19"
 
-String _logRedact(double lat, double lon) {
-  return '${lat.toStringAsFixed(2)},${lon.toStringAsFixed(2)}';
-}
+// CORRECT: App layer uses LocationUtils
+_logger.info('Location resolved: ${LocationUtils.logRedact(coords.latitude, coords.longitude)}');
+// Outputs: "Location resolved: 55.95,-3.19"
 
 // WRONG: Full precision exposes PII
 _logger.info('Location: $lat,$lon'); // Violates C2 constitutional gate
@@ -490,7 +605,7 @@ group('CacheService TTL and LRU', () {
 ```dart
 // CORRECT: Use geohash keys and coordinate redaction
 final geohash = GeohashUtils.encode(lat, lon, precision: 5);
-_logger.debug('Cache operation for ${LocationUtils.logRedact(lat, lon)} → $geohash');
+_logger.debug('Cache operation for ${GeographicUtils.logRedact(lat, lon)} → $geohash');
 // Outputs: "Cache operation for 55.95,-3.19 → gcpue"
 
 // CORRECT: Geohash provides inherent privacy (4.9km resolution)
@@ -499,6 +614,334 @@ _logger.info('Cache stored for geohash: $geohash');
 
 // WRONG: Raw coordinates in cache logs
 _logger.info('Cached data for $lat, $lon'); // Violates C2 gate
+```
+
+## FWI Accessibility & UI Requirements (C3/C4 Compliance)
+
+Fire Weather Index must be displayed with accessible UI components following Scottish colour palette:
+
+| FWI Range | Risk Level | UI Token | Requirements |
+|----------:|------------|----------|--------------|
+| 0-4.99 | Very Low | `riskVeryLow` | Risk chip + "Last updated: [UTC timestamp]" |
+| 5-11.99 | Low | `riskLow` | Risk chip + "Last updated: [UTC timestamp]" |
+| 12-20.99 | Moderate | `riskModerate` | Risk chip + "Last updated: [UTC timestamp]" |
+| 21-37.99 | High | `riskHigh` | Risk chip + "Last updated: [UTC timestamp]" |
+| 38-49.99 | Very High | `riskVeryHigh` | Risk chip + "Last updated: [UTC timestamp]" |
+| ≥50 | Extreme | `riskExtreme` | Risk chip + "Last updated: [UTC timestamp]" |
+
+**Accessibility Requirements**:
+- All touch targets ≥44dp (iOS) / ≥48dp (Android)
+- Sufficient color contrast for Scottish palette tokens
+- Timestamp in UTC with clear timezone indicator
+- Screen reader support via Semantics widgets
+
+## Environment & Secrets Management
+
+**No secrets in repository**: Use `--dart-define-from-file` for API keys and configuration:
+
+```bash
+# Development environment (local testing)
+flutter run --dart-define-from-file=env/dev.env.json
+
+# Production environment (release builds)
+flutter build apk --dart-define-from-file=env/prod.env.json
+```
+
+**Example `env/dev.env.json`**:
+```json
+{
+  "MAP_LIVE_DATA": "false",
+  "EFFIS_BASE_URL": "https://ies-ows.jrc.ec.europa.eu/",
+  "GOOGLE_MAPS_API_KEY_ANDROID": "YOUR_KEY_HERE",
+  "GOOGLE_MAPS_API_KEY_IOS": "YOUR_KEY_HERE"
+}
+```
+
+**Security Rules**:
+- Add `env/*.env.json` to `.gitignore`
+- Restrict Google Maps API keys by package name (Android) and bundle ID (iOS)
+- Set up billing alerts at 50% and 80% of free tier quotas
+
+## Code Quality Best Practices (flutter analyze)
+
+### Logging in Production Code
+
+**Problem**: `avoid_print` analyzer warning  
+**Solution**: Use `debugPrint()` instead of `print()` for production-safe logging
+
+```dart
+// ❌ WRONG: print() in production code triggers analyzer warning
+print('🗺️ Using test region: ${FeatureFlags.testRegion}');
+
+// ✅ CORRECT: debugPrint() is production-safe (automatically stripped in release builds)
+debugPrint('🗺️ Using test region: ${FeatureFlags.testRegion}');
+
+// Import required:
+import 'package:flutter/foundation.dart';  // For debugPrint()
+```
+
+**When to use each**:
+- `debugPrint()` - Production code (controllers, services, widgets) - preferred for most logging
+- `developer.log()` - Structured logging with tags/levels: `developer.log('message', name: 'ServiceName')`
+- `print()` - Tests only (performance tests, integration test output)
+
+### Const Constructors and Declarations
+
+**Problem**: `prefer_const_constructors`, `prefer_const_declarations` warnings  
+**Solution**: Use `const` for compile-time constants to improve performance
+
+```dart
+// ❌ WRONG: Non-const when value is constant
+final isTestRegionSet = FeatureFlags.testRegion != 'scotland';
+final location = LatLng(55.9533, -3.1883);
+
+// ✅ CORRECT: Const declarations for compile-time constants
+const isTestRegionSet = FeatureFlags.testRegion != 'scotland';
+const location = LatLng(55.9533, -3.1883);
+
+// In tests:
+// ❌ WRONG:
+final bounds = LatLngBounds(southwest: LatLng(54.0, -8.0), northeast: LatLng(61.0, 0.0));
+
+// ✅ CORRECT:
+const bounds = LatLngBounds(southwest: LatLng(54.0, -8.0), northeast: LatLng(61.0, 0.0));
+```
+
+**Rules**:
+- Use `const` for literals, constructors of immutable classes with constant values
+- Use `final` for values assigned at runtime (API responses, DateTime.now(), etc.)
+- Always use `const` in test data factories when possible
+
+### Mock API Signatures
+
+**Problem**: `invalid_override` - Mock services must match production API exactly  
+**Solution**: Always check actual service signatures when creating mocks
+
+```dart
+// ❌ WRONG: Mock uses wrong return type and parameter names
+class MockFireRiskService implements FireRiskService {
+  Future<Either<dynamic, FireRisk>> getCurrent({required double lat, required double lon}) async {
+    return Right(FireRisk(
+      level: RiskLevel.low,
+      fwi: 5.0,
+      source: DataSource.mock,
+      location: LatLng(lat, lon),      // ❌ Wrong parameter name
+      timestamp: DateTime.now(),        // ❌ Wrong parameter name
+      freshness: Freshness.live,
+    ));
+  }
+}
+
+// ✅ CORRECT: Match production signature exactly
+class MockFireRiskService implements FireRiskService {
+  @override
+  Future<Either<ApiError, FireRisk>> getCurrent({  // ✅ Correct return type
+    required double lat,
+    required double lon,
+    Duration? deadline,
+  }) async {
+    return Right(FireRisk(
+      level: RiskLevel.low,
+      fwi: 5.0,
+      source: DataSource.mock,
+      observedAt: DateTime.now().toUtc(),  // ✅ Correct parameter name
+      freshness: Freshness.live,
+    ));
+  }
+}
+
+// Import required:
+import 'package:wildfire_mvp_v3/models/api_error.dart';  // For ApiError type
+```
+
+**Checklist for mocks**:
+1. Check production service interface signature
+2. Match return type exactly (`Either<ApiError, T>` not `Either<dynamic, T>`)
+3. Match all parameter names (check constructors with required params)
+4. Import all required types (ApiError, models, etc.)
+5. Use `@override` annotation to catch signature mismatches early
+
+### Import Organization
+
+**Problem**: `unused_import` warnings  
+**Solution**: Remove unused imports, organize logically
+
+```dart
+// ✅ CORRECT: Organized imports
+import 'package:flutter_test/flutter_test.dart';  // Framework
+import 'package:dartz/dartz.dart';                // Third-party
+
+import 'package:wildfire_mvp_v3/models/api_error.dart';      // Models
+import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';  // Services
+import 'package:wildfire_mvp_v3/config/feature_flags.dart';  // Config
+```
+
+**Order**:
+1. Dart/Flutter framework imports
+2. Third-party package imports
+3. Blank line
+4. Project imports (alphabetical by path)
+
+### Running Analyzer
+
+```bash
+# Check all issues
+flutter analyze
+
+# Check specific file
+flutter analyze lib/services/fire_location_service_impl.dart
+
+# Auto-fix some issues (format only)
+dart format lib/ test/
+```
+
+**Pre-commit checklist**:
+1. Run `flutter analyze` - Should show 0 errors, minimize warnings
+2. Run `dart format .` - Auto-format code
+3. Run `flutter test` - All tests pass
+4. Commit with conventional commit message
+
+### Test-Specific Const Patterns
+
+**Const Test Data**:
+Use `const` for all compile-time constant test data to improve test performance and catch errors early.
+
+```dart
+// ❌ WRONG: Non-const test data when values are constant
+final testBounds = LatLngBounds(
+  southwest: LatLng(55.0, -4.0),
+  northeast: LatLng(56.0, -3.0),
+);
+final testLocation = LatLng(55.9533, -3.1883);
+final emptyIncidents = [];
+
+// ✅ CORRECT: Const test data
+const testBounds = LatLngBounds(
+  southwest: LatLng(55.0, -4.0),
+  northeast: LatLng(56.0, -3.0),
+);
+const testLocation = LatLng(55.9533, -3.1883);
+const emptyIncidents = <FireIncident>[];
+
+// ✅ CORRECT: Const in constructor arguments
+final state = MapSuccess(
+  incidents: const [],              // const empty list
+  centerLocation: const LatLng(55.9, -3.2),  // const coordinates
+  freshness: Freshness.mock,
+  lastUpdated: DateTime.now(),      // Runtime value, not const
+);
+```
+
+**Const vs Final in Tests**:
+- Use `const` for test data that's truly constant (coordinates, bounds, etc.)
+- Use `final` for values created at runtime (DateTime.now(), mock responses, etc.)
+
+```dart
+// ✅ CORRECT: const for compile-time constants
+const testLat = 55.9533;
+const testLon = -3.1883;
+const testCoordinates = LatLng(55.9533, -3.1883);
+
+// ✅ CORRECT: final for runtime values
+final testTimestamp = DateTime.now();
+final testState = MapSuccess(...);
+final mockResponse = await service.getData();
+```
+
+**Model Const Constructors**:
+Models should provide both const constructors (for test data) and validated factories (for runtime checks).
+
+```dart
+// Model design pattern:
+class LatLngBounds {
+  final LatLng southwest;
+  final LatLng northeast;
+  
+  // Const constructor for test data (no validation)
+  const LatLngBounds({required this.southwest, required this.northeast});
+  
+  // Validated factory for production (throws on invalid data)
+  factory LatLngBounds.validated({required LatLng southwest, required LatLng northeast}) {
+    if (southwest.latitude >= northeast.latitude) {
+      throw ArgumentError('Invalid bounds');
+    }
+    return LatLngBounds(southwest: southwest, northeast: northeast);
+  }
+}
+
+// Usage in tests:
+const validBounds = LatLngBounds(southwest: LatLng(55.0, -4.0), northeast: LatLng(56.0, -3.0));
+
+// Test validation logic:
+expect(
+  () => LatLngBounds.validated(southwest: const LatLng(56.0, -3.0), northeast: const LatLng(55.0, -4.0)),
+  throwsArgumentError,
+);
+```
+
+**Print Statements in Tests**:
+`print()` is acceptable in performance tests and debug scripts, but must be documented with analyzer ignore directive.
+
+```dart
+// ✅ CORRECT: Performance test with print() for metrics reporting
+// test/performance/map_performance_test.dart
+// NOTE: print() statements are intentional in performance tests for reporting metrics
+// ignore_for_file: avoid_print
+
+testWidgets('Map loads within 3s', (tester) async {
+  final stopwatch = Stopwatch()..start();
+  // ... test code ...
+  stopwatch.stop();
+  print('✅ Map load time: ${stopwatch.elapsedMilliseconds}ms');  // OK with ignore directive
+});
+
+// ✅ CORRECT: Debug script
+// test_ser.dart
+// Debug script for testing serialization
+// NOTE: print() is intentional for debug output
+// ignore_for_file: avoid_print
+
+void main() {
+  final json = model.toJson();
+  print('Serialized: $json');  // OK with ignore directive
+}
+
+// ❌ WRONG: print() in production code (lib/)
+void processData() {
+  print('Processing...');  // Use debugPrint() instead
+}
+```
+
+**Empty List Literals**:
+Always use `const []` for empty list literals in immutable constructors.
+
+```dart
+// ❌ WRONG: Non-const empty list
+final state = MapSuccess(
+  incidents: [],  // Triggers prefer_const_literals_to_create_immutables
+  centerLocation: testLocation,
+  freshness: Freshness.mock,
+  lastUpdated: DateTime.now(),
+);
+
+// ✅ CORRECT: Const empty list
+final state = MapSuccess(
+  incidents: const [],  // or const <FireIncident>[] for explicit type
+  centerLocation: testLocation,
+  freshness: Freshness.mock,
+  lastUpdated: DateTime.now(),
+);
+```
+
+**Batch Fixing Const Issues**:
+Use `sed` for batch const fixes when the pattern is repetitive.
+
+```bash
+# Replace all `incidents: []` with `incidents: const []`
+sed -i '' 's/incidents: \[\],/incidents: const [],/g' test/widget/map_screen_test.dart
+
+# Replace all `final testBounds = LatLngBounds` with `const testBounds = LatLngBounds`
+sed -i '' 's/final testBounds = LatLngBounds/const testBounds = LatLngBounds/g' test/**/*.dart
 ```
 
 <!-- MANUAL ADDITIONS START -->
