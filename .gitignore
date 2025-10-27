@@ -49,3 +49,9 @@ app.*.map.json
 /env/*.env.json
 !/env/*.template
 !/env/ci.env.json
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
