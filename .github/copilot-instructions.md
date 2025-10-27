@@ -11,6 +11,8 @@ Auto-generated from all feature plans. Last updated: 2025-10-19
 - **A6** (HomeController): ChangeNotifier, LocationResolver (A4), FireRiskService (A2), CacheService (A5)
 - **A9** (MapScreen): go_router, flutter_test (navigation scaffold)
 - **A10** (Google Maps MVP): google_maps_flutter ^2.5.0 (Android/iOS/Web), google_maps_flutter_web ^0.5.14+2 (auto-included), go_router, http, dartz (services only), equatable, ChangeNotifier
+- Dart 3.9.2, Flutter 3.35.5 stable + Firebase Hosting (deployment infrastructure), GitHub Actions (CI/CD orchestration), google_maps_flutter ^2.5.0 (mapping component), firebase-tools CLI (deployment tool) (012-a11-ci-cd)
+- Firebase Hosting (web build artifacts), GitHub Secrets (API keys: FIREBASE_SERVICE_ACCOUNT, FIREBASE_PROJECT_ID, GOOGLE_MAPS_API_KEY_WEB_PREVIEW, GOOGLE_MAPS_API_KEY_WEB_PRODUCTION) (012-a11-ci-cd)
 
 ## Project Structure
 ```
@@ -85,10 +87,9 @@ Dart 3.0+ with Flutter SDK: Follow standard conventions
 - Commit messages follow Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`
 
 ## Recent Changes
+- 012-a11-ci-cd: Added Dart 3.9.2, Flutter 3.35.5 stable + Firebase Hosting (deployment infrastructure), GitHub Actions (CI/CD orchestration), google_maps_flutter ^2.5.0 (mapping component), firebase-tools CLI (deployment tool)
 - **2025-10-20**: A10 Web Support - Clarified macOS web (Chrome/Safari) vs macOS desktop distinction. Google Maps works on web via google_maps_flutter_web ^0.5.14+2. Updated platform detection comments and unsupported platform messaging.
 - **2025-10-19**: A10 Google Maps MVP - Added google_maps_flutter ^2.5.0, MapController state management, FireLocationService with EFFIS WFS integration
-- **2025-10-02**: A9 MapScreen scaffold - Added go_router navigation, blank map placeholder
-- **2025-10-02**: A6 HomeController - Added ChangeNotifier pattern with LocationResolver, FireRiskService, CacheService integration
 
 ## Utility Classes Reference
 
