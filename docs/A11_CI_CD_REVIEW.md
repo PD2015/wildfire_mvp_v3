@@ -483,14 +483,14 @@ Before running the Specify command, complete these steps:
 - [x] Test deployment: ✅ https://wildfire-app-e11f8.web.app (map loads without watermark)
 
 ### Phase 3: GitHub Configuration (10 minutes)
-- [ ] Add secrets to GitHub: Settings → Secrets and variables → Actions
-  - [ ] FIREBASE_SERVICE_ACCOUNT (paste JSON content)
-  - [ ] FIREBASE_PROJECT_ID (e.g., wildfire-mvp-v3)
-  - [ ] GOOGLE_MAPS_API_KEY_WEB_PREVIEW
-  - [ ] GOOGLE_MAPS_API_KEY_WEB_PRODUCTION
-- [ ] Create "production" environment: Settings → Environments → New environment
-  - [ ] Add required reviewers
-  - [ ] Set deployment protection rules
+- [x] Add secrets to GitHub: Settings → Secrets and variables → Actions
+  - [x] FIREBASE_SERVICE_ACCOUNT (paste JSON content)
+  - [x] FIREBASE_PROJECT_ID (wildfire-app-e11f8)
+  - [x] GOOGLE_MAPS_API_KEY_WEB_PREVIEW
+  - [x] GOOGLE_MAPS_API_KEY_WEB_PRODUCTION
+- [x] Create "production" environment: Settings → Environments → New environment
+  - [x] Add required reviewers
+  - [x] Set deployment protection rules
 
 ### Phase 4: Run Specify Command (2-3 minutes)
 - [ ] Paste the updated Specify command above
