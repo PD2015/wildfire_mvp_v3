@@ -474,11 +474,13 @@ Before running the Specify command, complete these steps:
 - [x] Test actual deployment: `firebase deploy --only hosting` (✅ SUCCESS - https://wildfire-app-e11f8.web.app)
 
 ### Phase 2: API Key Configuration (10-15 minutes)
-- [ ] Create Google Maps API key for preview (if not exists)
-- [ ] Create Google Maps API key for production (if not exists)
-- [ ] Configure HTTP referrer restrictions on preview key: `*.web.app/*`, `*.firebaseapp.com/*`
-- [ ] Configure HTTP referrer restrictions on production key: `yourdomain.com/*`
-- [ ] Test keys work on local build: `./scripts/build_web.sh`
+- [x] Create Google Maps API key for Firebase domains (WildFire Web - Firebase Preview)
+  - Restricted to: `https://wildfire-app-e11f8.web.app/*`, `https://wildfire-app-e11f8.firebaseapp.com/*`, `https://*.wildfire-app-e11f8.web.app/*`
+  - Covers: Production, alternative domain, and all PR preview channels
+- [ ] Create separate production key (OPTIONAL - only needed when you get a custom domain)
+- [x] Update local `env/dev.env.json` with new key
+- [x] Test build with `./scripts/build_web.sh`
+- [x] Test deployment: ✅ https://wildfire-app-e11f8.web.app (map loads without watermark)
 
 ### Phase 3: GitHub Configuration (10 minutes)
 - [ ] Add secrets to GitHub: Settings → Secrets and variables → Actions
