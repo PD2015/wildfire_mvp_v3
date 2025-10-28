@@ -931,7 +931,7 @@ grep "012-a11-ci-cd" .github/copilot-instructions.md
 
 **Integration (P3)**:
 - [x] T007: Execute Scenario 1 (Local Build)
-- [ ] T008: Execute Scenario 2 (PR Preview)
+- [x] T008: Execute Scenario 2 (PR Preview)
 - [ ] T009: Execute Scenario 3 (Production)
 
 **Advanced (P4 - Optional)**:
