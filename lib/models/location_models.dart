@@ -10,7 +10,11 @@ class LatLng extends Equatable {
   /// Validates that coordinates are within valid GPS bounds
   /// Latitude: [-90.0, 90.0], Longitude: [-180.0, 180.0]
   bool get isValid {
-    return latitude >= -90.0 &&
+    return !latitude.isNaN &&
+        !longitude.isNaN &&
+        !latitude.isInfinite &&
+        !longitude.isInfinite &&
+        latitude >= -90.0 &&
         latitude <= 90.0 &&
         longitude >= -180.0 &&
         longitude <= 180.0;

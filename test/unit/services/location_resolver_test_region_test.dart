@@ -1,5 +1,8 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver_impl.dart';
+import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 
 /// Tests for TEST_REGION feature flag behavior in LocationResolver
@@ -8,10 +11,15 @@ import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 /// an error when TEST_REGION is explicitly set, allowing controllers to use
 /// test region coordinates for EFFIS queries.
 void main() {
+  // Initialize Flutter binding for platform services
+  WidgetsFlutterBinding.ensureInitialized();
+
   group('LocationResolver TEST_REGION Integration', () {
     late LocationResolverImpl locationResolver;
 
     setUp(() {
+      // Mock SharedPreferences to prevent hanging on web platform
+      SharedPreferences.setMockInitialValues({});
       locationResolver = LocationResolverImpl();
     });
 
@@ -42,18 +50,25 @@ void main() {
 
     test('TEST_REGION=scotland (default) should use normal GPS flow', () async {
       // When TEST_REGION is default 'scotland', normal GPS flow applies:
-      // 1. Try GPS (with timeout)
+      // 1. Try GPS (with timeout) - on web/unsupported platforms, skips to cache
       // 2. Fall back to cached location
       // 3. Fall back to Scotland centroid
 
       // This test verifies the default behavior is unchanged
+      // On web platform, GPS is skipped and falls back to default centroid
       final result = await locationResolver.getLatLon();
 
       expect(
         result.isRight(),
         isTrue,
-        reason: 'Default flow should succeed with Scotland centroid',
+        reason:
+            'Default flow should succeed with Scotland centroid (via cache fallback on web)',
       );
+
+      // Verify we get valid coordinates
+      final coords = result.getOrElse(() => const LatLng(0, 0));
+      expect(coords.latitude, isNonZero);
+      expect(coords.longitude, isNonZero);
     });
 
     group('GPS Skip Behavior (Integration Test Scenarios)', () {

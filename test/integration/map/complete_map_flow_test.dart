@@ -166,6 +166,9 @@ class MockFireRiskService implements FireRiskService {
 }
 
 void main() {
+  // Initialize Flutter binding for GoogleMap platform channels
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('Complete Map Flow Integration Tests (T034)', () {
     late MockLocationResolver mockLocationResolver;
     late MockFireLocationService mockFireLocationService;

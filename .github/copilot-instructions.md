@@ -13,10 +13,6 @@ Auto-generated from all feature plans. Last updated: 2025-10-19
 - **A10** (Google Maps MVP): google_maps_flutter ^2.5.0 (Android/iOS/Web), google_maps_flutter_web ^0.5.14+2 (auto-included), go_router, http, dartz (services only), equatable, ChangeNotifier
 - Dart 3.9.2, Flutter 3.35.5 stable + Firebase Hosting (deployment infrastructure), GitHub Actions (CI/CD orchestration), google_maps_flutter ^2.5.0 (mapping component), firebase-tools CLI (deployment tool) (012-a11-ci-cd)
 - Firebase Hosting (web build artifacts), GitHub Secrets (API keys: FIREBASE_SERVICE_ACCOUNT, FIREBASE_PROJECT_ID, GOOGLE_MAPS_API_KEY_WEB_PREVIEW, GOOGLE_MAPS_API_KEY_WEB_PRODUCTION) (012-a11-ci-cd)
-- Dart 3.9.2, Flutter 3.35.5 stable + url_launcher (native dialer integration), go_router (navigation), flutter_test (testing) (013-a12-report-fire)
-- N/A (no data persistence required) (013-a12-report-fire)
-- Dart 3.9.2, Flutter 3.35.5 stable + url_launcher ^6.3.0 (native dialer integration), go_router ^14.2.7 (navigation), flutter_test (testing) (014-a12b-report-fire)
-- N/A (no data persistence required - static content only) (014-a12b-report-fire)
 
 ## Project Structure
 ```
@@ -79,9 +75,6 @@ flutter analyze
 
 # Clean build artifacts
 flutter clean && flutter pub get
-
-# iOS Development (with Google Maps crash fix)
-./scripts/run_ios_safe.sh  # ✅ RECOMMENDED: Automated API key injection + safe launch
 ```
 
 ## Code Style
@@ -94,9 +87,9 @@ Dart 3.0+ with Flutter SDK: Follow standard conventions
 - Commit messages follow Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`
 
 ## Recent Changes
-- 014-a12b-report-fire: Added Dart 3.9.2, Flutter 3.35.5 stable + url_launcher ^6.3.0 (native dialer integration), go_router ^14.2.7 (navigation), flutter_test (testing)
-- **2025-10-28**: ✅ **iOS Google Maps Crash RESOLVED** - Created `ios/ios_prebuild.sh` script that automatically extracts API keys from DART_DEFINES and injects them into Info.plist. Integrated into `scripts/run_ios_safe.sh` for seamless development. Maps tab now loads without `GMSServices checkServicePreconditions` crashes.
-- 013-a12-report-fire: Added Dart 3.9.2, Flutter 3.35.5 stable + url_launcher (native dialer integration), go_router (navigation), flutter_test (testing)
+- 012-a11-ci-cd: Added Dart 3.9.2, Flutter 3.35.5 stable + Firebase Hosting (deployment infrastructure), GitHub Actions (CI/CD orchestration), google_maps_flutter ^2.5.0 (mapping component), firebase-tools CLI (deployment tool)
+- **2025-10-20**: A10 Web Support - Clarified macOS web (Chrome/Safari) vs macOS desktop distinction. Google Maps works on web via google_maps_flutter_web ^0.5.14+2. Updated platform detection comments and unsupported platform messaging.
+- **2025-10-19**: A10 Google Maps MVP - Added google_maps_flutter ^2.5.0, MapController state management, FireLocationService with EFFIS WFS integration
 
 ## Utility Classes Reference
 
@@ -952,6 +945,43 @@ sed -i '' 's/incidents: \[\],/incidents: const [],/g' test/widget/map_screen_tes
 sed -i '' 's/final testBounds = LatLngBounds/const testBounds = LatLngBounds/g' test/**/*.dart
 ```
 
+<!-- MANUAL ADDITIONS START -->
+
+## CI/CD Deployment Guidelines (A11)
+
+### Build Scripts
+```bash
+# Local development build (uses env/dev.env.json)
+./scripts/build_web.sh
+
+# CI build with API key injection (requires MAPS_API_KEY_WEB env var)
+export MAPS_API_KEY_WEB="your_api_key_here"
+./scripts/build_web_ci.sh
+```
+
+### Deployment Workflow
+- **PR Preview**: Automatic on pull_request (7-day expiry)
+- **Production**: Manual approval required (GitHub Environment: production)
+- **Job Flow**: build → build-web → deploy-preview|deploy-production
+
+### Troubleshooting Deployments
+- **Preview URL 404** → Check firebase.json rewrites configuration
+- **Map watermark** → Check API key HTTP referrer restrictions in Google Cloud Console
+- **Build fails "placeholder not found"** → Verify web/index.html has `%MAPS_API_KEY%`
+- **Auth failed** → Check FIREBASE_SERVICE_ACCOUNT secret validity
+
+### Secrets Management
+- Never commit API keys (use `%MAPS_API_KEY%` placeholder in web/index.html)
+- Log API keys as masked: `${MAPS_API_KEY_WEB:0:8}***` (first 8 chars only)
+- Rotate keys every 90 days (generate new, update secret, test, revoke old)
+
+### Rollback Procedures
+1. **Firebase Console** (fastest - 30 sec): Hosting → Release history → Rollback
+2. **Firebase CLI** (scriptable): `firebase hosting:rollback <release-id>`
+3. **Git Revert** (audit trail): `git revert <sha>` → push → approve deployment
+
+See **docs/FIREBASE_DEPLOYMENT.md** for complete runbook.
+
 ## Flutter Testing Best Practices
 
 ### Binding Initialization for Platform Channels
@@ -1041,171 +1071,14 @@ Future<LatLng> getLocation() async {
 }
 ```
 
-**Logging platform guards**:
-```dart
-if (kIsWeb) {
-  debugPrint('Platform guard: Skipping GPS on web');
-}
-```
-
-### Cache Version Handling
-
-**Problem**: Cache version mismatches cause "Cache version mismatch or missing" errors.
-
-**Solution**: Always include version field in cached JSON and validate on read:
-
-```dart
-class CacheEntry<T> {
-  static const String currentVersion = '1.0';
-  
-  Map<String, dynamic> toJson(Map<String, dynamic> Function(T) toJsonT) {
-    return {
-      'version': currentVersion,  // ✅ Always include version
-      'timestamp': timestamp.millisecondsSinceEpoch,
-      'data': toJsonT(data),
-    };
-  }
-  
-  factory CacheEntry.fromJson(
-    Map<String, dynamic> json,
-    T Function(Map<String, dynamic>) fromJsonT,
-  ) {
-    final version = json['version'] as String?;
-    
-    // ✅ Validate version and clear cache if mismatch
-    if (version != currentVersion) {
-      throw CacheVersionException('Cache version mismatch: $version');
-    }
-    
-    return CacheEntry(
-      data: fromJsonT(json['data']),
-      timestamp: DateTime.fromMillisecondsSinceEpoch(json['timestamp']),
-    );
-  }
-}
-
-// In service layer:
-Future<Option<T>> get(String key) async {
-  try {
-    final json = prefs.getString(key);
-    if (json == null) return none();
-    
-    final entry = CacheEntry.fromJson(jsonDecode(json), T.fromJson);
-    return some(entry.data);
-  } on CacheVersionException catch (e) {
-    debugPrint('Cache cleared due to version mismatch: $e');
-    await prefs.remove(key);  // Clear outdated cache
-    return none();
-  }
-}
-```
-
-### Dependency Management
-
-**Problem**: CI warns "X packages have newer versions incompatible with dependency constraints".
-
-**Solution**: Regularly update dependencies and fix breaking changes:
-
-```bash
-# Check for outdated packages
-flutter pub outdated
-
-# Upgrade to latest compatible versions (respects pubspec.yaml constraints)
-flutter pub upgrade
-
-# Upgrade to latest versions (may break constraints - requires pubspec.yaml updates)
-flutter pub upgrade --major-versions
-
-# After major upgrades, verify all tests pass
-flutter test
-flutter analyze
-```
-
-**Pre-commit checklist** (add to `.githooks/pre-commit` or manual workflow):
-1. Run `flutter pub outdated` monthly
-2. Run `flutter pub upgrade` before major releases
-3. Fix any breaking changes from upgrades
-4. Commit pubspec.lock changes with dependency updates
-
-**CI/CD best practice**: Add dependency check to workflow:
-```yaml
-- name: Check outdated dependencies
-  run: |
-    flutter pub outdated || echo "⚠️  Some dependencies are outdated"
-  continue-on-error: true  # Don't fail build, just warn
-```
-
-### Mock Platform Services in Tests
-
-**Problem**: Real platform services are slow, flaky, or unavailable in test environments.
-
-**Solution**: Use fakes and mocks for platform dependencies:
-
-```dart
-// ✅ CORRECT: Fake SharedPreferences for fast, reliable tests
-test('cache stores data', () async {
-  SharedPreferences.setMockInitialValues({});  // Mock in-memory storage
-  final prefs = await SharedPreferences.getInstance();
-  
-  await prefs.setString('key', 'value');
-  expect(prefs.getString('key'), 'value');
-});
-
-// ✅ CORRECT: Fake Geolocator for GPS testing
-class FakeGeolocator implements GeolocatorService {
-  Position? nextPosition;
-  
-  @override
-  Future<Position> getCurrentPosition() async {
-    if (nextPosition != null) return nextPosition!;
-    throw LocationServiceDisabledException();
-  }
-}
-
-test('location resolver handles GPS timeout', () async {
-  final fakeGeo = FakeGeolocator();
-  final resolver = LocationResolverImpl(geolocator: fakeGeo);
-  
-  // No position set - will throw
-  final result = await resolver.getLatLon();
-  expect(result.isLeft(), true);  // Error result
-});
-
-// ❌ WRONG: Using real platform services in tests
-test('cache stores data', () async {
-  // This uses real SharedPreferences - slow and stateful
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('key', 'value');
-});
-```
-
-**Fake pattern** (in `test/support/fakes.dart`):
-```dart
-/// Fake [Service] for testing without real [platform] dependencies
-class Fake[Service] implements [Service] {
-  // Controllable state for test scenarios
-  bool shouldFail = false;
-  [ReturnType]? nextResult;
-  
-  @override
-  Future<[ReturnType]> method() async {
-    if (shouldFail) throw Exception('Simulated failure');
-    return nextResult ?? [defaultValue];
-  }
-}
-```
-
 ### Summary: Testing Checklist
 
 Before committing test changes, verify:
 
 - [ ] All test files using platform channels call `WidgetsFlutterBinding.ensureInitialized()`
 - [ ] Platform-specific code has `kIsWeb` or `Platform` guards
-- [ ] Cache services include version field and handle mismatches gracefully
 - [ ] Tests use mocks/fakes instead of real platform services
 - [ ] `flutter analyze` shows zero errors
 - [ ] `flutter test` passes on all platforms (run locally on web with `flutter test --platform=chrome`)
-- [ ] Dependencies updated monthly with `flutter pub outdated`
 
-<!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

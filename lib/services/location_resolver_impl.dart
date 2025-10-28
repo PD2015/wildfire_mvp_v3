@@ -42,8 +42,8 @@ class LocationResolverImpl implements LocationResolver {
       const isTestRegionSet = FeatureFlags.testRegion != 'scotland';
 
       if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
-        debugPrint(
-            'Platform guard: Skipping GPS on ${kIsWeb ? 'web' : Platform.operatingSystem}');
+        const platformName = kIsWeb ? 'web' : 'macos';
+        debugPrint('Platform guard: Skipping GPS on $platformName');
         return await _fallbackToCache(allowDefault);
       }
 
@@ -157,15 +157,17 @@ class LocationResolverImpl implements LocationResolver {
       final lon = prefs.getDouble(_lonKey);
 
       if (lat != null && lon != null) {
-        // Validate coordinates are in correct range
+        // Validate coordinates are not NaN, not infinite, and in correct range
+        final isValidNumber =
+            !lat.isNaN && !lon.isNaN && !lat.isInfinite && !lon.isInfinite;
         // Scotland is between latitudes 54.5-60.9 and longitudes -8.6 to -0.7
         final isValidLatitude = lat >= 54.0 && lat <= 61.0;
         final isValidLongitude = lon >= -9.0 && lon <= 0.0;
 
-        if (isValidLatitude && isValidLongitude) {
+        if (isValidNumber && isValidLatitude && isValidLongitude) {
           return Right(LatLng(lat, lon));
         } else {
-          // Clear corrupted cache (likely has wrong sign on longitude)
+          // Clear corrupted cache (NaN, infinite, or out of range coordinates)
           debugPrint(
               'Invalid cached coordinates: lat=$lat, lon=$lon. Clearing cache.');
           await prefs.remove(_latKey);
@@ -173,7 +175,6 @@ class LocationResolverImpl implements LocationResolver {
           await prefs.remove(_versionKey);
         }
       }
-
       return const Left(LocationError.gpsUnavailable);
     } catch (e) {
       debugPrint('Cache read error: $e');

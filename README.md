@@ -156,11 +156,18 @@ dev_dependencies:
 git clone <repository-url>
 cd wildfire_mvp_v3
 
+# Enable git hooks for auto-formatting (recommended)
+git config core.hooksPath .githooks
+
 # Install dependencies
 flutter pub get
 
 # Generate mock files
 dart run build_runner build
+
+# Verify code quality before committing (recommended)
+dart format .
+flutter analyze
 
 # Run tests
 flutter test
