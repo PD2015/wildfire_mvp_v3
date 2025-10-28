@@ -11,6 +11,8 @@ A Flutter mobile application that provides real-time wildfire risk assessment us
 - **Real-time FWI Data**: Integration with EFFIS WMS GetFeatureInfo API
 - **Risk Assessment**: Automatic risk level categorization (low, moderate, high, very high, extreme)
 - **Interactive Maps**: Google Maps integration with fire incident markers (iOS crash-free ✅)
+  - **iOS Integration**: Complete crash-free solution with automated API key injection
+  - **Cross-Platform Support**: Works on iOS, Android, and web platforms
 - **Robust Error Handling**: Comprehensive error management with retry logic
 - **Offline Resilience**: Graceful handling of network issues with exponential backoff
 - **Demo Mode Transparency**: Prominent "DEMO DATA" chip when using mock data (C4 compliance)
@@ -163,9 +165,14 @@ dart run build_runner build
 # Run tests
 flutter test
 
-# Run the app
+# Run the app (standard Flutter commands work automatically)
 flutter run
+
+# iOS with API keys (uses automatic injection via Xcode Build Phase)
+flutter run -d ios --dart-define-from-file=env/dev.env.json
 ```
+
+**📱 iOS Setup**: For iOS Google Maps integration, see **[iOS Google Maps Integration Guide](docs/IOS_GOOGLE_MAPS_INTEGRATION.md)** for complete setup instructions including API key configuration and crash-free deployment.
 
 ### Feature Flags
 
@@ -309,8 +316,18 @@ result.fold(
 
 ## 📄 Documentation
 
-- **[Test Coverage Report](docs/TEST_COVERAGE.md)** - Detailed coverage analysis
-- **[API Documentation](docs/)** - Service and model documentation
+### Core Documentation
+- **[Test Coverage Report](docs/TEST_COVERAGE.md)** - Detailed coverage analysis and standards
+- **[iOS Google Maps Integration](docs/IOS_GOOGLE_MAPS_INTEGRATION.md)** - Complete iOS setup, crash fixes, and best practices
+- **[API Key Setup](docs/API_KEY_SETUP.md)** - Google Maps API configuration for all platforms
+- **[Cross-Platform Testing](docs/CROSS_PLATFORM_TESTING.md)** - Testing strategies across iOS, Android, and web
+
+### Platform-Specific Guides
+- **[macOS Web Support](docs/MACOS_WEB_SUPPORT.md)** - Running on macOS with Google Maps via web
+- **[Web API Security](docs/WEB_API_KEY_SECURITY.md)** - Secure API key management for web deployments
+
+### Historical Documentation
+- **[History Archive](docs/history/)** - Development sessions, testing logs, and historical decisions
 - **Flutter Documentation** - [https://docs.flutter.dev/](https://docs.flutter.dev/)
 
 ## 📊 Project Status
