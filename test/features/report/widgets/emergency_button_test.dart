@@ -35,7 +35,7 @@ void main() {
     testWidgets('should render Police Scotland button with correct styling',
         (tester) async {
       // Arrange
-      final contact = EmergencyContact.policeScotland;
+      const contact = EmergencyContact.policeScotland;
 
       // Act
       await tester.pumpWidget(
@@ -57,7 +57,7 @@ void main() {
     testWidgets('should render Crimestoppers button with correct styling',
         (tester) async {
       // Arrange
-      final contact = EmergencyContact.crimestoppers;
+      const contact = EmergencyContact.crimestoppers;
 
       // Act
       await tester.pumpWidget(
@@ -79,7 +79,7 @@ void main() {
     testWidgets('should meet accessibility requirements for touch target size',
         (tester) async {
       // Arrange
-      final contact = EmergencyContact.fireService;
+      const contact = EmergencyContact.fireService;
 
       // Act
       await tester.pumpWidget(
@@ -104,7 +104,7 @@ void main() {
     testWidgets('should have proper semantic labels for accessibility',
         (tester) async {
       // Arrange
-      final contact = EmergencyContact.fireService;
+      const contact = EmergencyContact.fireService;
 
       // Act
       await tester.pumpWidget(
@@ -127,7 +127,7 @@ void main() {
     testWidgets('should apply correct color scheme based on priority',
         (tester) async {
       // Arrange
-      final fireContact = EmergencyContact.fireService;
+      const fireContact = EmergencyContact.fireService;
 
       // Act
       await tester.pumpWidget(
