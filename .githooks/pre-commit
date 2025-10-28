@@ -1,0 +1,17 @@
+#!/bin/sh
+# Pre-commit hook to auto-format Dart code
+# This ensures all commits have properly formatted code
+#
+# Setup: git config core.hooksPath .githooks
+# Bypass: git commit --no-verify (not recommended)
+
+echo "🔍 Running dart format..."
+
+# Format all Dart files
+dart format .
+
+# Add any formatted files back to the staging area
+git add -u
+
+echo "✅ Code formatting complete"
+exit 0
