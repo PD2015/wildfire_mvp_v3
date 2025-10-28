@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wildfire_mvp_v3/services/cache/fire_risk_cache_impl.dart';
@@ -24,6 +25,9 @@ class FakeClock implements Clock {
 }
 
 void main() {
+  // Initialize Flutter binding for SharedPreferences platform channel
+  WidgetsFlutterBinding.ensureInitialized();
+
   group('Cache Persistence Integration', () {
     late FireRisk testFireRisk;
     late FakeClock fakeClock;

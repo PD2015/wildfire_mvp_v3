@@ -951,5 +951,260 @@ sed -i '' 's/incidents: \[\],/incidents: const [],/g' test/widget/map_screen_tes
 sed -i '' 's/final testBounds = LatLngBounds/const testBounds = LatLngBounds/g' test/**/*.dart
 ```
 
+## Flutter Testing Best Practices
+
+### Binding Initialization for Platform Channels
+
+**Problem**: Tests that use platform channels fail with "Binding has not yet been initialized" error.
+
+**Solution**: Call `WidgetsFlutterBinding.ensureInitialized()` at the start of `main()` in test files that use:
+- SharedPreferences
+- Geolocator or other location services
+- URL launcher or external intents
+- Any plugin with native platform code
+- Flutter services that require binding (ServicesBinding, WidgetsBinding, etc.)
+
+```dart
+// ✅ CORRECT: Initialize binding for tests using platform channels
+import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() {
+  // Required before accessing any platform channels or Flutter services
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  test('cache stores data', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    // ... test code
+  });
+}
+
+// ❌ WRONG: Missing binding initialization
+void main() {
+  test('cache stores data', () async {
+    // This will fail with "Binding has not yet been initialized"
+    final prefs = await SharedPreferences.getInstance();
+  });
+}
+```
+
+**When to use**:
+- Integration tests that use `SharedPreferences`, `Geolocator`, `url_launcher`, or other plugins
+- Unit tests accessing platform channels directly
+- Tests that instantiate services with plugin dependencies
+
+**When NOT needed**:
+- Pure unit tests with no Flutter dependencies
+- Widget tests using `testWidgets()` (binding auto-initialized)
+- Tests only using mocks/fakes with no real platform channels
+
+### Platform Guards for Web and CI
+
+**Problem**: Platform-specific code (GPS, file I/O, native features) breaks on web or CI environments.
+
+**Solution**: Use `kIsWeb` and `Platform` guards to skip platform-specific logic:
+
+```dart
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+
+// ✅ CORRECT: Platform guard for mobile-only features
+Future<LatLng> getLocation() async {
+  if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
+    // Web or desktop - return default location
+    return const LatLng(55.8642, -4.2518); // Scotland centroid
+  }
+  
+  // Mobile only - use GPS
+  final position = await Geolocator.getCurrentPosition();
+  return LatLng(position.latitude, position.longitude);
+}
+
+// ✅ CORRECT: Test with platform detection
+test('location resolver falls back on web', () async {
+  final location = await locationResolver.getLatLon();
+  
+  if (kIsWeb) {
+    expect(location, equals(TestData.scotlandCentroid));
+  } else {
+    expect(location.latitude, closeTo(55.9, 0.1));
+  }
+});
+
+// ❌ WRONG: No platform guard - will fail on web
+Future<LatLng> getLocation() async {
+  final position = await Geolocator.getCurrentPosition(); // Crashes on web
+  return LatLng(position.latitude, position.longitude);
+}
+```
+
+**Logging platform guards**:
+```dart
+if (kIsWeb) {
+  debugPrint('Platform guard: Skipping GPS on web');
+}
+```
+
+### Cache Version Handling
+
+**Problem**: Cache version mismatches cause "Cache version mismatch or missing" errors.
+
+**Solution**: Always include version field in cached JSON and validate on read:
+
+```dart
+class CacheEntry<T> {
+  static const String currentVersion = '1.0';
+  
+  Map<String, dynamic> toJson(Map<String, dynamic> Function(T) toJsonT) {
+    return {
+      'version': currentVersion,  // ✅ Always include version
+      'timestamp': timestamp.millisecondsSinceEpoch,
+      'data': toJsonT(data),
+    };
+  }
+  
+  factory CacheEntry.fromJson(
+    Map<String, dynamic> json,
+    T Function(Map<String, dynamic>) fromJsonT,
+  ) {
+    final version = json['version'] as String?;
+    
+    // ✅ Validate version and clear cache if mismatch
+    if (version != currentVersion) {
+      throw CacheVersionException('Cache version mismatch: $version');
+    }
+    
+    return CacheEntry(
+      data: fromJsonT(json['data']),
+      timestamp: DateTime.fromMillisecondsSinceEpoch(json['timestamp']),
+    );
+  }
+}
+
+// In service layer:
+Future<Option<T>> get(String key) async {
+  try {
+    final json = prefs.getString(key);
+    if (json == null) return none();
+    
+    final entry = CacheEntry.fromJson(jsonDecode(json), T.fromJson);
+    return some(entry.data);
+  } on CacheVersionException catch (e) {
+    debugPrint('Cache cleared due to version mismatch: $e');
+    await prefs.remove(key);  // Clear outdated cache
+    return none();
+  }
+}
+```
+
+### Dependency Management
+
+**Problem**: CI warns "X packages have newer versions incompatible with dependency constraints".
+
+**Solution**: Regularly update dependencies and fix breaking changes:
+
+```bash
+# Check for outdated packages
+flutter pub outdated
+
+# Upgrade to latest compatible versions (respects pubspec.yaml constraints)
+flutter pub upgrade
+
+# Upgrade to latest versions (may break constraints - requires pubspec.yaml updates)
+flutter pub upgrade --major-versions
+
+# After major upgrades, verify all tests pass
+flutter test
+flutter analyze
+```
+
+**Pre-commit checklist** (add to `.githooks/pre-commit` or manual workflow):
+1. Run `flutter pub outdated` monthly
+2. Run `flutter pub upgrade` before major releases
+3. Fix any breaking changes from upgrades
+4. Commit pubspec.lock changes with dependency updates
+
+**CI/CD best practice**: Add dependency check to workflow:
+```yaml
+- name: Check outdated dependencies
+  run: |
+    flutter pub outdated || echo "⚠️  Some dependencies are outdated"
+  continue-on-error: true  # Don't fail build, just warn
+```
+
+### Mock Platform Services in Tests
+
+**Problem**: Real platform services are slow, flaky, or unavailable in test environments.
+
+**Solution**: Use fakes and mocks for platform dependencies:
+
+```dart
+// ✅ CORRECT: Fake SharedPreferences for fast, reliable tests
+test('cache stores data', () async {
+  SharedPreferences.setMockInitialValues({});  // Mock in-memory storage
+  final prefs = await SharedPreferences.getInstance();
+  
+  await prefs.setString('key', 'value');
+  expect(prefs.getString('key'), 'value');
+});
+
+// ✅ CORRECT: Fake Geolocator for GPS testing
+class FakeGeolocator implements GeolocatorService {
+  Position? nextPosition;
+  
+  @override
+  Future<Position> getCurrentPosition() async {
+    if (nextPosition != null) return nextPosition!;
+    throw LocationServiceDisabledException();
+  }
+}
+
+test('location resolver handles GPS timeout', () async {
+  final fakeGeo = FakeGeolocator();
+  final resolver = LocationResolverImpl(geolocator: fakeGeo);
+  
+  // No position set - will throw
+  final result = await resolver.getLatLon();
+  expect(result.isLeft(), true);  // Error result
+});
+
+// ❌ WRONG: Using real platform services in tests
+test('cache stores data', () async {
+  // This uses real SharedPreferences - slow and stateful
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('key', 'value');
+});
+```
+
+**Fake pattern** (in `test/support/fakes.dart`):
+```dart
+/// Fake [Service] for testing without real [platform] dependencies
+class Fake[Service] implements [Service] {
+  // Controllable state for test scenarios
+  bool shouldFail = false;
+  [ReturnType]? nextResult;
+  
+  @override
+  Future<[ReturnType]> method() async {
+    if (shouldFail) throw Exception('Simulated failure');
+    return nextResult ?? [defaultValue];
+  }
+}
+```
+
+### Summary: Testing Checklist
+
+Before committing test changes, verify:
+
+- [ ] All test files using platform channels call `WidgetsFlutterBinding.ensureInitialized()`
+- [ ] Platform-specific code has `kIsWeb` or `Platform` guards
+- [ ] Cache services include version field and handle mismatches gracefully
+- [ ] Tests use mocks/fakes instead of real platform services
+- [ ] `flutter analyze` shows zero errors
+- [ ] `flutter test` passes on all platforms (run locally on web with `flutter test --platform=chrome`)
+- [ ] Dependencies updated monthly with `flutter pub outdated`
+
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
