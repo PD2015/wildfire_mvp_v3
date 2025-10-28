@@ -72,9 +72,10 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert - Check for Tips card  
-      expect(find.text('Tips'), findsOneWidget);
+      expect(find.text('Safety Tips'), findsOneWidget);
       expect(find.textContaining('What3Words or GPS'), findsOneWidget);
       expect(find.textContaining('Never fight wildfires yourself'), findsOneWidget);
+      expect(find.textContaining('Keep vehicle access clear'), findsOneWidget);
     });
 
     testWidgets('should have proper semantic labels for accessibility',

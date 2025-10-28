@@ -48,24 +48,16 @@ class EmergencyButton extends StatelessWidget {
       button: true,
       enabled: onPressed != null,
       child: SizedBox(
-        // Ensure minimum touch target size (C3 compliance)
-        height: 56.0, // 48dp minimum + 8dp padding for comfortable touch
+        // Material 3 design: 52dp height for comfortable touch
+        height: 52.0,
         width: double.infinity,
-        child: ElevatedButton(
+        child: ElevatedButton.icon(
           onPressed: onPressed,
           style: _getButtonStyle(colorScheme),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 12.0,
-            ),
-            child: Text(
-              buttonText,
-              style: _getTextStyle(theme),
-              textAlign: TextAlign.center,
-              // Ensure text can scale with accessibility settings
-              textScaler: TextScaler.noScaling, // Let system handle scaling
-            ),
+          icon: const Icon(Icons.call),
+          label: Text(
+            buttonText,
+            style: _getTextStyle(theme),
           ),
         ),
       ),
@@ -80,13 +72,11 @@ class EmergencyButton extends StatelessWidget {
         return ElevatedButton.styleFrom(
           backgroundColor: colorScheme.error,
           foregroundColor: colorScheme.onError,
-          elevation: 4.0, // Higher elevation for urgency
-          shadowColor: colorScheme.error.withValues(alpha: 0.3),
+          elevation: 2.0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(14.0), // Material 3: 14dp rounded
           ),
-          // Ensure touch target compliance
-          minimumSize: const Size(double.infinity, 48.0),
+          minimumSize: const Size(double.infinity, 52.0),
           tapTargetSize: MaterialTapTargetSize.padded,
         );
 
@@ -97,22 +87,22 @@ class EmergencyButton extends StatelessWidget {
           foregroundColor: colorScheme.onPrimary,
           elevation: 2.0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(14.0), // Material 3: 14dp rounded
           ),
-          minimumSize: const Size(double.infinity, 48.0),
+          minimumSize: const Size(double.infinity, 52.0),
           tapTargetSize: MaterialTapTargetSize.padded,
         );
 
       case EmergencyPriority.anonymous:
-        // Crimestoppers - Secondary colors for reporting
+        // Crimestoppers - surfaceVariant colors for neutral reporting
         return ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.secondary,
-          foregroundColor: colorScheme.onSecondary,
+          backgroundColor: colorScheme.surfaceVariant,
+          foregroundColor: colorScheme.onSurfaceVariant,
           elevation: 1.0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(14.0), // Material 3: 14dp rounded
           ),
-          minimumSize: const Size(double.infinity, 48.0),
+          minimumSize: const Size(double.infinity, 52.0),
           tapTargetSize: MaterialTapTargetSize.padded,
         );
     }
@@ -122,28 +112,13 @@ class EmergencyButton extends StatelessWidget {
   TextStyle _getTextStyle(ThemeData theme) {
     final textTheme = theme.textTheme;
 
-    switch (priority) {
-      case EmergencyPriority.urgent:
-        return textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 16.0,
-            ) ??
-            const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16.0,
-            );
-
-      case EmergencyPriority.nonEmergency:
-      case EmergencyPriority.anonymous:
-        return textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              fontSize: 15.0,
-            ) ??
-            const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 15.0,
-            );
-    }
+    // Material 3 consistent text style for all buttons
+    return textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+        ) ??
+        const TextStyle(
+          fontWeight: FontWeight.w600,
+        );
   }
 
   /// Creates semantic label for screen readers (C4 compliance)

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wildfire_mvp_v3/features/report/models/emergency_contact.dart';
+import 'package:wildfire_mvp_v3/features/report/widgets/emergency_button.dart';
 import 'package:wildfire_mvp_v3/utils/url_launcher_utils.dart';
 
 /// Report Fire Screen - A12b Implementation (Descriptive)
@@ -18,12 +19,6 @@ class ReportFireScreen extends StatelessWidget {
     // Brand-aware colors (Material 3 theme)
     final bannerBg = cs.tertiaryContainer;
     final bannerFg = cs.onTertiaryContainer;
-    final dangerBg = cs.error; // 999 emergency
-    final dangerFg = cs.onError;
-    final primaryBg = cs.primary; // 101 Police Scotland
-    final primaryFg = cs.onPrimary;
-    final neutralBg = cs.surfaceVariant; // Crimestoppers
-    final neutralFg = cs.onSurfaceVariant;
 
     return Scaffold(
       appBar: AppBar(
@@ -54,12 +49,8 @@ class ReportFireScreen extends StatelessWidget {
             style: textTheme.bodyLarge,
           ),
           const SizedBox(height: 12),
-          _CallButton(
-            label: 'Call 999 — Fire Service',
+          EmergencyButton(
             contact: EmergencyContact.fireService,
-            background: dangerBg,
-            foreground: dangerFg,
-            semanticsLabel: 'Call emergency services, 999, Fire Service',
             onPressed: () => _handleEmergencyCall(context, EmergencyContact.fireService),
           ),
 
@@ -73,12 +64,8 @@ class ReportFireScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Text('Call Police Scotland on 101.', style: textTheme.bodyLarge),
           const SizedBox(height: 12),
-          _CallButton(
-            label: 'Call 101 — Police Scotland',
+          EmergencyButton(
             contact: EmergencyContact.policeScotland,
-            background: primaryBg,
-            foreground: primaryFg,
-            semanticsLabel: 'Call Police Scotland non-emergency number 101',
             onPressed: () => _handleEmergencyCall(context, EmergencyContact.policeScotland),
           ),
 
@@ -92,12 +79,8 @@ class ReportFireScreen extends StatelessWidget {
           const SizedBox(height: 8),
           Text('Call Crimestoppers on 0800 555 111.', style: textTheme.bodyLarge),
           const SizedBox(height: 12),
-          _CallButton(
-            label: 'Call 0800 555 111 — Crimestoppers',
+          EmergencyButton(
             contact: EmergencyContact.crimestoppers,
-            background: neutralBg,
-            foreground: neutralFg,
-            semanticsLabel: 'Call Crimestoppers anonymous line 0800 555 111',
             onPressed: () => _handleEmergencyCall(context, EmergencyContact.crimestoppers),
           ),
 
@@ -219,53 +202,6 @@ class _Banner extends StatelessWidget {
   }
 }
 
-/// Call button widget with consistent 52dp height and semantic labels
-class _CallButton extends StatelessWidget {
-  const _CallButton({
-    required this.label,
-    required this.contact,
-    required this.background,
-    required this.foreground,
-    required this.semanticsLabel,
-    required this.onPressed,
-  });
-
-  final String label;
-  final EmergencyContact contact;
-  final Color background;
-  final Color foreground;
-  final String semanticsLabel;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: semanticsLabel,
-      child: SizedBox(
-        height: 52,
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: background,
-            foregroundColor: foreground,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-            textStyle: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          onPressed: onPressed,
-          icon: const Icon(Icons.call),
-          label: Text(label),
-        ),
-      ),
-    );
-  }
-}
-
 /// Tips card widget with lightbulb icon and safety guidance
 class _TipsCard extends StatelessWidget {
   const _TipsCard({required this.cs, required this.textTheme});
@@ -281,27 +217,67 @@ class _TipsCard extends StatelessWidget {
         color: cs.surfaceVariant,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.lightbulb, color: cs.onSurfaceVariant),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Header row with icon
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.lightbulb, color: cs.onSurfaceVariant),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Safety Tips',
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '• Use What3Words or GPS for your location\n'
+                      '• Never fight wildfires yourself\n'
+                      '• If smoke approaches, move uphill and upwind\n'
+                      '• Keep vehicle access clear for fire engines',
+                      style: textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Expandable "More Safety Guidance" section
+          Theme(
+            data: Theme.of(context).copyWith(
+              dividerColor: Colors.transparent,
+            ),
+            child: ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              childrenPadding: const EdgeInsets.only(left: 16, top: 8, bottom: 4),
+              title: Text(
+                'More Safety Guidance',
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: cs.primary,
+                ),
+              ),
               children: [
                 Text(
-                  'Tips',
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
+                  '• Move children, pets, and vulnerable people to safety\n'
+                  '• Keep a safe distance upwind of smoke\n'
+                  '• Note landmarks, terrain features (moorland, forestry, hillside)\n'
+                  '• Describe what\'s burning (gorse, heather, trees)\n'
+                  '• Mention if fire is spreading or threatening property/livestock\n'
+                  '• In immediate danger, call 999 without delay',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: cs.onSurfaceVariant.withOpacity(0.8),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Use What3Words or GPS for your location.\n'
-                  'Never fight wildfires yourself.\n'
-                  'If smoke approaches, move uphill and upwind.',
-                  style: textTheme.bodyLarge,
                 ),
               ],
             ),
