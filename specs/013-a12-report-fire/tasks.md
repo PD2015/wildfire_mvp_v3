@@ -44,11 +44,11 @@ Flutter mobile application structure:
 - **Utilities**: `lib/utils/` for shared functionality
 
 ## Phase 3.1: Setup & Dependencies
-- [ ] **T001** Add url_launcher dependency to pubspec.yaml and run flutter pub get
-- [ ] **T002** [P] Create feature directory structure: lib/features/report/{screens,models,widgets}
-- [ ] **T003** [P] Create test directory structure: test/features/report/{screens,models,widgets}
-- [ ] **T004** [P] Create integration test directory: test/integration/report/
-- [ ] **T005** [P] Configure flutter analyze and dart format validation (C1: Code Quality)
+- [x] **T001** Add url_launcher dependency to pubspec.yaml and run flutter pub get
+- [x] **T002** [P] Create feature directory structure: lib/features/report/{screens,models,widgets}
+- [x] **T003** [P] Create test directory structure: test/features/report/{screens,models,widgets}
+- [x] **T004** [P] Create integration test directory: test/integration/report/
+- [x] **T005** [P] Configure flutter analyze and dart format validation (C1: Code Quality)
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**

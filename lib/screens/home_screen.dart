@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../controllers/home_controller.dart';
 import '../models/home_state.dart';
@@ -278,7 +279,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: 12.0),
         ],
 
-        // Manual location button - always available
+        // Manual location button
         Expanded(
           child: Semantics(
             label: 'Set manual location for fire risk assessment',
@@ -290,6 +291,27 @@ class _HomeScreenState extends State<HomeScreen> {
               label: const Text('Set Location'),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size(0, 44.0), // C3: ≥44dp touch target
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(width: 12.0),
+
+        // Report Fire button - always available
+        Expanded(
+          child: Semantics(
+            label: 'Report a fire emergency using Scottish emergency contacts',
+            button: true,
+            enabled: !isLoading,
+            child: ElevatedButton.icon(
+              onPressed: isLoading ? null : () => context.go('/report'),
+              icon: const Icon(Icons.local_fire_department),
+              label: const Text('Report Fire'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(0, 44.0), // C3: ≥44dp touch target
+                backgroundColor: Theme.of(context).colorScheme.error,
+                foregroundColor: Theme.of(context).colorScheme.onError,
               ),
             ),
           ),
