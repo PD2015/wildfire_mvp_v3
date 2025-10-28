@@ -74,8 +74,10 @@ void main() {
       // We can't assert exact coordinates due to privacy (C2), but we can verify
       // the app is not in error state
 
-//       final errorText = find.textContaining('Error', findRichText: true);
-//       final noDataText = find.textContaining('No data', findRichText: true);
+      // ignore: unused_local_variable
+      final errorText = find.textContaining('Error', findRichText: true);
+      // ignore: unused_local_variable
+      final noDataText = find.textContaining('No data', findRichText: true);
 
       // App should have either resolved location or fallen back gracefully
       // (showing data or showing a retry button, not just blank error)

@@ -278,7 +278,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: 12.0),
         ],
 
-        // Manual location button - always available
+        // Manual location button
         Expanded(
           child: Semantics(
             label: 'Set manual location for fire risk assessment',

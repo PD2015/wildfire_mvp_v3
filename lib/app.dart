@@ -4,6 +4,7 @@ import 'controllers/home_controller.dart';
 import 'screens/home_screen.dart';
 import 'features/map/screens/map_screen.dart';
 import 'features/map/controllers/map_controller.dart';
+import 'features/report/screens/report_fire_screen.dart';
 import 'services/location_resolver.dart';
 import 'services/fire_location_service.dart';
 import 'services/fire_risk_service.dart';
@@ -63,6 +64,10 @@ class WildFireApp extends StatelessWidget {
               );
               return MapScreen(controller: mapController);
             },
+          ),
+          GoRoute(
+            path: '/report',
+            builder: (context, state) => const ReportFireScreen(),
           ),
         ],
       ),

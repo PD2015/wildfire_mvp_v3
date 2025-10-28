@@ -55,3 +55,35 @@ app.*.map.json
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+
+# Additional Flutter/Development files
+# Build cache files
+*.cache.dill.track.dill
+/build/*/
+
+# Temporary development files
+test_ser.dart
+*.tmp
+*.temp
+
+# Platform-specific generated files
+/ios/Flutter/Generated.xcconfig
+/ios/Flutter/flutter_export_environment.sh
+/macos/Flutter/ephemeral/
+
+# Development logs and debugging
+debug_output.log
+test_output.log
+flutter_*.log
+
+# IDE/Editor files
+.vscode/settings.json
+*.code-workspace
+
+# OS-specific files
+Thumbs.db
+*.DS_Store
+
+# Documentation drafts (uncomment if you want to ignore WIP docs)
+# docs/drafts/
+# docs/WIP_*

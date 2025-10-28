@@ -2,11 +2,39 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug (macOS)",
+            "name": "🚀 Debug (macOS) - with API keys",
             "request": "launch",
             "type": "dart",
             "program": "lib/main.dart",
             "deviceId": "macos",
+            "args": ["--dart-define-from-file=env/dev.env.json"],
+            "console": "debugConsole"
+        },
+        {
+            "name": "🚀 Debug (Chrome) - with API keys",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "deviceId": "chrome",
+            "args": ["--dart-define-from-file=env/dev.env.json"],
+            "console": "debugConsole"
+        },
+        {
+            "name": "🚀 Debug (iOS Simulator) - with API keys - RECOMMENDED",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "deviceId": "ios",
+            "args": ["--dart-define-from-file=env/dev.env.json"],
+            "console": "debugConsole"
+        },
+        {
+            "name": "🚀 Debug (Android) - with API keys",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "deviceId": "android",
+            "args": ["--dart-define-from-file=env/dev.env.json"],
             "console": "debugConsole"
         },
         {
@@ -16,6 +44,7 @@
             "program": "lib/main.dart",
             "deviceId": "macos",
             "flutterMode": "profile",
+            "args": ["--dart-define-from-file=env/dev.env.json"],
             "console": "debugConsole"
         },
         {
@@ -25,18 +54,11 @@
             "program": "lib/main.dart",
             "deviceId": "macos",
             "flutterMode": "release",
+            "args": ["--dart-define-from-file=env/dev.env.json"],
             "console": "debugConsole"
         },
         {
-            "name": "Debug (Chrome)",
-            "request": "launch",
-            "type": "dart",
-            "program": "lib/main.dart",
-            "deviceId": "chrome",
-            "console": "debugConsole"
-        },
-        {
-            "name": "Debug (iOS Simulator)",
+            "name": "⚠️ OLD Debug (iOS) - WILL CRASH - Missing API keys",
             "request": "launch",
             "type": "dart",
             "program": "lib/main.dart",

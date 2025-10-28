@@ -106,11 +106,12 @@ void main() {
       await tester.pump();
 
       // Capture initial risk level (if visible)
-//       final initialRiskText = find.textContaining('Risk', findRichText: true);
-      // String? initialRiskValue; // Captured for future comparison tests
-      // if (initialRiskText.evaluate().isNotEmpty) {
-      //   initialRiskValue = initialRiskText.evaluate().first.widget.toString();
-      // }
+      final initialRiskText = find.textContaining('Risk', findRichText: true);
+      // ignore: unused_local_variable
+      String? initialRiskValue; // Captured for future comparison tests
+      if (initialRiskText.evaluate().isNotEmpty) {
+        initialRiskValue = initialRiskText.evaluate().first.widget.toString();
+      }
 
       // Navigate to map and back
       await tester.tap(find.text('Map'));
@@ -199,11 +200,11 @@ void main() {
       await tester.pump(const Duration(seconds: 10));
       await tester.pump();
 
-      // Look for BottomNavigationBar
-      final bottomNav = find.byType(BottomNavigationBar);
+      // Look for NavigationBar (Material 3)
+      final bottomNav = find.byType(NavigationBar);
 
       if (bottomNav.evaluate().isEmpty) {
-        debugPrint('ℹ️  No BottomNavigationBar (using alternative navigation)');
+        debugPrint('ℹ️  No NavigationBar (using alternative navigation)');
         return;
       }
 
