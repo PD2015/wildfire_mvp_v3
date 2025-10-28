@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
@@ -63,13 +64,13 @@ void main() {
 
         // On macOS, GPS is skipped by platform guard, so we get Scotland centroid
         // On mobile platforms, we would get the last known position
-        if (Platform.isAndroid || Platform.isIOS) {
+        if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
           expect(
               location.latitude, closeTo(TestData.edinburgh.latitude, 0.001));
           expect(
               location.longitude, closeTo(TestData.edinburgh.longitude, 0.001));
         } else {
-          // macOS/desktop: platform guard triggers, falls back to Scotland centroid
+          // macOS/desktop/web: platform guard triggers, falls back to Scotland centroid
           expect(location.latitude,
               closeTo(TestData.scotlandCentroid.latitude, 0.001));
           expect(location.longitude,
@@ -135,8 +136,8 @@ void main() {
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
 
-        // On macOS/desktop, platform guard skips GPS and uses Scotland centroid
-        if (Platform.isAndroid || Platform.isIOS) {
+        // On macOS/desktop/web, platform guard skips GPS and uses Scotland centroid
+        if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
           expect(location.latitude, closeTo(TestData.london.latitude, 0.001));
           expect(location.longitude, closeTo(TestData.london.longitude, 0.001));
         } else {
@@ -398,8 +399,8 @@ void main() {
           expect(result.isRight(), isTrue);
           final location = result.getOrElse(() => TestData.scotlandCentroid);
 
-          // On macOS/desktop, platform guard skips GPS and uses Scotland centroid
-          if (Platform.isAndroid || Platform.isIOS) {
+          // On macOS/desktop/web, platform guard skips GPS and uses Scotland centroid
+          if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
             expect(
                 location.latitude, closeTo(TestData.glasgow.latitude, 0.001));
             expect(

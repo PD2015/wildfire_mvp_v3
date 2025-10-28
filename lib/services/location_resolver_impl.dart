@@ -42,8 +42,8 @@ class LocationResolverImpl implements LocationResolver {
       const isTestRegionSet = FeatureFlags.testRegion != 'scotland';
 
       if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
-        debugPrint(
-            'Platform guard: Skipping GPS on ${kIsWeb ? 'web' : Platform.operatingSystem}');
+        final platformName = kIsWeb ? 'web' : 'macos';
+        debugPrint('Platform guard: Skipping GPS on $platformName');
         return await _fallbackToCache(allowDefault);
       }
 
