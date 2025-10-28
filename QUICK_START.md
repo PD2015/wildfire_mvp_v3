@@ -46,9 +46,9 @@ Without `--dart-define-from-file=env/dev.env.json`, these placeholders are not r
 `env/dev.env.json` contains:
 ```json
 {
-  "GOOGLE_MAPS_API_KEY_IOS": "AIzaSy...",
-  "GOOGLE_MAPS_API_KEY_ANDROID": "AIzaSy...",
-  "GOOGLE_MAPS_API_KEY_WEB": "AIzaSy...",
+  "GOOGLE_MAPS_API_KEY_IOS": "AIzaSy...your-ios-key-here...",
+  "GOOGLE_MAPS_API_KEY_ANDROID": "AIzaSy...your-android-key-here...",
+  "GOOGLE_MAPS_API_KEY_WEB": "AIzaSy...your-web-key-here...",
   "MAP_LIVE_DATA": "false"
 }
 ```

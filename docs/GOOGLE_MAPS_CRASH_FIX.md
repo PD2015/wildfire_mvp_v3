@@ -68,8 +68,8 @@ if let apiKey = Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String
 **File**: `env/dev.env.json`
 ```json
 {
-  "GOOGLE_MAPS_API_KEY_IOS": "AIzaSyBBbL552AGWKqEQKhNCxkX0xHjncwpZumA",
-  "GOOGLE_MAPS_API_KEY_ANDROID": "AIzaSyBBbL552AGWKqEQKhNCxkX0xHjncwpZumA",
+  "GOOGLE_MAPS_API_KEY_IOS": "AIzaSy...your-ios-key-here...",
+  "GOOGLE_MAPS_API_KEY_ANDROID": "AIzaSy...your-android-key-here...",
   "MAP_LIVE_DATA": "false"
 }
 ```
