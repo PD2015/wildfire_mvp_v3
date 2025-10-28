@@ -129,10 +129,14 @@ void main() {
               .textContaining('Unable to load', findRichText: true)
               .evaluate()
               .isNotEmpty &&
-          find.textContaining('Retry', findRichText: true).evaluate().isNotEmpty;
+          find
+              .textContaining('Retry', findRichText: true)
+              .evaluate()
+              .isNotEmpty;
 
       if (errorWithoutData) {
-        debugPrint('ℹ️  App in error state without cached data - timestamp not expected');
+        debugPrint(
+            'ℹ️  App in error state without cached data - timestamp not expected');
         // This is acceptable - you can't show timestamp for data that doesn't exist
         // Test passes because the app is handling error gracefully
         return;
@@ -141,20 +145,24 @@ void main() {
       // Look for "Updated" text which is part of timestamp display
       // Shown in RiskBanner success state and HomeScreen success/error-with-cache states
       final updatedFinder = find.textContaining('Updated', findRichText: true);
-      
+
       // Also search for time-related words that appear in relative timestamps
       final timePatterns = ['ago', 'now', 'min', 'hour', 'day'];
-      bool foundTimePattern = timePatterns.any((pattern) =>
-          find.textContaining(pattern, findRichText: true).evaluate().isNotEmpty);
+      bool foundTimePattern = timePatterns.any((pattern) => find
+          .textContaining(pattern, findRichText: true)
+          .evaluate()
+          .isNotEmpty);
 
-      final foundTimestamp = updatedFinder.evaluate().isNotEmpty || foundTimePattern;
+      final foundTimestamp =
+          updatedFinder.evaluate().isNotEmpty || foundTimePattern;
 
       if (foundTimestamp) {
         debugPrint('✅ Found timestamp display (data available)');
       } else {
         // Debug: Print all visible text to help diagnose
         final allText = tester.widgetList<Text>(find.byType(Text));
-        debugPrint('❌ Timestamp not found but data appears available. Visible text:');
+        debugPrint(
+            '❌ Timestamp not found but data appears available. Visible text:');
         for (final text in allText) {
           debugPrint('  - "${text.data}"');
         }
@@ -182,10 +190,14 @@ void main() {
               .textContaining('Unable to load', findRichText: true)
               .evaluate()
               .isNotEmpty &&
-          find.textContaining('Retry', findRichText: true).evaluate().isNotEmpty;
+          find
+              .textContaining('Retry', findRichText: true)
+              .evaluate()
+              .isNotEmpty;
 
       if (errorWithoutData) {
-        debugPrint('ℹ️  App in error state without cached data - source chip not expected');
+        debugPrint(
+            'ℹ️  App in error state without cached data - source chip not expected');
         // This is acceptable - you can't show source for data that doesn't exist
         // Test passes because the app is handling error gracefully
         return;
@@ -194,20 +206,26 @@ void main() {
       // Look for source names that appear in success or error-with-cache states
       // RiskBanner._getSourceName() returns: EFFIS, SEPA, Cache, or Mock
       final sourcePatterns = ['EFFIS', 'SEPA', 'Cache', 'Mock'];
-      
-      bool foundSource = sourcePatterns.any((pattern) =>
-          find.textContaining(pattern, findRichText: true).evaluate().isNotEmpty);
+
+      bool foundSource = sourcePatterns.any((pattern) => find
+          .textContaining(pattern, findRichText: true)
+          .evaluate()
+          .isNotEmpty);
 
       if (foundSource) {
         final matchedSource = sourcePatterns.firstWhere(
-          (pattern) => find.textContaining(pattern, findRichText: true).evaluate().isNotEmpty,
+          (pattern) => find
+              .textContaining(pattern, findRichText: true)
+              .evaluate()
+              .isNotEmpty,
           orElse: () => 'unknown',
         );
         debugPrint('✅ Found data source: $matchedSource (data available)');
       } else {
         // Debug: Print all visible text to help diagnose
         final allText = tester.widgetList<Text>(find.byType(Text));
-        debugPrint('❌ Source chip not found but data appears available. Visible text:');
+        debugPrint(
+            '❌ Source chip not found but data appears available. Visible text:');
         for (final text in allText) {
           debugPrint('  - "${text.data}"');
         }
@@ -362,7 +380,7 @@ void main() {
 
       // Find "Map" navigation button in bottom navigation bar
       final mapButton = find.widgetWithText(NavigationDestination, 'Map');
-      
+
       expect(mapButton, findsOneWidget,
           reason: 'Map navigation button should be visible in bottom nav');
 
@@ -370,15 +388,15 @@ void main() {
       // NavigationBar items are ≥48dp by Material Design 3 spec
       final navBar = find.byType(NavigationBar);
       expect(navBar, findsOneWidget);
-      
+
       final navBarSize = tester.getSize(navBar);
-      
+
       // NavigationBar height is typically 80dp, ensuring destinations are ≥44dp
       expect(navBarSize.height, greaterThanOrEqualTo(44.0),
           reason: 'Navigation bar must be ≥44dp height (C3)');
 
       debugPrint('✅ Map navigation button is visible and accessible');
-      
+
       // Tap the Map button to verify navigation works
       await tester.tap(mapButton);
       await tester.pump(const Duration(seconds: 1));
