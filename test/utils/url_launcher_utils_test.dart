@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wildfire_mvp_v3/features/report/models/emergency_contact.dart';
 import 'package:wildfire_mvp_v3/utils/url_launcher_utils.dart';

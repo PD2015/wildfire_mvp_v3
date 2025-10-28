@@ -107,7 +107,8 @@ void main() {
 
       // Capture initial risk level (if visible)
       final initialRiskText = find.textContaining('Risk', findRichText: true);
-      String? initialRiskValue;
+      // ignore: unused_local_variable
+      String? initialRiskValue; // Captured for future comparison tests
       if (initialRiskText.evaluate().isNotEmpty) {
         initialRiskValue = initialRiskText.evaluate().first.widget.toString();
       }
