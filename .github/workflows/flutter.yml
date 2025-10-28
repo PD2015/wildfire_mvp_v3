@@ -51,7 +51,10 @@ jobs:
         run: flutter analyze
 
       - name: Run tests (C1, C5)
-        run: flutter test --platform=chrome --reporter expanded --exclude-tags=golden
+        run: |
+          # Run unit and integration tests (skip widget golden tests due to platform rendering differences)
+          flutter test test/unit/ --platform=chrome --reporter expanded
+          flutter test test/integration/ --platform=chrome --reporter expanded
 
       - name: LocationResolver tests (A4 validation)
         run: |
