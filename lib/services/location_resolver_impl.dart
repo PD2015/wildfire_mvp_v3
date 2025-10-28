@@ -158,12 +158,12 @@ class LocationResolverImpl implements LocationResolver {
 
       if (lat != null && lon != null) {
         // Validate coordinates are not NaN, not infinite, and in correct range
-        final isValidNumber = !lat.isNaN && !lon.isNaN && 
-                              !lat.isInfinite && !lon.isInfinite;
+        final isValidNumber =
+            !lat.isNaN && !lon.isNaN && !lat.isInfinite && !lon.isInfinite;
         // Scotland is between latitudes 54.5-60.9 and longitudes -8.6 to -0.7
         final isValidLatitude = lat >= 54.0 && lat <= 61.0;
         final isValidLongitude = lon >= -9.0 && lon <= 0.0;
-        
+
         if (isValidNumber && isValidLatitude && isValidLongitude) {
           return Right(LatLng(lat, lon));
         } else {
@@ -174,7 +174,8 @@ class LocationResolverImpl implements LocationResolver {
           await prefs.remove(_lonKey);
           await prefs.remove(_versionKey);
         }
-      }      return const Left(LocationError.gpsUnavailable);
+      }
+      return const Left(LocationError.gpsUnavailable);
     } catch (e) {
       debugPrint('Cache read error: $e');
       return const Left(LocationError.gpsUnavailable);
