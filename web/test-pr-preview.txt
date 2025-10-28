@@ -8,3 +8,4 @@ Test scenario: T008 - PR Preview Deployment
 Branch: test/pr-preview-validation
 
 If you can see this file in the preview deployment, the CI/CD pipeline is working!
+# Test trigger
