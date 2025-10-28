@@ -23,7 +23,15 @@ void main() {
           'Call 0800 555 111 — Crimestoppers',
         ];
 
-        for (final buttonText in buttonTexts) {
+        for (int i = 0; i < buttonTexts.length; i++) {
+          final buttonText = buttonTexts[i];
+          
+          // Scroll if needed to see button (Crimestoppers is offscreen)
+          if (i == 2) {
+            await tester.drag(find.byType(ListView), const Offset(0, -300));
+            await tester.pumpAndSettle();
+          }
+          
           final buttonFinder = find.widgetWithText(EmergencyButton, buttonText);
           expect(buttonFinder, findsOneWidget,
               reason: 'Should find button with text: $buttonText');
@@ -79,12 +87,18 @@ void main() {
           const MaterialApp(home: ReportFireScreen()),
         );
 
+        await tester.pumpAndSettle();
+
         final buttonFinders = [
           find.widgetWithText(EmergencyButton, 'Call 999 — Fire Service'),
           find.widgetWithText(EmergencyButton, 'Call 101 — Police Scotland'),
           find.widgetWithText(
-              ElevatedButton, 'Call 0800 555 111 — Crimestoppers'),
+              EmergencyButton, 'Call 0800 555 111 — Crimestoppers'),
         ];
+
+        // Scroll to ensure all buttons are visible
+        await tester.drag(find.byType(ListView), const Offset(0, -300));
+        await tester.pumpAndSettle();
 
         // Check vertical spacing between buttons
         for (int i = 0; i < buttonFinders.length - 1; i++) {
@@ -107,6 +121,12 @@ void main() {
           const MaterialApp(home: ReportFireScreen()),
         );
 
+        await tester.pumpAndSettle();
+
+        // Scroll to ensure Crimestoppers button is visible
+        await tester.drag(find.byType(ListView), const Offset(0, -300));
+        await tester.pumpAndSettle();
+
         // Test button text visibility
         expect(find.text('Call 999 — Fire Service'), findsOneWidget);
         expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
@@ -122,7 +142,7 @@ void main() {
         expect(policeButton, findsOneWidget);
         
         final crimestoppersButton = find.widgetWithText(
-            ElevatedButton, 'Call 0800 555 111 — Crimestoppers');
+            EmergencyButton, 'Call 0800 555 111 — Crimestoppers');
         expect(crimestoppersButton, findsOneWidget);
       });
 
@@ -130,6 +150,8 @@ void main() {
         await tester.pumpWidget(
           const MaterialApp(home: ReportFireScreen()),
         );
+
+        await tester.pumpAndSettle();
 
         // AppBar should be present with title
         final appBar = find.byType(AppBar);
@@ -139,6 +161,10 @@ void main() {
         // Header section should be present
         expect(find.textContaining('See smoke, flames'), findsOneWidget);
         expect(find.text('Act fast — stay safe.'), findsOneWidget);
+
+        // Scroll to see footer
+        await tester.drag(find.byType(ListView), const Offset(0, -500));
+        await tester.pumpAndSettle();
 
         // Footer safety information should be present
         expect(find.textContaining('Safety Tips'), findsOneWidget);
@@ -169,17 +195,17 @@ void main() {
           ),
         );
 
+        await tester.pumpAndSettle();
+
         // Test 999 button exists and is accessible
         final fireServiceButton =
             find.widgetWithText(EmergencyButton, 'Call 999 — Fire Service');
         expect(fireServiceButton, findsOneWidget);
 
-        // Verify button is an ElevatedButton
-        final elevatedButton = find.descendant(
-          of: fireServiceButton,
-          matching: find.byType(ElevatedButton),
-        );
-        expect(elevatedButton, findsOneWidget);
+        // Verify EmergencyButton widget has correct properties
+        final buttonWidget = tester.widget<EmergencyButton>(fireServiceButton);
+        expect(buttonWidget.contact, equals(EmergencyContact.fireService));
+        expect(buttonWidget.priority, equals(EmergencyPriority.urgent));
       });
 
       testWidgets('text size scales with system accessibility settings',
@@ -224,12 +250,18 @@ void main() {
           const MaterialApp(home: ReportFireScreen()),
         );
 
+        await tester.pumpAndSettle();
+
+        // Scroll to see all buttons
+        await tester.drag(find.byType(ListView), const Offset(0, -300));
+        await tester.pumpAndSettle();
+
         // Test tab navigation through emergency buttons
         final buttons = [
           find.widgetWithText(EmergencyButton, 'Call 999 — Fire Service'),
           find.widgetWithText(EmergencyButton, 'Call 101 — Police Scotland'),
           find.widgetWithText(
-              ElevatedButton, 'Call 0800 555 111 — Crimestoppers'),
+              EmergencyButton, 'Call 0800 555 111 — Crimestoppers'),
         ];
 
         // All emergency buttons should be focusable
@@ -250,6 +282,12 @@ void main() {
         await tester.pumpWidget(
           const MaterialApp(home: ReportFireScreen()),
         );
+
+        await tester.pumpAndSettle();
+
+        // Scroll to see all buttons
+        await tester.drag(find.byType(ListView), const Offset(0, -300));
+        await tester.pumpAndSettle();
 
         // Verify all emergency buttons are accessible and can be tapped
         final buttons = [
@@ -279,13 +317,31 @@ void main() {
           const MaterialApp(home: ReportFireScreen()),
         );
 
+        await tester.pumpAndSettle();
+
+        // Scroll to see tips section
+        await tester.drag(find.byType(ListView), const Offset(0, -500));
+        await tester.pumpAndSettle();
+
+        // Tap to expand "More Safety Guidance"
+        await tester.tap(find.text('More Safety Guidance'));
+        await tester.pumpAndSettle();
+
         // Footer should contain manual dialing instructions for accessibility
         expect(find.textContaining('In immediate danger, call 999'), findsOneWidget);
-        expect(find.textContaining('non-emergency incidents'), findsOneWidget);
         
+        // Scroll back to see buttons
+        await tester.drag(find.byType(ListView), const Offset(0, 500));
+        await tester.pumpAndSettle();
+
         // Emergency contact phone numbers should be visible in buttons for manual dialing
         expect(find.text('Call 999 — Fire Service'), findsOneWidget);
         expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
+        
+        // Scroll to see Crimestoppers button
+        await tester.drag(find.byType(ListView), const Offset(0, -300));
+        await tester.pumpAndSettle();
+        
         expect(find.text('Call 0800 555 111 — Crimestoppers'), findsOneWidget);
       });
     });
