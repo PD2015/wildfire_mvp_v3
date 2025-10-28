@@ -1,15 +1,18 @@
-name: Flutter CI
+name: Flutter CI/CD
 
 on:
+  push:
+    branches: [ main, develop, 'feature/*', '**-a*-**' ]
   pull_request:
     branches: [ main, develop ]
-  push:
-    branches: [ main ]
 
 jobs:
+  # Core quality gates - must pass before any deployment
   build:
+    name: Quality Gates (Format, Analyze, Test)
     runs-on: ubuntu-latest
-
+    timeout-minutes: 15
+    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,25 +21,26 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: 17
 
-      - name: Set up Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.35.5'
+          channel: 'stable'
+          cache: true
 
-      - name: Flutter version
-        run: flutter --version
-
-      - name: Restore pub cache
-        uses: actions/cache@v4
+      - name: Cache pub dependencies
+        uses: actions/cache@v3
         with:
           path: |
+            ${{ env.PUB_CACHE }}
             ~/.pub-cache
-            .dart_tool
           key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
 
-      - name: Pub get
+      - name: Get dependencies
         run: flutter pub get
 
       - name: Format check (C1)
@@ -53,7 +57,7 @@ jobs:
         run: |
           echo "Running A4 LocationResolver test suite..."
           flutter test test/unit/services/location_resolver_test.dart --platform=chrome
-          flutter test test/widget/manual_location_dialog_test.dart --platform=chrome  
+          flutter test test/widget/manual_location_dialog_test.dart --platform=chrome
           flutter test test/integration/location_flow_test.dart --platform=chrome
 
       - name: Secret scan with gitleaks (C2)
@@ -79,10 +83,107 @@ jobs:
             **/coverage/**
             **/test/**/golden/**
 
+  # Constitutional compliance checks
+  constitutional-compliance:
+    name: Constitutional Compliance (C1-C5)
+    runs-on: ubuntu-latest
+    needs: [build]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.35.5'
+        channel: 'stable'
+        cache: true
+        
+    - name: Cache pub dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ${{ env.PUB_CACHE }}
+          ~/.pub-cache
+        key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pub-
+          
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Check for hardcoded secrets (C2 compliance)
+      run: |
+        if grep -R --include="*.dart" -E "(api_key|apiKey|API_KEY|secret|Secret|SECRET|password|Password|PASSWORD|token|Token|TOKEN).*=.*['\"]" lib/; then
+          echo "❌ C2 FAIL: Hardcoded secret detected"
+          exit 1
+        else
+          echo "✅ C2 PASS: No hardcoded secrets found"
+        fi
+      
+    - name: Verify accessibility compliance (C3)
+      run: |
+        echo "🔍 Checking for accessibility compliance..."
+        
+        # Check for semantic labels in widgets
+        if ! grep -r "Semantics\|semanticLabel\|excludeSemantics" lib/ > /dev/null; then
+          echo "⚠️  C3 WARNING: No semantic labels found, verify accessibility"
+        else
+          echo "✅ C3 PASS: Semantic labels detected"
+        fi
+        
+        # Check for proper touch target sizes
+        if ! grep -r "kMinInteractiveDimension\|44\|48" test/ > /dev/null; then
+          echo "⚠️  C3 WARNING: No touch target size tests found"
+        else
+          echo "✅ C3 PASS: Touch target size tests detected"
+        fi
+        
+    - name: Verify transparency compliance (C4)
+      run: |
+        echo "🔍 Checking for transparency compliance..."
+        
+        # Check for timestamp display
+        if ! grep -r "Updated\|Cached\|timestamp\|observedAt" lib/ > /dev/null; then
+          echo "❌ C4 FAIL: No timestamp/freshness indicators found"
+          exit 1
+        else
+          echo "✅ C4 PASS: Timestamp indicators found"
+        fi
+        
+        # Check for source labeling
+        if ! grep -r "source\|Source\|EFFIS\|SEPA\|Mock" lib/ > /dev/null; then
+          echo "❌ C4 FAIL: No data source labeling found"
+          exit 1
+        else
+          echo "✅ C4 PASS: Data source labeling found"
+        fi
+        
+    - name: Verify resilience compliance (C5)
+      run: |
+        echo "🔍 Checking for resilience compliance..."
+        
+        # Check for error handling
+        if ! grep -r "try\|catch\|Either\|Left\|Right" lib/ > /dev/null; then
+          echo "❌ C5 FAIL: No error handling patterns found"
+          exit 1
+        else
+          echo "✅ C5 PASS: Error handling patterns found"
+        fi
+        
+        # Check for retry mechanisms
+        if ! grep -r "retry\|Retry\|fallback\|Fallback" lib/ > /dev/null; then
+          echo "❌ C5 FAIL: No retry/fallback mechanisms found"
+          exit 1
+        else
+          echo "✅ C5 PASS: Retry/fallback mechanisms found"
+        fi
 
+  # Web build with API key injection (A11)
   build-web:
     name: Build Web Artifact
-    needs: build
+    needs: [build, constitutional-compliance]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -109,6 +210,7 @@ jobs:
           path: build/web/
           retention-days: 7
 
+  # Deploy to Firebase preview channel for PRs (A11)
   deploy-preview:
     name: Deploy Preview Channel
     needs: build-web
@@ -133,6 +235,7 @@ jobs:
           channelId: 'pr-${{ github.event.pull_request.number }}'
           expires: 7d
 
+  # Deploy to production (requires manual approval) (A11)
   deploy-production:
     name: Deploy Production
     needs: build-web
