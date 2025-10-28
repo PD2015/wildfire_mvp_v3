@@ -15,6 +15,8 @@ Auto-generated from all feature plans. Last updated: 2025-10-19
 - Firebase Hosting (web build artifacts), GitHub Secrets (API keys: FIREBASE_SERVICE_ACCOUNT, FIREBASE_PROJECT_ID, GOOGLE_MAPS_API_KEY_WEB_PREVIEW, GOOGLE_MAPS_API_KEY_WEB_PRODUCTION) (012-a11-ci-cd)
 - Dart 3.9.2, Flutter 3.35.5 stable + url_launcher (native dialer integration), go_router (navigation), flutter_test (testing) (013-a12-report-fire)
 - N/A (no data persistence required) (013-a12-report-fire)
+- Dart 3.9.2, Flutter 3.35.5 stable + url_launcher ^6.3.0 (native dialer integration), go_router ^14.2.7 (navigation), flutter_test (testing) (014-a12b-report-fire)
+- N/A (no data persistence required - static content only) (014-a12b-report-fire)
 
 ## Project Structure
 ```
@@ -92,10 +94,9 @@ Dart 3.0+ with Flutter SDK: Follow standard conventions
 - Commit messages follow Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`
 
 ## Recent Changes
+- 014-a12b-report-fire: Added Dart 3.9.2, Flutter 3.35.5 stable + url_launcher ^6.3.0 (native dialer integration), go_router ^14.2.7 (navigation), flutter_test (testing)
 - **2025-10-28**: ✅ **iOS Google Maps Crash RESOLVED** - Created `ios/ios_prebuild.sh` script that automatically extracts API keys from DART_DEFINES and injects them into Info.plist. Integrated into `scripts/run_ios_safe.sh` for seamless development. Maps tab now loads without `GMSServices checkServicePreconditions` crashes.
 - 013-a12-report-fire: Added Dart 3.9.2, Flutter 3.35.5 stable + url_launcher (native dialer integration), go_router (navigation), flutter_test (testing)
-- 012-a11-ci-cd: Added Dart 3.9.2, Flutter 3.35.5 stable + Firebase Hosting (deployment infrastructure), GitHub Actions (CI/CD orchestration), google_maps_flutter ^2.5.0 (mapping component), firebase-tools CLI (deployment tool)
-- **2025-10-20**: A10 Web Support - Clarified macOS web (Chrome/Safari) vs macOS desktop distinction. Google Maps works on web via google_maps_flutter_web ^0.5.14+2. Updated platform detection comments and unsupported platform messaging.
 
 ## Utility Classes Reference
 
