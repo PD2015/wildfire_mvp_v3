@@ -10,6 +10,7 @@ A Flutter mobile application that provides real-time wildfire risk assessment us
 
 - **Real-time FWI Data**: Integration with EFFIS WMS GetFeatureInfo API
 - **Risk Assessment**: Automatic risk level categorization (low, moderate, high, very high, extreme)
+- **Interactive Maps**: Google Maps integration with fire incident markers (iOS crash-free ✅)
 - **Robust Error Handling**: Comprehensive error management with retry logic
 - **Offline Resilience**: Graceful handling of network issues with exponential backoff
 - **Demo Mode Transparency**: Prominent "DEMO DATA" chip when using mock data (C4 compliance)
