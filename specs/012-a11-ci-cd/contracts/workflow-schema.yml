@@ -1,0 +1,440 @@
+# GitHub Actions Workflow Contract
+
+**Purpose**: Define the expected structure and behavior of the extended .github/workflows/flutter.yml
+
+**Last Updated**: 2025-10-27  
+**Version**: 1.0
+
+---
+
+## Workflow Contract Specification
+
+### Trigger Events
+```yaml
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+```
+
+**Requirements**:
+- MUST trigger on push to main (for production deployments)
+- MUST trigger on pull requests targeting main (for preview deployments)
+- MUST NOT trigger on other branches (no staging branch in current setup)
+
+---
+
+## Job Contracts
+
+### Job 1: `test` (Existing, Preserved)
+
+**Purpose**: Run all constitutional gates (C1-C5) before allowing any deployment
+
+**Contract**:
+```yaml
+test:
+  name: Tests & Constitutional Gates (C1-C5)
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.35.5'
+        channel: 'stable'
+    - run: flutter pub get
+    
+    # C1: Code Quality
+    - name: Format check
+      run: dart format --set-exit-if-changed .
+    - name: Analyze
+      run: flutter analyze
+    - name: Run tests
+      run: flutter test
+    
+    # C2: Secret scanning
+    - name: Secret scan (gitleaks)
+      uses: gitleaks/gitleaks-action@v2
+    
+    # C4: Color palette guard
+    - name: Color palette validation
+      run: # (existing validation script)
+    
+    # (Other existing checks preserved)
+```
+
+**Postconditions**:
+- ALL checks MUST pass (exit code 0) for job to succeed
+- Failed checks MUST block subsequent jobs (build, deploy)
+- Job MUST complete in <10 minutes (timeout-minutes: 10)
+
+**Validation**:
+- ✅ Test with intentional format error (should fail)
+- ✅ Test with analyzer warning (should fail)
+- ✅ Test with failing unit test (should fail)
+- ✅ Test with secret in code (should fail via gitleaks)
+
+---
+
+### Job 2: `build-web` (NEW)
+
+**Purpose**: Build Flutter web artifact with injected API key for deployment
+
+**Contract**:
+```yaml
+build-web:
+  name: Build Web Artifact
+  needs: test  # MUST wait for test job to succeed
+  runs-on: ubuntu-latest
+  timeout-minutes: 15  # C5: Prevent hung builds
+  steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.35.5'
+        channel: 'stable'
+    
+    - run: flutter pub get
+    
+    - name: Build web with API key injection
+      env:
+        MAPS_API_KEY_WEB: ${{ secrets.GOOGLE_MAPS_API_KEY_WEB_PREVIEW }}
+      run: |
+        chmod +x ./scripts/build_web_ci.sh
+        ./scripts/build_web_ci.sh
+    
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: web-build-${{ github.sha }}
+        path: build/web/
+        retention-days: 7
+        if-no-files-found: error  # MUST fail if build failed silently
+```
+
+**Preconditions**:
+- test job MUST have succeeded (needs: test)
+- GOOGLE_MAPS_API_KEY_WEB_PREVIEW secret MUST be set in repository
+- scripts/build_web_ci.sh MUST be executable
+- web/index.html MUST contain %MAPS_API_KEY% placeholder
+
+**Postconditions**:
+- build/web/ directory MUST exist and contain valid Flutter web build
+- index.html MUST contain injected API key (not placeholder)
+- Original web/index.html MUST be restored (no API key committed)
+- Artifact MUST be uploaded with unique name (web-build-<commit-sha>)
+
+**Error Handling** (C5):
+- Missing API key → Script exits with code 1, job fails
+- Build failure → Job fails, artifact not uploaded
+- Artifact upload failure → Job fails with error
+
+**Validation**:
+- ✅ Artifact contains index.html with API key (not placeholder)
+- ✅ Repository web/index.html still has placeholder (not modified)
+- ✅ Artifact size reasonable (~2-10 MB for Flutter web)
+- ✅ Missing API key fails build (test with empty secret)
+
+---
+
+### Job 3: `deploy-preview` (NEW)
+
+**Purpose**: Deploy PR changes to unique Firebase Hosting preview channel
+
+**Contract**:
+```yaml
+deploy-preview:
+  name: Deploy Preview Channel
+  needs: build-web  # MUST wait for build-web to succeed
+  if: github.event_name == 'pull_request'  # MUST only run on PRs
+  runs-on: ubuntu-latest
+  timeout-minutes: 10  # C5: Prevent hung deployments
+  steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download build artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: web-build-${{ github.sha }}
+        path: build/web/
+    
+    - name: Deploy to Firebase preview channel
+      uses: FirebaseExtended/action-hosting-deploy@v0
+      with:
+        repoToken: '${{ secrets.GITHUB_TOKEN }}'
+        firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+        projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
+        channelId: pr-${{ github.event.pull_request.number }}
+        expires: 7d
+        target: hosting  # Optional if only one hosting site
+```
+
+**Preconditions**:
+- build-web job MUST have succeeded (needs: build-web)
+- Event MUST be pull_request (not push)
+- FIREBASE_SERVICE_ACCOUNT secret MUST be set
+- FIREBASE_PROJECT_ID secret MUST be set
+- build/web/ artifact MUST exist and be valid
+
+**Postconditions**:
+- Preview channel MUST be created at: `https://wildfire-app-e11f8--pr-<number>-<hash>.web.app`
+- PR comment MUST be posted with preview URL
+- Preview channel MUST auto-expire after 7 days
+- Deep links MUST work (e.g., /map route)
+
+**Error Handling** (C5):
+- Missing service account → Job fails with authentication error
+- Invalid Firebase project → Job fails with project not found
+- Deployment timeout → Job fails after 10 minutes
+
+**Validation**:
+- ✅ Preview URL posted as PR comment
+- ✅ Preview URL loads without errors
+- ✅ Map shows without watermark (API key working)
+- ✅ Deep link /map works on refresh (SPA routing)
+- ✅ Preview expires after 7 days (manual verification)
+
+---
+
+### Job 4: `deploy-production` (NEW)
+
+**Purpose**: Deploy merged changes to production Firebase Hosting (requires manual approval)
+
+**Contract**:
+```yaml
+deploy-production:
+  name: Deploy Production
+  needs: build-web  # MUST wait for build-web to succeed
+  if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  runs-on: ubuntu-latest
+  timeout-minutes: 10  # C5: Prevent hung deployments
+  environment:
+    name: production  # MUST require manual approval (GitHub Environment)
+    url: https://wildfire-app-e11f8.web.app
+  steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download build artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: web-build-${{ github.sha }}
+        path: build/web/
+    
+    - name: Deploy to Firebase production
+      uses: FirebaseExtended/action-hosting-deploy@v0
+      with:
+        repoToken: '${{ secrets.GITHUB_TOKEN }}'
+        firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+        projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
+        channelId: live  # Production channel
+        target: hosting
+```
+
+**Preconditions**:
+- build-web job MUST have succeeded (needs: build-web)
+- Event MUST be push to main branch
+- Manual approval MUST be granted by required reviewer (GitHub Environment protection)
+- FIREBASE_SERVICE_ACCOUNT secret MUST be set
+- FIREBASE_PROJECT_ID secret MUST be set
+- GOOGLE_MAPS_API_KEY_WEB_PRODUCTION secret MUST be set (used in build)
+
+**Postconditions**:
+- Production site MUST be updated at: `https://wildfire-app-e11f8.web.app`
+- Deployment MUST appear in Firebase Hosting release history
+- Previous version MUST be available for rollback
+- Deployment URL MUST be visible in GitHub Environment deployments tab
+
+**Error Handling** (C5):
+- No approval granted → Job waits indefinitely (manual cancel)
+- Missing service account → Job fails with authentication error
+- Deployment failure → Previous version remains live (zero downtime)
+
+**Validation**:
+- ✅ Deployment waits for approval (not auto-deployed)
+- ✅ Production URL updated after approval
+- ✅ Map shows without watermark (production API key working)
+- ✅ Deep link /map works on refresh
+- ✅ Previous version available in Firebase Console for rollback
+
+---
+
+## Secret Requirements (C2 Compliance)
+
+All secrets MUST be configured in: Settings → Secrets and variables → Actions
+
+### Required Secrets
+| Secret Name | Type | Purpose | Validation |
+|-------------|------|---------|-----------|
+| `FIREBASE_SERVICE_ACCOUNT` | JSON | Firebase Hosting Admin role | Must be valid JSON, contain `private_key` field |
+| `FIREBASE_PROJECT_ID` | String | Firebase project identifier | Must match .firebaserc project ID |
+| `GOOGLE_MAPS_API_KEY_WEB_PREVIEW` | String | API key for preview channels | Must work with `*.web.app` HTTP referrer restriction |
+| `GOOGLE_MAPS_API_KEY_WEB_PRODUCTION` | String | API key for production | Must work with `wildfire-app-e11f8.web.app` HTTP referrer restriction |
+
+### Secret Validation Contract
+```yaml
+# Validation job (optional, runs before build)
+validate-secrets:
+  name: Validate Secrets Configuration
+  runs-on: ubuntu-latest
+  steps:
+    - name: Check FIREBASE_SERVICE_ACCOUNT format
+      run: |
+        echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" | jq -e '.private_key' > /dev/null
+        echo "✅ Service account JSON valid"
+    
+    - name: Check FIREBASE_PROJECT_ID
+      run: |
+        if [ -z "${{ secrets.FIREBASE_PROJECT_ID }}" ]; then
+          echo "❌ FIREBASE_PROJECT_ID not set"
+          exit 1
+        fi
+        echo "✅ Firebase project ID set"
+    
+    - name: Check API keys
+      run: |
+        if [ -z "${{ secrets.GOOGLE_MAPS_API_KEY_WEB_PREVIEW }}" ]; then
+          echo "❌ Preview API key not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.GOOGLE_MAPS_API_KEY_WEB_PRODUCTION }}" ]; then
+          echo "❌ Production API key not set"
+          exit 1
+        fi
+        echo "✅ API keys configured"
+```
+
+---
+
+## Performance Contracts (Success Metrics)
+
+### M1: Preview URL Posted Within 5 Minutes
+- Total time from PR creation to comment post: <5 minutes
+- Breakdown:
+  - Test job: ~3 minutes
+  - Build job: ~1.5 minutes
+  - Deploy job: ~30 seconds
+  - Total: ~5 minutes (acceptable)
+
+**Validation**: Measure actual workflow durations in Actions tab
+
+### M3: Zero API Key Exposures
+- API keys MUST NOT appear in:
+  - GitHub Actions logs (check build-web job output)
+  - PR comments (check deploy-preview comment content)
+  - Repository files after workflow (check web/index.html)
+  - Build artifacts outside build/ directory
+
+**Validation**: 
+- ✅ Search Actions logs for API key pattern (AIza...)
+- ✅ Verify web/index.html contains placeholder after workflow
+- ✅ Download artifact, check index.html for injected key (expected)
+
+### M5: Production Availability ≥99.9%
+- Failed production deployments MUST NOT affect live site
+- Rollback MUST be available via Firebase Console
+- Deployment history MUST preserve last 10 versions
+
+**Validation**:
+- ✅ Test failed production deployment (expect previous version still live)
+- ✅ Verify rollback in Firebase Console (manual test)
+
+---
+
+## Contract Testing Approach
+
+### Unit Tests (for build script)
+Location: `test/scripts/build_web_ci_test.sh`
+```bash
+#!/bin/bash
+# Unit tests for build_web_ci.sh
+
+test_missing_api_key() {
+  unset MAPS_API_KEY_WEB
+  ./scripts/build_web_ci.sh 2>&1 | grep "MAPS_API_KEY_WEB environment variable not set"
+  [ $? -eq 0 ] && echo "✅ Missing API key test passed" || echo "❌ Test failed"
+}
+
+test_placeholder_replacement() {
+  export MAPS_API_KEY_WEB="test_key_12345"
+  ./scripts/build_web_ci.sh > /dev/null 2>&1
+  grep "test_key_12345" build/web/index.html > /dev/null
+  [ $? -eq 0 ] && echo "✅ Placeholder replacement test passed" || echo "❌ Test failed"
+}
+
+test_cleanup() {
+  grep "%MAPS_API_KEY%" web/index.html > /dev/null
+  [ $? -eq 0 ] && echo "✅ Cleanup test passed" || echo "❌ Test failed"
+}
+```
+
+### Integration Tests (for workflow)
+Location: `test/integration/ci_cd_test.md`
+- Test 1: Create PR with code change → Verify preview URL posted
+- Test 2: Merge PR to main → Verify production deployment waits for approval
+- Test 3: Introduce failing test → Verify build never runs
+- Test 4: Remove API key secret → Verify build fails gracefully
+
+### Smoke Tests (for deployed apps)
+Location: `test/smoke/deployment_smoke_test.sh`
+```bash
+#!/bin/bash
+# Smoke tests for deployed preview/production
+
+test_preview_url() {
+  PREVIEW_URL="https://wildfire-app-e11f8--pr-123-abc.web.app"
+  curl -s -o /dev/null -w "%{http_code}" $PREVIEW_URL | grep "200"
+}
+
+test_deep_link() {
+  PREVIEW_URL="https://wildfire-app-e11f8--pr-123-abc.web.app/map"
+  curl -s -o /dev/null -w "%{http_code}" $PREVIEW_URL | grep "200"
+}
+
+test_no_watermark() {
+  PREVIEW_URL="https://wildfire-app-e11f8--pr-123-abc.web.app"
+  curl -s $PREVIEW_URL | grep -v "For development purposes only"
+}
+```
+
+---
+
+## Rollback Contract
+
+### Firebase Console Rollback
+**Steps**:
+1. Navigate to: https://console.firebase.google.com/ → wildfire-app-e11f8 → Hosting
+2. Click: "Release history"
+3. Find: Previous working version (by timestamp or version number)
+4. Click: "Rollback to this version"
+5. Confirm: "Yes, rollback"
+
+**Postconditions**:
+- Production site MUST serve previous version within 30 seconds
+- Rollback MUST appear in release history
+- Current (bad) version MUST still be available for future rollback (if needed)
+
+**Validation**:
+- ✅ Deploy bad version (e.g., broken JavaScript)
+- ✅ Rollback to previous version via console
+- ✅ Verify production site loads correctly
+- ✅ Verify bad version still in history (can roll forward if needed)
+
+---
+
+## Change Log
+
+**Version 1.0 (2025-10-27)**:
+- Initial contract specification
+- Defined 4 job contracts (test, build-web, deploy-preview, deploy-production)
+- Specified secret requirements (4 secrets)
+- Defined performance contracts (M1, M3, M5)
+- Documented testing approach (unit, integration, smoke tests)
+- Defined rollback contract (Firebase Console)
+
+**Next Version** (future):
+- Add staging environment contract (if needed)
+- Add Lighthouse performance testing contract (M5 validation)
+- Add custom domain contract (when production domain configured)

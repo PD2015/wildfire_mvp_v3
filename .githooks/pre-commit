@@ -1,0 +1,38 @@
+#!/bin/sh
+# Pre-commit hook to auto-format and analyze Dart code
+# This ensures all commits have properly formatted code and no lint errors
+#
+# Setup: git config core.hooksPath .githooks
+# Bypass: git commit --no-verify (not recommended)
+
+echo "🔍 Running dart format..."
+
+# Format all Dart files
+dart format .
+
+# Add any formatted files back to the staging area
+git add -u
+
+echo "✅ Code formatting complete"
+echo ""
+echo "🔍 Running flutter analyze..."
+
+# Run static analysis (only if Flutter is available)
+if command -v flutter >/dev/null 2>&1; then
+  flutter analyze --no-fatal-infos
+  ANALYZE_EXIT=$?
+  
+  if [ $ANALYZE_EXIT -ne 0 ]; then
+    echo ""
+    echo "❌ Flutter analyze found issues!"
+    echo "   Please fix the issues above before committing."
+    echo "   Or use 'git commit --no-verify' to bypass (not recommended)."
+    exit 1
+  fi
+  
+  echo "✅ Static analysis passed"
+else
+  echo "⚠️  Flutter not found in PATH, skipping analyze (CI will catch issues)"
+fi
+
+exit 0

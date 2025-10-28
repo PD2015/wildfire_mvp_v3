@@ -8,6 +8,7 @@ import '../models/location_models.dart';
 import '../services/location_resolver.dart';
 import '../services/fire_risk_service.dart';
 import '../utils/location_utils.dart';
+import '../config/feature_flags.dart';
 
 /// Home screen controller managing location and fire risk data with ChangeNotifier
 ///
@@ -52,6 +53,28 @@ class HomeController extends ChangeNotifier {
   })  : _locationResolver = locationResolver,
         _fireRiskService = fireRiskService {
     developer.log('HomeController initialized', name: 'HomeController');
+  }
+
+  /// Gets test region center coordinates based on TEST_REGION environment variable
+  ///
+  /// Returns coordinates for the configured test region. Used when LocationResolver
+  /// returns an error due to TEST_REGION being set (GPS disabled for testing).
+  static LatLng _getTestRegionCenter() {
+    final region = FeatureFlags.testRegion.toLowerCase();
+    switch (region) {
+      case 'portugal':
+        return const LatLng(39.6, -9.1); // Lisbon area
+      case 'spain':
+        return const LatLng(40.4, -3.7); // Madrid area
+      case 'greece':
+        return const LatLng(37.9, 23.7); // Athens area
+      case 'california':
+        return const LatLng(36.7, -119.4); // Central California
+      case 'australia':
+        return const LatLng(-33.8, 151.2); // Sydney area
+      default: // 'scotland' or unknown
+        return const LatLng(57.2, -3.8); // Aviemore, Scotland
+    }
   }
 
   /// Loads current location and fire risk data
@@ -162,15 +185,24 @@ class HomeController extends ChangeNotifier {
               'Location resolved: ${LocationUtils.logRedact(location.latitude, location.longitude)}',
               name: 'HomeController');
         case Left(:final value):
-          developer.log('Location resolution failed: $value',
-              name: 'HomeController');
-          _finishLoading();
-          _updateState(HomeStateError(
-            errorMessage:
-                'Location unavailable: ${_getLocationErrorMessage(value)}',
-            canRetry: true,
-          ));
-          return;
+          // If TEST_REGION is set, use test region center (same as MapController)
+          // Otherwise, treat as error
+          if (FeatureFlags.testRegion != 'scotland') {
+            location = _getTestRegionCenter();
+            developer.log(
+                'Using test region: ${FeatureFlags.testRegion} at ${LocationUtils.logRedact(location.latitude, location.longitude)}',
+                name: 'HomeController');
+          } else {
+            developer.log('Location resolution failed: $value',
+                name: 'HomeController');
+            _finishLoading();
+            _updateState(HomeStateError(
+              errorMessage:
+                  'Location unavailable: ${_getLocationErrorMessage(value)}',
+              canRetry: true,
+            ));
+            return;
+          }
       }
 
       // Step 2: Get fire risk data

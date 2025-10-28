@@ -1,0 +1,56 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "mock_fire_001",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-3.1883, 55.9533]
+      },
+      "properties": {
+        "id": "mock_fire_001",
+        "source": "mock",
+        "freshness": "mock",
+        "timestamp": "2025-10-19T14:30:00Z",
+        "intensity": "moderate",
+        "description": "Edinburgh - Holyrood Park",
+        "areaHectares": 12.5
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "mock_fire_002",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-4.2518, 55.8642]
+      },
+      "properties": {
+        "id": "mock_fire_002",
+        "source": "mock",
+        "freshness": "mock",
+        "timestamp": "2025-10-19T10:15:00Z",
+        "intensity": "high",
+        "description": "Glasgow - Campsie Fells",
+        "areaHectares": 28.3
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "mock_fire_003",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-3.8, 57.2]
+      },
+      "properties": {
+        "id": "mock_fire_003",
+        "source": "mock",
+        "freshness": "mock",
+        "timestamp": "2025-10-19T08:00:00Z",
+        "intensity": "low",
+        "description": "Aviemore - Cairngorms",
+        "areaHectares": 5.7
+      }
+    }
+  ]
+}

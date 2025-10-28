@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:dartz/dartz.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/location_models.dart';
-import '../utils/location_utils.dart';
+import '../config/feature_flags.dart';
+import 'utils/geo_utils.dart';
 import 'location_resolver.dart';
 
 /// Concrete implementation of LocationResolver with 5-tier fallback strategy
@@ -36,47 +38,40 @@ class LocationResolverImpl implements LocationResolver {
     final stopwatch = Stopwatch()..start();
 
     try {
-      // Platform guard: Skip GPS attempts on web/unsupported platforms
+      // Platform guard: Skip GPS on web/unsupported platforms OR when TEST_REGION is explicitly set
+      const isTestRegionSet = FeatureFlags.testRegion != 'scotland';
+
       if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
-        debugPrint(
-            'Platform guard: Skipping GPS on ${kIsWeb ? 'web' : Platform.operatingSystem}');
+        const platformName = kIsWeb ? 'web' : 'macos';
+        debugPrint('Platform guard: Skipping GPS on $platformName');
         return await _fallbackToCache(allowDefault);
       }
 
-      // Tier 1: Skip last known position to force fresh GPS (emulator has stale coordinates)
-      // TEMPORARILY DISABLED: Last known device position (instant)
-      // final lastKnownResult = await _tryLastKnownPosition();
-      // if (lastKnownResult.isRight()) {
-      //   final coords = lastKnownResult.getOrElse(() => _scotlandCentroid);
-      //   debugPrint(
-      //       'Location resolved via last known: ${LocationUtils.logRedact(coords.latitude, coords.longitude)}');
-      //   return Right(coords);
-      // }
+      if (isTestRegionSet) {
+        debugPrint(
+            'TEST_REGION=${FeatureFlags.testRegion}: Skipping GPS to use test region coordinates');
+        // Return error to trigger MapController's test region fallback
+        // Don't use default centroid when test region is explicitly set
+        return const Left(LocationError.gpsUnavailable);
+      }
 
-      // Tier 1: GPS fix temporarily bypassed due to emulator GPS issues
-      // Force use of Aviemore coordinates to test UK fire risk services (EFFIS + SEPA)
-      debugPrint(
-          'GPS temporarily bypassed - using Aviemore coordinates for UK testing');
-      // final remainingTime =
-      //     _totalTimeout.inMilliseconds - stopwatch.elapsedMilliseconds;
-      // if (remainingTime > 0) {
-      //   final gpsTimeout = Duration(
-      //       milliseconds: remainingTime.clamp(0, _gpsTimeout.inMilliseconds));
-      //   final gpsResult = await _tryGpsFix(gpsTimeout);
-      //   if (gpsResult.isRight()) {
-      //     final coords = gpsResult.getOrElse(() => _scotlandCentroid);
-      //     debugPrint(
-      //         'Location resolved via GPS: ${LocationUtils.logRedact(coords.latitude, coords.longitude)}');
-      //     return Right(coords);
-      //   }
-      // }
+      // Tier 1 & 2: Try GPS with timeout
+      final gpsResult = await _tryGps();
+      if (gpsResult.isRight()) {
+        final coords = gpsResult.getOrElse(() => _scotlandCentroid);
+        debugPrint(
+            'Location resolved via GPS: ${GeographicUtils.logRedact(coords.latitude, coords.longitude)}');
+        return Right(coords);
+      } else {
+        debugPrint('GPS unavailable: ${gpsResult.fold((e) => e, (r) => '')}');
+      }
 
       // Tier 3: SharedPreferences cached manual location
       final cacheResult = await _tryCache();
       if (cacheResult.isRight()) {
         final coords = cacheResult.getOrElse(() => _scotlandCentroid);
         debugPrint(
-            'Location resolved via cache: ${LocationUtils.logRedact(coords.latitude, coords.longitude)}');
+            'Location resolved via cache: ${GeographicUtils.logRedact(coords.latitude, coords.longitude)}');
         return Right(coords);
       }
 
@@ -89,13 +84,13 @@ class LocationResolverImpl implements LocationResolver {
 
       // Tier 5: Scotland centroid default
       debugPrint(
-          'Location resolved via default: ${LocationUtils.logRedact(_scotlandCentroid.latitude, _scotlandCentroid.longitude)}');
+          'Location resolved via default: ${GeographicUtils.logRedact(_scotlandCentroid.latitude, _scotlandCentroid.longitude)}');
       return const Right(_scotlandCentroid);
     } catch (e) {
       debugPrint('Location resolution error: $e');
       if (allowDefault) {
         debugPrint(
-            'Falling back to default: ${LocationUtils.logRedact(_scotlandCentroid.latitude, _scotlandCentroid.longitude)}');
+            'Falling back to default: ${GeographicUtils.logRedact(_scotlandCentroid.latitude, _scotlandCentroid.longitude)}');
         return const Right(_scotlandCentroid);
       }
       return const Left(LocationError.gpsUnavailable);
@@ -103,6 +98,46 @@ class LocationResolverImpl implements LocationResolver {
       stopwatch.stop();
       debugPrint(
           'Total location resolution time: ${stopwatch.elapsedMilliseconds}ms');
+    }
+  }
+
+  /// Tier 1-2: Try GPS (last known + fresh fix with 3s timeout)
+  /// Returns coordinates or error if GPS unavailable
+  Future<Either<String, LatLng>> _tryGps() async {
+    try {
+      // Check if location services are enabled
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        return const Left('Location services disabled');
+      }
+
+      // Check permission status
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          return const Left('Location permission denied');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        return const Left('Location permission permanently denied');
+      }
+
+      // Try last known position first (instant, may be stale)
+      final lastKnown = await Geolocator.getLastKnownPosition();
+      if (lastKnown != null) {
+        return Right(LatLng(lastKnown.latitude, lastKnown.longitude));
+      }
+
+      // Get fresh position with timeout
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+        timeLimit: const Duration(seconds: 3),
+      );
+
+      return Right(LatLng(position.latitude, position.longitude));
+    } catch (e) {
+      return Left('GPS error: $e');
     }
   }
 
@@ -122,12 +157,24 @@ class LocationResolverImpl implements LocationResolver {
       final lon = prefs.getDouble(_lonKey);
 
       if (lat != null && lon != null) {
-        final coords = LatLng(lat, lon);
-        if (coords.isValid) {
-          return Right(coords);
+        // Validate coordinates are not NaN, not infinite, and in correct range
+        final isValidNumber =
+            !lat.isNaN && !lon.isNaN && !lat.isInfinite && !lon.isInfinite;
+        // Scotland is between latitudes 54.5-60.9 and longitudes -8.6 to -0.7
+        final isValidLatitude = lat >= 54.0 && lat <= 61.0;
+        final isValidLongitude = lon >= -9.0 && lon <= 0.0;
+
+        if (isValidNumber && isValidLatitude && isValidLongitude) {
+          return Right(LatLng(lat, lon));
+        } else {
+          // Clear corrupted cache (NaN, infinite, or out of range coordinates)
+          debugPrint(
+              'Invalid cached coordinates: lat=$lat, lon=$lon. Clearing cache.');
+          await prefs.remove(_latKey);
+          await prefs.remove(_lonKey);
+          await prefs.remove(_versionKey);
         }
       }
-
       return const Left(LocationError.gpsUnavailable);
     } catch (e) {
       debugPrint('Cache read error: $e');
@@ -170,7 +217,7 @@ class LocationResolverImpl implements LocationResolver {
       ]);
 
       debugPrint(
-          'Manual location saved: ${LocationUtils.logRedact(location.latitude, location.longitude)}${placeName != null ? ' ($placeName)' : ''}');
+          'Manual location saved: ${GeographicUtils.logRedact(location.latitude, location.longitude)}${placeName != null ? ' ($placeName)' : ''}');
     } catch (e) {
       debugPrint('Failed to save manual location: $e');
       rethrow;

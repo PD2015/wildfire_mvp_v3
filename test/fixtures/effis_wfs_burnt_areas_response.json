@@ -1,0 +1,47 @@
+{
+  "type": "FeatureCollection",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "EPSG:4326"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "ba.curryear.1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-3.1883, 55.9533]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "fid": 123456,
+        "area_ha": 15.7,
+        "firedate": "2025-10-18",
+        "lastupdate": "2025-10-19T12:00:00Z",
+        "country": "GB"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "ba.curryear.2",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-4.2518, 55.8642]
+      },
+      "geometry_name": "geom",
+      "properties": {
+        "fid": 123457,
+        "area_ha": 32.1,
+        "firedate": "2025-10-18",
+        "lastupdate": "2025-10-19T11:30:00Z",
+        "country": "GB"
+      }
+    }
+  ],
+  "totalFeatures": 2,
+  "numberMatched": 2,
+  "numberReturned": 2,
+  "timeStamp": "2025-10-19T14:00:00.000Z"
+}
