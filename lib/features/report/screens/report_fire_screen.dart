@@ -3,11 +3,11 @@ import 'package:wildfire_mvp_v3/features/report/models/emergency_contact.dart';
 import 'package:wildfire_mvp_v3/features/report/widgets/emergency_button.dart';
 import 'package:wildfire_mvp_v3/utils/url_launcher_utils.dart';
 
-/// Report Fire Screen - A12 MVP Implementation
+/// Report Fire Screen - A12b Implementation (Descriptive)
 ///
-/// Displays emergency contact options for reporting fires in Scotland.
-/// Provides three contact methods: 999 Fire Service, 101 Police Scotland,
-/// and 0800 555 111 Crimestoppers with proper accessibility and theming.
+/// Displays detailed Scotland-specific guidance for wildfire reporting.
+/// Provides three-step process with descriptive text, emergency contacts,
+/// and expanded safety tips. Enhances A12 MVP with educational content.
 class ReportFireScreen extends StatelessWidget {
   const ReportFireScreen({super.key});
 
@@ -19,56 +19,95 @@ class ReportFireScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header section with guidance
-              _buildHeader(),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Optional: Add offline banner here when connectivity status is available
+                // if (!isConnected) const _OfflineBanner(),
+                
+                // Header section with descriptive guidance
+                _buildHeader(),
 
-              const SizedBox(height: 32.0),
+                const SizedBox(height: 32.0),
 
-              // Emergency contacts section
-              Expanded(
-                child: _buildEmergencyContacts(context),
-              ),
+                // Emergency contacts section
+                _buildEmergencyContacts(context),
 
-              const SizedBox(height: 16.0),
+                const SizedBox(height: 16.0),
 
-              // Footer with safety reminder
-              _buildFooter(),
-            ],
+                // Footer with expanded safety tips
+                _buildFooter(),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  /// Builds the header section with title and guidance
+  /// Builds the header section with detailed guidance
   Widget _buildHeader() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Primary heading
-      const Text(
-        'Emergency Contacts',
-        style: TextStyle(
-          fontSize: 24.0,
-          fontWeight: FontWeight.bold,
-        ),
-        semanticsLabel: 'Emergency Contacts for fire reporting',
-      ),        const SizedBox(height: 8.0),
-
-        // Guidance text
         Text(
-          'Act fast — stay safe.',
-          style: TextStyle(
-            fontSize: 16.0,
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w500,
+          'If you see a wildfire:',
+          style: const TextStyle(
+            fontSize: 24.0,
+            fontWeight: FontWeight.bold,
           ),
-          semanticsLabel: 'Guidance: Act fast, stay safe when reporting fires',
+          semanticsLabel: 'If you see a wildfire',
+        ),
+        const SizedBox(height: 24),
+        // Step 1
+        Text(
+          '1. Keep safe — move away from smoke and flames',
+          style: const TextStyle(
+            fontSize: 18.0,
+            fontWeight: FontWeight.w600,
+          ),
+          semanticsLabel: 'Step 1: Keep safe, move away from smoke and flames',
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Your safety is the top priority. Do not attempt to fight the fire yourself. Move to a safe distance upwind of the smoke, and ensure children, pets, and vulnerable people are also clear of danger.',
+          style: const TextStyle(fontSize: 16.0),
+          semanticsLabel: 'Your safety is the top priority. Do not attempt to fight the fire yourself. Move to a safe distance upwind of the smoke, and ensure children, pets, and vulnerable people are also clear of danger.',
+        ),
+        const SizedBox(height: 20),
+        // Step 2
+        Text(
+          '2. Note your location as precisely as you can',
+          style: const TextStyle(
+            fontSize: 18.0,
+            fontWeight: FontWeight.w600,
+          ),
+          semanticsLabel: 'Step 2: Note your location as precisely as you can',
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Try to identify landmarks, road names, or nearby features. If you have a What3Words location or GPS coordinates, note them down. Describe the terrain (e.g., moorland, forestry, hillside) to help emergency services find the fire quickly.',
+          style: const TextStyle(fontSize: 16.0),
+          semanticsLabel: 'Try to identify landmarks, road names, or nearby features. If you have a What3Words location or GPS coordinates, note them down. Describe the terrain to help emergency services find the fire quickly.',
+        ),
+        const SizedBox(height: 20),
+        // Step 3
+        Text(
+          '3. Call 999 and ask for the Fire Service',
+          style: const TextStyle(
+            fontSize: 18.0,
+            fontWeight: FontWeight.w600,
+          ),
+          semanticsLabel: 'Step 3: Call 999 and ask for the Fire Service',
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Provide as much detail as possible about the fire\'s location, size, and any immediate dangers. Mention if the fire is spreading, what it\'s burning (e.g., gorse, heather, trees), and whether people, livestock, or property are at risk.',
+          style: const TextStyle(fontSize: 16.0),
+          semanticsLabel: 'Provide as much detail as possible about the fire location, size, and any immediate dangers. Mention if the fire is spreading, what it is burning, and whether people, livestock, or property are at risk.',
         ),
       ],
     );
@@ -76,40 +115,38 @@ class ReportFireScreen extends StatelessWidget {
 
   /// Builds the emergency contacts section with all three buttons
   Widget _buildEmergencyContacts(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 999 Fire Service - Highest priority
-          EmergencyButton(
-            contact: EmergencyContact.fireService,
-            onPressed: () =>
-                _handleEmergencyCall(context, EmergencyContact.fireService),
-          ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 999 Fire Service - Highest priority
+        EmergencyButton(
+          contact: EmergencyContact.fireService,
+          onPressed: () =>
+              _handleEmergencyCall(context, EmergencyContact.fireService),
+        ),
 
-          const SizedBox(height: 16.0),
+        const SizedBox(height: 16.0),
 
-          // 101 Police Scotland - Non-emergency
-          EmergencyButton(
-            contact: EmergencyContact.policeScotland,
-            onPressed: () =>
-                _handleEmergencyCall(context, EmergencyContact.policeScotland),
-          ),
+        // 101 Police Scotland - Non-emergency
+        EmergencyButton(
+          contact: EmergencyContact.policeScotland,
+          onPressed: () =>
+              _handleEmergencyCall(context, EmergencyContact.policeScotland),
+        ),
 
-          const SizedBox(height: 16.0),
+        const SizedBox(height: 16.0),
 
-          // 0800 555 111 Crimestoppers - Anonymous reporting
-          EmergencyButton(
-            contact: EmergencyContact.crimestoppers,
-            onPressed: () =>
-                _handleEmergencyCall(context, EmergencyContact.crimestoppers),
-          ),
-        ],
-      ),
+        // 0800 555 111 Crimestoppers - Anonymous reporting
+        EmergencyButton(
+          contact: EmergencyContact.crimestoppers,
+          onPressed: () =>
+              _handleEmergencyCall(context, EmergencyContact.crimestoppers),
+        ),
+      ],
     );
   }
 
-  /// Builds the footer section with safety reminder
+  /// Builds the footer section with expanded safety tips
   Widget _buildFooter() {
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -119,25 +156,62 @@ class ReportFireScreen extends StatelessWidget {
         border: Border.all(color: Colors.grey[300]!),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.info_outline,
-            color: Colors.grey[600],
-            size: 20.0,
-            semanticLabel: 'Information',
+          Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                color: Colors.grey[600],
+                size: 20.0,
+                semanticLabel: 'Information',
+              ),
+              const SizedBox(width: 8.0),
+              Text(
+                'Safety Tips',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8.0),
+          const SizedBox(height: 12.0),
           Text(
-            'If you are in immediate danger, call 999 without delay. '
-            'For non-emergency incidents or anonymous reporting, '
-            'use the appropriate contact above.',
+            '• Never attempt to fight a wildfire yourself',
             style: TextStyle(
               fontSize: 14.0,
               color: Colors.grey[700],
             ),
-            textAlign: TextAlign.center,
-            semanticsLabel:
-                'Safety reminder: Call 999 for immediate danger, use other contacts for non-emergency or anonymous reporting',
+            semanticsLabel: 'Never attempt to fight a wildfire yourself',
+          ),
+          const SizedBox(height: 8.0),
+          Text(
+            '• Keep vehicle access clear for fire engines',
+            style: TextStyle(
+              fontSize: 14.0,
+              color: Colors.grey[700],
+            ),
+            semanticsLabel: 'Keep vehicle access clear for fire engines',
+          ),
+          const SizedBox(height: 8.0),
+          Text(
+            '• If you are in immediate danger, call 999 without delay',
+            style: TextStyle(
+              fontSize: 14.0,
+              color: Colors.grey[700],
+            ),
+            semanticsLabel: 'If you are in immediate danger, call 999 without delay',
+          ),
+          const SizedBox(height: 8.0),
+          Text(
+            '• For non-emergency incidents or anonymous reporting, use the appropriate contact above',
+            style: TextStyle(
+              fontSize: 14.0,
+              color: Colors.grey[700],
+            ),
+            semanticsLabel: 'For non-emergency incidents or anonymous reporting, use the appropriate contact above',
           ),
         ],
       ),
@@ -191,6 +265,49 @@ class ReportFireScreen extends StatelessWidget {
         ),
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16.0),
+      ),
+    );
+  }
+}
+
+/// Optional offline banner widget for future connectivity status integration
+///
+/// Displays when device is offline to inform user that dialing may still work
+/// through cellular network even without data connection.
+class _OfflineBanner extends StatelessWidget {
+  const _OfflineBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      margin: const EdgeInsets.only(bottom: 16.0),
+      decoration: BoxDecoration(
+        color: Colors.orange[50],
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(color: Colors.orange[300]!),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.wifi_off,
+            color: Colors.orange[700],
+            size: 20.0,
+            semanticLabel: 'No internet connection',
+          ),
+          const SizedBox(width: 12.0),
+          Expanded(
+            child: Text(
+              'No internet connection. Emergency calling still works.',
+              style: TextStyle(
+                fontSize: 14.0,
+                color: Colors.orange[900],
+                fontWeight: FontWeight.w500,
+              ),
+              semanticsLabel: 'No internet connection. Emergency calling still works.',
+            ),
+          ),
+        ],
       ),
     );
   }

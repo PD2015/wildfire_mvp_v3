@@ -44,9 +44,13 @@ void main() {
         ),
       );
 
-      // Assert
-      expect(find.text('Emergency Contacts'), findsOneWidget);
-      expect(find.text('Act fast — stay safe.'), findsOneWidget);
+      // Assert - Check for new A12b descriptive content
+      expect(find.text('If you see a wildfire:'), findsOneWidget);
+      expect(find.text('1. Keep safe — move away from smoke and flames'), findsOneWidget);
+      expect(find.textContaining('Your safety is the top priority'), findsOneWidget);
+      expect(find.text('2. Note your location as precisely as you can'), findsOneWidget);
+      expect(find.textContaining('What3Words'), findsOneWidget);
+      expect(find.text('3. Call 999 and ask for the Fire Service'), findsOneWidget);
     });
 
     testWidgets('should display footer section with safety information',
@@ -58,10 +62,13 @@ void main() {
         ),
       );
 
-      // Assert
+      // Assert - Check for new A12b bullet tips format
       expect(find.byIcon(Icons.info_outline), findsOneWidget);
-      expect(find.textContaining('If you are in immediate danger'),
-          findsOneWidget);
+      expect(find.text('Safety Tips'), findsOneWidget);
+      expect(find.text('• Never attempt to fight a wildfire yourself'), findsOneWidget);
+      expect(find.text('• Keep vehicle access clear for fire engines'), findsOneWidget);
+      expect(find.text('• If you are in immediate danger, call 999 without delay'), findsOneWidget);
+      expect(find.textContaining('non-emergency incidents or anonymous reporting'), findsOneWidget);
     });
 
     testWidgets('should have proper semantic labels for accessibility',
@@ -73,14 +80,14 @@ void main() {
         ),
       );
 
-      // Assert - Check semantic labeling exists
+      // Assert - Check A12b semantic labeling for new header content
       final headerSemantics =
-          tester.getSemantics(find.text('Emergency Contacts'));
-      expect(headerSemantics.label, contains('Emergency Contacts'));
+          tester.getSemantics(find.text('If you see a wildfire:'));
+      expect(headerSemantics.label, contains('If you see a wildfire'));
 
-      final guidanceSemantics =
-          tester.getSemantics(find.text('Act fast — stay safe.'));
-      expect(guidanceSemantics.label, isNotNull);
+      final step1Semantics =
+          tester.getSemantics(find.text('1. Keep safe — move away from smoke and flames'));
+      expect(step1Semantics.label, contains('Step 1: Keep safe'));
     });
 
     testWidgets('should handle button taps and show SnackBar on dialer failure',
