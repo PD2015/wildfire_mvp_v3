@@ -13,9 +13,14 @@ void main() {
       // Launch the app
       app.main();
       await tester.pumpAndSettle();
+      
+      // Wait for home screen to load (async data fetching)
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
 
       // Navigate to report screen from home
-      final reportButton = find.byIcon(Icons.local_fire_department);
+      // Use text matcher instead of icon (more reliable across icon variants)
+      final reportButton = find.text('Report Fire');
       expect(reportButton, findsOneWidget);
       await tester.tap(reportButton);
       await tester.pumpAndSettle();
@@ -87,7 +92,7 @@ void main() {
       app.main();
       await tester.pumpAndSettle();
 
-      final reportButton = find.byIcon(Icons.local_fire_department);
+      final reportButton = find.text('Report Fire');
       await tester.tap(reportButton);
       await tester.pumpAndSettle();
 
@@ -120,7 +125,7 @@ void main() {
       app.main();
       await tester.pumpAndSettle();
 
-      final reportButton = find.byIcon(Icons.local_fire_department);
+      final reportButton = find.text('Report Fire');
       await tester.tap(reportButton);
       await tester.pumpAndSettle();
 
@@ -147,7 +152,7 @@ void main() {
 
       // Simulate navigation to /report route
       // (In a real app, this would be triggered by a deep link)
-      final reportButton = find.byIcon(Icons.local_fire_department);
+      final reportButton = find.text('Report Fire');
       await tester.tap(reportButton);
       await tester.pumpAndSettle();
 
@@ -163,7 +168,7 @@ void main() {
       app.main();
       await tester.pumpAndSettle();
 
-      final reportButton = find.byIcon(Icons.local_fire_department);
+      final reportButton = find.text('Report Fire');
       await tester.tap(reportButton);
       await tester.pumpAndSettle();
 
@@ -207,7 +212,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Navigate to report screen
-      final reportButton = find.byIcon(Icons.local_fire_department);
+      final reportButton = find.text('Report Fire');
       await tester.tap(reportButton);
 
       final navigationStart = stopwatch.elapsedMilliseconds;
