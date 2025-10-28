@@ -25,9 +25,7 @@
 // These tests serve as specification for performance requirements (C5).
 // Actual performance validation done via manual testing and profiling.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:dartz/dartz.dart';
 
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';

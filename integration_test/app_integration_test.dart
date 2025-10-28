@@ -106,11 +106,11 @@ void main() {
       await tester.pump();
 
       // Capture initial risk level (if visible)
-      final initialRiskText = find.textContaining('Risk', findRichText: true);
-      String? initialRiskValue;
-      if (initialRiskText.evaluate().isNotEmpty) {
-        initialRiskValue = initialRiskText.evaluate().first.widget.toString();
-      }
+//       final initialRiskText = find.textContaining('Risk', findRichText: true);
+      // String? initialRiskValue; // Captured for future comparison tests
+      // if (initialRiskText.evaluate().isNotEmpty) {
+      //   initialRiskValue = initialRiskText.evaluate().first.widget.toString();
+      // }
 
       // Navigate to map and back
       await tester.tap(find.text('Map'));
