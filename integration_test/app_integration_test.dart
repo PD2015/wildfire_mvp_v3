@@ -199,11 +199,11 @@ void main() {
       await tester.pump(const Duration(seconds: 10));
       await tester.pump();
 
-      // Look for BottomNavigationBar
-      final bottomNav = find.byType(BottomNavigationBar);
+      // Look for NavigationBar (Material 3)
+      final bottomNav = find.byType(NavigationBar);
 
       if (bottomNav.evaluate().isEmpty) {
-        debugPrint('ℹ️  No BottomNavigationBar (using alternative navigation)');
+        debugPrint('ℹ️  No NavigationBar (using alternative navigation)');
         return;
       }
 
