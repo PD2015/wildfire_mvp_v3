@@ -946,4 +946,40 @@ sed -i '' 's/final testBounds = LatLngBounds/const testBounds = LatLngBounds/g' 
 ```
 
 <!-- MANUAL ADDITIONS START -->
+
+## CI/CD Deployment Guidelines (A11)
+
+### Build Scripts
+```bash
+# Local development build (uses env/dev.env.json)
+./scripts/build_web.sh
+
+# CI build with API key injection (requires MAPS_API_KEY_WEB env var)
+export MAPS_API_KEY_WEB="your_api_key_here"
+./scripts/build_web_ci.sh
+```
+
+### Deployment Workflow
+- **PR Preview**: Automatic on pull_request (7-day expiry)
+- **Production**: Manual approval required (GitHub Environment: production)
+- **Job Flow**: build → build-web → deploy-preview|deploy-production
+
+### Troubleshooting Deployments
+- **Preview URL 404** → Check firebase.json rewrites configuration
+- **Map watermark** → Check API key HTTP referrer restrictions in Google Cloud Console
+- **Build fails "placeholder not found"** → Verify web/index.html has `%MAPS_API_KEY%`
+- **Auth failed** → Check FIREBASE_SERVICE_ACCOUNT secret validity
+
+### Secrets Management
+- Never commit API keys (use `%MAPS_API_KEY%` placeholder in web/index.html)
+- Log API keys as masked: `${MAPS_API_KEY_WEB:0:8}***` (first 8 chars only)
+- Rotate keys every 90 days (generate new, update secret, test, revoke old)
+
+### Rollback Procedures
+1. **Firebase Console** (fastest - 30 sec): Hosting → Release history → Rollback
+2. **Firebase CLI** (scriptable): `firebase hosting:rollback <release-id>`
+3. **Git Revert** (audit trail): `git revert <sha>` → push → approve deployment
+
+See **docs/FIREBASE_DEPLOYMENT.md** for complete runbook.
+
 <!-- MANUAL ADDITIONS END -->
