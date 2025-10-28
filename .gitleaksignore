@@ -10,3 +10,8 @@ ios/Runner/AppDelegate.swift:gcp-api-key:14
 # Security notice documentation - References to rotated keys (documentation only)
 docs/SECURITY_NOTICE.md:gcp-api-key:5
 docs/SECURITY_NOTICE.md:gcp-api-key:25
+
+# Test files with mock/example API keys (not real secrets)
+test/scripts/build_web_ci_test.sh:generic-api-key:65
+test/scripts/build_web_ci_test.sh:generic-api-key:103
+specs/012-a11-ci-cd/contracts/build-script-contract.sh:generic-api-key:199
