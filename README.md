@@ -162,6 +162,10 @@ flutter pub get
 # Generate mock files
 dart run build_runner build
 
+# Verify code quality before committing (recommended)
+dart format .
+flutter analyze
+
 # Run tests
 flutter test
 
