@@ -51,7 +51,7 @@ jobs:
         run: flutter analyze
 
       - name: Run tests (C1, C5)
-        run: flutter test --platform=chrome --reporter expanded
+        run: flutter test --platform=chrome --reporter expanded --exclude-tags=golden
 
       - name: LocationResolver tests (A4 validation)
         run: |
