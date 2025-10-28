@@ -1,9 +1,15 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wildfire_mvp_v3/features/report/models/emergency_contact.dart';
 import 'package:wildfire_mvp_v3/utils/url_launcher_utils.dart';
 
 void main() {
+  // Initialize Flutter binding for platform channel tests
+  setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+  });
+
   group('UrlLauncherUtils Tests', () {
     group('Phone Number Validation', () {
       test('validates correct phone numbers', () {
