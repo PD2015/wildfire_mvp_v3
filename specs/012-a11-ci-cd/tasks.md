@@ -936,7 +936,7 @@ grep "012-a11-ci-cd" .github/copilot-instructions.md
 
 **Advanced (P4 - Optional)**:
 - [x] T010: Execute Scenario 4 (Failed Tests)
-- [ ] T011: Execute Scenario 5 (Rollback)
+- [x] T011: Execute Scenario 5 (Rollback)
 - [ ] T012: Execute Scenario 6 (Key Rotation)
 
 **Feature Status**: 🟡 Ready for Implementation
