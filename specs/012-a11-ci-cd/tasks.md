@@ -945,3 +945,11 @@ grep "012-a11-ci-cd" .github/copilot-instructions.md
 
 *Generated from specs/012-a11-ci-cd/plan.md on 2025-10-27*
 *Based on WildFire MVP Constitution v1.0.0 - See `.specify/memory/constitution.md`*
+
+---
+
+## T012 Status: Skipped (Manual Process)
+
+**Reason**: API key rotation requires manual access to Google Cloud Console and GitHub Settings UI. The process is documented in the quickstart guide but not automated.
+
+**Documentation**: See `specs/012-a11-ci-cd/quickstart.md` Scenario 6 for complete rotation procedure.
