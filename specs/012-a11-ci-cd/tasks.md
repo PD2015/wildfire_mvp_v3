@@ -925,9 +925,9 @@ grep "012-a11-ci-cd" .github/copilot-instructions.md
 - [x] T003: Extend .github/workflows/flutter.yml
 
 **Validation (P2)**:
-- [ ] T004: Create test/scripts/build_web_ci_test.sh
-- [ ] T005: Create docs/FIREBASE_DEPLOYMENT.md
-- [ ] T006: Verify .github/copilot-instructions.md
+- [x] T004: Create test/scripts/build_web_ci_test.sh
+- [x] T005: Create docs/FIREBASE_DEPLOYMENT.md
+- [x] T006: Verify .github/copilot-instructions.md
 
 **Integration (P3)**:
 - [ ] T007: Execute Scenario 1 (Local Build)
