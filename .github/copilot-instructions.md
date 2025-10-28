@@ -982,4 +982,103 @@ export MAPS_API_KEY_WEB="your_api_key_here"
 
 See **docs/FIREBASE_DEPLOYMENT.md** for complete runbook.
 
+## Flutter Testing Best Practices
+
+### Binding Initialization for Platform Channels
+
+**Problem**: Tests that use platform channels fail with "Binding has not yet been initialized" error.
+
+**Solution**: Call `WidgetsFlutterBinding.ensureInitialized()` at the start of `main()` in test files that use:
+- SharedPreferences
+- Geolocator or other location services
+- URL launcher or external intents
+- Any plugin with native platform code
+- Flutter services that require binding (ServicesBinding, WidgetsBinding, etc.)
+
+```dart
+// ✅ CORRECT: Initialize binding for tests using platform channels
+import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() {
+  // Required before accessing any platform channels or Flutter services
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  test('cache stores data', () async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    // ... test code
+  });
+}
+
+// ❌ WRONG: Missing binding initialization
+void main() {
+  test('cache stores data', () async {
+    // This will fail with "Binding has not yet been initialized"
+    final prefs = await SharedPreferences.getInstance();
+  });
+}
+```
+
+**When to use**:
+- Integration tests that use `SharedPreferences`, `Geolocator`, `url_launcher`, or other plugins
+- Unit tests accessing platform channels directly
+- Tests that instantiate services with plugin dependencies
+
+**When NOT needed**:
+- Pure unit tests with no Flutter dependencies
+- Widget tests using `testWidgets()` (binding auto-initialized)
+- Tests only using mocks/fakes with no real platform channels
+
+### Platform Guards for Web and CI
+
+**Problem**: Platform-specific code (GPS, file I/O, native features) breaks on web or CI environments.
+
+**Solution**: Use `kIsWeb` and `Platform` guards to skip platform-specific logic:
+
+```dart
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+
+// ✅ CORRECT: Platform guard for mobile-only features
+Future<LatLng> getLocation() async {
+  if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
+    // Web or desktop - return default location
+    return const LatLng(55.8642, -4.2518); // Scotland centroid
+  }
+  
+  // Mobile only - use GPS
+  final position = await Geolocator.getCurrentPosition();
+  return LatLng(position.latitude, position.longitude);
+}
+
+// ✅ CORRECT: Test with platform detection
+test('location resolver falls back on web', () async {
+  final location = await locationResolver.getLatLon();
+  
+  if (kIsWeb) {
+    expect(location, equals(TestData.scotlandCentroid));
+  } else {
+    expect(location.latitude, closeTo(55.9, 0.1));
+  }
+});
+
+// ❌ WRONG: No platform guard - will fail on web
+Future<LatLng> getLocation() async {
+  final position = await Geolocator.getCurrentPosition(); // Crashes on web
+  return LatLng(position.latitude, position.longitude);
+}
+```
+
+### Summary: Testing Checklist
+
+Before committing test changes, verify:
+
+- [ ] All test files using platform channels call `WidgetsFlutterBinding.ensureInitialized()`
+- [ ] Platform-specific code has `kIsWeb` or `Platform` guards
+- [ ] Tests use mocks/fakes instead of real platform services
+- [ ] `flutter analyze` shows zero errors
+- [ ] `flutter test` passes on all platforms (run locally on web with `flutter test --platform=chrome`)
+
 <!-- MANUAL ADDITIONS END -->

@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wildfire_mvp_v3/services/fire_incident_cache.dart';
@@ -8,6 +9,9 @@ import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/utils/clock.dart';
 
 void main() {
+  // Initialize Flutter binding for SharedPreferences platform channel
+  WidgetsFlutterBinding.ensureInitialized();
+
   group('FireIncidentCache Integration Tests (T018)', () {
     late SharedPreferences prefs;
     late FireIncidentCache cache;
