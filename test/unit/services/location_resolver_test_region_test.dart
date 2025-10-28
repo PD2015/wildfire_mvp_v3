@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver_impl.dart';
 import 'package:wildfire_mvp_v3/config/feature_flags.dart';
@@ -8,6 +9,9 @@ import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 /// an error when TEST_REGION is explicitly set, allowing controllers to use
 /// test region coordinates for EFFIS queries.
 void main() {
+  // Initialize Flutter binding for platform services
+  WidgetsFlutterBinding.ensureInitialized();
+
   group('LocationResolver TEST_REGION Integration', () {
     late LocationResolverImpl locationResolver;
 
