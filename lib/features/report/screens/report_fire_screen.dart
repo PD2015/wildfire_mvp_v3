@@ -51,7 +51,8 @@ class ReportFireScreen extends StatelessWidget {
           const SizedBox(height: 12),
           EmergencyButton(
             contact: EmergencyContact.fireService,
-            onPressed: () => _handleEmergencyCall(context, EmergencyContact.fireService),
+            onPressed: () =>
+                _handleEmergencyCall(context, EmergencyContact.fireService),
           ),
 
           const SizedBox(height: 24),
@@ -66,7 +67,8 @@ class ReportFireScreen extends StatelessWidget {
           const SizedBox(height: 12),
           EmergencyButton(
             contact: EmergencyContact.policeScotland,
-            onPressed: () => _handleEmergencyCall(context, EmergencyContact.policeScotland),
+            onPressed: () =>
+                _handleEmergencyCall(context, EmergencyContact.policeScotland),
           ),
 
           const SizedBox(height: 24),
@@ -77,11 +79,13 @@ class ReportFireScreen extends StatelessWidget {
             style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          Text('Call Crimestoppers on 0800 555 111.', style: textTheme.bodyLarge),
+          Text('Call Crimestoppers on 0800 555 111.',
+              style: textTheme.bodyLarge),
           const SizedBox(height: 12),
           EmergencyButton(
             contact: EmergencyContact.crimestoppers,
-            onPressed: () => _handleEmergencyCall(context, EmergencyContact.crimestoppers),
+            onPressed: () =>
+                _handleEmergencyCall(context, EmergencyContact.crimestoppers),
           ),
 
           const SizedBox(height: 24),
@@ -205,7 +209,7 @@ class _Banner extends StatelessWidget {
 /// Tips card widget with lightbulb icon and safety guidance
 class _TipsCard extends StatelessWidget {
   const _TipsCard({required this.cs, required this.textTheme});
-  
+
   final ColorScheme cs;
   final TextTheme textTheme;
 
@@ -249,9 +253,9 @@ class _TipsCard extends StatelessWidget {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Expandable "More Safety Guidance" section
           Theme(
             data: Theme.of(context).copyWith(
@@ -259,7 +263,8 @@ class _TipsCard extends StatelessWidget {
             ),
             child: ExpansionTile(
               tilePadding: EdgeInsets.zero,
-              childrenPadding: const EdgeInsets.only(left: 16, top: 8, bottom: 4),
+              childrenPadding:
+                  const EdgeInsets.only(left: 16, top: 8, bottom: 4),
               title: Text(
                 'More Safety Guidance',
                 style: textTheme.bodyMedium?.copyWith(

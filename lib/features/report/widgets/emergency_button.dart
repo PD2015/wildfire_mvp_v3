@@ -74,7 +74,8 @@ class EmergencyButton extends StatelessWidget {
           foregroundColor: colorScheme.onError,
           elevation: 2.0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14.0), // Material 3: 14dp rounded
+            borderRadius:
+                BorderRadius.circular(14.0), // Material 3: 14dp rounded
           ),
           minimumSize: const Size(double.infinity, 52.0),
           tapTargetSize: MaterialTapTargetSize.padded,
@@ -87,7 +88,8 @@ class EmergencyButton extends StatelessWidget {
           foregroundColor: colorScheme.onPrimary,
           elevation: 2.0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14.0), // Material 3: 14dp rounded
+            borderRadius:
+                BorderRadius.circular(14.0), // Material 3: 14dp rounded
           ),
           minimumSize: const Size(double.infinity, 52.0),
           tapTargetSize: MaterialTapTargetSize.padded,
@@ -100,7 +102,8 @@ class EmergencyButton extends StatelessWidget {
           foregroundColor: colorScheme.onSurface,
           elevation: 1.0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14.0), // Material 3: 14dp rounded
+            borderRadius:
+                BorderRadius.circular(14.0), // Material 3: 14dp rounded
           ),
           minimumSize: const Size(double.infinity, 52.0),
           tapTargetSize: MaterialTapTargetSize.padded,
