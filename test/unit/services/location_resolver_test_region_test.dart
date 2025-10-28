@@ -61,9 +61,10 @@ void main() {
       expect(
         result.isRight(),
         isTrue,
-        reason: 'Default flow should succeed with Scotland centroid (via cache fallback on web)',
+        reason:
+            'Default flow should succeed with Scotland centroid (via cache fallback on web)',
       );
-      
+
       // Verify we get valid coordinates
       final coords = result.getOrElse(() => const LatLng(0, 0));
       expect(coords.latitude, isNonZero);
