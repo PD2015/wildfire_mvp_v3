@@ -94,10 +94,10 @@ class EmergencyButton extends StatelessWidget {
         );
 
       case EmergencyPriority.anonymous:
-        // Crimestoppers - surfaceVariant colors for neutral reporting
+        // Crimestoppers - surfaceContainerHighest colors for neutral reporting
         return ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.surfaceVariant,
-          foregroundColor: colorScheme.onSurfaceVariant,
+          backgroundColor: colorScheme.surfaceContainerHighest,
+          foregroundColor: colorScheme.onSurface,
           elevation: 1.0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14.0), // Material 3: 14dp rounded

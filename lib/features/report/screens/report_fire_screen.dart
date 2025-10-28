@@ -214,7 +214,7 @@ class _TipsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: cs.surfaceVariant,
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -276,7 +276,7 @@ class _TipsCard extends StatelessWidget {
                   '• Mention if fire is spreading or threatening property/livestock\n'
                   '• In immediate danger, call 999 without delay',
                   style: textTheme.bodyMedium?.copyWith(
-                    color: cs.onSurfaceVariant.withOpacity(0.8),
+                    color: cs.onSurfaceVariant.withValues(alpha: 0.8),
                   ),
                 ),
               ],
