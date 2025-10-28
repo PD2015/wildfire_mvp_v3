@@ -1,227 +1,121 @@
 import 'package:flutter/material.dart';
 import 'package:wildfire_mvp_v3/features/report/models/emergency_contact.dart';
-import 'package:wildfire_mvp_v3/features/report/widgets/emergency_button.dart';
 import 'package:wildfire_mvp_v3/utils/url_launcher_utils.dart';
 
 /// Report Fire Screen - A12b Implementation (Descriptive)
 ///
-/// Displays detailed Scotland-specific guidance for wildfire reporting.
-/// Provides three-step process with descriptive text, emergency contacts,
-/// and expanded safety tips. Enhances A12 MVP with educational content.
+/// Displays Scotland-specific wildfire reporting guidance with clear visual hierarchy.
+/// Uses Material 3 design with branded colors, 52dp touch targets, and semantic labels.
+/// Preserves existing UrlLauncherUtils emergency calling infrastructure.
 class ReportFireScreen extends StatelessWidget {
   const ReportFireScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    // Brand-aware colors (Material 3 theme)
+    final bannerBg = cs.tertiaryContainer;
+    final bannerFg = cs.onTertiaryContainer;
+    final dangerBg = cs.error; // 999 emergency
+    final dangerFg = cs.onError;
+    final primaryBg = cs.primary; // 101 Police Scotland
+    final primaryFg = cs.onPrimary;
+    final neutralBg = cs.surfaceVariant; // Crimestoppers
+    final neutralFg = cs.onSurfaceVariant;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Report a Fire'),
         centerTitle: true,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Optional: Add offline banner here when connectivity status is available
-                // if (!isConnected) const _OfflineBanner(),
-                
-                // Header section with descriptive guidance
-                _buildHeader(),
-
-                const SizedBox(height: 32.0),
-
-                // Emergency contacts section
-                _buildEmergencyContacts(context),
-
-                const SizedBox(height: 16.0),
-
-                // Footer with expanded safety tips
-                _buildFooter(),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Builds the header section with detailed guidance
-  Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'If you see a wildfire:',
-          style: const TextStyle(
-            fontSize: 24.0,
-            fontWeight: FontWeight.bold,
-          ),
-          semanticsLabel: 'If you see a wildfire',
-        ),
-        const SizedBox(height: 24),
-        // Step 1
-        Text(
-          '1. Keep safe — move away from smoke and flames',
-          style: const TextStyle(
-            fontSize: 18.0,
-            fontWeight: FontWeight.w600,
-          ),
-          semanticsLabel: 'Step 1: Keep safe, move away from smoke and flames',
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Your safety is the top priority. Do not attempt to fight the fire yourself. Move to a safe distance upwind of the smoke, and ensure children, pets, and vulnerable people are also clear of danger.',
-          style: const TextStyle(fontSize: 16.0),
-          semanticsLabel: 'Your safety is the top priority. Do not attempt to fight the fire yourself. Move to a safe distance upwind of the smoke, and ensure children, pets, and vulnerable people are also clear of danger.',
-        ),
-        const SizedBox(height: 20),
-        // Step 2
-        Text(
-          '2. Note your location as precisely as you can',
-          style: const TextStyle(
-            fontSize: 18.0,
-            fontWeight: FontWeight.w600,
-          ),
-          semanticsLabel: 'Step 2: Note your location as precisely as you can',
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Try to identify landmarks, road names, or nearby features. If you have a What3Words location or GPS coordinates, note them down. Describe the terrain (e.g., moorland, forestry, hillside) to help emergency services find the fire quickly.',
-          style: const TextStyle(fontSize: 16.0),
-          semanticsLabel: 'Try to identify landmarks, road names, or nearby features. If you have a What3Words location or GPS coordinates, note them down. Describe the terrain to help emergency services find the fire quickly.',
-        ),
-        const SizedBox(height: 20),
-        // Step 3
-        Text(
-          '3. Call 999 and ask for the Fire Service',
-          style: const TextStyle(
-            fontSize: 18.0,
-            fontWeight: FontWeight.w600,
-          ),
-          semanticsLabel: 'Step 3: Call 999 and ask for the Fire Service',
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Provide as much detail as possible about the fire\'s location, size, and any immediate dangers. Mention if the fire is spreading, what it\'s burning (e.g., gorse, heather, trees), and whether people, livestock, or property are at risk.',
-          style: const TextStyle(fontSize: 16.0),
-          semanticsLabel: 'Provide as much detail as possible about the fire location, size, and any immediate dangers. Mention if the fire is spreading, what it is burning, and whether people, livestock, or property are at risk.',
-        ),
-      ],
-    );
-  }
-
-  /// Builds the emergency contacts section with all three buttons
-  Widget _buildEmergencyContacts(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // 999 Fire Service - Highest priority
-        EmergencyButton(
-          contact: EmergencyContact.fireService,
-          onPressed: () =>
-              _handleEmergencyCall(context, EmergencyContact.fireService),
-        ),
-
-        const SizedBox(height: 16.0),
-
-        // 101 Police Scotland - Non-emergency
-        EmergencyButton(
-          contact: EmergencyContact.policeScotland,
-          onPressed: () =>
-              _handleEmergencyCall(context, EmergencyContact.policeScotland),
-        ),
-
-        const SizedBox(height: 16.0),
-
-        // 0800 555 111 Crimestoppers - Anonymous reporting
-        EmergencyButton(
-          contact: EmergencyContact.crimestoppers,
-          onPressed: () =>
-              _handleEmergencyCall(context, EmergencyContact.crimestoppers),
-        ),
-      ],
-    );
-  }
-
-  /// Builds the footer section with expanded safety tips
-  Widget _buildFooter() {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: ListView(
+        padding: const EdgeInsets.all(16),
         children: [
-          Row(
-            children: [
-              Icon(
-                Icons.info_outline,
-                color: Colors.grey[600],
-                size: 20.0,
-                semanticLabel: 'Information',
-              ),
-              const SizedBox(width: 8.0),
-              Text(
-                'Safety Tips',
-                style: TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[800],
-                ),
-              ),
-            ],
+          _Banner(
+            background: bannerBg,
+            foreground: bannerFg,
+            title: 'See smoke, flames, or a campfire?',
+            subtitle: 'Act fast — stay safe.',
+            icon: Icons.local_fire_department,
           ),
-          const SizedBox(height: 12.0),
+          const SizedBox(height: 16),
+
+          // Step 1 — Emergency (999)
           Text(
-            '• Never attempt to fight a wildfire yourself',
-            style: TextStyle(
-              fontSize: 14.0,
-              color: Colors.grey[700],
-            ),
-            semanticsLabel: 'Never attempt to fight a wildfire yourself',
+            '1) If the fire is spreading or unsafe:',
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 8.0),
+          const SizedBox(height: 8),
           Text(
-            '• Keep vehicle access clear for fire engines',
-            style: TextStyle(
-              fontSize: 14.0,
-              color: Colors.grey[700],
-            ),
-            semanticsLabel: 'Keep vehicle access clear for fire engines',
+            'Call 999 and ask for the Fire Service.\n'
+            'Give your location, what\'s burning, and a safe access point.',
+            style: textTheme.bodyLarge,
           ),
-          const SizedBox(height: 8.0),
+          const SizedBox(height: 12),
+          _CallButton(
+            label: 'Call 999 — Fire Service',
+            contact: EmergencyContact.fireService,
+            background: dangerBg,
+            foreground: dangerFg,
+            semanticsLabel: 'Call emergency services, 999, Fire Service',
+            onPressed: () => _handleEmergencyCall(context, EmergencyContact.fireService),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Step 2 — Police Scotland (101)
           Text(
-            '• If you are in immediate danger, call 999 without delay',
-            style: TextStyle(
-              fontSize: 14.0,
-              color: Colors.grey[700],
-            ),
-            semanticsLabel: 'If you are in immediate danger, call 999 without delay',
+            '2) If someone is lighting a fire irresponsibly:',
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
-          const SizedBox(height: 8.0),
+          const SizedBox(height: 8),
+          Text('Call Police Scotland on 101.', style: textTheme.bodyLarge),
+          const SizedBox(height: 12),
+          _CallButton(
+            label: 'Call 101 — Police Scotland',
+            contact: EmergencyContact.policeScotland,
+            background: primaryBg,
+            foreground: primaryFg,
+            semanticsLabel: 'Call Police Scotland non-emergency number 101',
+            onPressed: () => _handleEmergencyCall(context, EmergencyContact.policeScotland),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Step 3 — Crimestoppers (0800 555 111)
           Text(
-            '• For non-emergency incidents or anonymous reporting, use the appropriate contact above',
-            style: TextStyle(
-              fontSize: 14.0,
-              color: Colors.grey[700],
-            ),
-            semanticsLabel: 'For non-emergency incidents or anonymous reporting, use the appropriate contact above',
+            '3) Want to report anonymously?',
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
+          const SizedBox(height: 8),
+          Text('Call Crimestoppers on 0800 555 111.', style: textTheme.bodyLarge),
+          const SizedBox(height: 12),
+          _CallButton(
+            label: 'Call 0800 555 111 — Crimestoppers',
+            contact: EmergencyContact.crimestoppers,
+            background: neutralBg,
+            foreground: neutralFg,
+            semanticsLabel: 'Call Crimestoppers anonymous line 0800 555 111',
+            onPressed: () => _handleEmergencyCall(context, EmergencyContact.crimestoppers),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Tips card
+          _TipsCard(cs: cs, textTheme: textTheme),
+
+          const SizedBox(height: 32),
         ],
       ),
     );
   }
 
   /// Handles emergency call attempts with error handling and user feedback
+  /// Uses existing UrlLauncherUtils infrastructure
   Future<void> _handleEmergencyCall(
       BuildContext context, EmergencyContact contact) async {
-    // Use UrlLauncherUtils to handle the complete flow
     await UrlLauncherUtils.handleEmergencyCall(
       contact: contact,
       onFailure: (errorMessage) =>
@@ -233,11 +127,7 @@ class ReportFireScreen extends StatelessWidget {
   void _showCallFailureSnackBar(
       BuildContext context, String errorMessage, EmergencyContact contact) {
     final messenger = ScaffoldMessenger.of(context);
-
-    // Clear any existing SnackBars
     messenger.clearSnackBars();
-
-    // Show error message with manual dialing information
     messenger.showSnackBar(
       SnackBar(
         content: Column(
@@ -256,8 +146,7 @@ class ReportFireScreen extends StatelessWidget {
           ],
         ),
         backgroundColor: Theme.of(context).colorScheme.error,
-        duration: const Duration(
-            seconds: 6), // Longer duration for manual dialing info
+        duration: const Duration(seconds: 6),
         action: SnackBarAction(
           label: 'OK',
           textColor: Theme.of(context).colorScheme.onError,
@@ -270,41 +159,151 @@ class ReportFireScreen extends StatelessWidget {
   }
 }
 
-/// Optional offline banner widget for future connectivity status integration
-///
-/// Displays when device is offline to inform user that dialing may still work
-/// through cellular network even without data connection.
-class _OfflineBanner extends StatelessWidget {
-  const _OfflineBanner();
+/// Banner widget for visual emphasis at top of screen
+class _Banner extends StatelessWidget {
+  const _Banner({
+    required this.background,
+    required this.foreground,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+  });
+
+  final Color background;
+  final Color foreground;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'Wildfire report instructions',
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: foreground, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: foreground,
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(color: foreground),
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Call button widget with consistent 52dp height and semantic labels
+class _CallButton extends StatelessWidget {
+  const _CallButton({
+    required this.label,
+    required this.contact,
+    required this.background,
+    required this.foreground,
+    required this.semanticsLabel,
+    required this.onPressed,
+  });
+
+  final String label;
+  final EmergencyContact contact;
+  final Color background;
+  final Color foreground;
+  final String semanticsLabel;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: semanticsLabel,
+      child: SizedBox(
+        height: 52,
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: background,
+            foregroundColor: foreground,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            textStyle: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          onPressed: onPressed,
+          icon: const Icon(Icons.call),
+          label: Text(label),
+        ),
+      ),
+    );
+  }
+}
+
+/// Tips card widget with lightbulb icon and safety guidance
+class _TipsCard extends StatelessWidget {
+  const _TipsCard({required this.cs, required this.textTheme});
+  
+  final ColorScheme cs;
+  final TextTheme textTheme;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      margin: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.orange[50],
-        borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(color: Colors.orange[300]!),
+        color: cs.surfaceVariant,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.wifi_off,
-            color: Colors.orange[700],
-            size: 20.0,
-            semanticLabel: 'No internet connection',
-          ),
-          const SizedBox(width: 12.0),
+          Icon(Icons.lightbulb, color: cs.onSurfaceVariant),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              'No internet connection. Emergency calling still works.',
-              style: TextStyle(
-                fontSize: 14.0,
-                color: Colors.orange[900],
-                fontWeight: FontWeight.w500,
-              ),
-              semanticsLabel: 'No internet connection. Emergency calling still works.',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Tips',
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Use What3Words or GPS for your location.\n'
+                  'Never fight wildfires yourself.\n'
+                  'If smoke approaches, move uphill and upwind.',
+                  style: textTheme.bodyLarge,
+                ),
+              ],
             ),
           ),
         ],

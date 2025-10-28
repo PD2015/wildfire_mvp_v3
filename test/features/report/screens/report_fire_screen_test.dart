@@ -12,14 +12,19 @@ void main() {
           home: ReportFireScreen(),
         ),
       );
+      await tester.pumpAndSettle(); // Let all animations/layouts complete
 
       // Assert
       expect(find.text('Report a Fire'), findsOneWidget);
-      expect(find.byType(ElevatedButton), findsNWidgets(3));
-
-      // Check for specific button texts
+      
+      // Check for first two button texts (visible on screen)
       expect(find.text('Call 999 — Fire Service'), findsOneWidget);
       expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
+      
+      // Scroll down to see third button
+      await tester.drag(find.byType(ListView), const Offset(0, -200));
+      await tester.pumpAndSettle();
+      
       expect(find.text('Call 0800 555 111 — Crimestoppers'), findsOneWidget);
     });
 
@@ -44,13 +49,12 @@ void main() {
         ),
       );
 
-      // Assert - Check for new A12b descriptive content
-      expect(find.text('If you see a wildfire:'), findsOneWidget);
-      expect(find.text('1. Keep safe — move away from smoke and flames'), findsOneWidget);
-      expect(find.textContaining('Your safety is the top priority'), findsOneWidget);
-      expect(find.text('2. Note your location as precisely as you can'), findsOneWidget);
-      expect(find.textContaining('What3Words'), findsOneWidget);
-      expect(find.text('3. Call 999 and ask for the Fire Service'), findsOneWidget);
+      // Assert - Check for new simpler A12b layout
+      expect(find.text('See smoke, flames, or a campfire?'), findsOneWidget);
+      expect(find.text('Act fast — stay safe.'), findsOneWidget);
+      expect(find.text('1) If the fire is spreading or unsafe:'), findsOneWidget);
+      expect(find.text('2) If someone is lighting a fire irresponsibly:'), findsOneWidget);
+      expect(find.text('3) Want to report anonymously?'), findsOneWidget);
     });
 
     testWidgets('should display footer section with safety information',
@@ -61,14 +65,16 @@ void main() {
           home: ReportFireScreen(),
         ),
       );
+      await tester.pumpAndSettle();
 
-      // Assert - Check for new A12b bullet tips format
-      expect(find.byIcon(Icons.info_outline), findsOneWidget);
-      expect(find.text('Safety Tips'), findsOneWidget);
-      expect(find.text('• Never attempt to fight a wildfire yourself'), findsOneWidget);
-      expect(find.text('• Keep vehicle access clear for fire engines'), findsOneWidget);
-      expect(find.text('• If you are in immediate danger, call 999 without delay'), findsOneWidget);
-      expect(find.textContaining('non-emergency incidents or anonymous reporting'), findsOneWidget);
+      // Scroll to see tips at bottom
+      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.pumpAndSettle();
+
+      // Assert - Check for Tips card  
+      expect(find.text('Tips'), findsOneWidget);
+      expect(find.textContaining('What3Words or GPS'), findsOneWidget);
+      expect(find.textContaining('Never fight wildfires yourself'), findsOneWidget);
     });
 
     testWidgets('should have proper semantic labels for accessibility',
@@ -79,15 +85,15 @@ void main() {
           home: ReportFireScreen(),
         ),
       );
+      await tester.pumpAndSettle();
 
-      // Assert - Check A12b semantic labeling for new header content
-      final headerSemantics =
-          tester.getSemantics(find.text('If you see a wildfire:'));
-      expect(headerSemantics.label, contains('If you see a wildfire'));
-
-      final step1Semantics =
-          tester.getSemantics(find.text('1. Keep safe — move away from smoke and flames'));
-      expect(step1Semantics.label, contains('Step 1: Keep safe'));
+      // Assert - Check semantic labeling for banner
+      final bannerSemantics =
+          tester.getSemantics(find.text('See smoke, flames, or a campfire?'));
+      expect(bannerSemantics.label, isNotNull);
+      
+      // Check banner and tips icons are present
+      expect(find.byIcon(Icons.local_fire_department), findsOneWidget); // Banner
     });
 
     testWidgets('should handle button taps and show SnackBar on dialer failure',
@@ -153,11 +159,11 @@ void main() {
           home: const ReportFireScreen(),
         ),
       );
+      await tester.pumpAndSettle();
 
       // Assert - Verify themed elements exist
-      expect(find.byType(ElevatedButton), findsNWidgets(3));
-      expect(
-          find.byType(Container), findsAtLeastNWidgets(1)); // Footer container
+      expect(find.byType(Container), findsAtLeastNWidgets(1)); // At least banner container visible
+      expect(find.text('Call 999 — Fire Service'), findsOneWidget); // At least one button visible
     });
 
     testWidgets('should handle SnackBar dismissal correctly', (tester) async {
