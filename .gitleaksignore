@@ -11,6 +11,12 @@ ios/Runner/AppDelegate.swift:gcp-api-key:14
 docs/SECURITY_NOTICE.md:gcp-api-key:5
 docs/SECURITY_NOTICE.md:gcp-api-key:25
 
+# API Key Rotation Guide - Documents which keys need rotation (not real usage)
+docs/API_KEY_ROTATION_GUIDE.md:gcp-api-key:6
+docs/API_KEY_ROTATION_GUIDE.md:gcp-api-key:7
+docs/API_KEY_ROTATION_GUIDE.md:gcp-api-key:102
+docs/API_KEY_ROTATION_GUIDE.md:gcp-api-key:103
+
 # Test files with mock/example API keys (not real secrets)
 test/scripts/build_web_ci_test.sh:generic-api-key:65
 test/scripts/build_web_ci_test.sh:generic-api-key:103
