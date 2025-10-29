@@ -41,7 +41,7 @@
 **Test**:
 ```bash
 # Should block this:
-echo "AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA" > test.txt
+echo "AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" > test.txt
 git add test.txt
 git commit -m "test"  # ❌ BLOCKED
 
@@ -102,7 +102,7 @@ git push  # ❌ BLOCKED by pre-push hook
 **Example Good vs Bad**:
 ```markdown
 # ❌ BAD
-The exposed key was: AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA
+The exposed key was: AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 # ✅ GOOD
 API key exposed in commit b5d9310 (rotated on 2025-10-20).
@@ -193,7 +193,7 @@ gh api repos/PD2015/wildfire_mvp_v3/branches/main/protection
 gh secret list
 
 # 7. Test hooks with dummy secrets
-echo "test-AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA" > /tmp/test.txt
+echo "test-AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" > /tmp/test.txt
 git add /tmp/test.txt
 git commit -m "test"  # Should be blocked
 git reset HEAD~1
@@ -252,7 +252,7 @@ Date: [Date]
 ### Test 1: Pre-Commit Hook Blocks API Keys
 ```bash
 # Create file with real key pattern
-echo "const apiKey = 'AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA';" > test_key.dart
+echo "const apiKey = 'AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';" > test_key.dart
 git add test_key.dart
 git commit -m "test: add API key"
 
@@ -290,7 +290,7 @@ rm test_placeholder.dart
 ### Test 3: Documentation Check
 ```bash
 # Create markdown with real key
-echo "The key AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA was exposed" > test.md
+echo "The key AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX was exposed" > test.md
 git add test.md
 git commit -m "docs: security incident"
 
@@ -308,7 +308,7 @@ rm test.md
 ### Test 4: Pre-Push Hook (Backup Layer)
 ```bash
 # Bypass pre-commit hook
-echo "const key = 'AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA';" > test.dart
+echo "const key = 'AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';" > test.dart
 git add test.dart
 git commit --no-verify -m "bypass test"
 

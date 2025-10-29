@@ -1081,4 +1081,93 @@ Before committing test changes, verify:
 - [ ] `flutter analyze` shows zero errors
 - [ ] `flutter test` passes on all platforms (run locally on web with `flutter test --platform=chrome`)
 
+## API Key Safety Rules (AI Assistants)
+
+### Rule 1: NEVER Write Real API Keys to Files
+**What to do**: Always use placeholders in files you create/modify
+
+**Placeholders**:
+- Generic: `YOUR_API_KEY_HERE`, `YOUR_*_KEY_HERE`
+- Google Maps: `AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX` (39 chars, correct length)
+- AWS: `AKIAXXXXXXXXXXXXXXXX` (20 chars)
+- GitHub: `ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX` (40 chars)
+
+### Rule 2: Recognize Keys in Context
+**If you see** an API key in chat history, file context, or previous messages:
+- Replace with placeholder in any files you create
+- Never echo the real key back
+- Use `YOUR_*_KEY_HERE` format
+
+### Rule 3: Reference Template Files
+**Instead of**: Showing contents of `env/dev.env.json`  
+**Do this**: Reference `env/dev.env.json.template`
+
+```bash
+# ❌ BAD
+cat env/dev.env.json
+
+# ✅ GOOD
+cat env/dev.env.json.template
+cp env/dev.env.json.template env/dev.env.json
+# User manually adds their keys to env/dev.env.json
+```
+
+### Rule 4: Documentation Examples
+```markdown
+# ❌ BAD - Never do this:
+{
+  "GOOGLE_MAPS_API_KEY_WEB": "AIzaSyAN8Aaiz1W59VnQYcJCYQyGDGFw2CzIkrE"
+}
+
+# ✅ GOOD - Always do this:
+{
+  "GOOGLE_MAPS_API_KEY_WEB": "YOUR_WEB_API_KEY_HERE"
+}
+
+See env/dev.env.json.template for structure.
+```
+
+### Rule 5: Code Generation Guards
+```dart
+// ❌ BAD - Never hardcode
+const apiKey = 'AIzaSyAN8Aaiz1W59VnQYcJCYQyGDGFw2CzIkrE';
+
+// ✅ GOOD - Use environment variables
+const apiKey = String.fromEnvironment(
+  'GOOGLE_MAPS_API_KEY_WEB',
+  defaultValue: 'YOUR_API_KEY_HERE', // Safe placeholder
+);
+```
+
+### Rule 6: Security-Sensitive Files
+**Never directly read or output**:
+- `env/dev.env.json`, `env/prod.env.json`
+- `android/local.properties`
+- `.env` or `.env.*`
+
+**Instead**: Reference template files, show structure without values
+
+### Rule 7: Pre-Commit Verification
+Before running `git add` or `git commit`, scan files you created:
+```bash
+# Check for Google Maps API keys
+grep -r "AIzaSy[A-Za-z0-9_-]{33}" <your-files>
+
+# Check for other secrets
+grep -r "AKIA[A-Z0-9]{16}" <your-files>
+grep -r "ghp_[A-Za-z0-9]{36}" <your-files>
+```
+
+### Rule 8: Incident Response
+If you accidentally write a real API key:
+1. **Alert immediately**: "⚠️ I may have written a real API key"
+2. **Provide removal**: `git reset`, `sed` replacement commands
+3. **Recommend rotation**: "Rotate this key in Google Cloud Console"
+
+### Additional Resources
+- **Human Guide**: `docs/PREVENT_API_KEY_LEAKS.md` - Comprehensive prevention guide
+- **Security Audit**: `docs/SECURITY_AUDIT_REPORT_2025-10-29.md` - Latest security scan
+- **Multi-Layer Defense**: `docs/MULTI_LAYER_SECURITY_CONTROLS.md` - 8-layer security architecture
+- **Incident Response**: `docs/SECURITY_INCIDENT_RESPONSE_2025-10-29.md` - Response procedures
+
 <!-- MANUAL ADDITIONS END -->

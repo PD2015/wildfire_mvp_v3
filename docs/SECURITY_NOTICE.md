@@ -2,7 +2,7 @@
 
 ## API Key Exposed in Git History
 
-**Issue**: The Google Maps API key `AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA` was committed to this repository's git history in commits:
+**Issue**: The Google Maps API key `AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX` was committed to this repository's git history in commits:
 - `13c510d` - feat(android): use shared unrestricted Google Maps API key
 - `ef1d4d4` - fix(android): add Google Maps API key manifest placeholder  
 - Earlier commits in `ios/Runner/AppDelegate.swift`
@@ -22,7 +22,7 @@
 
 **Steps**:
 1. Go to [Google Cloud Console](https://console.cloud.google.com/) → Credentials
-2. **Delete** or **restrict** the exposed key: `AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA`
+2. **Delete** or **restrict** the exposed key: `AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX`
 3. **Create a new API key**
 4. Update `env/dev.env.json` with the new key
 5. Share the new key securely with your team (password manager, secrets vault, etc.)
@@ -63,7 +63,7 @@ cp -r wildfire_mvp_v3 wildfire_mvp_v3.backup
 wget https://repo1.maven.org/maven2/com/madgag/bfg/1.14.0/bfg-1.14.0.jar
 
 # 3. Create replacement file
-echo "AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA==>YOUR_API_KEY_HERE" > replacements.txt
+echo "AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX==>YOUR_API_KEY_HERE" > replacements.txt
 
 # 4. Run BFG
 java -jar bfg-1.14.0.jar --replace-text replacements.txt wildfire_mvp_v3

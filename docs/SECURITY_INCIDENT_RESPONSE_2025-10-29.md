@@ -26,7 +26,7 @@ The file `docs/SECURITY_NOTICE.md` was created to document the initial security 
 
 ```markdown
 ❌ BAD (what was committed):
-The Google Maps API key `AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA` was committed...
+The Google Maps API key `AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX` was committed...
 ```
 
 **Why the hook didn't catch it:** The pre-commit hook wasn't installed until October 28th, 8 days after this documentation was committed.
@@ -64,7 +64,7 @@ We've now implemented **8 layers of defense** to ensure this never happens again
 **Test**:
 ```bash
 # This will be BLOCKED:
-echo "Key: AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA" > test.md
+echo "Key: AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" > test.md
 git add test.md
 git commit -m "test"  # ❌ ERROR: API key found in documentation!
 
@@ -136,7 +136,7 @@ git commit -m "test"  # ✅ PASSED
 ### Test 1: Try to Commit an API Key
 ```bash
 # This should be BLOCKED by the new hook
-echo "const key = 'AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA';" > test.dart
+echo "const key = 'AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';" > test.dart
 git add test.dart
 git commit -m "test"
 
@@ -152,7 +152,7 @@ git commit -m "test"
 ### Test 2: Documentation with Key (Your Original Concern)
 ```bash
 # This should ALSO be BLOCKED (new feature!)
-echo "The key AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA was exposed" > docs/test.md
+echo "The key AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX was exposed" > docs/test.md
 git add docs/test.md
 git commit -m "docs: security notice"
 
