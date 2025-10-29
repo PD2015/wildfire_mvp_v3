@@ -135,7 +135,7 @@ git check-ignore -v env/dev.env.json
 Add your API key to `env/dev.env.json`:
 ```json
 {
-  "GOOGLE_MAPS_API_KEY_WEB": "AIzaSyAN8Aaiz1W59VnQYcJCYQyGDGFw2CzIkrE"
+  "GOOGLE_MAPS_API_KEY_WEB": "YOUR_WEB_API_KEY_HERE"
 }
 ```
 

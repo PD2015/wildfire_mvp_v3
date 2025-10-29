@@ -1116,7 +1116,7 @@ cp env/dev.env.json.template env/dev.env.json
 ```markdown
 # ❌ BAD - Never do this:
 {
-  "GOOGLE_MAPS_API_KEY_WEB": "AIzaSyAN8Aaiz1W59VnQYcJCYQyGDGFw2CzIkrE"
+  "GOOGLE_MAPS_API_KEY_WEB": "YOUR_WEB_API_KEY_HERE"
 }
 
 # ✅ GOOD - Always do this:
@@ -1130,7 +1130,7 @@ See env/dev.env.json.template for structure.
 ### Rule 5: Code Generation Guards
 ```dart
 // ❌ BAD - Never hardcode
-const apiKey = 'AIzaSyAN8Aaiz1W59VnQYcJCYQyGDGFw2CzIkrE';
+const apiKey = 'YOUR_WEB_API_KEY_HERE';
 
 // ✅ GOOD - Use environment variables
 const apiKey = String.fromEnvironment(

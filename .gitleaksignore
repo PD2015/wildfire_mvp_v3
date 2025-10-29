@@ -1,5 +1,5 @@
 # Gitleaks ignore file for wildfire_mvp_v3
-# These API keys were already rotated and are documented in SECURITY_NOTICE.md
+# Only includes references to OLD rotated keys that are documented for security incident tracking
 
 # Android build.gradle.kts - Old key from initial commit (rotated 2025-10-20)
 android/app/build.gradle.kts:gcp-api-key:37
@@ -7,7 +7,7 @@ android/app/build.gradle.kts:gcp-api-key:37
 # iOS AppDelegate.swift - Old key from initial commit (rotated 2025-10-19)
 ios/Runner/AppDelegate.swift:gcp-api-key:14
 
-# Security notice documentation - References to rotated keys (documentation only)
+# Security notice documentation - References to old rotated keys (documentation only)
 docs/SECURITY_NOTICE.md:gcp-api-key:5
 docs/SECURITY_NOTICE.md:gcp-api-key:25
 
@@ -15,3 +15,6 @@ docs/SECURITY_NOTICE.md:gcp-api-key:25
 test/scripts/build_web_ci_test.sh:generic-api-key:65
 test/scripts/build_web_ci_test.sh:generic-api-key:103
 specs/012-a11-ci-cd/contracts/build-script-contract.sh:generic-api-key:199
+
+# NOTE: All documentation files now use safe placeholders (YOUR_API_KEY_HERE, YOUR_WEB_API_KEY_HERE)
+# No need to ignore them as they don't contain real API keys anymore
