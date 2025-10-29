@@ -233,7 +233,7 @@ grep -A 1 "GMSApiKey" ios/Runner/Info.plist
 Expected output:
 ```xml
 <key>GMSApiKey</key>
-<string>AIzaSyBBbL552AGWKqEQKhNCxkX0xHjncwpZumA</string>
+<string>YOUR_IOS_API_KEY_HERE</string>
 ```
 
 #### 3. Test App Functionality
@@ -304,8 +304,8 @@ The build phase works automatically in CI environments:
 # Example env/dev.env.json (never commit actual keys)
 {
   "MAP_LIVE_DATA": "false",
-  "GOOGLE_MAPS_API_KEY_IOS": "AIzaSyBBbL552AGWKqEQKhNCxkX0xHjncwpZumA",
-  "GOOGLE_MAPS_API_KEY_ANDROID": "AIzaSyBBbL552AGWKqEQKhNCxkX0xHjncwpZumA"
+  "GOOGLE_MAPS_API_KEY_IOS": "YOUR_IOS_API_KEY_HERE",
+  "GOOGLE_MAPS_API_KEY_ANDROID": "YOUR_ANDROID_API_KEY_HERE"
 }
 ```
 
