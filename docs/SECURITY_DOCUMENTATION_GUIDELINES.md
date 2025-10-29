@@ -6,7 +6,7 @@
 
 ### Bad Example 1: Including Literal Keys
 ```markdown
-❌ The API key `AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA` was exposed.
+❌ The API key `AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX` was exposed.
 ```
 
 ### Bad Example 2: "Redacted" Keys That Aren't
@@ -17,12 +17,12 @@
 
 ### Bad Example 3: Keys in Code Comments
 ```dart
-❌ // Old key: AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA (DO NOT USE)
+❌ // Old key: AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX (DO NOT USE)
 ```
 
 ### Bad Example 4: Keys in Examples
 ```markdown
-❌ Example API key for testing: AIzaSyDkZKOUu74f3XdwqyszBe_jEl4orL8MMxA
+❌ Example API key for testing: AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ```
 
 ## ✅ DO This Instead
