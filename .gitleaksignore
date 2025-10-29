@@ -1,5 +1,9 @@
 # Gitleaks ignore file for wildfire_mvp_v3
-# Only includes references to OLD rotated keys that are documented for security incident tracking
+# Only includes FINGERPRINTS of specific findings that should be ignored
+# (e.g., references to OLD rotated keys in security documentation)
+#
+# NOTE: This file uses fingerprints (finding IDs), NOT path patterns
+# For path-based ignoring (build artifacts, etc.), use .gitleaks.toml
 
 # Android build.gradle.kts - Old key from initial commit (rotated 2025-10-20)
 android/app/build.gradle.kts:gcp-api-key:37
@@ -17,10 +21,23 @@ docs/API_KEY_ROTATION_GUIDE.md:gcp-api-key:7
 docs/API_KEY_ROTATION_GUIDE.md:gcp-api-key:102
 docs/API_KEY_ROTATION_GUIDE.md:gcp-api-key:103
 
+# Security documentation with "REDACTED" placeholders in examples (not real keys)
+docs/SECURITY_AUDIT_REPORT_2025-10-29.md:gcp-api-key:23
+docs/SECURITY_AUDIT_REPORT_2025-10-29.md:gcp-api-key:24
+docs/SECURITY_AUDIT_REPORT_2025-10-29.md:gcp-api-key:25
+docs/SECURITY_INCIDENT_RESPONSE_2025-10-29.md:gcp-api-key:29
+docs/SECURITY_INCIDENT_RESPONSE_2025-10-29.md:gcp-api-key:67
+docs/SECURITY_DOCUMENTATION_GUIDELINES.md:gcp-api-key:9
+docs/PREVENT_API_KEY_LEAKS.md:generic-api-key:237
+docs/PREVENT_API_KEY_LEAKS.md:generic-api-key:253
+docs/PREVENT_API_KEY_LEAKS.md:gcp-api-key:138
+.github/copilot-instructions.md:gcp-api-key:1119
+.github/copilot-instructions.md:gcp-api-key:1133
+
 # Test files with mock/example API keys (not real secrets)
 test/scripts/build_web_ci_test.sh:generic-api-key:65
 test/scripts/build_web_ci_test.sh:generic-api-key:103
 specs/012-a11-ci-cd/contracts/build-script-contract.sh:generic-api-key:199
 
 # NOTE: All documentation files now use safe placeholders (YOUR_API_KEY_HERE, YOUR_WEB_API_KEY_HERE)
-# No need to ignore them as they don't contain real API keys anymore
+# "REDACTED" strings in security documentation are intentional examples showing what was exposed
