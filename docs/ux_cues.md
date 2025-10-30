@@ -1,3 +1,14 @@
+---
+title: UX Design Cues
+status: active
+last_updated: 2025-10-30
+category: reference
+subcategory: design
+related:
+  - accessibility-statement.md
+  - privacy-compliance.md
+---
+
 # WildFire Prototype — UX Cues
 
 ## Visual Language

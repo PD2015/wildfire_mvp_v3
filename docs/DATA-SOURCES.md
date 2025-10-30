@@ -1,3 +1,14 @@
+---
+title: Data Sources Reference
+status: active
+last_updated: 2025-10-30
+category: reference
+subcategory: apis
+related:
+  - guides/setup/google-maps.md
+  - reference/test-regions.md
+---
+
 # WildFire Prototype — Data Sources
 
 ## EFFIS (European Forest Fire Information System) 🎉 BREAKTHROUGH COMPLETE 2025-10-04

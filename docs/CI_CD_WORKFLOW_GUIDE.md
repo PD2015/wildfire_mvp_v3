@@ -1,7 +1,19 @@
+---
+title: CI/CD Workflow Guide
+status: active
+last_updated: 2025-10-30
+category: guides
+subcategory: deployment
+related:
+  - FIREBASE_DEPLOYMENT.md
+  - A11_CI_CD_REVIEW.md
+  - guides/security/api-key-management.md
+---
+
 # CI/CD Pipeline & Workflow Guide
 
 **Project**: WildFire MVP v3  
-**Last Updated**: 28 October 2025  
+**Last Updated**: 30 October 2025  
 **Pipeline**: GitHub Actions + Firebase Hosting  
 
 ---

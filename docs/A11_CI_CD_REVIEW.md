@@ -1,3 +1,15 @@
+---
+title: A11 CI/CD Implementation Review
+status: active
+last_updated: 2025-10-30
+category: explanation
+subcategory: deployment
+related:
+  - CI_CD_WORKFLOW_GUIDE.md
+  - FIREBASE_DEPLOYMENT.md
+  - guides/security/api-key-management.md
+---
+
 # A11 CI/CD Review: Flutter Web → Firebase Hosting
 
 **Review Date**: 2025-10-26  

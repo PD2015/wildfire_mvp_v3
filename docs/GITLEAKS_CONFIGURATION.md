@@ -1,3 +1,14 @@
+---
+title: Gitleaks Configuration Guide
+status: active
+last_updated: 2025-10-30
+category: guides
+subcategory: security
+related:
+  - guides/security/api-key-management.md
+  - WORKTREE_WORKFLOW.md
+---
+
 # Gitleaks Configuration Guide
 
 ## Overview

@@ -1,3 +1,14 @@
+---
+title: Git Worktree Workflow
+status: active
+last_updated: 2025-10-30
+category: explanation
+subcategory: development
+related:
+  - GITLEAKS_CONFIGURATION.md
+  - guides/security/api-key-management.md
+---
+
 # Git Worktree Workflow for Multi-Agent Development
 
 ## Overview
