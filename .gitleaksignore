@@ -41,3 +41,5 @@ specs/012-a11-ci-cd/contracts/build-script-contract.sh:generic-api-key:199
 
 # NOTE: All documentation files now use safe placeholders (YOUR_API_KEY_HERE, YOUR_WEB_API_KEY_HERE)
 # "REDACTED" strings in security documentation are intentional examples showing what was exposed
+#
+# Test examples in documentation use inline gitleaks:allow comments (best practice)
