@@ -532,7 +532,7 @@ Check PR comments for the preview URL.
 Merging to `main` triggers production deployment after manual approval.
 Requires: GitHub Environments → Production → Approve deployment
 
-See [FIREBASE_DEPLOYMENT.md](docs/FIREBASE_DEPLOYMENT.md) for details.
+See [FIREBASE_DEPLOYMENT.md](FIREBASE_DEPLOYMENT.md) for details.
 ```
 
 ### 3. Add Rollback Documentation
