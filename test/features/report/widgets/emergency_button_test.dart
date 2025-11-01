@@ -5,8 +5,9 @@ import 'package:wildfire_mvp_v3/features/report/widgets/emergency_button.dart';
 
 void main() {
   group('EmergencyButton Widget Tests', () {
-    testWidgets('should render Fire Service button with correct styling',
-        (tester) async {
+    testWidgets('should render Fire Service button with correct styling', (
+      tester,
+    ) async {
       // Arrange
       const contact = EmergencyContact.fireService;
       bool wasPressed = false;
@@ -32,8 +33,9 @@ void main() {
       expect(wasPressed, true);
     });
 
-    testWidgets('should render Police Scotland button with correct styling',
-        (tester) async {
+    testWidgets('should render Police Scotland button with correct styling', (
+      tester,
+    ) async {
       // Arrange
       const contact = EmergencyContact.policeScotland;
 
@@ -41,10 +43,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: EmergencyButton(
-              contact: contact,
-              onPressed: () {},
-            ),
+            body: EmergencyButton(contact: contact, onPressed: () {}),
           ),
         ),
       );
@@ -54,8 +53,9 @@ void main() {
       expect(find.byType(EmergencyButton), findsOneWidget);
     });
 
-    testWidgets('should render Crimestoppers button with correct styling',
-        (tester) async {
+    testWidgets('should render Crimestoppers button with correct styling', (
+      tester,
+    ) async {
       // Arrange
       const contact = EmergencyContact.crimestoppers;
 
@@ -63,10 +63,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: EmergencyButton(
-              contact: contact,
-              onPressed: () {},
-            ),
+            body: EmergencyButton(contact: contact, onPressed: () {}),
           ),
         ),
       );
@@ -76,33 +73,33 @@ void main() {
       expect(find.byType(EmergencyButton), findsOneWidget);
     });
 
-    testWidgets('should meet accessibility requirements for touch target size',
-        (tester) async {
-      // Arrange
-      const contact = EmergencyContact.fireService;
+    testWidgets(
+      'should meet accessibility requirements for touch target size',
+      (tester) async {
+        // Arrange
+        const contact = EmergencyContact.fireService;
 
-      // Act
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: EmergencyButton(
-              contact: contact,
-              onPressed: () {},
+        // Act
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: EmergencyButton(contact: contact, onPressed: () {}),
             ),
           ),
-        ),
-      );
+        );
 
-      // Assert - Check minimum touch target size (48dp)
-      final buttonFinder = find.byType(EmergencyButton);
-      expect(buttonFinder, findsOneWidget);
+        // Assert - Check minimum touch target size (48dp)
+        final buttonFinder = find.byType(EmergencyButton);
+        expect(buttonFinder, findsOneWidget);
 
-      final RenderBox buttonBox = tester.renderObject(buttonFinder);
-      expect(buttonBox.size.height, greaterThanOrEqualTo(48.0));
-    });
+        final RenderBox buttonBox = tester.renderObject(buttonFinder);
+        expect(buttonBox.size.height, greaterThanOrEqualTo(48.0));
+      },
+    );
 
-    testWidgets('should have proper semantic labels for accessibility',
-        (tester) async {
+    testWidgets('should have proper semantic labels for accessibility', (
+      tester,
+    ) async {
       // Arrange
       const contact = EmergencyContact.fireService;
 
@@ -110,10 +107,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: EmergencyButton(
-              contact: contact,
-              onPressed: () {},
-            ),
+            body: EmergencyButton(contact: contact, onPressed: () {}),
           ),
         ),
       );
@@ -124,8 +118,9 @@ void main() {
       expect(semantics.label, contains('Fire Service'));
     });
 
-    testWidgets('should apply correct color scheme based on priority',
-        (tester) async {
+    testWidgets('should apply correct color scheme based on priority', (
+      tester,
+    ) async {
       // Arrange
       const fireContact = EmergencyContact.fireService;
 
@@ -133,10 +128,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: EmergencyButton(
-              contact: fireContact,
-              onPressed: () {},
-            ),
+            body: EmergencyButton(contact: fireContact, onPressed: () {}),
           ),
         ),
       );
@@ -149,14 +141,13 @@ void main() {
   });
 
   group('EmergencyButton Factory Widget Tests', () {
-    testWidgets('FireServiceButton should create correct button',
-        (tester) async {
+    testWidgets('FireServiceButton should create correct button', (
+      tester,
+    ) async {
       // Arrange & Act
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: FireServiceButton(onPressed: () {}),
-          ),
+          home: Scaffold(body: FireServiceButton(onPressed: () {})),
         ),
       );
 
@@ -164,14 +155,13 @@ void main() {
       expect(find.text('Call 999 — Fire Service'), findsOneWidget);
     });
 
-    testWidgets('PoliceScotlandButton should create correct button',
-        (tester) async {
+    testWidgets('PoliceScotlandButton should create correct button', (
+      tester,
+    ) async {
       // Arrange & Act
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: PoliceScotlandButton(onPressed: () {}),
-          ),
+          home: Scaffold(body: PoliceScotlandButton(onPressed: () {})),
         ),
       );
 
@@ -179,14 +169,13 @@ void main() {
       expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
     });
 
-    testWidgets('CrimestoppersButton should create correct button',
-        (tester) async {
+    testWidgets('CrimestoppersButton should create correct button', (
+      tester,
+    ) async {
       // Arrange & Act
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: CrimestoppersButton(onPressed: () {}),
-          ),
+          home: Scaffold(body: CrimestoppersButton(onPressed: () {})),
         ),
       );
 

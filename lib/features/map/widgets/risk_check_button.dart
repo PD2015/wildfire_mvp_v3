@@ -14,10 +14,7 @@ import 'package:wildfire_mvp_v3/models/map_state.dart';
 class RiskCheckButton extends StatelessWidget {
   final MapController controller;
 
-  const RiskCheckButton({
-    super.key,
-    required this.controller,
-  });
+  const RiskCheckButton({super.key, required this.controller});
 
   Future<void> _checkRisk(BuildContext context) async {
     final state = controller.state;
@@ -36,9 +33,7 @@ class RiskCheckButton extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
     // Check risk
@@ -54,9 +49,9 @@ class RiskCheckButton extends StatelessWidget {
 
     result.fold(
       (error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error)));
       },
       (fireRisk) {
         showModalBottomSheet(

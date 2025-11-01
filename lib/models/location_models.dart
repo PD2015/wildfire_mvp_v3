@@ -24,8 +24,10 @@ class LatLng extends Equatable {
   factory LatLng.validated(double latitude, double longitude) {
     final coords = LatLng(latitude, longitude);
     if (!coords.isValid) {
-      throw ArgumentError('Invalid coordinates: lat=$latitude, lon=$longitude. '
-          'Valid ranges: lat[-90,90], lon[-180,180]');
+      throw ArgumentError(
+        'Invalid coordinates: lat=$latitude, lon=$longitude. '
+        'Valid ranges: lat[-90,90], lon[-180,180]',
+      );
     }
     return coords;
   }

@@ -19,18 +19,41 @@ echo "🔍 Running flutter analyze..."
 
 # Run static analysis (only if Flutter is available)
 if command -v flutter >/dev/null 2>&1; then
-  flutter analyze --no-fatal-infos
-  ANALYZE_EXIT=$?
+  # Get list of staged Dart files (excluding deleted files)
+  STAGED_DART_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.dart$' || true)
   
-  if [ $ANALYZE_EXIT -ne 0 ]; then
-    echo ""
-    echo "❌ Flutter analyze found issues!"
-    echo "   Please fix the issues above before committing."
-    echo "   Or use 'git commit --no-verify' to bypass (not recommended)."
-    exit 1
+  if [ -n "$STAGED_DART_FILES" ]; then
+    # Clean any stale build artifacts that might cause version detection issues
+    flutter clean > /dev/null 2>&1 || true
+    
+    # Run analyze with better error handling for worktrees
+    flutter analyze --no-fatal-infos $STAGED_DART_FILES 2>&1 | tee /tmp/flutter_analyze_output.txt
+    ANALYZE_EXIT=${PIPESTATUS[0]}
+    
+    # Check for known worktree/version detection issues
+    if grep -q "version is 0.0.0-unknown" /tmp/flutter_analyze_output.txt; then
+      echo ""
+      echo "⚠️  Flutter SDK version detection issue (common in worktrees)"
+      echo "   Falling back to dart analyze on staged files..."
+      
+      # Fallback to dart analyze which doesn't have the same issue
+      # Only analyze staged Dart files to avoid errors in uncommitted work
+      dart analyze --fatal-warnings $STAGED_DART_FILES
+      ANALYZE_EXIT=$?
+    fi
+    
+    if [ $ANALYZE_EXIT -ne 0 ]; then
+      echo ""
+      echo "❌ Static analysis found issues in staged files!"
+      echo "   Please fix the issues above before committing."
+      echo "   Or use 'git commit --no-verify' to bypass (not recommended)."
+      exit 1
+    fi
+    
+    echo "✅ Static analysis passed for staged files"
+  else
+    echo "ℹ️  No Dart files staged for commit"
   fi
-  
-  echo "✅ Static analysis passed"
 else
   echo "⚠️  Flutter not found in PATH, skipping analyze (CI will catch issues)"
 fi

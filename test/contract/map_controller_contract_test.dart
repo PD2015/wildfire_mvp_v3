@@ -60,10 +60,14 @@ void main() {
         northeast: LatLng(59.0, -1.0),
       );
 
-      expect(validBounds.southwest.latitude,
-          lessThan(validBounds.northeast.latitude));
-      expect(validBounds.southwest.longitude,
-          lessThan(validBounds.northeast.longitude));
+      expect(
+        validBounds.southwest.latitude,
+        lessThan(validBounds.northeast.latitude),
+      );
+      expect(
+        validBounds.southwest.longitude,
+        lessThan(validBounds.northeast.longitude),
+      );
 
       // Invalid bounds should throw
       expect(

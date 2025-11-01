@@ -58,11 +58,13 @@ void main() async {
   final lifecycleManager = AppLifecycleManager(homeController);
 
   // Start the app
-  runApp(WildFireAppRoot(
-    homeController: homeController,
-    lifecycleManager: lifecycleManager,
-    services: services,
-  ));
+  runApp(
+    WildFireAppRoot(
+      homeController: homeController,
+      lifecycleManager: lifecycleManager,
+      services: services,
+    ),
+  );
 }
 
 /// Service container for dependency injection
@@ -90,8 +92,9 @@ Future<ServiceContainer> _initializeServices() async {
   final effisServiceImpl = EffisServiceImpl(httpClient: httpClient);
 
   // Create adapter to match contract interface for FireRiskService
-  final contracts.EffisService effisServiceAdapter =
-      _EffisServiceAdapter(effisServiceImpl);
+  final contracts.EffisService effisServiceAdapter = _EffisServiceAdapter(
+    effisServiceImpl,
+  );
 
   // Initialize mock service for fallback
   final MockService mockService = MockService.defaultStrategy();
@@ -103,7 +106,8 @@ Future<ServiceContainer> _initializeServices() async {
     testResult.fold(
       (error) => debugPrint('🔍 EFFIS direct test FAILED: ${error.message}'),
       (result) => debugPrint(
-          '🔍 EFFIS direct test SUCCESS: FWI=${result.fwi}, Risk=${result.riskLevel}'),
+        '🔍 EFFIS direct test SUCCESS: FWI=${result.fwi}, Risk=${result.riskLevel}',
+      ),
     );
   } catch (e) {
     debugPrint('🔍 EFFIS direct test EXCEPTION: $e');
@@ -119,8 +123,9 @@ Future<ServiceContainer> _initializeServices() async {
 
   // Initialize cache service for fire incidents (T018)
   final prefs = await SharedPreferences.getInstance();
-  final FireIncidentCache fireIncidentCache =
-      FireIncidentCacheImpl(prefs: prefs);
+  final FireIncidentCache fireIncidentCache = FireIncidentCacheImpl(
+    prefs: prefs,
+  );
 
   // Initialize fire location service (A10 - EFFIS WFS + Cache + Mock fallback)
   final mockFireService = MockFireService();

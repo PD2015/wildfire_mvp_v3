@@ -20,16 +20,16 @@ class MockFireService implements FireLocationService {
     }
 
     try {
-      final jsonString =
-          await rootBundle.loadString('assets/mock/active_fires.json');
+      final jsonString = await rootBundle.loadString(
+        'assets/mock/active_fires.json',
+      );
       final jsonData = json.decode(jsonString) as Map<String, dynamic>;
       final features = jsonData['features'] as List<dynamic>;
 
       _cachedIncidents = features.map((feature) {
-        return FireIncident.fromJson(feature as Map<String, dynamic>).copyWith(
-          source: DataSource.mock,
-          freshness: Freshness.mock,
-        );
+        return FireIncident.fromJson(
+          feature as Map<String, dynamic>,
+        ).copyWith(source: DataSource.mock, freshness: Freshness.mock);
       }).toList();
 
       return _cachedIncidents!;

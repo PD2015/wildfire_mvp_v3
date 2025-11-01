@@ -62,8 +62,10 @@ class MockService {
   /// - observedAt: current UTC time
   /// - level: determined by strategy
   /// - fwi: null (mock doesn't provide FWI values)
-  Future<FireRisk> getCurrent(
-      {required double lat, required double lon}) async {
+  Future<FireRisk> getCurrent({
+    required double lat,
+    required double lon,
+  }) async {
     // Simulate minimal processing time (but stay well under 100ms)
     await Future.delayed(const Duration(milliseconds: 10));
 
@@ -88,10 +90,7 @@ class _FixedMockStrategy implements MockStrategy {
 
   @override
   FireRisk generateRisk(double lat, double lon) {
-    return FireRisk.fromMock(
-      level: _level,
-      observedAt: DateTime.now().toUtc(),
-    );
+    return FireRisk.fromMock(level: _level, observedAt: DateTime.now().toUtc());
   }
 }
 

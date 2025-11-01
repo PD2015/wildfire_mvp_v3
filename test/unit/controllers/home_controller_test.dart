@@ -31,8 +31,9 @@ class MockLocationResolver implements LocationResolver {
   }
 
   @override
-  Future<Either<LocationError, LatLng>> getLatLon(
-      {bool allowDefault = true}) async {
+  Future<Either<LocationError, LatLng>> getLatLon({
+    bool allowDefault = true,
+  }) async {
     loggedCalls.add('getLatLon(allowDefault: $allowDefault)');
     if (_getLatLonResult != null) {
       return _getLatLonResult!;
@@ -44,7 +45,8 @@ class MockLocationResolver implements LocationResolver {
   @override
   Future<void> saveManual(LatLng location, {String? placeName}) async {
     loggedCalls.add(
-        'saveManual(${location.latitude}, ${location.longitude}, placeName: $placeName)');
+      'saveManual(${location.latitude}, ${location.longitude}, placeName: $placeName)',
+    );
     if (_saveManualThrows) {
       throw Exception('Save manual failed');
     }
@@ -72,18 +74,21 @@ class MockFireRiskService implements FireRiskService {
     Duration? deadline,
   }) async {
     loggedCalls.add(
-        'getCurrent(lat: $lat, lon: $lon, deadline: ${deadline?.inSeconds ?? 8}s)');
+      'getCurrent(lat: $lat, lon: $lon, deadline: ${deadline?.inSeconds ?? 8}s)',
+    );
     if (_getCurrentResult != null) {
       return _getCurrentResult!;
     }
     // Default success case
-    return Right(FireRisk(
-      level: RiskLevel.moderate,
-      fwi: 5.0,
-      source: DataSource.effis,
-      observedAt: DateTime.now().toUtc(),
-      freshness: Freshness.live,
-    ));
+    return Right(
+      FireRisk(
+        level: RiskLevel.moderate,
+        fwi: 5.0,
+        source: DataSource.effis,
+        observedAt: DateTime.now().toUtc(),
+        freshness: Freshness.live,
+      ),
+    );
   }
 }
 
@@ -175,8 +180,9 @@ void main() {
         final states = <HomeState>[];
         controller.addListener(() => states.add(controller.state));
 
-        mockLocationResolver
-            .mockGetLatLon(const Left(LocationError.permissionDenied));
+        mockLocationResolver.mockGetLatLon(
+          const Left(LocationError.permissionDenied),
+        );
 
         // Act
         await controller.load();
@@ -198,7 +204,8 @@ void main() {
 
         mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
         mockFireRiskService.mockGetCurrent(
-            Left(TestData.createApiError(message: 'Service unavailable')));
+          Left(TestData.createApiError(message: 'Service unavailable')),
+        );
 
         // Act
         await controller.load();
@@ -215,24 +222,26 @@ void main() {
     });
 
     group('Retry Operation', () {
-      test('retry transitions through Loading (isRetry=true) to Success',
-          () async {
-        // Arrange
-        final states = <HomeState>[];
-        controller.addListener(() => states.add(controller.state));
+      test(
+        'retry transitions through Loading (isRetry=true) to Success',
+        () async {
+          // Arrange
+          final states = <HomeState>[];
+          controller.addListener(() => states.add(controller.state));
 
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
-        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+          mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+          mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
-        // Act
-        await controller.retry();
+          // Act
+          await controller.retry();
 
-        // Assert
-        expect(states.length, equals(2)); // Loading -> Success
-        expect(states[0], isA<HomeStateLoading>());
-        expect((states[0] as HomeStateLoading).isRetry, isTrue);
-        expect(states[1], isA<HomeStateSuccess>());
-      });
+          // Assert
+          expect(states.length, equals(2)); // Loading -> Success
+          expect(states[0], isA<HomeStateLoading>());
+          expect((states[0] as HomeStateLoading).isRetry, isTrue);
+          expect(states[1], isA<HomeStateSuccess>());
+        },
+      );
     });
 
     group('Manual Location', () {
@@ -245,12 +254,16 @@ void main() {
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act
-        await controller.setManualLocation(TestData.glasgow,
-            placeName: 'Glasgow');
+        await controller.setManualLocation(
+          TestData.glasgow,
+          placeName: 'Glasgow',
+        );
 
         // Assert
-        expect(mockLocationResolver.loggedCalls,
-            contains('saveManual(55.8642, -4.2518, placeName: Glasgow)'));
+        expect(
+          mockLocationResolver.loggedCalls,
+          contains('saveManual(55.8642, -4.2518, placeName: Glasgow)'),
+        );
         expect(states.length, equals(2)); // Loading -> Success
         expect(states[1], isA<HomeStateSuccess>());
 
@@ -298,10 +311,11 @@ void main() {
 
         // Assert
         expect(
-            mockLocationResolver.loggedCalls
-                .where((call) => call.startsWith('getLatLon'))
-                .length,
-            equals(1));
+          mockLocationResolver.loggedCalls
+              .where((call) => call.startsWith('getLatLon'))
+              .length,
+          equals(1),
+        );
         expect(controller.isLoading, isFalse);
       });
 
@@ -321,10 +335,11 @@ void main() {
 
         // Assert - manual location call should be ignored
         expect(
-            mockLocationResolver.loggedCalls
-                .where((call) => call.startsWith('saveManual'))
-                .length,
-            equals(0));
+          mockLocationResolver.loggedCalls
+              .where((call) => call.startsWith('saveManual'))
+              .length,
+          equals(0),
+        );
       });
     });
 
@@ -395,8 +410,9 @@ void main() {
     group('Constitutional Compliance', () {
       test('C5: Error states are visible with retry capability', () async {
         // Arrange
-        mockLocationResolver
-            .mockGetLatLon(const Left(LocationError.gpsUnavailable));
+        mockLocationResolver.mockGetLatLon(
+          const Left(LocationError.gpsUnavailable),
+        );
 
         // Act
         await controller.load();
@@ -412,7 +428,8 @@ void main() {
         // Arrange
         mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
         mockFireRiskService.mockGetCurrent(
-            Right(TestData.createFireRisk(source: DataSource.sepa)));
+          Right(TestData.createFireRisk(source: DataSource.sepa)),
+        );
 
         // Act
         await controller.load();

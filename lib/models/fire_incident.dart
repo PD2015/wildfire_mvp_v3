@@ -44,7 +44,8 @@ class FireIncident extends Equatable {
     }
     if (!['low', 'moderate', 'high'].contains(intensity)) {
       throw ArgumentError(
-          'FireIncident intensity must be "low", "moderate", or "high"');
+        'FireIncident intensity must be "low", "moderate", or "high"',
+      );
     }
     if (areaHectares != null && areaHectares! <= 0) {
       throw ArgumentError('FireIncident areaHectares must be > 0');

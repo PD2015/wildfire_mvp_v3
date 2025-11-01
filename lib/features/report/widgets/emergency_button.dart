@@ -55,10 +55,7 @@ class EmergencyButton extends StatelessWidget {
           onPressed: onPressed,
           style: _getButtonStyle(colorScheme),
           icon: const Icon(Icons.call),
-          label: Text(
-            buttonText,
-            style: _getTextStyle(theme),
-          ),
+          label: Text(buttonText, style: _getTextStyle(theme)),
         ),
       ),
     );
@@ -74,8 +71,9 @@ class EmergencyButton extends StatelessWidget {
           foregroundColor: colorScheme.onError,
           elevation: 2.0,
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(14.0), // Material 3: 14dp rounded
+            borderRadius: BorderRadius.circular(
+              14.0,
+            ), // Material 3: 14dp rounded
           ),
           minimumSize: const Size(double.infinity, 52.0),
           tapTargetSize: MaterialTapTargetSize.padded,
@@ -88,8 +86,9 @@ class EmergencyButton extends StatelessWidget {
           foregroundColor: colorScheme.onPrimary,
           elevation: 2.0,
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(14.0), // Material 3: 14dp rounded
+            borderRadius: BorderRadius.circular(
+              14.0,
+            ), // Material 3: 14dp rounded
           ),
           minimumSize: const Size(double.infinity, 52.0),
           tapTargetSize: MaterialTapTargetSize.padded,
@@ -102,8 +101,9 @@ class EmergencyButton extends StatelessWidget {
           foregroundColor: colorScheme.onSurface,
           elevation: 1.0,
           shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(14.0), // Material 3: 14dp rounded
+            borderRadius: BorderRadius.circular(
+              14.0,
+            ), // Material 3: 14dp rounded
           ),
           minimumSize: const Size(double.infinity, 52.0),
           tapTargetSize: MaterialTapTargetSize.padded,
@@ -116,12 +116,8 @@ class EmergencyButton extends StatelessWidget {
     final textTheme = theme.textTheme;
 
     // Material 3 consistent text style for all buttons
-    return textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w600,
-        ) ??
-        const TextStyle(
-          fontWeight: FontWeight.w600,
-        );
+    return textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600) ??
+        const TextStyle(fontWeight: FontWeight.w600);
   }
 
   /// Creates semantic label for screen readers (C4 compliance)
@@ -159,10 +155,7 @@ class EmergencyButton extends StatelessWidget {
 class FireServiceButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
-  const FireServiceButton({
-    super.key,
-    this.onPressed,
-  });
+  const FireServiceButton({super.key, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -177,10 +170,7 @@ class FireServiceButton extends StatelessWidget {
 class PoliceScotlandButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
-  const PoliceScotlandButton({
-    super.key,
-    this.onPressed,
-  });
+  const PoliceScotlandButton({super.key, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -195,10 +185,7 @@ class PoliceScotlandButton extends StatelessWidget {
 class CrimestoppersButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
-  const CrimestoppersButton({
-    super.key,
-    this.onPressed,
-  });
+  const CrimestoppersButton({super.key, this.onPressed});
 
   @override
   Widget build(BuildContext context) {

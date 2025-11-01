@@ -62,8 +62,9 @@ void main() {
       mapController.dispose();
     });
 
-    testWidgets('P1: Map becomes interactive in ≤3s from navigation',
-        (WidgetTester tester) async {
+    testWidgets('P1: Map becomes interactive in ≤3s from navigation', (
+      WidgetTester tester,
+    ) async {
       // SKIP: GoogleMap requires platform channels unavailable in `flutter test`
       // Run with: flutter drive --target=test_driver/performance_test.dart
     }, skip: true);
@@ -84,26 +85,30 @@ void main() {
       print('✅ P1-SPEC: Map interactive requirement documented (≤3s)');
     });
 
-    testWidgets('P2: 50 markers render without jank',
-        (WidgetTester tester) async {
+    testWidgets('P2: 50 markers render without jank', (
+      WidgetTester tester,
+    ) async {
       // SKIP: GoogleMap requires platform channels unavailable in `flutter test`
       // Run with: flutter drive --target=test_driver/performance_test.dart
     }, skip: true);
 
-    testWidgets('P3: Memory usage stable during map interaction',
-        (WidgetTester tester) async {
+    testWidgets('P3: Memory usage stable during map interaction', (
+      WidgetTester tester,
+    ) async {
       // SKIP: GoogleMap requires platform channels unavailable in `flutter test`
       // Run with: flutter drive --target=test_driver/performance_test.dart
     }, skip: true);
 
-    testWidgets('P4: Camera movements execute without blocking UI',
-        (WidgetTester tester) async {
+    testWidgets('P4: Camera movements execute without blocking UI', (
+      WidgetTester tester,
+    ) async {
       // SKIP: GoogleMap requires platform channels unavailable in `flutter test`
       // Run with: flutter drive --target=test_driver/performance_test.dart
     }, skip: true);
 
-    testWidgets('P5: EFFIS WFS timeout respected (8s service tier)',
-        (WidgetTester tester) async {
+    testWidgets('P5: EFFIS WFS timeout respected (8s service tier)', (
+      WidgetTester tester,
+    ) async {
       // SKIP: GoogleMap requires platform channels unavailable in `flutter test`
       // Run with: flutter drive --target=test_driver/performance_test.dart
     }, skip: true);
@@ -134,8 +139,9 @@ void main() {
 
 class MockLocationResolver implements LocationResolver {
   @override
-  Future<Either<LocationError, LatLng>> getLatLon(
-      {bool allowDefault = true}) async {
+  Future<Either<LocationError, LatLng>> getLatLon({
+    bool allowDefault = true,
+  }) async {
     // Simulate GPS delay (typical: 500-1000ms)
     await Future.delayed(const Duration(milliseconds: 100));
     return const Right(LatLng(55.9533, -3.1883)); // Edinburgh

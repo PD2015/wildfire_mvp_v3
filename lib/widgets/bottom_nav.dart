@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../config/ui_constants.dart';
+
 /// Bottom navigation bar for primary app navigation
 ///
-/// Provides accessible navigation between Home, Map, and Report Fire screens with:
+/// Provides accessible navigation between Fire Risk, Map, and Report Fire screens with:
 /// - Material Design 3 NavigationBar widget
 /// - ≥44dp touch targets (C3 compliance)
 /// - Semantic labels for screen readers
@@ -16,10 +18,7 @@ class AppBottomNav extends StatelessWidget {
   /// Current route path for highlighting active destination
   final String currentPath;
 
-  const AppBottomNav({
-    super.key,
-    required this.currentPath,
-  });
+  const AppBottomNav({super.key, required this.currentPath});
 
   /// Get selected index based on current route
   int get _selectedIndex {
@@ -28,7 +27,7 @@ class AppBottomNav extends StatelessWidget {
     } else if (currentPath.startsWith('/report')) {
       return 2;
     }
-    return 0; // Default to home
+    return 0; // Default to fire risk
   }
 
   @override
@@ -36,20 +35,26 @@ class AppBottomNav extends StatelessWidget {
     return NavigationBar(
       selectedIndex: _selectedIndex,
       onDestinationSelected: (index) => _onDestinationSelected(context, index),
-      destinations: const [
+      destinations: [
         NavigationDestination(
-          icon: Icon(Icons.home_outlined),
-          selectedIcon: Icon(Icons.home),
-          label: 'Home',
-          tooltip: 'Navigate to home screen',
+          icon: Semantics(
+            label: 'Warning symbol indicating fire risk information',
+            child: const Icon(Icons.warning_amber_outlined),
+          ),
+          selectedIcon: Semantics(
+            label: 'Warning symbol indicating fire risk information',
+            child: const Icon(Icons.warning_amber),
+          ),
+          label: UIConstants.fireRiskTitle,
+          tooltip: 'Navigate to fire risk screen',
         ),
-        NavigationDestination(
+        const NavigationDestination(
           icon: Icon(Icons.map_outlined),
           selectedIcon: Icon(Icons.map),
           label: 'Map',
           tooltip: 'Navigate to map screen',
         ),
-        NavigationDestination(
+        const NavigationDestination(
           icon: Icon(Icons.local_fire_department_outlined),
           selectedIcon: Icon(Icons.local_fire_department),
           label: 'Report Fire',

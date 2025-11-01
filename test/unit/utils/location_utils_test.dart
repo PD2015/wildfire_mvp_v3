@@ -6,14 +6,18 @@ void main() {
     group('logRedact', () {
       test('formats positive coordinates to exactly 2 decimal places', () {
         expect(
-            LocationUtils.logRedact(55.9533, -3.1883), equals('55.95,-3.19'));
+          LocationUtils.logRedact(55.9533, -3.1883),
+          equals('55.95,-3.19'),
+        );
         expect(LocationUtils.logRedact(0.0, 0.0), equals('0.00,0.00'));
         expect(LocationUtils.logRedact(12.3, 45.6), equals('12.30,45.60'));
       });
 
       test('formats negative coordinates correctly', () {
-        expect(LocationUtils.logRedact(-90.123456, -180.987654),
-            equals('-90.12,-180.99'));
+        expect(
+          LocationUtils.logRedact(-90.123456, -180.987654),
+          equals('-90.12,-180.99'),
+        );
         expect(LocationUtils.logRedact(-55.9, 3.1), equals('-55.90,3.10'));
         expect(LocationUtils.logRedact(55.9, -3.1), equals('55.90,-3.10'));
       });
@@ -21,9 +25,13 @@ void main() {
       test('handles extreme coordinate values', () {
         expect(LocationUtils.logRedact(90.0, 180.0), equals('90.00,180.00'));
         expect(
-            LocationUtils.logRedact(-90.0, -180.0), equals('-90.00,-180.00'));
-        expect(LocationUtils.logRedact(89.999999, 179.999999),
-            equals('90.00,180.00'));
+          LocationUtils.logRedact(-90.0, -180.0),
+          equals('-90.00,-180.00'),
+        );
+        expect(
+          LocationUtils.logRedact(89.999999, 179.999999),
+          equals('90.00,180.00'),
+        );
       });
 
       test('rounds coordinates appropriately', () {
@@ -47,8 +55,10 @@ void main() {
         const highPrecisionLat = 55.953312345678901234567890;
         const highPrecisionLon = -3.188312345678901234567890;
 
-        final result =
-            LocationUtils.logRedact(highPrecisionLat, highPrecisionLon);
+        final result = LocationUtils.logRedact(
+          highPrecisionLat,
+          highPrecisionLon,
+        );
 
         // Should only contain 2 decimal places
         expect(result, equals('55.95,-3.19'));
@@ -104,7 +114,9 @@ void main() {
         // Just inside boundaries
         expect(LocationUtils.isValidCoordinate(89.999999, 179.999999), isTrue);
         expect(
-            LocationUtils.isValidCoordinate(-89.999999, -179.999999), isTrue);
+          LocationUtils.isValidCoordinate(-89.999999, -179.999999),
+          isTrue,
+        );
 
         // Just outside boundaries
         expect(LocationUtils.isValidCoordinate(90.000001, 0.0), isFalse);
@@ -142,12 +154,15 @@ void main() {
 
             if (absValue.contains('.')) {
               final decimalPart = absValue.split('.')[1];
-              expect(decimalPart.length, equals(2),
-                  reason:
-                      'Coordinate $part should have exactly 2 decimal places');
+              expect(
+                decimalPart.length,
+                equals(2),
+                reason: 'Coordinate $part should have exactly 2 decimal places',
+              );
             } else {
               fail(
-                  'Coordinate $part should always contain decimal point with 2 places');
+                'Coordinate $part should always contain decimal point with 2 places',
+              );
             }
           }
         }
