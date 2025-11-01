@@ -36,11 +36,19 @@ The project includes secure scripts that automatically inject your API key witho
 ./scripts/build_web.sh
 ```
 
+📖 **Why use scripts?** See the Web Configuration section in `GOOGLE_MAPS_API_SETUP.md` for details on Flutter web's architectural limitations with environment variables.
+
 **What the scripts do:**
 1. ✅ Read `GOOGLE_MAPS_API_KEY_WEB` from `env/dev.env.json`
 2. ✅ Temporarily inject API key into `web/index.html`
 3. ✅ Run/build Flutter web
 4. ✅ **Auto-restore** clean `web/index.html` (no secrets in git)
+
+**Alternative for quick testing:**
+```bash
+# Works without API key (shows watermark)
+flutter run -d chrome
+```
 
 **Expected behavior with API key:**
 - ✅ Map loads successfully
