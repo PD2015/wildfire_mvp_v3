@@ -56,24 +56,26 @@ class _HomeScreenState extends State<HomeScreen> {
         listenable: _controller,
         builder: (context, child) {
           return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Main risk banner display
-                  _buildRiskBanner(),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Main risk banner display
+                    _buildRiskBanner(),
 
-                  const SizedBox(height: 24.0),
+                    const SizedBox(height: 24.0),
 
-                  // Action buttons
-                  _buildActionButtons(),
+                    // Action buttons
+                    _buildActionButtons(),
 
-                  const SizedBox(height: 16.0),
+                    const SizedBox(height: 16.0),
 
-                  // Additional info based on state
-                  _buildStateInfo(),
-                ],
+                    // Additional info based on state
+                    _buildStateInfo(),
+                  ],
+                ),
               ),
             ),
           );
@@ -136,8 +138,8 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             'Updated $relativeTime',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(width: 8.0),
           _buildSourceChip(riskData.source),
@@ -172,8 +174,8 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 'Showing cached data',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -191,8 +193,8 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 'Updated $relativeTime',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(width: 8.0),
               _buildSourceChip(cachedData.source, isCached: true),
@@ -222,9 +224,9 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Text(
         isCached ? 'Cached' : displayName,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: textColor,
-              fontWeight: FontWeight.w500,
-            ),
+          color: textColor,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
@@ -339,23 +341,23 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text(
                           'Unable to load current data',
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onErrorContainer,
-                                  ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onErrorContainer,
+                              ),
                         ),
                         if (cachedData == null) ...[
                           const SizedBox(height: 4.0),
                           Text(
                             errorMessage,
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onErrorContainer,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onErrorContainer,
+                                ),
                           ),
                         ],
                       ],

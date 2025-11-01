@@ -35,20 +35,26 @@ class AppBottomNav extends StatelessWidget {
     return NavigationBar(
       selectedIndex: _selectedIndex,
       onDestinationSelected: (index) => _onDestinationSelected(context, index),
-      destinations: const [
+      destinations: [
         NavigationDestination(
-          icon: Icon(Icons.warning_amber_outlined),
-          selectedIcon: Icon(Icons.warning_amber),
+          icon: Semantics(
+            label: 'Warning symbol indicating fire risk information',
+            child: const Icon(Icons.warning_amber_outlined),
+          ),
+          selectedIcon: Semantics(
+            label: 'Warning symbol indicating fire risk information',
+            child: const Icon(Icons.warning_amber),
+          ),
           label: UIConstants.fireRiskTitle,
           tooltip: 'Navigate to fire risk screen',
         ),
-        NavigationDestination(
+        const NavigationDestination(
           icon: Icon(Icons.map_outlined),
           selectedIcon: Icon(Icons.map),
           label: 'Map',
           tooltip: 'Navigate to map screen',
         ),
-        NavigationDestination(
+        const NavigationDestination(
           icon: Icon(Icons.local_fire_department_outlined),
           selectedIcon: Icon(Icons.local_fire_department),
           label: 'Report Fire',
