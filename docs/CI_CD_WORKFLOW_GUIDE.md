@@ -22,14 +22,15 @@ related:
 
 1. [Pipeline Architecture](#pipeline-architecture)
 2. [Workflow Phases](#workflow-phases)
-3. [Staging Environment (Under Review)](#staging-environment-under-review)
-4. [Best Practices](#best-practices)
-5. [Feature Development Workflow](#feature-development-workflow)
-6. [Troubleshooting](#troubleshooting)
-7. [Monitoring & Commands](#monitoring--commands)
-8. [Worktrees & CI/CD](#worktrees--cicd)
-9. [Production Deployment](#production-deployment)
-10. [Quick Reference](#quick-reference)
+3. [Web Testing Strategy](#web-testing-strategy)
+4. [Staging Environment (Under Review)](#staging-environment-under-review)
+5. [Best Practices](#best-practices)
+6. [Feature Development Workflow](#feature-development-workflow)
+7. [Troubleshooting](#troubleshooting)
+8. [Monitoring & Commands](#monitoring--commands)
+9. [Worktrees & CI/CD](#worktrees--cicd)
+10. [Production Deployment](#production-deployment)
+11. [Quick Reference](#quick-reference)
 
 ---
 
@@ -242,6 +243,129 @@ related:
 - M2: Zero deployments without approval ✅
 - M3: Zero API key exposures ✅
 - M5: Production availability ≥99.9% ✅
+
+---
+
+## 🧪 Web Testing Strategy
+
+### **Why Web Tests Are Special**
+
+Web integration tests **cannot run in CI** due to Google Maps JavaScript API requirements:
+
+1. **Maps loads in HTML** (before Flutter starts)
+2. **CI has no API keys** (security - can't expose in logs)
+3. **Maps error breaks page** (prevents Flutter widget tree from rendering)
+4. **Result**: Navigation bar doesn't appear, tests fail
+
+**Solution**: Test against **deployed environments** where API keys are securely injected.
+
+---
+
+### **Three Testing Approaches**
+
+#### **1. Automated Post-Deployment Tests** (Implemented) ✅
+
+**Job**: `test-preview` in `.github/workflows/flutter.yml`
+
+**Runs**: After `deploy-preview` completes
+
+**What it does**:
+```yaml
+- name: Run integration tests against preview URL
+  run: |
+    flutter test integration_test/report_fire_integration_test.dart \
+      --dart-define=TEST_TARGET_URL=${{ needs.deploy-preview.outputs.preview_url }} \
+      --platform=chrome
+  continue-on-error: true
+```
+
+**Status**: Currently soft-fail (`continue-on-error: true`)
+
+**To enable strict enforcement**:
+1. Add Firebase preview URL pattern to Google Maps API restrictions:
+   ```
+   https://wildfire-app-e11f8--pr-*-*.web.app/*
+   ```
+2. Remove `continue-on-error: true`
+3. Tests will block PR merge if they fail
+
+---
+
+#### **2. Manual QA Checklist** (Recommended for All PRs)
+
+**When**: Before approving/merging PRs that touch UI or navigation
+
+**Process**:
+1. Get preview URL from PR comment (posted by Firebase action)
+2. Run through checklist (see [Preview Deployment Testing Guide](guides/testing/preview-deployment-testing.md))
+3. Document results in PR review
+
+**QA Checklist** (abbreviated):
+- ✅ Home screen loads with risk banner
+- ✅ Navigation bar shows 3 destinations (Home, Map, Report Fire)
+- ✅ Click "Map" → Map tiles load (no watermark)
+- ✅ Click "Report Fire" → Emergency buttons render
+- ✅ No console errors in browser DevTools
+
+**Full checklist**: See `docs/guides/testing/preview-deployment-testing.md`
+
+---
+
+#### **3. Staging Environment Smoke Tests**
+
+**When**: Before promoting to production
+
+**URL**: https://wildfire-app-e11f8-staging.web.app
+
+**Manual validation**:
+- Run full QA checklist
+- Test on real mobile devices
+- Verify analytics/monitoring
+- Check Lighthouse scores
+
+**Automated (future)**:
+```bash
+flutter test integration_test/ \
+  --dart-define=TEST_TARGET_URL=https://wildfire-app-e11f8-staging.web.app \
+  --platform=chrome
+```
+
+---
+
+### **HTTP Referrer Configuration**
+
+**Required for web testing**: Google Maps API key must allow these referrers:
+
+**Development**:
+```
+localhost:*
+127.0.0.1:*
+```
+
+**Preview Deployments**:
+```
+https://wildfire-app-e11f8--pr-*-*.web.app/*
+```
+
+**Staging**:
+```
+https://wildfire-app-e11f8-staging.web.app/*
+```
+
+**Production**:
+```
+https://wildfire-app-e11f8.web.app/*
+```
+
+**How to update**: Google Cloud Console → APIs & Services → Credentials → Your Web API Key → HTTP referrers
+
+---
+
+### **Detailed Guide**
+
+For comprehensive testing procedures, troubleshooting, and best practices, see:
+
+📖 **[Preview Deployment Testing Guide](guides/testing/preview-deployment-testing.md)**
 
 ---
 
