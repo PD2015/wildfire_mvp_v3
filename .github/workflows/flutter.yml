@@ -2,9 +2,9 @@ name: Flutter CI/CD
 
 on:
   push:
-    branches: [ main, develop, 'feature/*', '**-a*-**' ]
+    branches: [ main, develop, staging, 'feature/*', '**-a*-**' ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main, develop, staging ]
 
 permissions:
   checks: write
