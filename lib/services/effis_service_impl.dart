@@ -93,8 +93,8 @@ class EffisServiceImpl implements EffisService {
   /// [httpClient] - Injectable HTTP client for network requests (enables mocking)
   /// [random] - Injectable random generator for jitter (enables deterministic testing)
   EffisServiceImpl({required http.Client httpClient, Random? random})
-    : _httpClient = httpClient,
-      _random = random ?? Random();
+      : _httpClient = httpClient,
+        _random = random ?? Random();
 
   @override
   Future<Either<ApiError, EffisFwiResult>> getFwi({
@@ -160,12 +160,10 @@ class EffisServiceImpl implements EffisService {
 
         // Execute HTTP request with timeout
         final stopwatch = Stopwatch()..start();
-        final response = await _httpClient
-            .get(
-              uri,
-              headers: {'User-Agent': _userAgent, 'Accept': _acceptHeader},
-            )
-            .timeout(timeout);
+        final response = await _httpClient.get(
+          uri,
+          headers: {'User-Agent': _userAgent, 'Accept': _acceptHeader},
+        ).timeout(timeout);
         stopwatch.stop();
 
         // DEBUG: Log the response details
@@ -497,8 +495,8 @@ class EffisServiceImpl implements EffisService {
     final baseDelayMs = 1000 * pow(2, attemptNumber - 1);
 
     // Add jitter: ±25% of base delay
-    final jitterMs = (baseDelayMs * 0.25 * (_random.nextDouble() - 0.5))
-        .round();
+    final jitterMs =
+        (baseDelayMs * 0.25 * (_random.nextDouble() - 0.5)).round();
     final totalDelayMs = (baseDelayMs + jitterMs).clamp(
       100,
       30000,
@@ -775,15 +773,13 @@ class EffisServiceImpl implements EffisService {
     developer.log('EFFIS WFS URL: $uri', name: 'EffisService.getActiveFires');
 
     try {
-      final response = await _httpClient
-          .get(
-            uri,
-            headers: {
-              'User-Agent': 'WildfireApp/1.0',
-              'Accept': 'application/json',
-            },
-          )
-          .timeout(timeout);
+      final response = await _httpClient.get(
+        uri,
+        headers: {
+          'User-Agent': 'WildfireApp/1.0',
+          'Accept': 'application/json',
+        },
+      ).timeout(timeout);
 
       developer.log(
         'EFFIS WFS response: status=${response.statusCode}, body length=${response.body.length}',

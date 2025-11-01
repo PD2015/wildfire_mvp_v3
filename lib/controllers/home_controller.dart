@@ -50,8 +50,8 @@ class HomeController extends ChangeNotifier {
   HomeController({
     required LocationResolver locationResolver,
     required FireRiskService fireRiskService,
-  }) : _locationResolver = locationResolver,
-       _fireRiskService = fireRiskService {
+  })  : _locationResolver = locationResolver,
+        _fireRiskService = fireRiskService {
     developer.log('HomeController initialized', name: 'HomeController');
   }
 

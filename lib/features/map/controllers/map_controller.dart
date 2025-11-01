@@ -25,9 +25,9 @@ class MapController extends ChangeNotifier {
     required LocationResolver locationResolver,
     required FireLocationService fireLocationService,
     required FireRiskService fireRiskService,
-  }) : _locationResolver = locationResolver,
-       _fireLocationService = fireLocationService,
-       _fireRiskService = fireRiskService;
+  })  : _locationResolver = locationResolver,
+        _fireLocationService = fireLocationService,
+        _fireRiskService = fireRiskService;
 
   /// Get test region coordinates based on TEST_REGION environment variable
   static LatLng _getTestRegionCenter() {
@@ -111,9 +111,8 @@ class MapController extends ChangeNotifier {
           _state = MapSuccess(
             incidents: incidents,
             centerLocation: centerLocation,
-            freshness: incidents.isEmpty
-                ? Freshness.live
-                : incidents.first.freshness,
+            freshness:
+                incidents.isEmpty ? Freshness.live : incidents.first.freshness,
             lastUpdated: DateTime.now(),
           );
         },
@@ -155,9 +154,8 @@ class MapController extends ChangeNotifier {
           _state = MapSuccess(
             incidents: incidents,
             centerLocation: visibleBounds.center,
-            freshness: incidents.isEmpty
-                ? Freshness.live
-                : incidents.first.freshness,
+            freshness:
+                incidents.isEmpty ? Freshness.live : incidents.first.freshness,
             lastUpdated: DateTime.now(),
           );
         },
@@ -167,12 +165,10 @@ class MapController extends ChangeNotifier {
     } catch (e) {
       _state = MapError(
         message: 'Refresh failed: $e',
-        cachedIncidents: previousState is MapSuccess
-            ? previousState.incidents
-            : null,
-        lastKnownLocation: previousState is MapSuccess
-            ? previousState.centerLocation
-            : null,
+        cachedIncidents:
+            previousState is MapSuccess ? previousState.incidents : null,
+        lastKnownLocation:
+            previousState is MapSuccess ? previousState.centerLocation : null,
       );
       notifyListeners();
     }

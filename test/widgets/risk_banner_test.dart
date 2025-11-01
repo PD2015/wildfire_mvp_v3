@@ -459,8 +459,7 @@ FireRisk _fakeFireRisk({
     level: level,
     source: source,
     freshness: freshness,
-    observedAt:
-        observedAtUtc ??
+    observedAt: observedAtUtc ??
         DateTime.now().toUtc().subtract(const Duration(minutes: 30)),
   );
 }

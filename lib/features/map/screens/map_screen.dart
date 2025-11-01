@@ -150,11 +150,11 @@ class _MapScreenState extends State<MapScreen> {
       ),
       body: switch (state) {
         MapLoading() => Center(
-          child: Semantics(
-            label: 'Loading map data',
-            child: const CircularProgressIndicator(),
+            child: Semantics(
+              label: 'Loading map data',
+              child: const CircularProgressIndicator(),
+            ),
           ),
-        ),
         MapSuccess() => _buildMapView(state),
         MapError() => _buildErrorView(state),
       },
@@ -213,9 +213,7 @@ class _MapScreenState extends State<MapScreen> {
                           const SizedBox(height: 16),
                           const Divider(),
                           const SizedBox(height: 8),
-                          ...state.incidents
-                              .take(5)
-                              .map(
+                          ...state.incidents.take(5).map(
                                 (incident) => Padding(
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 4,
@@ -227,8 +225,8 @@ class _MapScreenState extends State<MapScreen> {
                                         color: incident.intensity == 'high'
                                             ? Colors.red
                                             : incident.intensity == 'moderate'
-                                            ? Colors.orange
-                                            : Colors.cyan,
+                                                ? Colors.orange
+                                                : Colors.cyan,
                                         size: 20,
                                       ),
                                       const SizedBox(width: 8),
@@ -335,8 +333,8 @@ class _MapScreenState extends State<MapScreen> {
                     Text(
                       'No Active Fires Detected',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),

@@ -217,7 +217,8 @@ void main() {
       }
     });
 
-    testWidgets('performance validation - screen load and button response times', (
+    testWidgets(
+        'performance validation - screen load and button response times', (
       tester,
     ) async {
       final stopwatch = Stopwatch()..start();

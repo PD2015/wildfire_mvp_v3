@@ -96,7 +96,7 @@ Some work discovered already complete in codebase:
 
 ## Phase 3.1: Setup & Configuration
 
-### T001: Create NEW UI Constants File for Fire Risk Screen
+### T001: Create NEW UI Constants File for Fire Risk Screen ✅ COMPLETE
 **Type**: Core Setup [P]  
 **Files**: `lib/config/ui_constants.dart` (NEW FILE - does not currently exist)  
 **Description**: Create a new centralized constants file for all Fire Risk UI strings and icons.
@@ -125,7 +125,7 @@ Some work discovered already complete in codebase:
 
 ---
 
-### T002: Add '/fire-risk' Route Alias in go_router Configuration
+### T002: Add '/fire-risk' Route Alias in go_router Configuration ✅ COMPLETE
 **Type**: Core Implementation  
 **Files**: `lib/app.dart` (lines 50-62 approximately)  
 **Description**: Add route names and '/fire-risk' alias to existing routes. Current routes have NO name fields.
@@ -394,7 +394,7 @@ appBar: AppBar(
 
 ---
 
-### T008: Update Bottom Navigation Item Label and Icon
+### T008: Update Bottom Navigation Item Label and Icon ✅ COMPLETE
 **Type**: Core Implementation [P]  
 **Files**: `lib/widgets/bottom_nav.dart` (or equivalent navigation widget)  
 **Description**: Change bottom navigation item from "Home" with house icon to "Fire Risk" with warning icon.
