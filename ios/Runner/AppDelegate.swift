@@ -10,8 +10,8 @@ import GoogleMaps
   ) -> Bool {
     // Initialize Google Maps with API key from Info.plist
     // SECURITY: API key is configured via --dart-define-from-file
-    // The value ${GOOGLE_MAPS_API_KEY_IOS} in Info.plist is replaced at build time
-    // See: env/dev.env.json (git-ignored) and docs/API_KEY_SETUP.md
+    // The value is injected at build time via Xcode build phase script
+    // See: env/dev.env.json (git-ignored) and docs/IOS_GOOGLE_MAPS_INTEGRATION.md
     if let apiKey = Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String {
       GMSServices.provideAPIKey(apiKey)
     }
