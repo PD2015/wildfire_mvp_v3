@@ -140,9 +140,20 @@ related:
    - Ensures official palette used
    - **Fix**: Use color constants from `lib/theme/app_colors.dart`
 
+6. **verify-ios-build-phase** (A12b: iOS Build Automation) ✨ **NEW**
+   ```yaml
+   - run: ios/ios_prebuild.sh
+   ```
+   - Verifies iOS Xcode build phase works in CI
+   - Tests API key extraction and injection
+   - Validates Info.plist configuration
+   - Runner: `macos-latest` (requires Xcode tools)
+   - **Duration**: ~5-7 minutes
+   - **Details**: See [iOS Build Phase Verification](guides/ci-cd/ios-build-phase-verification.md)
+
 **Trigger**: Every push to any branch, every PR
 
-**Duration**: ~3-4 minutes total
+**Duration**: ~8-10 minutes total (including iOS verification)
 
 ---
 

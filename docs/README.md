@@ -24,6 +24,7 @@ We follow the [Divio Documentation System](https://documentation.divio.com/) wit
 #### Deployment
 - [CI/CD Workflow](CI_CD_WORKFLOW_GUIDE.md) *(to be moved)*
 - [Firebase Deployment](FIREBASE_DEPLOYMENT.md) *(to be moved)*
+- [iOS Build Phase Verification](guides/ci-cd/ios-build-phase-verification.md) - CI/CD job for Xcode build phase
 
 #### Security
 - [API Key Management](guides/security/api-key-management.md) *(pending consolidation)*
