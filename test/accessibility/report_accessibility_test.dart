@@ -7,7 +7,8 @@ import 'package:wildfire_mvp_v3/features/report/models/emergency_contact.dart';
 void main() {
   group('A12 Accessibility Validation Tests', () {
     group('Touch Target Size Requirements (C3 Compliance)', () {
-      testWidgets('emergency buttons meet minimum 44dp touch target requirement', (
+      testWidgets(
+          'emergency buttons meet minimum 44dp touch target requirement', (
         tester,
       ) async {
         await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));

@@ -32,7 +32,7 @@ import 'package:wildfire_mvp_v3/services/mock_fire_service.dart' as _i9;
 
 class _FakeEither_0<L, R> extends _i1.SmartFake implements _i2.Either<L, R> {
   _FakeEither_0(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
+      : super(parent, parentInvocation);
 }
 
 /// A class which mocks [EffisService].
@@ -51,26 +51,25 @@ class MockEffisService extends _i1.Mock implements _i3.EffisService {
     int? maxRetries = 3,
   }) =>
       (super.noSuchMethod(
+        Invocation.method(#getFwi, [], {
+          #lat: lat,
+          #lon: lon,
+          #timeout: timeout,
+          #maxRetries: maxRetries,
+        }),
+        returnValue:
+            _i4.Future<_i2.Either<_i5.ApiError, _i6.EffisFwiResult>>.value(
+          _FakeEither_0<_i5.ApiError, _i6.EffisFwiResult>(
+            this,
             Invocation.method(#getFwi, [], {
               #lat: lat,
               #lon: lon,
               #timeout: timeout,
               #maxRetries: maxRetries,
             }),
-            returnValue:
-                _i4.Future<_i2.Either<_i5.ApiError, _i6.EffisFwiResult>>.value(
-                  _FakeEither_0<_i5.ApiError, _i6.EffisFwiResult>(
-                    this,
-                    Invocation.method(#getFwi, [], {
-                      #lat: lat,
-                      #lon: lon,
-                      #timeout: timeout,
-                      #maxRetries: maxRetries,
-                    }),
-                  ),
-                ),
-          )
-          as _i4.Future<_i2.Either<_i5.ApiError, _i6.EffisFwiResult>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.ApiError, _i6.EffisFwiResult>>);
 
   @override
   _i4.Future<_i2.Either<_i5.ApiError, List<_i7.EffisFire>>> getActiveFires(
@@ -78,20 +77,19 @@ class MockEffisService extends _i1.Mock implements _i3.EffisService {
     Duration? timeout = const Duration(seconds: 8),
   }) =>
       (super.noSuchMethod(
-            Invocation.method(#getActiveFires, [bounds], {#timeout: timeout}),
-            returnValue:
-                _i4.Future<_i2.Either<_i5.ApiError, List<_i7.EffisFire>>>.value(
-                  _FakeEither_0<_i5.ApiError, List<_i7.EffisFire>>(
-                    this,
-                    Invocation.method(
-                      #getActiveFires,
-                      [bounds],
-                      {#timeout: timeout},
-                    ),
-                  ),
-                ),
-          )
-          as _i4.Future<_i2.Either<_i5.ApiError, List<_i7.EffisFire>>>);
+        Invocation.method(#getActiveFires, [bounds], {#timeout: timeout}),
+        returnValue:
+            _i4.Future<_i2.Either<_i5.ApiError, List<_i7.EffisFire>>>.value(
+          _FakeEither_0<_i5.ApiError, List<_i7.EffisFire>>(
+            this,
+            Invocation.method(
+              #getActiveFires,
+              [bounds],
+              {#timeout: timeout},
+            ),
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.ApiError, List<_i7.EffisFire>>>);
 }
 
 /// A class which mocks [MockFireService].
@@ -107,16 +105,13 @@ class MockMockFireService extends _i1.Mock implements _i9.MockFireService {
     _i8.LatLngBounds? bounds,
   ) =>
       (super.noSuchMethod(
+        Invocation.method(#getActiveFires, [bounds]),
+        returnValue:
+            _i4.Future<_i2.Either<_i5.ApiError, List<_i10.FireIncident>>>.value(
+          _FakeEither_0<_i5.ApiError, List<_i10.FireIncident>>(
+            this,
             Invocation.method(#getActiveFires, [bounds]),
-            returnValue:
-                _i4.Future<
-                  _i2.Either<_i5.ApiError, List<_i10.FireIncident>>
-                >.value(
-                  _FakeEither_0<_i5.ApiError, List<_i10.FireIncident>>(
-                    this,
-                    Invocation.method(#getActiveFires, [bounds]),
-                  ),
-                ),
-          )
-          as _i4.Future<_i2.Either<_i5.ApiError, List<_i10.FireIncident>>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.ApiError, List<_i10.FireIncident>>>);
 }

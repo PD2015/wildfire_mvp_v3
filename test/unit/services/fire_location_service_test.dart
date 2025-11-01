@@ -212,9 +212,9 @@ void main() {
         await service.getActiveFires(testBounds);
 
         // Assert: Bbox passed to mock service
-        final captured =
-            verify(mockMockService.getActiveFires(captureAny)).captured.single
-                as LatLngBounds;
+        final captured = verify(mockMockService.getActiveFires(captureAny))
+            .captured
+            .single as LatLngBounds;
 
         expect(captured.southwest.latitude, 55.0);
         expect(captured.southwest.longitude, -4.0);

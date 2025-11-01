@@ -24,7 +24,7 @@ class TestClock implements Clock {
   DateTime _currentTime;
 
   TestClock({DateTime? initialTime})
-    : _currentTime = (initialTime ?? DateTime.now()).toUtc();
+      : _currentTime = (initialTime ?? DateTime.now()).toUtc();
 
   @override
   DateTime nowUtc() => _currentTime;

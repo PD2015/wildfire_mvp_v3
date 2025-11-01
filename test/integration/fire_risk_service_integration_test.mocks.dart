@@ -30,12 +30,12 @@ import 'package:wildfire_mvp_v3/services/models/fire_risk.dart' as _i7;
 
 class _FakeEither_0<L, R> extends _i1.SmartFake implements _i2.Either<L, R> {
   _FakeEither_0(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
+      : super(parent, parentInvocation);
 }
 
 class _FakeOption_1<A> extends _i1.SmartFake implements _i2.Option<A> {
   _FakeOption_1(Object parent, Invocation parentInvocation)
-    : super(parent, parentInvocation);
+      : super(parent, parentInvocation);
 }
 
 /// A class which mocks [EffisService].
@@ -52,16 +52,15 @@ class MockEffisService extends _i1.Mock implements _i3.EffisService {
     required double? lon,
   }) =>
       (super.noSuchMethod(
+        Invocation.method(#getFwi, [], {#lat: lat, #lon: lon}),
+        returnValue:
+            _i4.Future<_i2.Either<_i5.ApiError, _i6.EffisFwiResult>>.value(
+          _FakeEither_0<_i5.ApiError, _i6.EffisFwiResult>(
+            this,
             Invocation.method(#getFwi, [], {#lat: lat, #lon: lon}),
-            returnValue:
-                _i4.Future<_i2.Either<_i5.ApiError, _i6.EffisFwiResult>>.value(
-                  _FakeEither_0<_i5.ApiError, _i6.EffisFwiResult>(
-                    this,
-                    Invocation.method(#getFwi, [], {#lat: lat, #lon: lon}),
-                  ),
-                ),
-          )
-          as _i4.Future<_i2.Either<_i5.ApiError, _i6.EffisFwiResult>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.ApiError, _i6.EffisFwiResult>>);
 }
 
 /// A class which mocks [SepaService].
@@ -78,16 +77,14 @@ class MockSepaService extends _i1.Mock implements _i3.SepaService {
     required double? lon,
   }) =>
       (super.noSuchMethod(
+        Invocation.method(#getCurrent, [], {#lat: lat, #lon: lon}),
+        returnValue: _i4.Future<_i2.Either<_i5.ApiError, _i7.FireRisk>>.value(
+          _FakeEither_0<_i5.ApiError, _i7.FireRisk>(
+            this,
             Invocation.method(#getCurrent, [], {#lat: lat, #lon: lon}),
-            returnValue:
-                _i4.Future<_i2.Either<_i5.ApiError, _i7.FireRisk>>.value(
-                  _FakeEither_0<_i5.ApiError, _i7.FireRisk>(
-                    this,
-                    Invocation.method(#getCurrent, [], {#lat: lat, #lon: lon}),
-                  ),
-                ),
-          )
-          as _i4.Future<_i2.Either<_i5.ApiError, _i7.FireRisk>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Either<_i5.ApiError, _i7.FireRisk>>);
 }
 
 /// A class which mocks [CacheService].
@@ -101,15 +98,14 @@ class MockCacheService extends _i1.Mock implements _i3.CacheService {
   @override
   _i4.Future<_i2.Option<_i7.FireRisk>> get({required String? key}) =>
       (super.noSuchMethod(
+        Invocation.method(#get, [], {#key: key}),
+        returnValue: _i4.Future<_i2.Option<_i7.FireRisk>>.value(
+          _FakeOption_1<_i7.FireRisk>(
+            this,
             Invocation.method(#get, [], {#key: key}),
-            returnValue: _i4.Future<_i2.Option<_i7.FireRisk>>.value(
-              _FakeOption_1<_i7.FireRisk>(
-                this,
-                Invocation.method(#get, [], {#key: key}),
-              ),
-            ),
-          )
-          as _i4.Future<_i2.Option<_i7.FireRisk>>);
+          ),
+        ),
+      ) as _i4.Future<_i2.Option<_i7.FireRisk>>);
 
   @override
   _i4.Future<void> set({
@@ -118,9 +114,8 @@ class MockCacheService extends _i1.Mock implements _i3.CacheService {
     required Duration? ttl,
   }) =>
       (super.noSuchMethod(
-            Invocation.method(#set, [], {#key: key, #value: value, #ttl: ttl}),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
-          )
-          as _i4.Future<void>);
+        Invocation.method(#set, [], {#key: key, #value: value, #ttl: ttl}),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 }

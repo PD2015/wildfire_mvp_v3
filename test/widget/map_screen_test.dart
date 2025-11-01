@@ -23,11 +23,11 @@ class MockMapController extends MapController {
   MapState _mockState;
 
   MockMapController(this._mockState)
-    : super(
-        locationResolver: _NoOpLocationResolver(),
-        fireLocationService: _NoOpFireLocationService(),
-        fireRiskService: _NoOpFireRiskService(),
-      );
+      : super(
+          locationResolver: _NoOpLocationResolver(),
+          fireLocationService: _NoOpFireLocationService(),
+          fireRiskService: _NoOpFireRiskService(),
+        );
 
   @override
   MapState get state => _mockState;
@@ -211,7 +211,8 @@ void main() {
       );
     });
 
-    testWidgets('source chip displays "DEMO DATA", "LIVE", or "CACHED" (C4, T019)', (
+    testWidgets(
+        'source chip displays "DEMO DATA", "LIVE", or "CACHED" (C4, T019)', (
       tester,
     ) async {
       // Skip on unsupported platforms (macOS desktop)

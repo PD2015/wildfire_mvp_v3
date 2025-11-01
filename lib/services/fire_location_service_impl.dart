@@ -32,9 +32,9 @@ class FireLocationServiceImpl implements FireLocationService {
     required EffisService effisService,
     FireIncidentCache? cache,
     MockFireService? mockService,
-  }) : _effisService = effisService,
-       _cache = cache,
-       _mockService = mockService ?? MockFireService();
+  })  : _effisService = effisService,
+        _cache = cache,
+        _mockService = mockService ?? MockFireService();
 
   @override
   Future<Either<ApiError, List<FireIncident>>> getActiveFires(
@@ -80,34 +80,33 @@ class FireLocationServiceImpl implements FireLocationService {
       timeout: const Duration(seconds: 8),
     );
 
-    final Either<ApiError, List<FireIncident>>? effisSuccess = effisResult
-        .fold<Either<ApiError, List<FireIncident>>?>(
-          (error) {
-            debugPrint('🔥 Tier 1 (EFFIS WFS) failed: ${error.message}');
-            developer.log(
-              'Tier 1 (EFFIS WFS) failed: ${error.message}',
-              name: 'FireLocationService',
-              level: 900, // Warning
-            );
-            return null; // Signal to try next tier
-          },
-          (effisFires) {
-            // Convert EffisFire → FireIncident
-            final incidents = effisFires
-                .map((fire) => fire.toFireIncident())
-                .toList();
-
-            debugPrint(
-              '🔥 Tier 1 (EFFIS WFS) success: ${incidents.length} fires',
-            );
-            developer.log(
-              'Tier 1 (EFFIS WFS) success: ${incidents.length} fires',
-              name: 'FireLocationService',
-            );
-
-            return Right(incidents);
-          },
+    final Either<ApiError, List<FireIncident>>? effisSuccess =
+        effisResult.fold<Either<ApiError, List<FireIncident>>?>(
+      (error) {
+        debugPrint('🔥 Tier 1 (EFFIS WFS) failed: ${error.message}');
+        developer.log(
+          'Tier 1 (EFFIS WFS) failed: ${error.message}',
+          name: 'FireLocationService',
+          level: 900, // Warning
         );
+        return null; // Signal to try next tier
+      },
+      (effisFires) {
+        // Convert EffisFire → FireIncident
+        final incidents =
+            effisFires.map((fire) => fire.toFireIncident()).toList();
+
+        debugPrint(
+          '🔥 Tier 1 (EFFIS WFS) success: ${incidents.length} fires',
+        );
+        developer.log(
+          'Tier 1 (EFFIS WFS) success: ${incidents.length} fires',
+          name: 'FireLocationService',
+        );
+
+        return Right(incidents);
+      },
+    );
 
     // If EFFIS succeeded, cache the result and return
     if (effisSuccess != null) {

@@ -175,9 +175,8 @@ void main() {
       expect(routeMatch.uri.path, '/');
 
       // Verify route name matches
-      final route =
-          router.routerDelegate.currentConfiguration.matches.last.route
-              as GoRoute;
+      final route = router
+          .routerDelegate.currentConfiguration.matches.last.route as GoRoute;
       expect(route.name, 'fire-risk');
     });
 
@@ -192,9 +191,8 @@ void main() {
       expect(routeMatch.uri.path, '/fire-risk');
 
       // Verify route name matches
-      final route =
-          router.routerDelegate.currentConfiguration.matches.last.route
-              as GoRoute;
+      final route = router
+          .routerDelegate.currentConfiguration.matches.last.route as GoRoute;
       expect(route.name, 'fire-risk-alias');
     });
   });

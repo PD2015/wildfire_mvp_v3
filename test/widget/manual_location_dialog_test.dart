@@ -241,7 +241,8 @@ void main() {
     });
 
     group('Touch Target Size Validation (Gate C3)', () {
-      testWidgets('all interactive elements meet 44dp minimum size requirement', (
+      testWidgets('all interactive elements meet 44dp minimum size requirement',
+          (
         tester,
       ) async {
         // Arrange
