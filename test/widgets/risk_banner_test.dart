@@ -12,9 +12,7 @@ void main() {
       testWidgets('displays loading indicator and text', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
-            home: Scaffold(
-              body: RiskBanner(state: RiskBannerLoading()),
-            ),
+            home: Scaffold(body: RiskBanner(state: RiskBannerLoading())),
           ),
         );
 
@@ -25,9 +23,7 @@ void main() {
       testWidgets('has proper accessibility label', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
-            home: Scaffold(
-              body: RiskBanner(state: RiskBannerLoading()),
-            ),
+            home: Scaffold(body: RiskBanner(state: RiskBannerLoading())),
           ),
         );
 
@@ -41,8 +37,9 @@ void main() {
 
     group('Success State', () {
       for (final level in RiskLevel.values) {
-        testWidgets('displays correct color for ${level.name} level',
-            (tester) async {
+        testWidgets('displays correct color for ${level.name} level', (
+          tester,
+        ) async {
           final fireRisk = _fakeFireRisk(
             level: level,
             source: DataSource.effis,
@@ -58,8 +55,9 @@ void main() {
           );
 
           // Find the main container with risk level background color
-          final containers =
-              tester.widgetList<Container>(find.byType(Container));
+          final containers = tester.widgetList<Container>(
+            find.byType(Container),
+          );
           final decoratedContainer = containers.firstWhere((container) {
             final decoration = container.decoration as BoxDecoration?;
             return decoration?.color != null &&
@@ -72,8 +70,9 @@ void main() {
           expect(decoration.color, equals(expectedColor));
         });
 
-        testWidgets('displays correct risk level text for ${level.name}',
-            (tester) async {
+        testWidgets('displays correct risk level text for ${level.name}', (
+          tester,
+        ) async {
           final fireRisk = _fakeFireRisk(level: level);
           final expectedText =
               'Wildfire Risk: ${_getRiskLevelName(level).toUpperCase()}';
@@ -91,8 +90,9 @@ void main() {
       }
 
       for (final source in DataSource.values) {
-        testWidgets('displays correct source chip for ${source.name}',
-            (tester) async {
+        testWidgets('displays correct source chip for ${source.name}', (
+          tester,
+        ) async {
           final fireRisk = _fakeFireRisk(source: source);
           final expectedSourceText = _getSourceName(source);
 
@@ -122,8 +122,9 @@ void main() {
         expect(find.textContaining('Updated'), findsOneWidget);
       });
 
-      testWidgets('shows cached badge when freshness is cached',
-          (tester) async {
+      testWidgets('shows cached badge when freshness is cached', (
+        tester,
+      ) async {
         final fireRisk = _fakeFireRisk(freshness: Freshness.cached);
 
         await tester.pumpWidget(
@@ -137,8 +138,9 @@ void main() {
         expect(find.text('Cached'), findsOneWidget);
       });
 
-      testWidgets('has proper accessibility label for success state',
-          (tester) async {
+      testWidgets('has proper accessibility label for success state', (
+        tester,
+      ) async {
         final fireRisk = _fakeFireRisk(
           level: RiskLevel.high,
           source: DataSource.effis,
@@ -155,7 +157,8 @@ void main() {
         // Check for semantic label containing risk level and data source
         expect(
           find.bySemanticsLabel(
-              RegExp(r'Current wildfire risk High.*data from EFFIS')),
+            RegExp(r'Current wildfire risk High.*data from EFFIS'),
+          ),
           findsOneWidget,
         );
       });
@@ -168,9 +171,7 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
-            home: Scaffold(
-              body: RiskBanner(state: errorState),
-            ),
+            home: Scaffold(body: RiskBanner(state: errorState)),
           ),
         );
 
@@ -179,8 +180,9 @@ void main() {
         expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
       });
 
-      testWidgets('displays retry button when onRetry provided',
-          (tester) async {
+      testWidgets('displays retry button when onRetry provided', (
+        tester,
+      ) async {
         const errorState = RiskBannerError('Network error');
         bool retryTapped = false;
 
@@ -206,26 +208,23 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
-            home: Scaffold(
-              body: RiskBanner(state: errorState),
-            ),
+            home: Scaffold(body: RiskBanner(state: errorState)),
           ),
         );
 
         expect(find.text('Retry'), findsNothing);
       });
 
-      testWidgets('displays cached data when available in error state',
-          (tester) async {
+      testWidgets('displays cached data when available in error state', (
+        tester,
+      ) async {
         const errorMessage = 'Network error';
         final cachedData = _fakeFireRisk(level: RiskLevel.moderate);
         final errorState = RiskBannerError(errorMessage, cached: cachedData);
 
         await tester.pumpWidget(
           MaterialApp(
-            home: Scaffold(
-              body: RiskBanner(state: errorState),
-            ),
+            home: Scaffold(body: RiskBanner(state: errorState)),
           ),
         );
 
@@ -238,16 +237,15 @@ void main() {
         expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
       });
 
-      testWidgets('uses cached data colors when showing cached error state',
-          (tester) async {
+      testWidgets('uses cached data colors when showing cached error state', (
+        tester,
+      ) async {
         final cachedData = _fakeFireRisk(level: RiskLevel.veryHigh);
         final errorState = RiskBannerError('Network error', cached: cachedData);
 
         await tester.pumpWidget(
           MaterialApp(
-            home: Scaffold(
-              body: RiskBanner(state: errorState),
-            ),
+            home: Scaffold(body: RiskBanner(state: errorState)),
           ),
         );
 
@@ -260,16 +258,18 @@ void main() {
         });
 
         final decoration = mainContainer.decoration as BoxDecoration;
-        final expectedColor =
-            _getRiskLevelColorTest(RiskLevel.veryHigh).withValues(alpha: 0.6);
+        final expectedColor = _getRiskLevelColorTest(
+          RiskLevel.veryHigh,
+        ).withValues(alpha: 0.6);
 
         expect(decoration.color, equals(expectedColor));
       });
     });
 
     group('Accessibility', () {
-      testWidgets('retry button meets minimum touch target size',
-          (tester) async {
+      testWidgets('retry button meets minimum touch target size', (
+        tester,
+      ) async {
         // Use cached error state to ensure retry button shows
         final cachedData = _fakeFireRisk(level: RiskLevel.moderate);
         final errorState = RiskBannerError('Network error', cached: cachedData);
@@ -277,10 +277,7 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: RiskBanner(
-                state: errorState,
-                onRetry: () {},
-              ),
+              body: RiskBanner(state: errorState, onRetry: () {}),
             ),
           ),
         );
@@ -301,15 +298,14 @@ void main() {
         expect(button.size.height, greaterThanOrEqualTo(44.0));
       });
 
-      testWidgets('entire widget meets minimum height requirement',
-          (tester) async {
+      testWidgets('entire widget meets minimum height requirement', (
+        tester,
+      ) async {
         const loadingState = RiskBannerLoading();
 
         await tester.pumpWidget(
           MaterialApp(
-            home: Scaffold(
-              body: RiskBanner(state: loadingState),
-            ),
+            home: Scaffold(body: RiskBanner(state: loadingState)),
           ),
         );
 
@@ -323,8 +319,10 @@ void main() {
     group('Success State - Light Theme', () {
       for (final level in RiskLevel.values) {
         testWidgets('${level.name} risk level', (tester) async {
-          final fireRisk =
-              _fakeFireRisk(level: level, source: DataSource.effis);
+          final fireRisk = _fakeFireRisk(
+            level: level,
+            source: DataSource.effis,
+          );
 
           await tester.pumpWidget(
             MaterialApp(
@@ -351,8 +349,10 @@ void main() {
     group('Success State - Dark Theme', () {
       for (final level in RiskLevel.values) {
         testWidgets('${level.name} risk level', (tester) async {
-          final fireRisk =
-              _fakeFireRisk(level: level, source: DataSource.effis);
+          final fireRisk = _fakeFireRisk(
+            level: level,
+            source: DataSource.effis,
+          );
 
           await tester.pumpWidget(
             MaterialApp(
@@ -411,10 +411,7 @@ void main() {
               width: 400,
               height: 350,
               padding: const EdgeInsets.all(16),
-              child: RiskBanner(
-                state: errorState,
-                onRetry: () {},
-              ),
+              child: RiskBanner(state: errorState, onRetry: () {}),
             ),
           ),
         ),
@@ -437,10 +434,7 @@ void main() {
               width: 400,
               height: 400,
               padding: const EdgeInsets.all(16),
-              child: RiskBanner(
-                state: errorState,
-                onRetry: () {},
-              ),
+              child: RiskBanner(state: errorState, onRetry: () {}),
             ),
           ),
         ),

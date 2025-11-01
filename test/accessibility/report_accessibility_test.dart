@@ -8,11 +8,10 @@ void main() {
   group('A12 Accessibility Validation Tests', () {
     group('Touch Target Size Requirements (C3 Compliance)', () {
       testWidgets(
-          'emergency buttons meet minimum 44dp touch target requirement',
-          (tester) async {
-        await tester.pumpWidget(
-          const MaterialApp(home: ReportFireScreen()),
-        );
+          'emergency buttons meet minimum 44dp touch target requirement', (
+        tester,
+      ) async {
+        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
 
         await tester.pumpAndSettle();
 
@@ -33,8 +32,11 @@ void main() {
           }
 
           final buttonFinder = find.widgetWithText(EmergencyButton, buttonText);
-          expect(buttonFinder, findsOneWidget,
-              reason: 'Should find button with text: $buttonText');
+          expect(
+            buttonFinder,
+            findsOneWidget,
+            reason: 'Should find button with text: $buttonText',
+          );
 
           final buttonSize = tester.getSize(buttonFinder);
 
@@ -42,18 +44,25 @@ void main() {
           // Use 44dp as minimum (iOS requirement) with 48dp preferred
           const minTouchTarget = 44.0;
 
-          expect(buttonSize.height, greaterThanOrEqualTo(minTouchTarget),
-              reason:
-                  'Button "$buttonText" height ${buttonSize.height} must be ≥${minTouchTarget}dp for accessibility');
+          expect(
+            buttonSize.height,
+            greaterThanOrEqualTo(minTouchTarget),
+            reason:
+                'Button "$buttonText" height ${buttonSize.height} must be ≥${minTouchTarget}dp for accessibility',
+          );
 
-          expect(buttonSize.width, greaterThanOrEqualTo(minTouchTarget),
-              reason:
-                  'Button "$buttonText" width ${buttonSize.width} must be ≥${minTouchTarget}dp for accessibility');
+          expect(
+            buttonSize.width,
+            greaterThanOrEqualTo(minTouchTarget),
+            reason:
+                'Button "$buttonText" width ${buttonSize.width} must be ≥${minTouchTarget}dp for accessibility',
+          );
         }
       });
 
-      testWidgets('AppBar navigation elements meet requirements',
-          (tester) async {
+      testWidgets('AppBar navigation elements meet requirements', (
+        tester,
+      ) async {
         // Test with navigation stack to trigger back button
         await tester.pumpWidget(
           MaterialApp(
@@ -78,14 +87,15 @@ void main() {
         const minTouchTarget = 44.0;
 
         // AppBar height should meet accessibility requirements
-        expect(appBarSize.height, greaterThanOrEqualTo(minTouchTarget),
-            reason: 'AppBar height must be ≥44dp for accessibility');
+        expect(
+          appBarSize.height,
+          greaterThanOrEqualTo(minTouchTarget),
+          reason: 'AppBar height must be ≥44dp for accessibility',
+        );
       });
 
       testWidgets('touch targets have adequate spacing', (tester) async {
-        await tester.pumpWidget(
-          const MaterialApp(home: ReportFireScreen()),
-        );
+        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
 
         await tester.pumpAndSettle();
 
@@ -93,7 +103,9 @@ void main() {
           find.widgetWithText(EmergencyButton, 'Call 999 — Fire Service'),
           find.widgetWithText(EmergencyButton, 'Call 101 — Police Scotland'),
           find.widgetWithText(
-              EmergencyButton, 'Call 0800 555 111 — Crimestoppers'),
+            EmergencyButton,
+            'Call 0800 555 111 — Crimestoppers',
+          ),
         ];
 
         // Scroll to ensure all buttons are visible
@@ -108,18 +120,20 @@ void main() {
           final verticalSpacing = nextButton.dy - currentButton.dy;
           const minSpacing = 8.0; // Material Design minimum spacing
 
-          expect(verticalSpacing, greaterThanOrEqualTo(minSpacing),
-              reason: 'Buttons must have ≥8dp spacing for touch accuracy');
+          expect(
+            verticalSpacing,
+            greaterThanOrEqualTo(minSpacing),
+            reason: 'Buttons must have ≥8dp spacing for touch accuracy',
+          );
         }
       });
     });
 
     group('Semantic Labels and Screen Reader Support (C4 Compliance)', () {
-      testWidgets('emergency buttons have proper semantic labels',
-          (tester) async {
-        await tester.pumpWidget(
-          const MaterialApp(home: ReportFireScreen()),
-        );
+      testWidgets('emergency buttons have proper semantic labels', (
+        tester,
+      ) async {
+        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
 
         await tester.pumpAndSettle();
 
@@ -133,23 +147,27 @@ void main() {
         expect(find.text('Call 0800 555 111 — Crimestoppers'), findsOneWidget);
 
         // Verify buttons exist and are tappable
-        final fireServiceButton =
-            find.widgetWithText(EmergencyButton, 'Call 999 — Fire Service');
+        final fireServiceButton = find.widgetWithText(
+          EmergencyButton,
+          'Call 999 — Fire Service',
+        );
         expect(fireServiceButton, findsOneWidget);
 
-        final policeButton =
-            find.widgetWithText(EmergencyButton, 'Call 101 — Police Scotland');
+        final policeButton = find.widgetWithText(
+          EmergencyButton,
+          'Call 101 — Police Scotland',
+        );
         expect(policeButton, findsOneWidget);
 
         final crimestoppersButton = find.widgetWithText(
-            EmergencyButton, 'Call 0800 555 111 — Crimestoppers');
+          EmergencyButton,
+          'Call 0800 555 111 — Crimestoppers',
+        );
         expect(crimestoppersButton, findsOneWidget);
       });
 
       testWidgets('screen has proper semantic structure', (tester) async {
-        await tester.pumpWidget(
-          const MaterialApp(home: ReportFireScreen()),
-        );
+        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
 
         await tester.pumpAndSettle();
 
@@ -170,24 +188,28 @@ void main() {
         expect(find.textContaining('Safety Tips'), findsOneWidget);
       });
 
-      testWidgets('emergency priority is conveyed through semantics',
-          (tester) async {
-        await tester.pumpWidget(
-          const MaterialApp(home: ReportFireScreen()),
-        );
+      testWidgets('emergency priority is conveyed through semantics', (
+        tester,
+      ) async {
+        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
 
         // Verify emergency contact constants have correct priorities
         expect(EmergencyContact.fireService.priority, EmergencyPriority.urgent);
-        expect(EmergencyContact.policeScotland.priority,
-            EmergencyPriority.nonEmergency);
-        expect(EmergencyContact.crimestoppers.priority,
-            EmergencyPriority.anonymous);
+        expect(
+          EmergencyContact.policeScotland.priority,
+          EmergencyPriority.nonEmergency,
+        );
+        expect(
+          EmergencyContact.crimestoppers.priority,
+          EmergencyPriority.anonymous,
+        );
       });
     });
 
     group('Color Contrast and Visual Accessibility (C3/C4 Compliance)', () {
-      testWidgets('emergency button colors meet contrast requirements',
-          (tester) async {
+      testWidgets('emergency button colors meet contrast requirements', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData(
@@ -200,8 +222,10 @@ void main() {
         await tester.pumpAndSettle();
 
         // Test 999 button exists and is accessible
-        final fireServiceButton =
-            find.widgetWithText(EmergencyButton, 'Call 999 — Fire Service');
+        final fireServiceButton = find.widgetWithText(
+          EmergencyButton,
+          'Call 999 — Fire Service',
+        );
         expect(fireServiceButton, findsOneWidget);
 
         // Verify EmergencyButton widget has correct properties
@@ -210,8 +234,9 @@ void main() {
         expect(buttonWidget.priority, equals(EmergencyPriority.urgent));
       });
 
-      testWidgets('text size scales with system accessibility settings',
-          (tester) async {
+      testWidgets('text size scales with system accessibility settings', (
+        tester,
+      ) async {
         // Test with moderate text scale to avoid layout overflow
         await tester.pumpWidget(
           MaterialApp(
@@ -219,7 +244,8 @@ void main() {
               return MediaQuery(
                 data: MediaQuery.of(context).copyWith(
                   textScaler: const TextScaler.linear(
-                      1.5), // 150% text size (more realistic)
+                    1.5,
+                  ), // 150% text size (more realistic)
                 ),
                 child: child!,
               );
@@ -229,16 +255,20 @@ void main() {
         );
 
         // Buttons should still be properly sized with large text
-        final fireServiceButton =
-            find.widgetWithText(EmergencyButton, 'Call 999 — Fire Service');
+        final fireServiceButton = find.widgetWithText(
+          EmergencyButton,
+          'Call 999 — Fire Service',
+        );
         expect(fireServiceButton, findsOneWidget);
 
         final buttonSize = tester.getSize(fireServiceButton);
 
         // With 150% text scale, button should be larger but still maintain minimum touch target
         expect(buttonSize.height, greaterThanOrEqualTo(44.0));
-        expect(buttonSize.width,
-            greaterThan(150.0)); // Should be wider due to larger text
+        expect(
+          buttonSize.width,
+          greaterThan(150.0),
+        ); // Should be wider due to larger text
 
         // Verify content is still visible and accessible
         expect(find.text('Call 999 — Fire Service'), findsOneWidget);
@@ -247,11 +277,10 @@ void main() {
     });
 
     group('Keyboard Navigation and Focus (WCAG AA Compliance)', () {
-      testWidgets('all interactive elements are keyboard accessible',
-          (tester) async {
-        await tester.pumpWidget(
-          const MaterialApp(home: ReportFireScreen()),
-        );
+      testWidgets('all interactive elements are keyboard accessible', (
+        tester,
+      ) async {
+        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
 
         await tester.pumpAndSettle();
 
@@ -264,7 +293,9 @@ void main() {
           find.widgetWithText(EmergencyButton, 'Call 999 — Fire Service'),
           find.widgetWithText(EmergencyButton, 'Call 101 — Police Scotland'),
           find.widgetWithText(
-              EmergencyButton, 'Call 0800 555 111 — Crimestoppers'),
+            EmergencyButton,
+            'Call 0800 555 111 — Crimestoppers',
+          ),
         ];
 
         // All emergency buttons should be focusable
@@ -273,19 +304,21 @@ void main() {
 
           // Each button should be focusable
           final buttonWidget = tester.widget<EmergencyButton>(button);
-          expect(buttonWidget.onPressed, isNotNull,
-              reason:
-                  'Button should have onPressed callback for keyboard activation');
+          expect(
+            buttonWidget.onPressed,
+            isNotNull,
+            reason:
+                'Button should have onPressed callback for keyboard activation',
+          );
         }
       });
     });
 
     group('Error State Accessibility', () {
-      testWidgets('emergency buttons are accessible and responsive',
-          (tester) async {
-        await tester.pumpWidget(
-          const MaterialApp(home: ReportFireScreen()),
-        );
+      testWidgets('emergency buttons are accessible and responsive', (
+        tester,
+      ) async {
+        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
 
         await tester.pumpAndSettle();
 
@@ -298,7 +331,9 @@ void main() {
           find.widgetWithText(EmergencyButton, 'Call 999 — Fire Service'),
           find.widgetWithText(EmergencyButton, 'Call 101 — Police Scotland'),
           find.widgetWithText(
-              EmergencyButton, 'Call 0800 555 111 — Crimestoppers'),
+            EmergencyButton,
+            'Call 0800 555 111 — Crimestoppers',
+          ),
         ];
 
         for (final button in buttons) {
@@ -317,11 +352,10 @@ void main() {
         }
       });
 
-      testWidgets('error handling provides accessible fallback information',
-          (tester) async {
-        await tester.pumpWidget(
-          const MaterialApp(home: ReportFireScreen()),
-        );
+      testWidgets('error handling provides accessible fallback information', (
+        tester,
+      ) async {
+        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
 
         await tester.pumpAndSettle();
 
@@ -334,8 +368,10 @@ void main() {
         await tester.pumpAndSettle();
 
         // Footer should contain manual dialing instructions for accessibility
-        expect(find.textContaining('In immediate danger, call 999'),
-            findsOneWidget);
+        expect(
+          find.textContaining('In immediate danger, call 999'),
+          findsOneWidget,
+        );
 
         // Scroll back to see buttons
         await tester.drag(find.byType(ListView), const Offset(0, 500));
@@ -354,18 +390,19 @@ void main() {
     });
 
     group('Device Orientation Accessibility', () {
-      testWidgets('accessibility features work in landscape orientation',
-          (tester) async {
+      testWidgets('accessibility features work in landscape orientation', (
+        tester,
+      ) async {
         // Set landscape orientation
         await tester.binding.setSurfaceSize(const Size(800, 600));
 
-        await tester.pumpWidget(
-          const MaterialApp(home: ReportFireScreen()),
-        );
+        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
 
         // Touch targets should still meet requirements in landscape
-        final fireServiceButton =
-            find.widgetWithText(EmergencyButton, 'Call 999 — Fire Service');
+        final fireServiceButton = find.widgetWithText(
+          EmergencyButton,
+          'Call 999 — Fire Service',
+        );
         expect(fireServiceButton, findsOneWidget);
 
         final buttonSize = tester.getSize(fireServiceButton);

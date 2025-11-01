@@ -1,10 +1,21 @@
+---
+title: Accessibility Statement
+status: active
+last_updated: 2025-10-30
+category: explanation
+subcategory: compliance
+related:
+  - privacy-compliance.md
+  - ux_cues.md
+---
+
 # Accessibility Statement
 
 ## Overview
 
 WildFire MVP v3 is committed to providing an accessible experience for all users, following Constitutional Gate C3 (Accessibility) and C4 (Trust & Transparency). This statement details the accessibility features, testing procedures, and compliance status.
 
-**Last Updated**: 2025-10-20  
+**Last Updated**: 2025-10-30  
 **Version**: 1.0  
 **Constitutional Compliance**: C3 (Accessibility), C4 (Trust & Transparency)  
 **Standards**: WCAG 2.1 Level AA (target)

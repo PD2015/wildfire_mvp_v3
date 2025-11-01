@@ -34,80 +34,96 @@ void main() {
 
     group('TEST_REGION Fallback Logic', () {
       test(
-          'should use test region coordinates when LocationResolver returns error and TEST_REGION is set',
-          () async {
-        // This test documents the expected behavior when TEST_REGION != 'scotland'
-        // In actual usage with --dart-define=TEST_REGION=portugal:
-        // 1. LocationResolver returns Left(LocationError.gpsUnavailable)
-        // 2. HomeController checks FeatureFlags.testRegion
-        // 3. If not 'scotland', uses _getTestRegionCenter()
-        // 4. Proceeds with fire risk query using test coordinates
+        'should use test region coordinates when LocationResolver returns error and TEST_REGION is set',
+        () async {
+          // This test documents the expected behavior when TEST_REGION != 'scotland'
+          // In actual usage with --dart-define=TEST_REGION=portugal:
+          // 1. LocationResolver returns Left(LocationError.gpsUnavailable)
+          // 2. HomeController checks FeatureFlags.testRegion
+          // 3. If not 'scotland', uses _getTestRegionCenter()
+          // 4. Proceeds with fire risk query using test coordinates
 
-        // Arrange: Simulate LocationResolver error (what happens when TEST_REGION is set)
-        mockLocationResolver.mockGetLatLon(
-          const Left(LocationError.gpsUnavailable),
-        );
+          // Arrange: Simulate LocationResolver error (what happens when TEST_REGION is set)
+          mockLocationResolver.mockGetLatLon(
+            const Left(LocationError.gpsUnavailable),
+          );
 
-        // Mock successful fire risk response
-        mockFireRiskService.mockGetCurrent(
-          Right(FireRisk(
-            level: RiskLevel.moderate,
-            fwi: 15.0,
-            source: DataSource.effis,
-            observedAt: DateTime.now().toUtc(),
-            freshness: Freshness.live,
-          )),
-        );
+          // Mock successful fire risk response
+          mockFireRiskService.mockGetCurrent(
+            Right(
+              FireRisk(
+                level: RiskLevel.moderate,
+                fwi: 15.0,
+                source: DataSource.effis,
+                observedAt: DateTime.now().toUtc(),
+                freshness: Freshness.live,
+              ),
+            ),
+          );
 
-        // Act: Load data
-        await controller.load();
+          // Act: Load data
+          await controller.load();
 
-        // Wait for async operations
-        await Future.delayed(const Duration(milliseconds: 100));
+          // Wait for async operations
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        // Assert: With default TEST_REGION=scotland in tests, this becomes an error
-        // In production with TEST_REGION=portugal, it would succeed with Portugal coords
-        final state = controller.state;
+          // Assert: With default TEST_REGION=scotland in tests, this becomes an error
+          // In production with TEST_REGION=portugal, it would succeed with Portugal coords
+          final state = controller.state;
 
-        // Document expected behavior in different scenarios:
-        if (FeatureFlags.testRegion == 'scotland') {
-          // Test environment: LocationError should cause error state
-          expect(state, isA<HomeStateError>(),
-              reason: 'Default scotland with LocationError should error');
-        } else {
-          // Production with TEST_REGION set: Should use test region coordinates
-          expect(state, isA<HomeStateSuccess>(),
+          // Document expected behavior in different scenarios:
+          if (FeatureFlags.testRegion == 'scotland') {
+            // Test environment: LocationError should cause error state
+            expect(
+              state,
+              isA<HomeStateError>(),
+              reason: 'Default scotland with LocationError should error',
+            );
+          } else {
+            // Production with TEST_REGION set: Should use test region coordinates
+            expect(
+              state,
+              isA<HomeStateSuccess>(),
               reason:
-                  'Non-scotland TEST_REGION should use fallback coordinates');
-        }
-      });
+                  'Non-scotland TEST_REGION should use fallback coordinates',
+            );
+          }
+        },
+      );
 
-      test('_getTestRegionCenter should match MapController implementation',
-          () {
-        // This test verifies that HomeController and MapController use
-        // identical test region mappings to ensure consistency
+      test(
+        '_getTestRegionCenter should match MapController implementation',
+        () {
+          // This test verifies that HomeController and MapController use
+          // identical test region mappings to ensure consistency
 
-        final testRegionMappings = {
-          'portugal': const LatLng(39.6, -9.1),
-          'spain': const LatLng(40.4, -3.7),
-          'greece': const LatLng(37.9, 23.7),
-          'california': const LatLng(36.7, -119.4),
-          'australia': const LatLng(-33.8, 151.2),
-          'scotland': const LatLng(57.2, -3.8), // Default
-        };
+          final testRegionMappings = {
+            'portugal': const LatLng(39.6, -9.1),
+            'spain': const LatLng(40.4, -3.7),
+            'greece': const LatLng(37.9, 23.7),
+            'california': const LatLng(36.7, -119.4),
+            'australia': const LatLng(-33.8, 151.2),
+            'scotland': const LatLng(57.2, -3.8), // Default
+          };
 
-        // Verify all regions are documented
-        expect(
-          testRegionMappings.keys,
-          containsAll(
-              ['portugal', 'spain', 'greece', 'california', 'australia']),
-          reason: 'All test regions from TEST_REGIONS.md should be mapped',
-        );
+          // Verify all regions are documented
+          expect(
+            testRegionMappings.keys,
+            containsAll([
+              'portugal',
+              'spain',
+              'greece',
+              'california',
+              'australia',
+            ]),
+            reason: 'All test regions from TEST_REGIONS.md should be mapped',
+          );
 
-        // Note: Actual coordinate verification would require reflection or
-        // exposing _getTestRegionCenter() as a public method for testing
-        // Current implementation keeps it private for encapsulation
-      });
+          // Note: Actual coordinate verification would require reflection or
+          // exposing _getTestRegionCenter() as a public method for testing
+          // Current implementation keeps it private for encapsulation
+        },
+      );
     });
 
     group('Integration Test Scenarios', () {
@@ -139,21 +155,23 @@ void main() {
     });
 
     group('Controller Consistency', () {
-      test('HomeController and MapController should use same test coordinates',
-          () {
-        // This is a critical requirement: Both controllers must query EFFIS
-        // for the same geographic location when TEST_REGION is set
+      test(
+        'HomeController and MapController should use same test coordinates',
+        () {
+          // This is a critical requirement: Both controllers must query EFFIS
+          // for the same geographic location when TEST_REGION is set
 
-        // Verification method:
-        // 1. Run with TEST_REGION=portugal
-        // 2. Check HomeController logs for coordinates
-        // 3. Check MapController logs for coordinates
-        // 4. Verify both use (39.6, -9.1)
+          // Verification method:
+          // 1. Run with TEST_REGION=portugal
+          // 2. Check HomeController logs for coordinates
+          // 3. Check MapController logs for coordinates
+          // 4. Verify both use (39.6, -9.1)
 
-        // Expected log patterns:
-        // HomeController: "Using test region: portugal at 39.60,-9.10"
-        // MapController: "🗺️ Using test region: portugal at 39.6,-9.1"
-      });
+          // Expected log patterns:
+          // HomeController: "Using test region: portugal at 39.60,-9.10"
+          // MapController: "🗺️ Using test region: portugal at 39.6,-9.1"
+        },
+      );
     });
   });
 }
@@ -167,8 +185,9 @@ class MockLocationResolver implements LocationResolver {
   }
 
   @override
-  Future<Either<LocationError, LatLng>> getLatLon(
-      {bool allowDefault = true}) async {
+  Future<Either<LocationError, LatLng>> getLatLon({
+    bool allowDefault = true,
+  }) async {
     return _getLatLonResult ?? const Right(LatLng(55.9533, -3.1883));
   }
 
@@ -193,12 +212,14 @@ class MockFireRiskService implements FireRiskService {
   }) async {
     lastQueriedLocation = LatLng(lat, lon);
     return _getCurrentResult ??
-        Right(FireRisk(
-          level: RiskLevel.low,
-          fwi: 5.0,
-          source: DataSource.mock,
-          observedAt: DateTime.now().toUtc(),
-          freshness: Freshness.live,
-        ));
+        Right(
+          FireRisk(
+            level: RiskLevel.low,
+            fwi: 5.0,
+            source: DataSource.mock,
+            observedAt: DateTime.now().toUtc(),
+            freshness: Freshness.live,
+          ),
+        );
   }
 }

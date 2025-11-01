@@ -15,7 +15,7 @@ Integration tests provide comprehensive coverage of user workflows with a hybrid
 
 | Test Suite | Status | Count | Execution Time | Coverage |
 |------------|--------|-------|----------------|----------|
-| **home_integration_test.dart** | ⚠️ Partial Pass | 7/9 passing | ~5 minutes | Home screen workflows |
+| **home_integration_test.dart** | ⚠️ Partial Pass | 7/9 passing | ~5 minutes | Fire Risk screen workflows |
 | **map_integration_test.dart** | ⏭️ Manual Only | 0/8 automated | ~2 minutes manual | Map functionality |
 | **app_integration_test.dart** | ✅ All Pass | 9/9 passing | ~4 minutes | Navigation & lifecycle |
 | **TOTAL COVERAGE** | 🟡 Good | **16/24 (67%)** | ~11 minutes | End-to-end workflows |
@@ -28,13 +28,13 @@ Integration tests provide comprehensive coverage of user workflows with a hybrid
 
 ---
 
-## 🏠 Home Screen Tests (7/9 Passing)
+## 🔥 Fire Risk Screen Tests (7/9 Passing)
 
 ### ✅ Passing Tests (7/9)
 
 #### 1. **Fire Risk Banner Display** ✅
 ```
-✅ Home screen loads and displays fire risk banner
+✅ Fire Risk screen loads and displays fire risk banner
 ✅ Fire risk colors match FWI thresholds (Very Low=green, Low=blue, etc.)
 ✅ Risk level text displays correctly ('Very Low', 'Low', 'Moderate', etc.)
 ```
@@ -56,7 +56,7 @@ Integration tests provide comprehensive coverage of user workflows with a hybrid
 #### 4. **Navigation Integration** ✅
 ```
 ✅ "View Map" button navigation to map screen
-✅ Tab navigation between Home and Map screens
+✅ Tab navigation between Fire Risk and Map screens
 ```
 
 ### ⚠️ Failing Tests (2/9) - UI Visibility Issues
@@ -80,7 +80,7 @@ Integration tests provide comprehensive coverage of user workflows with a hybrid
 **Impact**: Minor - data source information available, display testing needs update
 **Expected**: Should show "DEMO DATA", "LIVE", "CACHED", or "MOCK" chips
 
-### 🔧 Home Test Fix Recommendations
+### 🔧 Fire Risk Test Fix Recommendations
 
 1. **Update RiskBanner widget** to show timestamp/source in all states (not just success)
 2. **Improve test selectors** to use semantic labels or keys instead of text search
@@ -177,7 +177,7 @@ flutter run -d emulator-5554 --dart-define=MAP_LIVE_DATA=false
 
 #### 1. **Tab Navigation** ✅
 ```
-✅ Home tab loads fire risk assessment screen
+✅ Fire Risk tab loads fire risk assessment screen
 ✅ Map tab loads map screen with GoogleMap widget
 ✅ Tab state persists during navigation
 ✅ Back button behavior works correctly
@@ -287,7 +287,7 @@ flutter run -d emulator-5554 --dart-define=MAP_LIVE_DATA=false
 - ⏭️ **Map tests skipped** automatically (skip: true flag)
 
 ### Deployment Gates
-- ✅ **Home functionality**: Must pass 7/9 home tests (allowing 2 UI visibility issues)
+- ✅ **Fire Risk functionality**: Must pass 7/9 fire risk tests (allowing 2 UI visibility issues)
 - ✅ **Navigation**: Must pass 9/9 app tests  
 - 📋 **Map functionality**: Manual verification required before release
 
@@ -300,7 +300,7 @@ flutter run -d emulator-5554 --dart-define=MAP_LIVE_DATA=false
 **Workaround**: Manual testing with interactive verification checklist  
 **Status**: **Accepted limitation** - industry standard for map widget testing
 
-### Issue 2: Home Test UI Visibility (2 failing tests)
+### Issue 2: Fire Risk Test UI Visibility (2 failing tests)
 **Problem**: Timestamp and source chip not consistently found by tests  
 **Root Cause**: May not display in error states, or timing issues with async UI updates  
 **Workaround**: Core functionality verified, UI visibility needs refinement  

@@ -15,9 +15,9 @@ if [ -z "$MAPS_API_KEY_WEB" ]; then
   exit 1
 fi
 
-if ! grep -q "%MAPS_API_KEY%" web/index.html; then
-  echo "❌ ERROR: Placeholder %MAPS_API_KEY% not found in web/index.html"
-  echo "Please ensure web/index.html contains the placeholder pattern"
+if ! grep -q 'src="https://maps.googleapis.com/maps/api/js"' web/index.html; then
+  echo "❌ ERROR: Google Maps script tag not found in web/index.html"
+  echo "Expected: <script src=\"https://maps.googleapis.com/maps/api/js\"></script>"
   exit 1
 fi
 
@@ -28,7 +28,7 @@ echo "🔑 Using API key: ${MAPS_API_KEY_WEB:0:8}***"
 echo ""
 echo "🔑 Injecting API key into web/index.html..."
 cp web/index.html web/index.html.bak
-sed -i.bkp 's|%MAPS_API_KEY%|?key='"$MAPS_API_KEY_WEB"'|g' web/index.html
+sed -i.bkp 's|https://maps.googleapis.com/maps/api/js"|https://maps.googleapis.com/maps/api/js?key='"$MAPS_API_KEY_WEB"'"|g' web/index.html
 
 # Phase 3: Build Flutter web
 echo ""

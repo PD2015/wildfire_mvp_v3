@@ -37,10 +37,7 @@ void main() {
         );
         expect(error500.reason, equals(ApiErrorReason.general));
 
-        final error400 = ApiError(
-          message: 'Bad request',
-          statusCode: 400,
-        );
+        final error400 = ApiError(message: 'Bad request', statusCode: 400);
         expect(error400.reason, equals(ApiErrorReason.general));
       });
     });
@@ -48,10 +45,7 @@ void main() {
     group('error creation from fixture scenarios', () {
       test('should create 404 error matching test fixture', () {
         // Create error matching our 404.json fixture
-        final error = ApiError(
-          message: 'Not Found',
-          statusCode: 404,
-        );
+        final error = ApiError(message: 'Not Found', statusCode: 404);
         expect(error.message, equals('Not Found'));
         expect(error.statusCode, equals(404));
         expect(error.reason, equals(ApiErrorReason.notFound));
@@ -59,10 +53,7 @@ void main() {
 
       test('should create 503 error matching test fixture', () {
         // Create error matching our 503.json fixture
-        final error = ApiError(
-          message: 'Service Unavailable',
-          statusCode: 503,
-        );
+        final error = ApiError(message: 'Service Unavailable', statusCode: 503);
         expect(error.message, equals('Service Unavailable'));
         expect(error.statusCode, equals(503));
         expect(error.reason, equals(ApiErrorReason.serviceUnavailable));
@@ -82,7 +73,9 @@ void main() {
       test('should require non-empty message', () {
         // Empty message should be invalid
         expect(
-            () => ApiError(message: '', statusCode: 404), throwsArgumentError);
+          () => ApiError(message: '', statusCode: 404),
+          throwsArgumentError,
+        );
       });
 
       test('should accept null status code for non-HTTP errors', () {
@@ -96,10 +89,7 @@ void main() {
 
       test('should handle unknown status codes gracefully', () {
         // Unusual status codes should not crash
-        final error = ApiError(
-          message: 'Unknown error',
-          statusCode: 999,
-        );
+        final error = ApiError(message: 'Unknown error', statusCode: 999);
         expect(error.reason, equals(ApiErrorReason.general));
       });
     });
@@ -110,16 +100,15 @@ void main() {
         expect(ApiErrorReason.values.length, equals(3));
         expect(ApiErrorReason.values, contains(ApiErrorReason.notFound));
         expect(
-            ApiErrorReason.values, contains(ApiErrorReason.serviceUnavailable));
+          ApiErrorReason.values,
+          contains(ApiErrorReason.serviceUnavailable),
+        );
         expect(ApiErrorReason.values, contains(ApiErrorReason.general));
       });
 
       test('should provide useful toString() representation', () {
         // Error should have readable string representation
-        final error = ApiError(
-          message: 'Test error',
-          statusCode: 404,
-        );
+        final error = ApiError(message: 'Test error', statusCode: 404);
         final errorString = error.toString();
         expect(errorString, contains('Test error'));
         expect(errorString, contains('404'));

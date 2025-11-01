@@ -183,18 +183,29 @@ flutter run -d ios --dart-define-from-file=env/dev.env.json
 
 ### Web Configuration
 
+**Why Use Build Scripts Instead of `flutter run`?**
+
+Flutter web has a [known architectural limitation](https://github.com/flutter/flutter/issues/73830): `--dart-define` only works for Dart code, **not HTML files**. The Google Maps JavaScript API loads in `web/index.html` **before** Flutter starts, so there's no way for Flutter to inject environment variables at runtime.
+
+**Industry best practice** ([per official Google Maps Flutter Web docs](https://pub.dev/packages/google_maps_flutter_web#usage)): Use build-time injection scripts to keep API keys out of git while maintaining functionality. This is the standard approach for Flutter web projects with secrets.
+
 **Current Setup**: Build-time injection via secure scripts
 - ✅ **Secure**: API keys injected during build, not in source code
-- ✅ **HTTP Referrer Protection**: Keys restricted to specific domains
+- ✅ **HTTP Referrer Protection**: Keys restricted to specific domains  
 - ✅ **Development-Friendly**: Local development support with localhost referrers
+- ✅ **Auto-cleanup**: Scripts automatically restore clean HTML (no secrets in git)
 
 **Development**:
 ```bash
-# Secure development with API key injection (recommended)
+# Recommended: Secure development with API key injection (no watermark)
 ./scripts/run_web.sh
 
-# Manual development (shows watermark without proper key)
-flutter run -d chrome --dart-define-from-file=env/dev.env.json
+# Alternative: Quick testing (shows "For development purposes only" watermark)
+flutter run -d chrome
+
+# Pro tip: Create shell alias for convenience
+echo "alias fweb='./scripts/run_web.sh'" >> ~/.zshrc && source ~/.zshrc
+fweb  # Now just use this!
 ```
 
 **Production**:

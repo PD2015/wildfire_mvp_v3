@@ -90,16 +90,16 @@ void main() {
 
     /// Helper to build HomeScreen with test setup
     Widget buildHomeScreen() {
-      return MaterialApp(
-        home: HomeScreen(controller: mockController),
-      );
+      return MaterialApp(home: HomeScreen(controller: mockController));
     }
 
     group('Initial State and Loading', () {
       testWidgets('renders loading state initially', (tester) async {
         // Arrange
-        mockController.setState(HomeStateLoading(startTime: DateTime.now()),
-            loading: true);
+        mockController.setState(
+          HomeStateLoading(startTime: DateTime.now()),
+          loading: true,
+        );
 
         // Act
         await tester.pumpWidget(buildHomeScreen());
@@ -119,8 +119,9 @@ void main() {
         expect(mockController.loadCallCount, equals(1));
       });
 
-      testWidgets('retry button shows loading state when loading',
-          (tester) async {
+      testWidgets('retry button shows loading state when loading', (
+        tester,
+      ) async {
         // Arrange - Set error state first
         mockController.setState(
           const HomeStateError(errorMessage: 'Test error', canRetry: true),
@@ -139,34 +140,45 @@ void main() {
 
         // Assert - Retry button should not be visible in loading state
         expect(find.text('Retry'), findsNothing);
-        expect(find.text('Set Location'),
-            findsOneWidget); // This should still be present
+        expect(
+          find.text('Set Location'),
+          findsOneWidget,
+        ); // This should still be present
       });
     });
 
     group('Success State', () {
-      testWidgets('renders success state with risk banner and timestamp',
-          (tester) async {
+      testWidgets('renders success state with risk banner and timestamp', (
+        tester,
+      ) async {
         // Arrange
         final testRisk = TestData.createFireRisk(
-            level: RiskLevel.high, source: DataSource.effis);
+          level: RiskLevel.high,
+          source: DataSource.effis,
+        );
         final lastUpdated = DateTime.now().subtract(const Duration(minutes: 5));
 
-        mockController.setState(HomeStateSuccess(
-          riskData: testRisk,
-          location: TestData.edinburgh,
-          lastUpdated: lastUpdated,
-        ));
+        mockController.setState(
+          HomeStateSuccess(
+            riskData: testRisk,
+            location: TestData.edinburgh,
+            lastUpdated: lastUpdated,
+          ),
+        );
 
         // Act
         await tester.pumpWidget(buildHomeScreen());
 
         // Assert
         expect(find.byType(CircularProgressIndicator), findsNothing);
-        expect(find.textContaining('Updated'),
-            findsAtLeastNWidgets(1)); // May appear in RiskBanner and timestamp
-        expect(find.text('EFFIS'),
-            findsAtLeastNWidgets(1)); // Source chip in multiple places
+        expect(
+          find.textContaining('Updated'),
+          findsAtLeastNWidgets(1),
+        ); // May appear in RiskBanner and timestamp
+        expect(
+          find.text('EFFIS'),
+          findsAtLeastNWidgets(1),
+        ); // Source chip in multiple places
       });
 
       testWidgets('displays correct source chips', (tester) async {
@@ -180,19 +192,24 @@ void main() {
         for (final (source, expectedText) in testCases) {
           // Arrange
           final testRisk = TestData.createFireRisk(source: source);
-          mockController.setState(HomeStateSuccess(
-            riskData: testRisk,
-            location: TestData.edinburgh,
-            lastUpdated: DateTime.now(),
-          ));
+          mockController.setState(
+            HomeStateSuccess(
+              riskData: testRisk,
+              location: TestData.edinburgh,
+              lastUpdated: DateTime.now(),
+            ),
+          );
 
           // Act
           await tester.pumpWidget(buildHomeScreen());
           await tester.pump(); // Allow state change to settle
 
           // Assert - Should find at least one source chip
-          expect(find.text(expectedText), findsAtLeastNWidgets(1),
-              reason: 'Should display $expectedText for source $source');
+          expect(
+            find.text(expectedText),
+            findsAtLeastNWidgets(1),
+            reason: 'Should display $expectedText for source $source',
+          );
         }
       });
     });
@@ -200,10 +217,9 @@ void main() {
     group('Error State', () {
       testWidgets('renders error state with retry button', (tester) async {
         // Arrange
-        mockController.setState(const HomeStateError(
-          errorMessage: 'Network error',
-          canRetry: true,
-        ));
+        mockController.setState(
+          const HomeStateError(errorMessage: 'Network error', canRetry: true),
+        );
 
         // Act
         await tester.pumpWidget(buildHomeScreen());
@@ -222,12 +238,14 @@ void main() {
           freshness: Freshness.cached,
         );
 
-        mockController.setState(HomeStateError(
-          errorMessage: 'Network error',
-          cachedData: cachedRisk,
-          cachedLocation: TestData.edinburgh,
-          canRetry: true,
-        ));
+        mockController.setState(
+          HomeStateError(
+            errorMessage: 'Network error',
+            cachedData: cachedRisk,
+            cachedLocation: TestData.edinburgh,
+            canRetry: true,
+          ),
+        );
 
         // Act
         await tester.pumpWidget(buildHomeScreen());
@@ -239,10 +257,9 @@ void main() {
 
       testWidgets('retry button calls controller.retry()', (tester) async {
         // Arrange
-        mockController.setState(const HomeStateError(
-          errorMessage: 'Test error',
-          canRetry: true,
-        ));
+        mockController.setState(
+          const HomeStateError(errorMessage: 'Test error', canRetry: true),
+        );
 
         await tester.pumpWidget(buildHomeScreen());
 
@@ -272,13 +289,17 @@ void main() {
           mockController.setState(state);
           await tester.pumpWidget(buildHomeScreen());
 
-          expect(find.text('Set Location'), findsOneWidget,
-              reason: 'Set Location button should be present in all states');
+          expect(
+            find.text('Set Location'),
+            findsOneWidget,
+            reason: 'Set Location button should be present in all states',
+          );
         }
       });
 
-      testWidgets('set location button is present during loading',
-          (tester) async {
+      testWidgets('set location button is present during loading', (
+        tester,
+      ) async {
         // Arrange
         mockController.setState(
           HomeStateLoading(startTime: DateTime.now()),
@@ -298,14 +319,17 @@ void main() {
         expect(mockController.setManualLocationCallCount, equals(0));
       });
 
-      testWidgets('tapping set location opens manual location dialog',
-          (tester) async {
+      testWidgets('tapping set location opens manual location dialog', (
+        tester,
+      ) async {
         // Arrange
-        mockController.setState(HomeStateSuccess(
-          riskData: TestData.createFireRisk(),
-          location: TestData.edinburgh,
-          lastUpdated: DateTime.now(),
-        ));
+        mockController.setState(
+          HomeStateSuccess(
+            riskData: TestData.createFireRisk(),
+            location: TestData.edinburgh,
+            lastUpdated: DateTime.now(),
+          ),
+        );
 
         await tester.pumpWidget(buildHomeScreen());
 
@@ -321,10 +345,9 @@ void main() {
     group('Accessibility (C3 Compliance)', () {
       testWidgets('buttons meet 44dp minimum touch target', (tester) async {
         // Arrange
-        mockController.setState(const HomeStateError(
-          errorMessage: 'Test error',
-          canRetry: true,
-        ));
+        mockController.setState(
+          const HomeStateError(errorMessage: 'Test error', canRetry: true),
+        );
 
         await tester.pumpWidget(buildHomeScreen());
 
@@ -343,97 +366,119 @@ void main() {
         }
       });
 
-      testWidgets('has proper semantic labels for retry button',
-          (tester) async {
+      testWidgets('has proper semantic labels for retry button', (
+        tester,
+      ) async {
         // Arrange
-        mockController.setState(const HomeStateError(
-          errorMessage: 'Test error',
-          canRetry: true,
-        ));
+        mockController.setState(
+          const HomeStateError(errorMessage: 'Test error', canRetry: true),
+        );
 
         await tester.pumpWidget(buildHomeScreen());
 
         // Act & Assert
-        final retrySemantics =
-            find.bySemanticsLabel('Retry loading fire risk data');
+        final retrySemantics = find.bySemanticsLabel(
+          'Retry loading fire risk data',
+        );
         expect(retrySemantics, findsOneWidget);
       });
 
-      testWidgets('has proper semantic labels for set location button',
-          (tester) async {
+      testWidgets('has proper semantic labels for set location button', (
+        tester,
+      ) async {
         // Arrange
-        mockController.setState(HomeStateSuccess(
-          riskData: TestData.createFireRisk(),
-          location: TestData.edinburgh,
-          lastUpdated: DateTime.now(),
-        ));
+        mockController.setState(
+          HomeStateSuccess(
+            riskData: TestData.createFireRisk(),
+            location: TestData.edinburgh,
+            lastUpdated: DateTime.now(),
+          ),
+        );
 
         await tester.pumpWidget(buildHomeScreen());
 
         // Act & Assert
-        final setLocationSemantics = find
-            .bySemanticsLabel('Set manual location for fire risk assessment');
+        final setLocationSemantics = find.bySemanticsLabel(
+          'Set manual location for fire risk assessment',
+        );
         expect(setLocationSemantics, findsOneWidget);
       });
 
-      testWidgets('timestamp has semantic label with source info',
-          (tester) async {
+      testWidgets('timestamp has semantic label with source info', (
+        tester,
+      ) async {
         // Arrange
         final testRisk = TestData.createFireRisk(source: DataSource.effis);
-        mockController.setState(HomeStateSuccess(
-          riskData: testRisk,
-          location: TestData.edinburgh,
-          lastUpdated: DateTime.now().subtract(const Duration(minutes: 5)),
-        ));
+        mockController.setState(
+          HomeStateSuccess(
+            riskData: testRisk,
+            location: TestData.edinburgh,
+            lastUpdated: DateTime.now().subtract(const Duration(minutes: 5)),
+          ),
+        );
 
         await tester.pumpWidget(buildHomeScreen());
 
         // Act & Assert
-        final timestampSemantics =
-            find.bySemanticsLabel(RegExp(r'Data updated .* from EFFIS'));
+        final timestampSemantics = find.bySemanticsLabel(
+          RegExp(r'Data updated .* from EFFIS'),
+        );
         expect(timestampSemantics, findsOneWidget);
       });
 
-      testWidgets('loading and error states have live region announcements',
-          (tester) async {
+      testWidgets('loading and error states have live region announcements', (
+        tester,
+      ) async {
         // Test loading state
         mockController.setState(HomeStateLoading(startTime: DateTime.now()));
         await tester.pumpWidget(buildHomeScreen());
 
         expect(
-            find.byWidgetPredicate((widget) =>
-                widget is Semantics && widget.properties.liveRegion == true),
-            findsOneWidget);
+          find.byWidgetPredicate(
+            (widget) =>
+                widget is Semantics && widget.properties.liveRegion == true,
+          ),
+          findsOneWidget,
+        );
 
         // Test error state
-        mockController
-            .setState(const HomeStateError(errorMessage: 'Test error'));
+        mockController.setState(
+          const HomeStateError(errorMessage: 'Test error'),
+        );
         await tester.pump();
 
         expect(
-            find.byWidgetPredicate((widget) =>
-                widget is Semantics && widget.properties.liveRegion == true),
-            findsOneWidget);
+          find.byWidgetPredicate(
+            (widget) =>
+                widget is Semantics && widget.properties.liveRegion == true,
+          ),
+          findsOneWidget,
+        );
       });
     });
 
     group('C4 Transparency Compliance', () {
-      testWidgets('success state shows timestamp and source information',
-          (tester) async {
+      testWidgets('success state shows timestamp and source information', (
+        tester,
+      ) async {
         // Arrange
         final testRisk = TestData.createFireRisk(source: DataSource.sepa);
-        mockController.setState(HomeStateSuccess(
-          riskData: testRisk,
-          location: TestData.edinburgh,
-          lastUpdated: DateTime.now().subtract(const Duration(hours: 1)),
-        ));
+        mockController.setState(
+          HomeStateSuccess(
+            riskData: testRisk,
+            location: TestData.edinburgh,
+            lastUpdated: DateTime.now().subtract(const Duration(hours: 1)),
+          ),
+        );
 
         await tester.pumpWidget(buildHomeScreen());
 
         // Assert
         expect(find.textContaining('Updated'), findsAtLeastNWidgets(1));
-        expect(find.text('SEPA'),
-            findsAtLeastNWidgets(1)); // May appear in RiskBanner and timestamp
+        expect(
+          find.text('SEPA'),
+          findsAtLeastNWidgets(1),
+        ); // May appear in RiskBanner and timestamp
         expect(find.byIcon(Icons.access_time), findsOneWidget);
       });
 
@@ -444,11 +489,13 @@ void main() {
           freshness: Freshness.cached,
         );
 
-        mockController.setState(HomeStateError(
-          errorMessage: 'Network error',
-          cachedData: cachedRisk,
-          cachedLocation: TestData.edinburgh,
-        ));
+        mockController.setState(
+          HomeStateError(
+            errorMessage: 'Network error',
+            cachedData: cachedRisk,
+            cachedLocation: TestData.edinburgh,
+          ),
+        );
 
         await tester.pumpWidget(buildHomeScreen());
 
@@ -469,31 +516,38 @@ void main() {
         mockController.setState(const HomeStateError(errorMessage: 'Error'));
         await tester.pump();
 
-        mockController.setState(HomeStateSuccess(
-          riskData: TestData.createFireRisk(),
-          location: TestData.edinburgh,
-          lastUpdated: DateTime.now(),
-        ));
+        mockController.setState(
+          HomeStateSuccess(
+            riskData: TestData.createFireRisk(),
+            location: TestData.edinburgh,
+            lastUpdated: DateTime.now(),
+          ),
+        );
         await tester.pump();
 
         // Should render final state without errors
         expect(find.textContaining('Updated'), findsAtLeastNWidgets(1));
       });
 
-      testWidgets('does not show retry button when canRetry is false',
-          (tester) async {
+      testWidgets('does not show retry button when canRetry is false', (
+        tester,
+      ) async {
         // Arrange
-        mockController.setState(const HomeStateError(
-          errorMessage: 'Permanent error',
-          canRetry: false,
-        ));
+        mockController.setState(
+          const HomeStateError(
+            errorMessage: 'Permanent error',
+            canRetry: false,
+          ),
+        );
 
         await tester.pumpWidget(buildHomeScreen());
 
         // Assert
         expect(find.text('Retry'), findsNothing);
-        expect(find.text('Set Location'),
-            findsOneWidget); // Should still show this
+        expect(
+          find.text('Set Location'),
+          findsOneWidget,
+        ); // Should still show this
       });
     });
   });

@@ -9,8 +9,11 @@ class A11yHelpers {
   /// iOS: ≥44dp, Android: ≥48dp
   /// Using 44dp as minimum for cross-platform consistency
   static void verifyTouchTargetSize(WidgetTester tester, Finder finder) {
-    expect(finder, findsOneWidget,
-        reason: 'Widget not found for touch target check');
+    expect(
+      finder,
+      findsOneWidget,
+      reason: 'Widget not found for touch target check',
+    );
 
     final size = tester.getSize(finder);
     expect(
@@ -27,9 +30,15 @@ class A11yHelpers {
 
   /// Verify widget has semantic label for screen readers
   static void verifySemanticLabel(
-      WidgetTester tester, Finder finder, String expectedLabel) {
-    expect(finder, findsOneWidget,
-        reason: 'Widget not found for semantic label check');
+    WidgetTester tester,
+    Finder finder,
+    String expectedLabel,
+  ) {
+    expect(
+      finder,
+      findsOneWidget,
+      reason: 'Widget not found for semantic label check',
+    );
 
     final semantics = tester.getSemantics(finder);
     expect(

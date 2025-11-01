@@ -1,6 +1,6 @@
 #!/bin/sh
-# Pre-commit hook to auto-format and analyze Dart code
-# This ensures all commits have properly formatted code and no lint errors
+# Pre-commit hook to auto-format, analyze, and check for API keys
+# This ensures all commits have properly formatted code and no secrets
 #
 # Setup: git config core.hooksPath .githooks
 # Bypass: git commit --no-verify (not recommended)
@@ -19,20 +19,133 @@ echo "🔍 Running flutter analyze..."
 
 # Run static analysis (only if Flutter is available)
 if command -v flutter >/dev/null 2>&1; then
-  flutter analyze --no-fatal-infos
-  ANALYZE_EXIT=$?
+  # Get list of staged Dart files (excluding deleted files)
+  STAGED_DART_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.dart$' || true)
   
-  if [ $ANALYZE_EXIT -ne 0 ]; then
+  if [ -n "$STAGED_DART_FILES" ]; then
+    # Clean any stale build artifacts that might cause version detection issues
+    flutter clean > /dev/null 2>&1 || true
+    
+    # Run analyze with better error handling for worktrees
+    flutter analyze --no-fatal-infos $STAGED_DART_FILES 2>&1 | tee /tmp/flutter_analyze_output.txt
+    ANALYZE_EXIT=${PIPESTATUS[0]}
+    
+    # Check for known worktree/version detection issues
+    if grep -q "version is 0.0.0-unknown" /tmp/flutter_analyze_output.txt; then
+      echo ""
+      echo "⚠️  Flutter SDK version detection issue (common in worktrees)"
+      echo "   Falling back to dart analyze on staged files..."
+      
+      # Fallback to dart analyze which doesn't have the same issue
+      # Only analyze staged Dart files to avoid errors in uncommitted work
+      dart analyze --fatal-warnings $STAGED_DART_FILES
+      ANALYZE_EXIT=$?
+    fi
+    
+    if [ $ANALYZE_EXIT -ne 0 ]; then
+      echo ""
+      echo "❌ Static analysis found issues in staged files!"
+      echo "   Please fix the issues above before committing."
+      echo "   Or use 'git commit --no-verify' to bypass (not recommended)."
+      exit 1
+    fi
+    
+    echo "✅ Static analysis passed for staged files"
+  else
+    echo "ℹ️  No Dart files staged for commit"
+  fi
+else
+  echo "⚠️  Flutter not found in PATH, skipping analyze (CI will catch issues)"
+fi
+
+echo ""
+echo "🔍 Checking for secrets with gitleaks..."
+
+# Check if gitleaks is installed
+if command -v gitleaks >/dev/null 2>&1; then
+  # Run gitleaks on staged files only
+  # --staged flag scans only the files in the git staging area
+  # --redact hides the actual secret values in output
+  # -v shows verbose output
+  gitleaks protect --staged --redact -v
+  GITLEAKS_EXIT=$?
+  
+  if [ $GITLEAKS_EXIT -ne 0 ]; then
     echo ""
-    echo "❌ Flutter analyze found issues!"
-    echo "   Please fix the issues above before committing."
-    echo "   Or use 'git commit --no-verify' to bypass (not recommended)."
+    echo "❌ Gitleaks found secrets in staged files!"
+    echo ""
+    echo "Common fixes:"
+    echo "  • Move secrets to: env/dev.env.json (git-ignored)"
+    echo "  • Use placeholders in docs: YOUR_API_KEY_HERE"
+    echo "  • Add to .gitleaksignore if false positive"
+    echo ""
+    echo "See: docs/API_KEY_SETUP.md"
+    echo ""
+    echo "To bypass (if false positive): git commit --no-verify"
     exit 1
   fi
   
-  echo "✅ Static analysis passed"
+  echo "✅ No secrets detected by gitleaks"
 else
-  echo "⚠️  Flutter not found in PATH, skipping analyze (CI will catch issues)"
+  echo "⚠️  Gitleaks not installed, using basic pattern matching..."
+  echo "   Install: brew install gitleaks"
+  echo ""
+  
+  # Fallback to basic pattern matching if gitleaks not available
+  STAGED_FILES=$(git diff --cached --name-only)
+  
+  if [ -z "$STAGED_FILES" ]; then
+    echo "✅ No files staged"
+    exit 0
+  fi
+  
+  # Check for Google Maps API keys
+  if echo "$STAGED_FILES" | xargs grep -l -E "AIzaSy[0-9A-Za-z_-]{33}" 2>/dev/null | grep -v "YOUR_.*_KEY_HERE\|PLACEHOLDER\|example\."; then
+    echo ""
+    echo "❌ ERROR: Google Maps API key detected!"
+    echo ""
+    echo "API keys must be in git-ignored files:"
+    echo "  - env/dev.env.json (local development)"
+    echo "  - android/local.properties (Android builds)"
+    echo "  - GitHub Secrets (CI/CD)"
+    echo ""
+    echo "See: docs/API_KEY_SETUP.md"
+    echo ""
+    echo "To bypass (if false positive): git commit --no-verify"
+    exit 1
+  fi
+  
+  # Check for secret files that should be git-ignored
+  if echo "$STAGED_FILES" | grep -E "^(env/dev\.env\.json|android/local\.properties)$"; then
+    echo ""
+    echo "❌ ERROR: Secret files are staged!"
+    echo ""
+    echo "These files should be git-ignored:"
+    echo "$STAGED_FILES" | grep -E "^(env/dev\.env\.json|android/local\.properties)$" | sed 's/^/  - /'
+    echo ""
+    echo "To unstage: git reset HEAD <file>"
+    exit 1
+  fi
+  
+  # Check for AWS keys
+  if echo "$STAGED_FILES" | xargs grep -l -E "(AKIA|ASIA)[0-9A-Z]{16}" 2>/dev/null; then
+    echo ""
+    echo "❌ ERROR: AWS access key detected!"
+    echo ""
+    echo "To bypass (if false positive): git commit --no-verify"
+    exit 1
+  fi
+  
+  # Check for GitHub tokens
+  if echo "$STAGED_FILES" | xargs grep -l -E "(ghp_|gho_|ghu_|ghs_|ghr_)[0-9A-Za-z]{36,255}" 2>/dev/null; then
+    echo ""
+    echo "❌ ERROR: GitHub token detected!"
+    echo ""
+    echo "To bypass (if false positive): git commit --no-verify"
+    exit 1
+  fi
+  
+  echo "✅ No secrets detected (basic scan)"
 fi
 
 exit 0

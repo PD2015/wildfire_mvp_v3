@@ -92,10 +92,8 @@ class EffisServiceImpl implements EffisService {
   ///
   /// [httpClient] - Injectable HTTP client for network requests (enables mocking)
   /// [random] - Injectable random generator for jitter (enables deterministic testing)
-  EffisServiceImpl({
-    required http.Client httpClient,
-    Random? random,
-  })  : _httpClient = httpClient,
+  EffisServiceImpl({required http.Client httpClient, Random? random})
+      : _httpClient = httpClient,
         _random = random ?? Random();
 
   @override
@@ -113,15 +111,11 @@ class EffisServiceImpl implements EffisService {
 
     // Validate parameters
     if (timeout.inMilliseconds <= 0) {
-      return Left(ApiError(
-        message: 'Timeout must be positive duration',
-      ));
+      return Left(ApiError(message: 'Timeout must be positive duration'));
     }
 
     if (maxRetries < 0 || maxRetries > 10) {
-      return Left(ApiError(
-        message: 'maxRetries must be between 0 and 10',
-      ));
+      return Left(ApiError(message: 'maxRetries must be between 0 and 10'));
     }
 
     // Attempt request with retry logic
@@ -131,9 +125,7 @@ class EffisServiceImpl implements EffisService {
   /// Validates coordinate ranges per WGS84 bounds
   ApiError? _validateCoordinates(double lat, double lon) {
     if (lat < -90.0 || lat > 90.0) {
-      return ApiError(
-        message: 'Latitude must be between -90 and 90 degrees',
-      );
+      return ApiError(message: 'Latitude must be between -90 and 90 degrees');
     }
 
     if (lon < -180.0 || lon > 180.0) {
@@ -170,10 +162,7 @@ class EffisServiceImpl implements EffisService {
         final stopwatch = Stopwatch()..start();
         final response = await _httpClient.get(
           uri,
-          headers: {
-            'User-Agent': _userAgent,
-            'Accept': _acceptHeader,
-          },
+          headers: {'User-Agent': _userAgent, 'Accept': _acceptHeader},
         ).timeout(timeout);
         stopwatch.stop();
 
@@ -190,8 +179,10 @@ class EffisServiceImpl implements EffisService {
         }
 
         // Check if error is retryable
-        final error =
-            result.fold((l) => l, (r) => throw Exception('Unexpected Right'));
+        final error = result.fold(
+          (l) => l,
+          (r) => throw Exception('Unexpected Right'),
+        );
         if (!_isRetryableError(error)) {
           return Left(error);
         }
@@ -225,10 +216,10 @@ class EffisServiceImpl implements EffisService {
     }
 
     // All retries exhausted
-    return Left(lastError ??
-        ApiError(
-          message: 'Request failed after $maxRetries retries',
-        ));
+    return Left(
+      lastError ??
+          ApiError(message: 'Request failed after $maxRetries retries'),
+    );
   }
 
   /// Builds WMS GetFeatureInfo URL for EFFIS service
@@ -253,31 +244,34 @@ class EffisServiceImpl implements EffisService {
     const currentDate =
         '2024-08-15'; // YYYY-MM-DD format - verified to have FWI data
 
-    return Uri.parse(_baseUrl).replace(queryParameters: {
-      'SERVICE': 'WMS',
-      'VERSION': '1.3.0',
-      'REQUEST': 'GetFeatureInfo',
-      'LAYERS':
-          'nasa_geos5.query', // Query layer provides actual numeric FWI values
-      'QUERY_LAYERS': 'nasa_geos5.query',
-      'CRS':
-          'EPSG:4326', // 🎯 BREAKTHROUGH: Use same coordinate system as successful manual test
-      'BBOX': '$minLat,$minLon,$maxLat,$maxLon',
-      'WIDTH': '256',
-      'HEIGHT': '256',
-      'I': '128', // Query point X
-      'J': '128', // Query point Y
-      'INFO_FORMAT':
-          'text/plain', // EFFIS provides data existence confirmation, not explicit FWI values
-      'FEATURE_COUNT': '1',
-      'TIME':
-          currentDate, // 🎯 KEY FIX: Add temporal parameter for current data
-    });
+    return Uri.parse(_baseUrl).replace(
+      queryParameters: {
+        'SERVICE': 'WMS',
+        'VERSION': '1.3.0',
+        'REQUEST': 'GetFeatureInfo',
+        'LAYERS':
+            'nasa_geos5.query', // Query layer provides actual numeric FWI values
+        'QUERY_LAYERS': 'nasa_geos5.query',
+        'CRS':
+            'EPSG:4326', // 🎯 BREAKTHROUGH: Use same coordinate system as successful manual test
+        'BBOX': '$minLat,$minLon,$maxLat,$maxLon',
+        'WIDTH': '256',
+        'HEIGHT': '256',
+        'I': '128', // Query point X
+        'J': '128', // Query point Y
+        'INFO_FORMAT':
+            'text/plain', // EFFIS provides data existence confirmation, not explicit FWI values
+        'FEATURE_COUNT': '1',
+        'TIME':
+            currentDate, // 🎯 KEY FIX: Add temporal parameter for current data
+      },
+    );
   }
 
   /// Processes HTTP response and parses EFFIS data
   Future<Either<ApiError, EffisFwiResult>> _processResponse(
-      http.Response response) async {
+    http.Response response,
+  ) async {
     // Handle HTTP error status codes
     if (response.statusCode >= 400) {
       return Left(_mapHttpStatusToApiError(response.statusCode, response.body));
@@ -307,10 +301,12 @@ class EffisServiceImpl implements EffisService {
         !contentType.contains('text/xml') &&
         !contentType.contains('text/plain') &&
         !contentType.contains('application/vnd.ogc.gml')) {
-      return Left(ApiError(
-        message: 'Unsupported response format: $contentType',
-        statusCode: response.statusCode,
-      ));
+      return Left(
+        ApiError(
+          message: 'Unsupported response format: $contentType',
+          statusCode: response.statusCode,
+        ),
+      );
     }
 
     // Handle GML XML response format (contains actual FWI values)
@@ -329,28 +325,35 @@ class EffisServiceImpl implements EffisService {
       final Map<String, dynamic> jsonData = jsonDecode(response.body);
       return await _parseEffisResponse(jsonData);
     } catch (e) {
-      return Left(ApiError(
-        message: 'Failed to parse JSON response: ${e.toString()}',
-        statusCode: response.statusCode,
-      ));
+      return Left(
+        ApiError(
+          message: 'Failed to parse JSON response: ${e.toString()}',
+          statusCode: response.statusCode,
+        ),
+      );
     }
   }
 
   /// Parses EFFIS GeoJSON FeatureCollection response
   Future<Either<ApiError, EffisFwiResult>> _parseEffisResponse(
-      Map<String, dynamic> jsonData) async {
+    Map<String, dynamic> jsonData,
+  ) async {
     // Validate FeatureCollection structure
     if (jsonData['type'] != 'FeatureCollection') {
-      return Left(ApiError(
-        message: 'Invalid response format: expected FeatureCollection',
-      ));
+      return Left(
+        ApiError(
+          message: 'Invalid response format: expected FeatureCollection',
+        ),
+      );
     }
 
     final features = jsonData['features'] as List<dynamic>?;
     if (features == null || features.isEmpty) {
-      return Left(ApiError(
-        message: 'No FWI data available for the specified coordinates',
-      ));
+      return Left(
+        ApiError(
+          message: 'No FWI data available for the specified coordinates',
+        ),
+      );
     }
 
     try {
@@ -361,9 +364,9 @@ class EffisServiceImpl implements EffisService {
       // Extract FWI value (try different property names)
       final fwi = _extractFwiValue(properties);
       if (fwi == null) {
-        return Left(ApiError(
-          message: 'No FWI value found in response properties',
-        ));
+        return Left(
+          ApiError(message: 'No FWI value found in response properties'),
+        );
       }
 
       // Extract timestamp (try different property names)
@@ -399,9 +402,11 @@ class EffisServiceImpl implements EffisService {
 
       return Right(effisResult);
     } catch (e) {
-      return Left(ApiError(
-        message: 'Failed to parse EFFIS feature data: ${e.toString()}',
-      ));
+      return Left(
+        ApiError(
+          message: 'Failed to parse EFFIS feature data: ${e.toString()}',
+        ),
+      );
     }
   }
 
@@ -465,13 +470,9 @@ class EffisServiceImpl implements EffisService {
         message: 'Network connection failed: ${exception.message}',
       );
     } else if (exception is TimeoutException) {
-      return ApiError(
-        message: 'Request timed out while connecting to EFFIS',
-      );
+      return ApiError(message: 'Request timed out while connecting to EFFIS');
     } else {
-      return ApiError(
-        message: 'Unexpected error: ${exception.toString()}',
-      );
+      return ApiError(message: 'Unexpected error: ${exception.toString()}');
     }
   }
 
@@ -496,8 +497,10 @@ class EffisServiceImpl implements EffisService {
     // Add jitter: ±25% of base delay
     final jitterMs =
         (baseDelayMs * 0.25 * (_random.nextDouble() - 0.5)).round();
-    final totalDelayMs =
-        (baseDelayMs + jitterMs).clamp(100, 30000); // Min 100ms, max 30s
+    final totalDelayMs = (baseDelayMs + jitterMs).clamp(
+      100,
+      30000,
+    ); // Min 100ms, max 30s
 
     return Duration(milliseconds: totalDelayMs.toInt());
   }
@@ -512,28 +515,36 @@ class EffisServiceImpl implements EffisService {
   /// Current status: Service responds correctly but typically returns no data
   /// Next step: Investigate TIME parameter for temporal data access
   Future<Either<ApiError, EffisFwiResult>> _parseEffisXmlResponse(
-      String responseBody) async {
-    developer.log('Parsing EFFIS text/plain response',
-        name: 'EffisService.parser');
+    String responseBody,
+  ) async {
+    developer.log(
+      'Parsing EFFIS text/plain response',
+      name: 'EffisService.parser',
+    );
 
     // Handle "Search returned no results" case (most common current response)
     // This indicates the service is working but no data available for coordinates/time
     if (responseBody.contains('Search returned no results')) {
-      return Left(ApiError(
-        message: 'No FWI data available for this location at this time',
-        statusCode: 404,
-      ));
+      return Left(
+        ApiError(
+          message: 'No FWI data available for this location at this time',
+          statusCode: 404,
+        ),
+      );
     }
 
     // Handle other response formats
     if (responseBody.contains('GetFeatureInfo results:')) {
-      developer.log('Processing GetFeatureInfo results',
-          name: 'EffisService.parser');
+      developer.log(
+        'Processing GetFeatureInfo results',
+        name: 'EffisService.parser',
+      );
 
       // Parse nasa_geos5.query response for actual FWI values
       // Response format: "value_0 = 'X.XXXXXX'" where value_0 is the FWI
-      final fwiMatch =
-          RegExp(r"value_0 = '([0-9.]+)'").firstMatch(responseBody);
+      final fwiMatch = RegExp(
+        r"value_0 = '([0-9.]+)'",
+      ).firstMatch(responseBody);
 
       if (fwiMatch != null) {
         final fwiString = fwiMatch.group(1);
@@ -545,18 +556,20 @@ class EffisServiceImpl implements EffisService {
             name: 'EffisService.parser.success',
           );
 
-          return Right(EffisFwiResult(
-            fwi: fwiValue, // Actual FWI from EFFIS nasa_geos5.query layer
-            dc: 0.0, // TODO: Extract value_3 if needed
-            dmc: 0.0, // TODO: Extract value_2 if needed
-            ffmc: 0.0, // TODO: Extract value_1 if needed
-            isi: 0.0, // TODO: Extract value_4 if needed
-            bui: 0.0, // TODO: Extract value_5 if needed
-            datetime: DateTime.now().toUtc(),
-            latitude:
-                39.6, // Portugal test coordinates - TODO: pass actual coordinates
-            longitude: -9.1,
-          ));
+          return Right(
+            EffisFwiResult(
+              fwi: fwiValue, // Actual FWI from EFFIS nasa_geos5.query layer
+              dc: 0.0, // TODO: Extract value_3 if needed
+              dmc: 0.0, // TODO: Extract value_2 if needed
+              ffmc: 0.0, // TODO: Extract value_1 if needed
+              isi: 0.0, // TODO: Extract value_4 if needed
+              bui: 0.0, // TODO: Extract value_5 if needed
+              datetime: DateTime.now().toUtc(),
+              latitude:
+                  39.6, // Portugal test coordinates - TODO: pass actual coordinates
+              longitude: -9.1,
+            ),
+          );
         } else {
           developer.log(
             'EFFIS returned invalid FWI value: $fwiString',
@@ -576,19 +589,23 @@ class EffisServiceImpl implements EffisService {
           if (fwiMatch != null) {
             final fwiValue = double.tryParse(fwiMatch.group(1)!);
             if (fwiValue != null) {
-              developer.log('Found FWI value: $fwiValue',
-                  name: 'EffisService.parser');
-              return Right(EffisFwiResult(
-                fwi: fwiValue,
-                dc: 0.0, // TODO: Extract from response if available
-                dmc: 0.0, // TODO: Extract from response if available
-                ffmc: 0.0, // TODO: Extract from response if available
-                isi: 0.0, // TODO: Extract from response if available
-                bui: 0.0, // TODO: Extract from response if available
-                datetime: DateTime.now().toUtc(),
-                latitude: 0.0, // TODO: Use actual coordinates from request
-                longitude: 0.0, // TODO: Use actual coordinates from request
-              ));
+              developer.log(
+                'Found FWI value: $fwiValue',
+                name: 'EffisService.parser',
+              );
+              return Right(
+                EffisFwiResult(
+                  fwi: fwiValue,
+                  dc: 0.0, // TODO: Extract from response if available
+                  dmc: 0.0, // TODO: Extract from response if available
+                  ffmc: 0.0, // TODO: Extract from response if available
+                  isi: 0.0, // TODO: Extract from response if available
+                  bui: 0.0, // TODO: Extract from response if available
+                  datetime: DateTime.now().toUtc(),
+                  latitude: 0.0, // TODO: Use actual coordinates from request
+                  longitude: 0.0, // TODO: Use actual coordinates from request
+                ),
+              );
             }
           }
         }
@@ -596,10 +613,12 @@ class EffisServiceImpl implements EffisService {
     }
 
     // Default case - no FWI data found
-    return Left(ApiError(
-      message: 'Unable to parse FWI data from EFFIS response',
-      statusCode: 422,
-    ));
+    return Left(
+      ApiError(
+        message: 'Unable to parse FWI data from EFFIS response',
+        statusCode: 422,
+      ),
+    );
   }
 
   /// Parses EFFIS GML XML response to extract real FWI values
@@ -614,9 +633,12 @@ class EffisServiceImpl implements EffisService {
   ///   </nasa_geos5.fwi_layer>
   /// </msGMLOutput>
   Future<Either<ApiError, EffisFwiResult>> _parseEffisGmlResponse(
-      String responseBody) async {
-    developer.log('Parsing EFFIS GML response',
-        name: 'EffisService.parser.gml');
+    String responseBody,
+  ) async {
+    developer.log(
+      'Parsing EFFIS GML response',
+      name: 'EffisService.parser.gml',
+    );
 
     if (responseBody.isNotEmpty) {
       developer.log(
@@ -629,29 +651,37 @@ class EffisServiceImpl implements EffisService {
     if (responseBody.contains('<nasa_geos5.fwi_feature>')) {
       // Try to extract FWI value from GML structure
       // Look for numeric values in the feature element
-      final RegExp fwiPattern =
-          RegExp(r'<fwi[^>]*>([0-9]+\.?[0-9]*)</fwi>', caseSensitive: false);
-      final RegExp valuePattern =
-          RegExp(r'>([0-9]+\.?[0-9]*)<', caseSensitive: false);
+      final RegExp fwiPattern = RegExp(
+        r'<fwi[^>]*>([0-9]+\.?[0-9]*)</fwi>',
+        caseSensitive: false,
+      );
+      final RegExp valuePattern = RegExp(
+        r'>([0-9]+\.?[0-9]*)<',
+        caseSensitive: false,
+      );
 
       // First try to find explicit <fwi> tags
       RegExpMatch? fwiMatch = fwiPattern.firstMatch(responseBody);
       if (fwiMatch != null) {
         final fwiValue = double.tryParse(fwiMatch.group(1)!);
         if (fwiValue != null) {
-          developer.log('Found explicit FWI value: $fwiValue',
-              name: 'EffisService.parser.gml');
-          return Right(EffisFwiResult(
-            fwi: fwiValue,
-            dc: 0.0,
-            dmc: 0.0,
-            ffmc: 0.0,
-            isi: 0.0,
-            bui: 0.0,
-            datetime: DateTime.now().toUtc(),
-            latitude: 39.6, // Portugal coordinates from working test
-            longitude: -9.1,
-          ));
+          developer.log(
+            'Found explicit FWI value: $fwiValue',
+            name: 'EffisService.parser.gml',
+          );
+          return Right(
+            EffisFwiResult(
+              fwi: fwiValue,
+              dc: 0.0,
+              dmc: 0.0,
+              ffmc: 0.0,
+              isi: 0.0,
+              bui: 0.0,
+              datetime: DateTime.now().toUtc(),
+              latitude: 39.6, // Portugal coordinates from working test
+              longitude: -9.1,
+            ),
+          );
         }
       }
 
@@ -661,43 +691,54 @@ class EffisServiceImpl implements EffisService {
         final numericValue = double.tryParse(match.group(1)!);
         if (numericValue != null && numericValue > 0 && numericValue < 100) {
           // Reasonable FWI range is 0-100
-          developer.log('Found potential FWI value in GML: $numericValue',
-              name: 'EffisService.parser.gml');
-          return Right(EffisFwiResult(
-            fwi: numericValue,
-            dc: 0.0,
-            dmc: 0.0,
-            ffmc: 0.0,
-            isi: 0.0,
-            bui: 0.0,
-            datetime: DateTime.now().toUtc(),
-            latitude: 39.6,
-            longitude: -9.1,
-          ));
+          developer.log(
+            'Found potential FWI value in GML: $numericValue',
+            name: 'EffisService.parser.gml',
+          );
+          return Right(
+            EffisFwiResult(
+              fwi: numericValue,
+              dc: 0.0,
+              dmc: 0.0,
+              ffmc: 0.0,
+              isi: 0.0,
+              bui: 0.0,
+              datetime: DateTime.now().toUtc(),
+              latitude: 39.6,
+              longitude: -9.1,
+            ),
+          );
         }
       }
 
       // Feature exists but no numeric value found - return a reasonable default
-      developer.log('GML feature exists but no FWI value found - using default',
-          name: 'EffisService.parser.gml', level: 900);
-      return Right(EffisFwiResult(
-        fwi: 8.5, // Reasonable default for areas with fire weather data
-        dc: 0.0,
-        dmc: 0.0,
-        ffmc: 0.0,
-        isi: 0.0,
-        bui: 0.0,
-        datetime: DateTime.now().toUtc(),
-        latitude: 39.6,
-        longitude: -9.1,
-      ));
+      developer.log(
+        'GML feature exists but no FWI value found - using default',
+        name: 'EffisService.parser.gml',
+        level: 900,
+      );
+      return Right(
+        EffisFwiResult(
+          fwi: 8.5, // Reasonable default for areas with fire weather data
+          dc: 0.0,
+          dmc: 0.0,
+          ffmc: 0.0,
+          isi: 0.0,
+          bui: 0.0,
+          datetime: DateTime.now().toUtc(),
+          latitude: 39.6,
+          longitude: -9.1,
+        ),
+      );
     }
 
     // No feature data found
-    return Left(ApiError(
-      message: 'No fire weather data available in GML response',
-      statusCode: 404,
-    ));
+    return Left(
+      ApiError(
+        message: 'No fire weather data available in GML response',
+        statusCode: 404,
+      ),
+    );
   }
 
   @override
@@ -729,16 +770,16 @@ class EffisServiceImpl implements EffisService {
       },
     );
 
-    developer.log(
-      'EFFIS WFS URL: $uri',
-      name: 'EffisService.getActiveFires',
-    );
+    developer.log('EFFIS WFS URL: $uri', name: 'EffisService.getActiveFires');
 
     try {
-      final response = await _httpClient.get(uri, headers: {
-        'User-Agent': 'WildfireApp/1.0',
-        'Accept': 'application/json',
-      }).timeout(timeout);
+      final response = await _httpClient.get(
+        uri,
+        headers: {
+          'User-Agent': 'WildfireApp/1.0',
+          'Accept': 'application/json',
+        },
+      ).timeout(timeout);
 
       developer.log(
         'EFFIS WFS response: status=${response.statusCode}, body length=${response.body.length}',
@@ -755,10 +796,12 @@ class EffisServiceImpl implements EffisService {
       }
 
       if (response.statusCode != 200) {
-        return Left(ApiError(
-          message: 'EFFIS WFS request failed',
-          statusCode: response.statusCode,
-        ));
+        return Left(
+          ApiError(
+            message: 'EFFIS WFS request failed',
+            statusCode: response.statusCode,
+          ),
+        );
       }
 
       // Parse GeoJSON FeatureCollection
@@ -806,36 +849,32 @@ class EffisServiceImpl implements EffisService {
         name: 'EffisService.getActiveFires',
         level: 900,
       );
-      return Left(ApiError(
-        message: 'EFFIS WFS request timed out after ${timeout.inSeconds}s',
-      ));
+      return Left(
+        ApiError(
+          message: 'EFFIS WFS request timed out after ${timeout.inSeconds}s',
+        ),
+      );
     } on SocketException catch (e) {
       developer.log(
         'EFFIS WFS network error: $e',
         name: 'EffisService.getActiveFires',
         level: 900,
       );
-      return Left(ApiError(
-        message: 'Network error connecting to EFFIS WFS',
-      ));
+      return Left(ApiError(message: 'Network error connecting to EFFIS WFS'));
     } on FormatException catch (e) {
       developer.log(
         'EFFIS WFS JSON parse error: $e',
         name: 'EffisService.getActiveFires',
         level: 1000, // Error
       );
-      return Left(ApiError(
-        message: 'Failed to parse EFFIS WFS response',
-      ));
+      return Left(ApiError(message: 'Failed to parse EFFIS WFS response'));
     } catch (e) {
       developer.log(
         'EFFIS WFS unexpected error: $e',
         name: 'EffisService.getActiveFires',
         level: 1000,
       );
-      return Left(ApiError(
-        message: 'Unexpected error querying EFFIS WFS: $e',
-      ));
+      return Left(ApiError(message: 'Unexpected error querying EFFIS WFS: $e'));
     }
   }
 }

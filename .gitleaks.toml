@@ -1,0 +1,41 @@
+# Gitleaks configuration for wildfire_mvp_v3
+# This extends the default gitleaks config and adds project-specific allowlists
+
+[extend]
+# Use the default gitleaks rules built into the binary
+useDefault = true
+
+# Global allowlists to ignore build artifacts and generated files
+# These paths should never contain real secrets, only test/mock data
+[[allowlists]]
+description = "Ignore Flutter/Dart build artifacts and generated files"
+paths = [
+  # Flutter build outputs
+  '''\.dart_tool/''',
+  '''build/''',
+  
+  # Test coverage reports
+  '''coverage/''',
+  
+  # Platform-specific build outputs
+  '''ios/Pods/''',
+  '''android/\.gradle/''',
+  '''android/build/''',
+  
+  # IDE and OS files
+  '''\.vscode/''',
+  '''\.idea/''',
+  '''\.DS_Store''',
+]
+
+[[allowlists]]
+description = "Ignore git-ignored secret files (these should never be committed)"
+paths = [
+  '''env/dev\.env\.json''',
+  '''env/prod\.env\.json''',
+  '''android/local\.properties''',
+  '''ios/Flutter/Generated\.xcconfig''',
+]
+
+# Note: For specific findings that need to be ignored (like documentation 
+# of old rotated keys), use .gitleaksignore with fingerprints

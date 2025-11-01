@@ -29,56 +29,58 @@ void main() {
       await cache.clear();
     });
 
-    test('cache stores and retrieves fire incident list with freshness=cached',
-        () async {
-      // Arrange: Create test incident list
-      final incidents = [
-        FireIncident(
-          id: 'test1',
-          location: const LatLng(55.9533, -3.1883), // Edinburgh
-          source: DataSource.effis,
-          freshness: Freshness.live,
-          timestamp: DateTime(2025, 1, 20, 12, 0, 0),
-          intensity: 'moderate',
-          description: 'Test fire 1',
-          areaHectares: 15.5,
-        ),
-        FireIncident(
-          id: 'test2',
-          location: const LatLng(55.8642, -4.2518), // Glasgow
-          source: DataSource.effis,
-          freshness: Freshness.live,
-          timestamp: DateTime(2025, 1, 20, 13, 0, 0),
-          intensity: 'high',
-          description: 'Test fire 2',
-          areaHectares: 42.3,
-        ),
-      ];
+    test(
+      'cache stores and retrieves fire incident list with freshness=cached',
+      () async {
+        // Arrange: Create test incident list
+        final incidents = [
+          FireIncident(
+            id: 'test1',
+            location: const LatLng(55.9533, -3.1883), // Edinburgh
+            source: DataSource.effis,
+            freshness: Freshness.live,
+            timestamp: DateTime(2025, 1, 20, 12, 0, 0),
+            intensity: 'moderate',
+            description: 'Test fire 1',
+            areaHectares: 15.5,
+          ),
+          FireIncident(
+            id: 'test2',
+            location: const LatLng(55.8642, -4.2518), // Glasgow
+            source: DataSource.effis,
+            freshness: Freshness.live,
+            timestamp: DateTime(2025, 1, 20, 13, 0, 0),
+            intensity: 'high',
+            description: 'Test fire 2',
+            areaHectares: 42.3,
+          ),
+        ];
 
-      // Act: Store in cache
-      final setResult = await cache.set(
-        lat: 55.9533,
-        lon: -3.1883,
-        data: incidents,
-      );
+        // Act: Store in cache
+        final setResult = await cache.set(
+          lat: 55.9533,
+          lon: -3.1883,
+          data: incidents,
+        );
 
-      // Assert: Storage succeeded
-      expect(setResult.isRight(), isTrue);
+        // Assert: Storage succeeded
+        expect(setResult.isRight(), isTrue);
 
-      // Act: Retrieve from cache
-      final getResult = await cache.getForCoordinates(55.9533, -3.1883);
+        // Act: Retrieve from cache
+        final getResult = await cache.getForCoordinates(55.9533, -3.1883);
 
-      // Assert: Cache hit with freshness=cached
-      expect(getResult.isSome(), isTrue);
-      final cachedIncidents = getResult.getOrElse(() => []);
-      expect(cachedIncidents.length, 2);
-      expect(cachedIncidents[0].freshness, Freshness.cached);
-      expect(cachedIncidents[1].freshness, Freshness.cached);
-      expect(cachedIncidents[0].id, 'test1');
-      expect(cachedIncidents[1].id, 'test2');
-      expect(cachedIncidents[0].intensity, 'moderate');
-      expect(cachedIncidents[1].intensity, 'high');
-    });
+        // Assert: Cache hit with freshness=cached
+        expect(getResult.isSome(), isTrue);
+        final cachedIncidents = getResult.getOrElse(() => []);
+        expect(cachedIncidents.length, 2);
+        expect(cachedIncidents[0].freshness, Freshness.cached);
+        expect(cachedIncidents[1].freshness, Freshness.cached);
+        expect(cachedIncidents[0].id, 'test1');
+        expect(cachedIncidents[1].id, 'test2');
+        expect(cachedIncidents[0].intensity, 'moderate');
+        expect(cachedIncidents[1].intensity, 'high');
+      },
+    );
 
     test('cache respects 6-hour TTL', () async {
       // Arrange: Store incident at T=0
@@ -134,9 +136,12 @@ void main() {
 
       // Assert: Retrieve at nearby location (same geohash cell)
       final result = await cache.getForCoordinates(lat2, lon2);
-      expect(result.isSome(), isTrue,
-          reason:
-              'Coordinates within ~4.9km should share same geohash (precision 5)');
+      expect(
+        result.isSome(),
+        isTrue,
+        reason:
+            'Coordinates within ~4.9km should share same geohash (precision 5)',
+      );
     });
 
     test('cache enforces 100-entry LRU eviction', () async {
@@ -145,8 +150,10 @@ void main() {
         final incidents = [
           FireIncident(
             id: 'fire_$i',
-            location: LatLng(50.0 + i * 0.1,
-                -5.0 + i * 0.1), // Larger spacing for unique geohashes
+            location: LatLng(
+              50.0 + i * 0.1,
+              -5.0 + i * 0.1,
+            ), // Larger spacing for unique geohashes
             source: DataSource.effis,
             freshness: Freshness.live,
             timestamp: DateTime(2025, 1, 20, 12, 0, 0),
@@ -154,7 +161,10 @@ void main() {
           ),
         ];
         await cache.set(
-            lat: 50.0 + i * 0.1, lon: -5.0 + i * 0.1, data: incidents);
+          lat: 50.0 + i * 0.1,
+          lon: -5.0 + i * 0.1,
+          data: incidents,
+        );
       }
 
       // Access first entry to make it recently used
@@ -179,8 +189,11 @@ void main() {
 
       // Assert: First entry still exists (was recently accessed)
       final firstEntry = await cache.getForCoordinates(50.0, -5.0);
-      expect(firstEntry.isSome(), isTrue,
-          reason: 'Recently accessed entry should not be evicted');
+      expect(
+        firstEntry.isSome(),
+        isTrue,
+        reason: 'Recently accessed entry should not be evicted',
+      );
     });
 
     test('cache gracefully handles empty incident list', () async {

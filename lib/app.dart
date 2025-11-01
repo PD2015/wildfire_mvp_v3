@@ -43,18 +43,23 @@ class WildFireApp extends StatelessWidget {
         builder: (context, state, child) {
           return Scaffold(
             body: child,
-            bottomNavigationBar: AppBottomNav(
-              currentPath: state.uri.path,
-            ),
+            bottomNavigationBar: AppBottomNav(currentPath: state.uri.path),
           );
         },
         routes: [
           GoRoute(
             path: '/',
+            name: 'fire-risk',
+            builder: (context, state) => HomeScreen(controller: homeController),
+          ),
+          GoRoute(
+            path: '/fire-risk',
+            name: 'fire-risk-alias',
             builder: (context, state) => HomeScreen(controller: homeController),
           ),
           GoRoute(
             path: '/map',
+            name: 'map',
             builder: (context, state) {
               // Create MapController with required services
               final mapController = MapController(
@@ -67,6 +72,7 @@ class WildFireApp extends StatelessWidget {
           ),
           GoRoute(
             path: '/report',
+            name: 'report',
             builder: (context, state) => const ReportFireScreen(),
           ),
         ],

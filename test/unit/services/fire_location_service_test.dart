@@ -73,8 +73,9 @@ void main() {
     group('MAP_LIVE_DATA=false (Mock-first mode)', () {
       test('skips EFFIS and goes directly to Mock service', () async {
         // Arrange: Mock service returns data
-        when(mockMockService.getActiveFires(any))
-            .thenAnswer((_) async => Right([mockIncident]));
+        when(
+          mockMockService.getActiveFires(any),
+        ).thenAnswer((_) async => Right([mockIncident]));
 
         // Act: Call with MAP_LIVE_DATA=false (default in tests)
         final result = await service.getActiveFires(testBounds);
@@ -82,7 +83,8 @@ void main() {
         // Assert: Mock service called, EFFIS not called
         verify(mockMockService.getActiveFires(testBounds)).called(1);
         verifyNever(
-            mockEffisService.getActiveFires(any, timeout: anyNamed('timeout')));
+          mockEffisService.getActiveFires(any, timeout: anyNamed('timeout')),
+        );
 
         expect(result.isRight(), isTrue);
         result.fold(
@@ -110,23 +112,20 @@ void main() {
           ),
         ];
 
-        when(mockMockService.getActiveFires(any))
-            .thenAnswer((_) async => Right(mockIncidents));
+        when(
+          mockMockService.getActiveFires(any),
+        ).thenAnswer((_) async => Right(mockIncidents));
 
         // Act
         final result = await service.getActiveFires(testBounds);
 
         // Assert: Multiple incidents returned
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Expected Right, got Left'),
-          (incidents) {
-            expect(incidents.length, 2);
-            expect(incidents.every((i) => i.source == DataSource.mock), isTrue);
-            expect(
-                incidents.every((i) => i.freshness == Freshness.mock), isTrue);
-          },
-        );
+        result.fold((error) => fail('Expected Right, got Left'), (incidents) {
+          expect(incidents.length, 2);
+          expect(incidents.every((i) => i.source == DataSource.mock), isTrue);
+          expect(incidents.every((i) => i.freshness == Freshness.mock), isTrue);
+        });
       });
     });
 
@@ -135,37 +134,47 @@ void main() {
       // We can't actually set MAP_LIVE_DATA=true in tests, but we can test the EFFIS path
       // by directly calling the service and verifying mock interactions
 
-      test('EFFIS success returns FireIncidents with source=effis', () async {
-        // Arrange: EFFIS service returns success
-        final effisFires = [effisFireData];
-        when(mockEffisService.getActiveFires(any, timeout: anyNamed('timeout')))
-            .thenAnswer((_) async => Right(effisFires));
+      test(
+        'EFFIS success returns FireIncidents with source=effis',
+        () async {
+          // Arrange: EFFIS service returns success
+          final effisFires = [effisFireData];
+          when(
+            mockEffisService.getActiveFires(any, timeout: anyNamed('timeout')),
+          ).thenAnswer((_) async => Right(effisFires));
 
-        // Note: This test only works if we can bypass the MAP_LIVE_DATA check
-        // or if we're testing in an environment where MAP_LIVE_DATA=true
-        // For now, documenting the expected behavior
-      },
-          skip:
-              'MAP_LIVE_DATA=false in test environment - cannot test EFFIS path');
+          // Note: This test only works if we can bypass the MAP_LIVE_DATA check
+          // or if we're testing in an environment where MAP_LIVE_DATA=true
+          // For now, documenting the expected behavior
+        },
+        skip:
+            'MAP_LIVE_DATA=false in test environment - cannot test EFFIS path',
+      );
 
-      test('EFFIS failure falls back to Mock service', () async {
-        // Arrange: EFFIS fails, Mock succeeds
-        when(mockEffisService.getActiveFires(any, timeout: anyNamed('timeout')))
-            .thenAnswer((_) async => Left(ApiError(message: 'EFFIS timeout')));
-        when(mockMockService.getActiveFires(any))
-            .thenAnswer((_) async => Right([mockIncident]));
+      test(
+        'EFFIS failure falls back to Mock service',
+        () async {
+          // Arrange: EFFIS fails, Mock succeeds
+          when(
+            mockEffisService.getActiveFires(any, timeout: anyNamed('timeout')),
+          ).thenAnswer((_) async => Left(ApiError(message: 'EFFIS timeout')));
+          when(
+            mockMockService.getActiveFires(any),
+          ).thenAnswer((_) async => Right([mockIncident]));
 
-        // Note: Same as above - can't test without MAP_LIVE_DATA=true
-      },
-          skip:
-              'MAP_LIVE_DATA=false in test environment - cannot test EFFIS path');
+          // Note: Same as above - can't test without MAP_LIVE_DATA=true
+        },
+        skip:
+            'MAP_LIVE_DATA=false in test environment - cannot test EFFIS path',
+      );
     });
 
     group('Coordinate logging (C2 compliance)', () {
       test('logs coordinates using GeographicUtils.logRedact()', () async {
         // Arrange: Mock service succeeds
-        when(mockMockService.getActiveFires(any))
-            .thenAnswer((_) async => Right([mockIncident]));
+        when(
+          mockMockService.getActiveFires(any),
+        ).thenAnswer((_) async => Right([mockIncident]));
 
         // Act: Call service
         await service.getActiveFires(testBounds);
@@ -178,8 +187,9 @@ void main() {
 
       test('logs bbox string for EFFIS attempts', () async {
         // Arrange: Mock service succeeds
-        when(mockMockService.getActiveFires(any))
-            .thenAnswer((_) async => Right([mockIncident]));
+        when(
+          mockMockService.getActiveFires(any),
+        ).thenAnswer((_) async => Right([mockIncident]));
 
         // Act
         await service.getActiveFires(testBounds);
@@ -194,8 +204,9 @@ void main() {
     group('Bbox validation', () {
       test('passes bbox correctly to EFFIS service', () async {
         // Arrange: Mock service succeeds (since MAP_LIVE_DATA=false)
-        when(mockMockService.getActiveFires(any))
-            .thenAnswer((_) async => Right([mockIncident]));
+        when(
+          mockMockService.getActiveFires(any),
+        ).thenAnswer((_) async => Right([mockIncident]));
 
         // Act
         await service.getActiveFires(testBounds);
@@ -218,8 +229,9 @@ void main() {
           northeast: LatLng(55.9600, -3.1800),
         );
 
-        when(mockMockService.getActiveFires(any))
-            .thenAnswer((_) async => Right([mockIncident]));
+        when(
+          mockMockService.getActiveFires(any),
+        ).thenAnswer((_) async => Right([mockIncident]));
 
         // Act
         final result = await service.getActiveFires(smallBounds);
@@ -236,8 +248,9 @@ void main() {
           northeast: LatLng(60.9, -0.7),
         );
 
-        when(mockMockService.getActiveFires(any))
-            .thenAnswer((_) async => Right([mockIncident]));
+        when(
+          mockMockService.getActiveFires(any),
+        ).thenAnswer((_) async => Right([mockIncident]));
 
         // Act
         final result = await service.getActiveFires(largeBounds);
@@ -251,8 +264,9 @@ void main() {
     group('Mock service never fails', () {
       test('Mock service returns data successfully', () async {
         // Arrange
-        when(mockMockService.getActiveFires(any))
-            .thenAnswer((_) async => Right([mockIncident]));
+        when(
+          mockMockService.getActiveFires(any),
+        ).thenAnswer((_) async => Right([mockIncident]));
 
         // Act
         final result = await service.getActiveFires(testBounds);
@@ -280,19 +294,23 @@ void main() {
     });
 
     group('EffisFire to FireIncident conversion', () {
-      test('converts EffisFire properties correctly', () async {
-        // This test documents the conversion happening at line 76:
-        // final incidents = effisFires.map((fire) => fire.toFireIncident()).toList();
+      test(
+        'converts EffisFire properties correctly',
+        () async {
+          // This test documents the conversion happening at line 76:
+          // final incidents = effisFires.map((fire) => fire.toFireIncident()).toList();
 
-        // Expected conversion:
-        // - id: effis_001
-        // - location: LatLng(55.5, -3.5)
-        // - source: DataSource.effis
-        // - freshness: Freshness.live
-        // - timestamp: 2025-10-20 12:00
-        // - intensity: derived from properties['intensity']
-        // - areaHectares: 100.0
-      }, skip: 'Conversion tested in EffisFire model tests');
+          // Expected conversion:
+          // - id: effis_001
+          // - location: LatLng(55.5, -3.5)
+          // - source: DataSource.effis
+          // - freshness: Freshness.live
+          // - timestamp: 2025-10-20 12:00
+          // - intensity: derived from properties['intensity']
+          // - areaHectares: 100.0
+        },
+        skip: 'Conversion tested in EffisFire model tests',
+      );
     });
 
     group('Constructor and dependency injection', () {

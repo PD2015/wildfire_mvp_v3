@@ -122,11 +122,7 @@ class MapSourceChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                _getSourceIcon(),
-                size: 16,
-                color: _getSourceColor(context),
-              ),
+              Icon(_getSourceIcon(), size: 16, color: _getSourceColor(context)),
               const SizedBox(width: 8),
               Text(
                 _getSourceLabel(),
@@ -138,9 +134,9 @@ class MapSourceChip extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 _formatTimestamp(),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.grey[600],
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelSmall?.copyWith(color: Colors.grey[600]),
               ),
             ],
           ),

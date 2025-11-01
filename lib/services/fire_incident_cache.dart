@@ -30,7 +30,9 @@ abstract class FireIncidentCache extends CacheService<List<FireIncident>> {
   /// - Some(List<FireIncident>) if cached data exists and is not expired
   /// - None() if no valid cached data for the location
   Future<Option<List<FireIncident>>> getForCoordinates(
-      double lat, double lon) async {
+    double lat,
+    double lon,
+  ) async {
     final geohash = GeohashUtils.encode(lat, lon, precision: 5);
     return await get(geohash);
   }

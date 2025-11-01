@@ -1,6 +1,18 @@
+---
+title: Project Context & Scope
+status: active
+last_updated: 2025-10-30
+category: explanation
+subcategory: project
+related:
+  - DATA-SOURCES.md
+  - privacy-compliance.md
+  - accessibility-statement.md
+---
+
 # WildFire Prototype — Context Pack
 
-## What We’re Building
+## What We're Building
 WildFire MVP prototype for Scotland. **Phase-0 goal**: display current wildfire risk on the Home screen.
 - Primary data: EFFIS Fire Weather Index (FWI)
 - Fallbacks: SEPA (Scotland only) → Cache → Mock

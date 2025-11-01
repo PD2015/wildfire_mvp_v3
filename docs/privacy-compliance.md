@@ -1,10 +1,21 @@
+---
+title: Privacy Compliance Statement
+status: active
+last_updated: 2025-10-30
+category: explanation
+subcategory: compliance
+related:
+  - guides/security/api-key-management.md
+  - accessibility-statement.md
+---
+
 # Privacy Compliance Statement
 
 ## Overview
 
 WildFire MVP v3 is designed with privacy-first principles following Constitutional Gate C2 (Secrets & Logging). This document details how the application handles location data, fire incident information, and logging to protect user privacy.
 
-**Last Updated**: 2025-10-20  
+**Last Updated**: 2025-10-30  
 **Version**: 1.0  
 **Constitutional Compliance**: C2 (Secrets & Logging)
 

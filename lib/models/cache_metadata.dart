@@ -53,22 +53,27 @@ class CacheMetadata extends Equatable {
     return {
       'totalEntries': totalEntries,
       'lastCleanup': lastCleanup.millisecondsSinceEpoch,
-      'accessLog': accessLog
-          .map((key, value) => MapEntry(key, value.millisecondsSinceEpoch)),
+      'accessLog': accessLog.map(
+        (key, value) => MapEntry(key, value.millisecondsSinceEpoch),
+      ),
     };
   }
 
   /// Deserialize from JSON with UTC timestamp conversion
   factory CacheMetadata.fromJson(Map<String, dynamic> json) {
     final accessLogJson = json['accessLog'] as Map<String, dynamic>? ?? {};
-    final accessLog = accessLogJson.map((key, value) => MapEntry(
-        key, DateTime.fromMillisecondsSinceEpoch(value as int).toUtc()));
+    final accessLog = accessLogJson.map(
+      (key, value) => MapEntry(
+        key,
+        DateTime.fromMillisecondsSinceEpoch(value as int).toUtc(),
+      ),
+    );
 
     return CacheMetadata(
       totalEntries: json['totalEntries'] as int,
-      lastCleanup:
-          DateTime.fromMillisecondsSinceEpoch(json['lastCleanup'] as int)
-              .toUtc(),
+      lastCleanup: DateTime.fromMillisecondsSinceEpoch(
+        json['lastCleanup'] as int,
+      ).toUtc(),
       accessLog: accessLog,
     );
   }

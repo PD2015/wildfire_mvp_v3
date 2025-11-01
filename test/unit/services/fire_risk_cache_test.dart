@@ -59,8 +59,11 @@ void main() {
     group('TTL Enforcement', () {
       test('Case 1: set → advance +7h → get returns none()', () async {
         // Store entry
-        final result =
-            await cache.set(lat: 55.9533, lon: -3.1883, data: testFireRisk);
+        final result = await cache.set(
+          lat: 55.9533,
+          lon: -3.1883,
+          data: testFireRisk,
+        );
         expect(result.isRight(), true);
 
         // Advance time by 7 hours (past 6h TTL)
@@ -81,60 +84,61 @@ void main() {
         // Should return cached data with freshness=cached
         final cached = await cache.get('gcvwr');
         expect(cached.isSome(), true);
-        cached.fold(
-          () => fail('Expected some value'),
-          (fireRisk) {
-            expect(fireRisk.freshness, Freshness.cached);
-            expect(fireRisk.level, RiskLevel.high);
-          },
-        );
+        cached.fold(() => fail('Expected some value'), (fireRisk) {
+          expect(fireRisk.freshness, Freshness.cached);
+          expect(fireRisk.level, RiskLevel.high);
+        });
       });
     });
 
     group('LRU Eviction', () {
       test(
-          'Case 2: fill cache entries; access first; add more → LRU eviction works',
-          () async {
-        // Fill cache with multiple entries
-        for (int i = 0; i < 25; i++) {
-          final lat = 55.0 + i * 0.01;
-          await cache.set(lat: lat, lon: -3.0, data: testFireRisk);
-        }
+        'Case 2: fill cache entries; access first; add more → LRU eviction works',
+        () async {
+          // Fill cache with multiple entries
+          for (int i = 0; i < 25; i++) {
+            final lat = 55.0 + i * 0.01;
+            await cache.set(lat: lat, lon: -3.0, data: testFireRisk);
+          }
 
-        // Access the first entry to make it recently used
-        final firstGeohash =
-            GeohashUtils.encode(55.0, -3.0); // Should be 'gcvbg'
-        final accessed = await cache.get(firstGeohash);
-        expect(accessed.isSome(), true);
+          // Access the first entry to make it recently used
+          final firstGeohash = GeohashUtils.encode(
+            55.0,
+            -3.0,
+          ); // Should be 'gcvbg'
+          final accessed = await cache.get(firstGeohash);
+          expect(accessed.isSome(), true);
 
-        // Add more entries
-        await cache.set(lat: 56.0, lon: -3.0, data: testFireRisk);
+          // Add more entries
+          await cache.set(lat: 56.0, lon: -3.0, data: testFireRisk);
 
-        // Verify cache metadata is tracking entries
-        final metadata = await cache.getMetadata();
-        expect(metadata.totalEntries, greaterThan(0));
+          // Verify cache metadata is tracking entries
+          final metadata = await cache.getMetadata();
+          expect(metadata.totalEntries, greaterThan(0));
 
-        // Verify first entry still exists (was recently accessed)
-        final stillExists = await cache.get(firstGeohash);
-        expect(stillExists.isSome(), true);
-      });
+          // Verify first entry still exists (was recently accessed)
+          final stillExists = await cache.get(firstGeohash);
+          expect(stillExists.isSome(), true);
+        },
+      );
     });
 
     group('Metadata and Edge Cases', () {
       test(
-          'Case 3: metadata.accessLog empty → lruKey==null and no crash during cleanup',
-          () async {
-        // Get metadata when cache is empty
-        final metadata = await cache.getMetadata();
+        'Case 3: metadata.accessLog empty → lruKey==null and no crash during cleanup',
+        () async {
+          // Get metadata when cache is empty
+          final metadata = await cache.getMetadata();
 
-        expect(metadata.accessLog.isEmpty, true);
-        expect(metadata.lruKey, null);
-        expect(metadata.totalEntries, 0);
+          expect(metadata.accessLog.isEmpty, true);
+          expect(metadata.lruKey, null);
+          expect(metadata.totalEntries, 0);
 
-        // Cleanup should not crash with empty access log
-        final cleaned = await cache.cleanup();
-        expect(cleaned, 0); // No entries to clean
-      });
+          // Cleanup should not crash with empty access log
+          final cleaned = await cache.cleanup();
+          expect(cleaned, 0); // No entries to clean
+        },
+      );
 
       test('metadata tracks access times correctly', () async {
         // Add entry and access it
@@ -150,37 +154,46 @@ void main() {
 
     group('JSON Version and Corruption Handling', () {
       test(
-          'Case 4: unsupported version in stored JSON → get returns none() (graceful)',
-          () async {
-        final prefs = await SharedPreferences.getInstance();
+        'Case 4: unsupported version in stored JSON → get returns none() (graceful)',
+        () async {
+          final prefs = await SharedPreferences.getInstance();
 
-        // Manually store entry with unsupported version
-        final badJson = jsonEncode({
-          'version': '2.0', // Unsupported version
-          'timestamp':
-              DateTime.utc(2025, 10, 4, 12, 0, 0).millisecondsSinceEpoch,
-          'geohash': 'gcvwr',
-          'data': testFireRisk.toJson(),
-        });
+          // Manually store entry with unsupported version
+          final badJson = jsonEncode({
+            'version': '2.0', // Unsupported version
+            'timestamp': DateTime.utc(
+              2025,
+              10,
+              4,
+              12,
+              0,
+              0,
+            ).millisecondsSinceEpoch,
+            'geohash': 'gcvwr',
+            'data': testFireRisk.toJson(),
+          });
 
-        await prefs.setString('cache_entry_gcvwr', badJson);
+          await prefs.setString('cache_entry_gcvwr', badJson);
 
-        // Should gracefully handle unsupported version and return cache miss
-        final result = await cache.get('gcvwr');
-        expect(result.isNone(), true);
-      });
+          // Should gracefully handle unsupported version and return cache miss
+          final result = await cache.get('gcvwr');
+          expect(result.isNone(), true);
+        },
+      );
 
-      test('Case 5: corrupt JSON string → get returns none() (graceful)',
-          () async {
-        final prefs = await SharedPreferences.getInstance();
+      test(
+        'Case 5: corrupt JSON string → get returns none() (graceful)',
+        () async {
+          final prefs = await SharedPreferences.getInstance();
 
-        // Manually store corrupt JSON
-        await prefs.setString('cache_entry_gcvwr', 'invalid json string');
+          // Manually store corrupt JSON
+          await prefs.setString('cache_entry_gcvwr', 'invalid json string');
 
-        // Should gracefully handle corruption and return cache miss
-        final result = await cache.get('gcvwr');
-        expect(result.isNone(), true);
-      });
+          // Should gracefully handle corruption and return cache miss
+          final result = await cache.get('gcvwr');
+          expect(result.isNone(), true);
+        },
+      );
 
       test('malformed entry data handled gracefully', () async {
         final prefs = await SharedPreferences.getInstance();
@@ -188,8 +201,14 @@ void main() {
         // Store JSON with missing required fields
         final badJson = jsonEncode({
           'version': '1.0',
-          'timestamp':
-              DateTime.utc(2025, 10, 4, 12, 0, 0).millisecondsSinceEpoch,
+          'timestamp': DateTime.utc(
+            2025,
+            10,
+            4,
+            12,
+            0,
+            0,
+          ).millisecondsSinceEpoch,
           'geohash': 'gcvwr',
           'data': {'incomplete': 'data'}, // Missing FireRisk fields
         });
@@ -203,37 +222,38 @@ void main() {
     });
 
     group('Freshness and Data Integrity', () {
-      test('Case 6: on hit → returned FireRisk has freshness==Freshness.cached',
-          () async {
-        // Store live data
-        final liveRisk = testFireRisk.copyWith(freshness: Freshness.live);
-        await cache.set(lat: 55.9533, lon: -3.1883, data: liveRisk);
+      test(
+        'Case 6: on hit → returned FireRisk has freshness==Freshness.cached',
+        () async {
+          // Store live data
+          final liveRisk = testFireRisk.copyWith(freshness: Freshness.live);
+          await cache.set(lat: 55.9533, lon: -3.1883, data: liveRisk);
 
-        // Retrieve cached data
-        final cached = await cache.get('gcvwr');
+          // Retrieve cached data
+          final cached = await cache.get('gcvwr');
 
-        expect(cached.isSome(), true);
-        cached.fold(
-          () => fail('Expected some value'),
-          (fireRisk) {
+          expect(cached.isSome(), true);
+          cached.fold(() => fail('Expected some value'), (fireRisk) {
             expect(fireRisk.freshness, Freshness.cached);
             expect(fireRisk.level, liveRisk.level);
             expect(fireRisk.fwi, liveRisk.fwi);
-          },
-        );
-      });
+          });
+        },
+      );
     });
 
     group('Geohash Determinism', () {
-      test('Case 7: geohash determinism: encode(55.9533,-3.1883)== "gcvwr"',
-          () async {
-        final geohash = GeohashUtils.encode(55.9533, -3.1883);
-        expect(geohash, 'gcvwr');
+      test(
+        'Case 7: geohash determinism: encode(55.9533,-3.1883)== "gcvwr"',
+        () async {
+          final geohash = GeohashUtils.encode(55.9533, -3.1883);
+          expect(geohash, 'gcvwr');
 
-        // Verify deterministic behavior across multiple calls
-        final geohash2 = GeohashUtils.encode(55.9533, -3.1883);
-        expect(geohash2, geohash);
-      });
+          // Verify deterministic behavior across multiple calls
+          final geohash2 = GeohashUtils.encode(55.9533, -3.1883);
+          expect(geohash2, geohash);
+        },
+      );
 
       test('consistent geohash generation for cache operations', () async {
         // Store data using coordinates

@@ -84,12 +84,14 @@ class GeographicUtils {
   static String geohash(double lat, double lon, {int precision = 5}) {
     if (!_isValidCoordinate(lat, lon)) {
       throw ArgumentError(
-          'Invalid coordinates for geohash: lat=$lat, lon=$lon');
+        'Invalid coordinates for geohash: lat=$lat, lon=$lon',
+      );
     }
 
     if (precision < 1 || precision > 12) {
       throw ArgumentError(
-          'Geohash precision must be between 1 and 12, got: $precision');
+        'Geohash precision must be between 1 and 12, got: $precision',
+      );
     }
 
     return _generateGeohash(lat, lon, precision);
