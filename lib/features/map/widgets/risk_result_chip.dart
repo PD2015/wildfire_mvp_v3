@@ -14,10 +14,7 @@ import 'package:wildfire_mvp_v3/theme/risk_palette.dart';
 class RiskResultChip extends StatelessWidget {
   final FireRisk fireRisk;
 
-  const RiskResultChip({
-    super.key,
-    required this.fireRisk,
-  });
+  const RiskResultChip({super.key, required this.fireRisk});
 
   Color _getRiskColor() {
     return switch (fireRisk.level) {
@@ -77,34 +74,30 @@ class RiskResultChip extends StatelessWidget {
               Text(
                 riskLabel,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
               // FWI value
               if (fireRisk.fwi != null)
                 Text(
                   'FWI: ${fireRisk.fwi!.toStringAsFixed(1)}',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.white,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: Colors.white),
                 ),
               const SizedBox(height: 8),
               // Source
               Row(
                 children: [
-                  Icon(
-                    _getSourceIcon(),
-                    size: 16,
-                    color: Colors.white70,
-                  ),
+                  Icon(_getSourceIcon(), size: 16, color: Colors.white70),
                   const SizedBox(width: 4),
                   Text(
                     sourceLabel,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: Colors.white70,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.labelMedium?.copyWith(color: Colors.white70),
                   ),
                 ],
               ),
@@ -112,9 +105,9 @@ class RiskResultChip extends StatelessWidget {
               // Timestamp
               Text(
                 'Updated: ${_formatTimestamp()}',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Colors.white70,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelSmall?.copyWith(color: Colors.white70),
               ),
             ],
           ),

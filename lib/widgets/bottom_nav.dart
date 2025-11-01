@@ -16,10 +16,7 @@ class AppBottomNav extends StatelessWidget {
   /// Current route path for highlighting active destination
   final String currentPath;
 
-  const AppBottomNav({
-    super.key,
-    required this.currentPath,
-  });
+  const AppBottomNav({super.key, required this.currentPath});
 
   /// Get selected index based on current route
   int get _selectedIndex {

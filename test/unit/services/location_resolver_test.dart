@@ -56,8 +56,11 @@ void main() {
 
         // Assert
         stopwatch.stop();
-        expect(stopwatch.elapsedMilliseconds, lessThan(100),
-            reason: 'Should return quickly regardless of platform');
+        expect(
+          stopwatch.elapsedMilliseconds,
+          lessThan(100),
+          reason: 'Should return quickly regardless of platform',
+        );
 
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
@@ -66,15 +69,23 @@ void main() {
         // On mobile platforms, we would get the last known position
         if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
           expect(
-              location.latitude, closeTo(TestData.edinburgh.latitude, 0.001));
+            location.latitude,
+            closeTo(TestData.edinburgh.latitude, 0.001),
+          );
           expect(
-              location.longitude, closeTo(TestData.edinburgh.longitude, 0.001));
+            location.longitude,
+            closeTo(TestData.edinburgh.longitude, 0.001),
+          );
         } else {
           // macOS/desktop/web: platform guard triggers, falls back to Scotland centroid
-          expect(location.latitude,
-              closeTo(TestData.scotlandCentroid.latitude, 0.001));
-          expect(location.longitude,
-              closeTo(TestData.scotlandCentroid.longitude, 0.001));
+          expect(
+            location.latitude,
+            closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          );
+          expect(
+            location.longitude,
+            closeTo(TestData.scotlandCentroid.longitude, 0.001),
+          );
         }
       });
 
@@ -94,108 +105,142 @@ void main() {
 
         // Assert
         stopwatch.stop();
-        expect(stopwatch.elapsedMilliseconds, lessThan(2500),
-            reason: 'Should complete within timeout budget');
+        expect(
+          stopwatch.elapsedMilliseconds,
+          lessThan(2500),
+          reason: 'Should complete within timeout budget',
+        );
 
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
 
         // On all platforms without GPS support (including macOS), falls back to Scotland centroid
-        expect(location.latitude,
-            closeTo(TestData.scotlandCentroid.latitude, 0.001));
-        expect(location.longitude,
-            closeTo(TestData.scotlandCentroid.longitude, 0.001));
+        expect(
+          location.latitude,
+          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+        );
+        expect(
+          location.longitude,
+          closeTo(TestData.scotlandCentroid.longitude, 0.001),
+        );
       });
     });
 
     group('GPS Permission Handling', () {
-      test('GPS permission granted returns GPS coordinates within 2s timeout',
-          () async {
-        // Arrange
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setPermission(LocationPermission.whileInUse);
-        fakeGeolocator.setLocationServiceEnabled(true);
-        fakeGeolocator.setResponseDelay(const Duration(milliseconds: 500));
+      test(
+        'GPS permission granted returns GPS coordinates within 2s timeout',
+        () async {
+          // Arrange
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setPermission(LocationPermission.whileInUse);
+          fakeGeolocator.setLocationServiceEnabled(true);
+          fakeGeolocator.setResponseDelay(const Duration(milliseconds: 500));
 
-        final gpsPos = TestData.createPosition(
-          latitude: TestData.london.latitude,
-          longitude: TestData.london.longitude,
-        );
-        fakeGeolocator.setCurrentPosition(gpsPos);
+          final gpsPos = TestData.createPosition(
+            latitude: TestData.london.latitude,
+            longitude: TestData.london.longitude,
+          );
+          fakeGeolocator.setCurrentPosition(gpsPos);
 
-        final stopwatch = Stopwatch()..start();
+          final stopwatch = Stopwatch()..start();
 
-        // Act
-        final result = await locationResolver.getLatLon();
+          // Act
+          final result = await locationResolver.getLatLon();
 
-        // Assert
-        stopwatch.stop();
-        expect(stopwatch.elapsedMilliseconds, lessThan(2000),
-            reason: 'GPS should complete within 2s timeout');
+          // Assert
+          stopwatch.stop();
+          expect(
+            stopwatch.elapsedMilliseconds,
+            lessThan(2000),
+            reason: 'GPS should complete within 2s timeout',
+          );
 
-        expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+          expect(result.isRight(), isTrue);
+          final location = result.getOrElse(() => TestData.scotlandCentroid);
 
-        // On macOS/desktop/web, platform guard skips GPS and uses Scotland centroid
-        if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-          expect(location.latitude, closeTo(TestData.london.latitude, 0.001));
-          expect(location.longitude, closeTo(TestData.london.longitude, 0.001));
-        } else {
-          expect(location.latitude,
-              closeTo(TestData.scotlandCentroid.latitude, 0.001));
-          expect(location.longitude,
-              closeTo(TestData.scotlandCentroid.longitude, 0.001));
-        }
-      });
-
-      test('permission denied + allowDefault=true returns Scotland centroid',
-          () async {
-        // Arrange
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setPermission(LocationPermission.denied);
-
-        // Act
-        final result = await locationResolver.getLatLon(allowDefault: true);
-
-        // Assert
-        expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
-        expect(location.latitude,
-            closeTo(TestData.scotlandCentroid.latitude, 0.001));
-        expect(location.longitude,
-            closeTo(TestData.scotlandCentroid.longitude, 0.001));
-      });
+          // On macOS/desktop/web, platform guard skips GPS and uses Scotland centroid
+          if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+            expect(location.latitude, closeTo(TestData.london.latitude, 0.001));
+            expect(
+              location.longitude,
+              closeTo(TestData.london.longitude, 0.001),
+            );
+          } else {
+            expect(
+              location.latitude,
+              closeTo(TestData.scotlandCentroid.latitude, 0.001),
+            );
+            expect(
+              location.longitude,
+              closeTo(TestData.scotlandCentroid.longitude, 0.001),
+            );
+          }
+        },
+      );
 
       test(
-          'permission denied + allowDefault=false returns Left(permissionDenied)',
-          () async {
-        // Arrange
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setPermission(LocationPermission.denied);
+        'permission denied + allowDefault=true returns Scotland centroid',
+        () async {
+          // Arrange
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setPermission(LocationPermission.denied);
 
-        // Act
-        final result = await locationResolver.getLatLon(allowDefault: false);
+          // Act
+          final result = await locationResolver.getLatLon(allowDefault: true);
 
-        // Assert
-        expect(result.isLeft(), isTrue);
-        final error = result.fold((l) => l, (r) => LocationError.invalidInput);
-        expect(error, equals(LocationError.permissionDenied));
-      });
+          // Assert
+          expect(result.isRight(), isTrue);
+          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          expect(
+            location.latitude,
+            closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          );
+          expect(
+            location.longitude,
+            closeTo(TestData.scotlandCentroid.longitude, 0.001),
+          );
+        },
+      );
 
-      test('deniedForever + allowDefault=false returns Left(permissionDenied)',
-          () async {
-        // Arrange
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setPermission(LocationPermission.deniedForever);
+      test(
+        'permission denied + allowDefault=false returns Left(permissionDenied)',
+        () async {
+          // Arrange
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setPermission(LocationPermission.denied);
 
-        // Act
-        final result = await locationResolver.getLatLon(allowDefault: false);
+          // Act
+          final result = await locationResolver.getLatLon(allowDefault: false);
 
-        // Assert
-        expect(result.isLeft(), isTrue);
-        final error = result.fold((l) => l, (r) => LocationError.invalidInput);
-        expect(error, equals(LocationError.permissionDenied));
-      });
+          // Assert
+          expect(result.isLeft(), isTrue);
+          final error = result.fold(
+            (l) => l,
+            (r) => LocationError.invalidInput,
+          );
+          expect(error, equals(LocationError.permissionDenied));
+        },
+      );
+
+      test(
+        'deniedForever + allowDefault=false returns Left(permissionDenied)',
+        () async {
+          // Arrange
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setPermission(LocationPermission.deniedForever);
+
+          // Act
+          final result = await locationResolver.getLatLon(allowDefault: false);
+
+          // Assert
+          expect(result.isLeft(), isTrue);
+          final error = result.fold(
+            (l) => l,
+            (r) => LocationError.invalidInput,
+          );
+          expect(error, equals(LocationError.permissionDenied));
+        },
+      );
     });
 
     group('GPS Timeout and Fallback', () {
@@ -204,10 +249,12 @@ void main() {
         fakeGeolocator.setLastKnownPosition(null);
         fakeGeolocator.setPermission(LocationPermission.whileInUse);
         fakeGeolocator.setLocationServiceEnabled(true);
-        fakeGeolocator
-            .setResponseDelay(const Duration(seconds: 3)); // Exceeds 2s timeout
+        fakeGeolocator.setResponseDelay(
+          const Duration(seconds: 3),
+        ); // Exceeds 2s timeout
         fakeGeolocator.setException(
-            TimeoutException('GPS timeout', const Duration(seconds: 2)));
+          TimeoutException('GPS timeout', const Duration(seconds: 2)),
+        );
 
         final stopwatch = Stopwatch()..start();
 
@@ -216,13 +263,18 @@ void main() {
 
         // Assert
         stopwatch.stop();
-        expect(stopwatch.elapsedMilliseconds, lessThan(2500),
-            reason: 'Total resolution should complete within 2.5s budget');
+        expect(
+          stopwatch.elapsedMilliseconds,
+          lessThan(2500),
+          reason: 'Total resolution should complete within 2.5s budget',
+        );
 
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
-        expect(location.latitude,
-            closeTo(TestData.scotlandCentroid.latitude, 0.001));
+        expect(
+          location.latitude,
+          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+        );
       });
     });
 
@@ -241,8 +293,10 @@ void main() {
         // Assert
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
-        expect(location.latitude,
-            closeTo(TestData.scotlandCentroid.latitude, 0.001));
+        expect(
+          location.latitude,
+          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+        );
       });
     });
 
@@ -268,7 +322,9 @@ void main() {
         final location = result.getOrElse(() => TestData.scotlandCentroid);
         expect(location.latitude, closeTo(TestData.edinburgh.latitude, 0.001));
         expect(
-            location.longitude, closeTo(TestData.edinburgh.longitude, 0.001));
+          location.longitude,
+          closeTo(TestData.edinburgh.longitude, 0.001),
+        );
       });
 
       test('handles SharedPreferences corruption gracefully', () async {
@@ -290,8 +346,10 @@ void main() {
         // Assert - should fall back to Scotland centroid without crashing
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
-        expect(location.latitude,
-            closeTo(TestData.scotlandCentroid.latitude, 0.001));
+        expect(
+          location.latitude,
+          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+        );
       });
     });
 
@@ -307,10 +365,14 @@ void main() {
         // Assert - verify data was saved to SharedPreferences
         final prefs = await SharedPreferences.getInstance();
         expect(prefs.getString('manual_location_version'), equals('1.0'));
-        expect(prefs.getDouble('manual_location_lat'),
-            equals(testLocation.latitude));
-        expect(prefs.getDouble('manual_location_lon'),
-            equals(testLocation.longitude));
+        expect(
+          prefs.getDouble('manual_location_lat'),
+          equals(testLocation.latitude),
+        );
+        expect(
+          prefs.getDouble('manual_location_lon'),
+          equals(testLocation.longitude),
+        );
         expect(prefs.getString('manual_location_place'), equals(placeName));
         expect(prefs.getInt('manual_location_timestamp'), isNotNull);
       });
@@ -336,8 +398,10 @@ void main() {
 
       test('logRedact handles edge cases correctly', () {
         // Test negative coordinates
-        expect(LocationUtils.logRedact(-90.123456, 180.987654),
-            equals('-90.12,180.99'));
+        expect(
+          LocationUtils.logRedact(-90.123456, 180.987654),
+          equals('-90.12,180.99'),
+        );
 
         // Test zero values
         expect(LocationUtils.logRedact(0.0, 0.0), equals('0.00,0.00'));
@@ -374,8 +438,10 @@ void main() {
         // Assert - should not crash and return default
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.scotlandCentroid);
-        expect(location.latitude,
-            closeTo(TestData.scotlandCentroid.latitude, 0.001));
+        expect(
+          location.latitude,
+          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+        );
       });
 
       test('handles concurrent location requests', () async {
@@ -402,14 +468,22 @@ void main() {
           // On macOS/desktop/web, platform guard skips GPS and uses Scotland centroid
           if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
             expect(
-                location.latitude, closeTo(TestData.glasgow.latitude, 0.001));
+              location.latitude,
+              closeTo(TestData.glasgow.latitude, 0.001),
+            );
             expect(
-                location.longitude, closeTo(TestData.glasgow.longitude, 0.001));
+              location.longitude,
+              closeTo(TestData.glasgow.longitude, 0.001),
+            );
           } else {
-            expect(location.latitude,
-                closeTo(TestData.scotlandCentroid.latitude, 0.001));
-            expect(location.longitude,
-                closeTo(TestData.scotlandCentroid.longitude, 0.001));
+            expect(
+              location.latitude,
+              closeTo(TestData.scotlandCentroid.latitude, 0.001),
+            );
+            expect(
+              location.longitude,
+              closeTo(TestData.scotlandCentroid.longitude, 0.001),
+            );
           }
         }
       });
@@ -434,23 +508,25 @@ void main() {
       });
 
       test(
-          'total resolution completes within 2.5s budget under adverse conditions',
-          () async {
-        // Arrange - simulate slow GPS that will timeout
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setPermission(LocationPermission.whileInUse);
-        fakeGeolocator.setResponseDelay(const Duration(seconds: 3));
-        fakeGeolocator.setException(
-            TimeoutException('GPS timeout', const Duration(seconds: 2)));
+        'total resolution completes within 2.5s budget under adverse conditions',
+        () async {
+          // Arrange - simulate slow GPS that will timeout
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setPermission(LocationPermission.whileInUse);
+          fakeGeolocator.setResponseDelay(const Duration(seconds: 3));
+          fakeGeolocator.setException(
+            TimeoutException('GPS timeout', const Duration(seconds: 2)),
+          );
 
-        // Act & Assert
-        final stopwatch = Stopwatch()..start();
-        final result = await locationResolver.getLatLon(allowDefault: true);
-        stopwatch.stop();
+          // Act & Assert
+          final stopwatch = Stopwatch()..start();
+          final result = await locationResolver.getLatLon(allowDefault: true);
+          stopwatch.stop();
 
-        expect(result.isRight(), isTrue);
-        expect(stopwatch.elapsedMilliseconds, lessThan(2500));
-      });
+          expect(result.isRight(), isTrue);
+          expect(stopwatch.elapsedMilliseconds, lessThan(2500));
+        },
+      );
     });
   });
 }

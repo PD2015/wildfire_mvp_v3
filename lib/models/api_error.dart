@@ -1,11 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 /// Categorizes different types of API errors for better error handling
-enum ApiErrorReason {
-  notFound,
-  serviceUnavailable,
-  general,
-}
+enum ApiErrorReason { notFound, serviceUnavailable, general }
 
 /// Represents an error from the EFFIS API with categorized reason codes
 ///
@@ -23,11 +19,8 @@ class ApiError extends Equatable {
   ///
   /// [message] must be non-empty. [statusCode] can be null for non-HTTP errors.
   /// [reason] is automatically determined from [statusCode] if not provided.
-  ApiError({
-    required this.message,
-    this.statusCode,
-    ApiErrorReason? reason,
-  }) : reason = reason ?? _categorizeError(statusCode) {
+  ApiError({required this.message, this.statusCode, ApiErrorReason? reason})
+    : reason = reason ?? _categorizeError(statusCode) {
     if (message.isEmpty) {
       throw ArgumentError('Error message cannot be empty');
     }

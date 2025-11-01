@@ -52,22 +52,21 @@ class RiskBanner extends StatelessWidget {
   /// Optional callback for retry action in error states
   final VoidCallback? onRetry;
 
-  const RiskBanner({
-    super.key,
-    required this.state,
-    this.onRetry,
-  });
+  const RiskBanner({super.key, required this.state, this.onRetry});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints:
-          const BoxConstraints(minHeight: 44.0), // A11y minimum touch target
+      constraints: const BoxConstraints(
+        minHeight: 44.0,
+      ), // A11y minimum touch target
       child: switch (state) {
         RiskBannerLoading() => _buildLoadingState(),
         RiskBannerSuccess(:final data) => _buildSuccessState(data),
-        RiskBannerError(:final message, :final cached) =>
-          _buildErrorState(message, cached),
+        RiskBannerError(:final message, :final cached) => _buildErrorState(
+          message,
+          cached,
+        ),
       },
     );
   }
@@ -96,10 +95,7 @@ class RiskBanner extends StatelessWidget {
             SizedBox(width: 12.0),
             Text(
               'Loading wildfire risk...',
-              style: TextStyle(
-                color: RiskPalette.midGray,
-                fontSize: 16.0,
-              ),
+              style: TextStyle(color: RiskPalette.midGray, fontSize: 16.0),
             ),
           ],
         ),
@@ -114,10 +110,8 @@ class RiskBanner extends StatelessWidget {
     final textColor = _getTextColor(backgroundColor);
     final sourceName = _getSourceName(data.source);
 
-    final timeText = 'Updated ${formatRelativeTime(
-      utcNow: DateTime.now().toUtc(),
-      updatedUtc: data.observedAt,
-    )}';
+    final timeText =
+        'Updated ${formatRelativeTime(utcNow: DateTime.now().toUtc(), updatedUtc: data.observedAt)}';
 
     return Semantics(
       label:
@@ -149,7 +143,9 @@ class RiskBanner extends StatelessWidget {
                 // Source chip
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 8.0, vertical: 4.0),
+                    horizontal: 8.0,
+                    vertical: 4.0,
+                  ),
                   decoration: BoxDecoration(
                     color: textColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12.0),
@@ -199,14 +195,13 @@ class RiskBanner extends StatelessWidget {
   /// Builds error state when cached data is available
   Widget _buildErrorWithCachedData(String message, FireRisk cached) {
     final levelName = _getRiskLevelName(cached.level);
-    final backgroundColor =
-        _getRiskLevelColor(cached.level).withValues(alpha: 0.6);
+    final backgroundColor = _getRiskLevelColor(
+      cached.level,
+    ).withValues(alpha: 0.6);
     final textColor = _getTextColor(backgroundColor);
     final sourceName = _getSourceName(cached.source);
-    final timeText = 'Updated ${formatRelativeTime(
-      utcNow: DateTime.now().toUtc(),
-      updatedUtc: cached.observedAt,
-    )}';
+    final timeText =
+        'Updated ${formatRelativeTime(utcNow: DateTime.now().toUtc(), updatedUtc: cached.observedAt)}';
 
     return Semantics(
       label:
@@ -216,10 +211,7 @@ class RiskBanner extends StatelessWidget {
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(
-            color: RiskPalette.midGray,
-            width: 2.0,
-          ),
+          border: Border.all(color: RiskPalette.midGray, width: 2.0),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,7 +258,9 @@ class RiskBanner extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 8.0, vertical: 4.0),
+                    horizontal: 8.0,
+                    vertical: 4.0,
+                  ),
                   decoration: BoxDecoration(
                     color: textColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12.0),
@@ -325,10 +319,7 @@ class RiskBanner extends StatelessWidget {
         decoration: BoxDecoration(
           color: RiskPalette.lightGray,
           borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(
-            color: RiskPalette.midGray,
-            width: 1.0,
-          ),
+          border: Border.all(color: RiskPalette.midGray, width: 1.0),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

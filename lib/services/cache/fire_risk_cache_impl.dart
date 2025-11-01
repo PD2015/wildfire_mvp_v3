@@ -49,11 +49,9 @@ class FireRiskCacheImpl implements FireRiskCache {
   /// Parameters:
   /// - [prefs]: SharedPreferences instance for persistent storage
   /// - [clock]: Clock for testable time operations (defaults to SystemClock)
-  FireRiskCacheImpl({
-    required SharedPreferences prefs,
-    Clock? clock,
-  })  : _prefs = prefs,
-        _clock = clock ?? SystemClock();
+  FireRiskCacheImpl({required SharedPreferences prefs, Clock? clock})
+    : _prefs = prefs,
+      _clock = clock ?? SystemClock();
 
   /// Retrieve cached FireRisk data by geohash key with TTL enforcement
   ///
@@ -138,11 +136,16 @@ class FireRiskCacheImpl implements FireRiskCache {
 
       // Serialize and store entry
       final jsonStr = jsonEncode(entry.toJson((data) => data.toJson()));
-      final success =
-          await _prefs.setString('$_entryKeyPrefix$geohashKey', jsonStr);
+      final success = await _prefs.setString(
+        '$_entryKeyPrefix$geohashKey',
+        jsonStr,
+      );
       if (!success) {
-        return left(const StorageError(
-            'Failed to write cache entry to SharedPreferences'));
+        return left(
+          const StorageError(
+            'Failed to write cache entry to SharedPreferences',
+          ),
+        );
       }
 
       // Update metadata and access log
@@ -191,8 +194,9 @@ class FireRiskCacheImpl implements FireRiskCache {
   @override
   Future<void> clear() async {
     try {
-      final keys =
-          _prefs.getKeys().where((key) => key.startsWith(_entryKeyPrefix));
+      final keys = _prefs.getKeys().where(
+        (key) => key.startsWith(_entryKeyPrefix),
+      );
       for (final key in keys) {
         _prefs.remove(key);
       }
@@ -234,7 +238,8 @@ class FireRiskCacheImpl implements FireRiskCache {
       }
 
       return CacheMetadata.fromJson(
-          jsonDecode(jsonStr) as Map<String, dynamic>);
+        jsonDecode(jsonStr) as Map<String, dynamic>,
+      );
     } catch (e) {
       // Return default metadata on corruption
       return CacheMetadata(
@@ -260,8 +265,9 @@ class FireRiskCacheImpl implements FireRiskCache {
     int removedCount = 0;
 
     try {
-      final keys =
-          _prefs.getKeys().where((key) => key.startsWith(_entryKeyPrefix));
+      final keys = _prefs.getKeys().where(
+        (key) => key.startsWith(_entryKeyPrefix),
+      );
 
       for (final key in keys) {
         final geohashKey = key.substring(_entryKeyPrefix.length);
@@ -334,8 +340,9 @@ class FireRiskCacheImpl implements FireRiskCache {
   /// Update total entries count based on actual stored entries
   Future<void> _updateTotalEntries() async {
     try {
-      final keys =
-          _prefs.getKeys().where((key) => key.startsWith(_entryKeyPrefix));
+      final keys = _prefs.getKeys().where(
+        (key) => key.startsWith(_entryKeyPrefix),
+      );
       final metadata = await getMetadata();
 
       await _saveMetadata(metadata.copyWith(totalEntries: keys.length));

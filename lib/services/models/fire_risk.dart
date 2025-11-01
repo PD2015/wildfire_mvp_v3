@@ -2,19 +2,10 @@ import 'package:equatable/equatable.dart';
 import '../../models/risk_level.dart';
 
 /// Data source for fire risk information
-enum DataSource {
-  effis,
-  sepa,
-  cache,
-  mock,
-}
+enum DataSource { effis, sepa, cache, mock }
 
 /// Freshness indicator for fire risk data
-enum Freshness {
-  live,
-  cached,
-  mock,
-}
+enum Freshness { live, cached, mock }
 
 /// Fire risk assessment with source attribution and freshness indicators
 ///
@@ -162,10 +153,12 @@ class FireRisk extends Equatable {
       level: RiskLevel.values.firstWhere((e) => e.name == json['level']),
       fwi: json['fwi']?.toDouble(),
       source: DataSource.values.firstWhere((e) => e.name == json['source']),
-      observedAt:
-          DateTime.fromMillisecondsSinceEpoch(json['observedAt']).toUtc(),
-      freshness:
-          Freshness.values.firstWhere((e) => e.name == json['freshness']),
+      observedAt: DateTime.fromMillisecondsSinceEpoch(
+        json['observedAt'],
+      ).toUtc(),
+      freshness: Freshness.values.firstWhere(
+        (e) => e.name == json['freshness'],
+      ),
     );
   }
 

@@ -26,17 +26,15 @@ class GeolocatorServiceImpl implements GeolocatorService {
       Geolocator.requestPermission();
 
   @override
-  Future<Position?> getLastKnownPosition() => Geolocator.getLastKnownPosition(
-        forceAndroidLocationManager: false,
-      );
+  Future<Position?> getLastKnownPosition() =>
+      Geolocator.getLastKnownPosition(forceAndroidLocationManager: false);
 
   @override
   Future<Position> getCurrentPosition({
     LocationAccuracy desiredAccuracy = LocationAccuracy.best,
     Duration? timeLimit,
-  }) =>
-      Geolocator.getCurrentPosition(
-        desiredAccuracy: desiredAccuracy,
-        timeLimit: timeLimit,
-      );
+  }) => Geolocator.getCurrentPosition(
+    desiredAccuracy: desiredAccuracy,
+    timeLimit: timeLimit,
+  );
 }

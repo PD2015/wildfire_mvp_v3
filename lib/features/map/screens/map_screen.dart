@@ -66,7 +66,8 @@ class _MapScreenState extends State<MapScreen> {
   void _updateMarkers(MapSuccess state) {
     _markers = state.incidents.map((incident) {
       debugPrint(
-          '🎯 Creating marker: id=${incident.id}, intensity="${incident.intensity}", desc=${incident.description}');
+        '🎯 Creating marker: id=${incident.id}, intensity="${incident.intensity}", desc=${incident.description}',
+      );
 
       // Ensure title is never null
       final title = incident.description?.isNotEmpty == true
@@ -101,19 +102,23 @@ class _MapScreenState extends State<MapScreen> {
       case 'high':
         debugPrint('🎨 Using RED marker (high) - hue 0');
         return BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueRed); // 0.0 - bright red
+          BitmapDescriptor.hueRed,
+        ); // 0.0 - bright red
       case 'moderate':
         debugPrint('🎨 Using ORANGE marker (moderate) - hue 30');
         return BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueOrange); // 30.0 - orange
+          BitmapDescriptor.hueOrange,
+        ); // 30.0 - orange
       case 'low':
         debugPrint('🎨 Using CYAN marker (low) - hue 180');
         return BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueCyan); // 180.0 - bright cyan/turquoise
+          BitmapDescriptor.hueCyan,
+        ); // 180.0 - bright cyan/turquoise
       default:
         debugPrint('🎨 Using VIOLET marker (unknown intensity) - hue 270');
         return BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueViolet); // 270.0 - violet for debugging
+          BitmapDescriptor.hueViolet,
+        ); // 270.0 - violet for debugging
     }
   }
 
@@ -145,11 +150,11 @@ class _MapScreenState extends State<MapScreen> {
       ),
       body: switch (state) {
         MapLoading() => Center(
-            child: Semantics(
-              label: 'Loading map data',
-              child: const CircularProgressIndicator(),
-            ),
+          child: Semantics(
+            label: 'Loading map data',
+            child: const CircularProgressIndicator(),
           ),
+        ),
         MapSuccess() => _buildMapView(state),
         MapError() => _buildErrorView(state),
       },
@@ -174,11 +179,7 @@ class _MapScreenState extends State<MapScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.map_outlined,
-                size: 64.0,
-                color: Colors.grey,
-              ),
+              const Icon(Icons.map_outlined, size: 64.0, color: Colors.grey),
               const SizedBox(height: 16.0),
               Text(
                 'Map Not Available',
@@ -212,32 +213,38 @@ class _MapScreenState extends State<MapScreen> {
                           const SizedBox(height: 16),
                           const Divider(),
                           const SizedBox(height: 8),
-                          ...state.incidents.take(5).map((incident) => Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 4),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.local_fire_department,
-                                      color: incident.intensity == 'high'
-                                          ? Colors.red
-                                          : incident.intensity == 'moderate'
-                                              ? Colors.orange
-                                              : Colors.cyan,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        incident.description ?? 'Fire Incident',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium,
+                          ...state.incidents
+                              .take(5)
+                              .map(
+                                (incident) => Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 4,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.local_fire_department,
+                                        color: incident.intensity == 'high'
+                                            ? Colors.red
+                                            : incident.intensity == 'moderate'
+                                            ? Colors.orange
+                                            : Colors.cyan,
+                                        size: 20,
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          incident.description ??
+                                              'Fire Incident',
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodyMedium,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              )),
+                              ),
                           if (state.incidents.length > 5)
                             Padding(
                               padding: const EdgeInsets.only(top: 8),
@@ -328,8 +335,8 @@ class _MapScreenState extends State<MapScreen> {
                     Text(
                       'No Active Fires Detected',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
@@ -341,9 +348,9 @@ class _MapScreenState extends State<MapScreen> {
                     const SizedBox(height: 12),
                     Text(
                       'Data source: ${state.freshness.name.toUpperCase()}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey[600],
-                          ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -362,11 +369,7 @@ class _MapScreenState extends State<MapScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.error_outline,
-              size: 64.0,
-              color: Colors.red,
-            ),
+            const Icon(Icons.error_outline, size: 64.0, color: Colors.red),
             const SizedBox(height: 16.0),
             Text(
               'Failed to load map',

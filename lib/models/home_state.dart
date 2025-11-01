@@ -28,10 +28,7 @@ class HomeStateLoading extends HomeState {
   /// Timestamp when loading operation started
   final DateTime startTime;
 
-  const HomeStateLoading({
-    this.isRetry = false,
-    required this.startTime,
-  });
+  const HomeStateLoading({this.isRetry = false, required this.startTime});
 
   @override
   List<Object?> get props => [isRetry, startTime];
@@ -100,8 +97,12 @@ class HomeStateError extends HomeState {
   bool get hasCachedData => cachedData != null && cachedLocation != null;
 
   @override
-  List<Object?> get props =>
-      [errorMessage, cachedData, cachedLocation, canRetry];
+  List<Object?> get props => [
+    errorMessage,
+    cachedData,
+    cachedLocation,
+    canRetry,
+  ];
 
   @override
   String toString() =>

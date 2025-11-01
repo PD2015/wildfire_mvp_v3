@@ -44,7 +44,8 @@ class FireIncident extends Equatable {
     }
     if (!['low', 'moderate', 'high'].contains(intensity)) {
       throw ArgumentError(
-          'FireIncident intensity must be "low", "moderate", or "high"');
+        'FireIncident intensity must be "low", "moderate", or "high"',
+      );
     }
     if (areaHectares != null && areaHectares! <= 0) {
       throw ArgumentError('FireIncident areaHectares must be > 0');
@@ -98,7 +99,8 @@ class FireIncident extends Equatable {
             DateTime.now().toIso8601String(),
       ),
       intensity: intensity,
-      description: properties['description']?.toString() ??
+      description:
+          properties['description']?.toString() ??
           properties['country']?.toString(),
       areaHectares: areaHa?.toDouble(),
     );
@@ -170,13 +172,13 @@ class FireIncident extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        location,
-        source,
-        freshness,
-        timestamp,
-        intensity,
-        description,
-        areaHectares,
-      ];
+    id,
+    location,
+    source,
+    freshness,
+    timestamp,
+    intensity,
+    description,
+    areaHectares,
+  ];
 }

@@ -4,14 +4,11 @@ import 'package:wildfire_mvp_v3/features/report/screens/report_fire_screen.dart'
 
 void main() {
   group('ReportFireScreen Widget Tests', () {
-    testWidgets('should display screen title and three emergency buttons',
-        (tester) async {
+    testWidgets('should display screen title and three emergency buttons', (
+      tester,
+    ) async {
       // Act
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: ReportFireScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
       await tester.pumpAndSettle(); // Let all animations/layouts complete
 
       // Assert
@@ -30,11 +27,7 @@ void main() {
 
     testWidgets('should have AppBar with correct title', (tester) async {
       // Act
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: ReportFireScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
 
       // Assert
       expect(find.byType(AppBar), findsOneWidget);
@@ -43,30 +36,27 @@ void main() {
 
     testWidgets('should display header section with guidance', (tester) async {
       // Act
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: ReportFireScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
 
       // Assert - Check for new simpler A12b layout
       expect(find.text('See smoke, flames, or a campfire?'), findsOneWidget);
       expect(find.text('Act fast — stay safe.'), findsOneWidget);
       expect(
-          find.text('1) If the fire is spreading or unsafe:'), findsOneWidget);
-      expect(find.text('2) If someone is lighting a fire irresponsibly:'),
-          findsOneWidget);
+        find.text('1) If the fire is spreading or unsafe:'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('2) If someone is lighting a fire irresponsibly:'),
+        findsOneWidget,
+      );
       expect(find.text('3) Want to report anonymously?'), findsOneWidget);
     });
 
-    testWidgets('should display footer section with safety information',
-        (tester) async {
+    testWidgets('should display footer section with safety information', (
+      tester,
+    ) async {
       // Act
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: ReportFireScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
       await tester.pumpAndSettle();
 
       // Scroll to see tips at bottom
@@ -76,39 +66,38 @@ void main() {
       // Assert - Check for Tips card
       expect(find.text('Safety Tips'), findsOneWidget);
       expect(find.textContaining('What3Words or GPS'), findsOneWidget);
-      expect(find.textContaining('Never fight wildfires yourself'),
-          findsOneWidget);
+      expect(
+        find.textContaining('Never fight wildfires yourself'),
+        findsOneWidget,
+      );
       expect(find.textContaining('Keep vehicle access clear'), findsOneWidget);
     });
 
-    testWidgets('should have proper semantic labels for accessibility',
-        (tester) async {
+    testWidgets('should have proper semantic labels for accessibility', (
+      tester,
+    ) async {
       // Act
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: ReportFireScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
       await tester.pumpAndSettle();
 
       // Assert - Check semantic labeling for banner
-      final bannerSemantics =
-          tester.getSemantics(find.text('See smoke, flames, or a campfire?'));
+      final bannerSemantics = tester.getSemantics(
+        find.text('See smoke, flames, or a campfire?'),
+      );
       expect(bannerSemantics.label, isNotNull);
 
       // Check banner and tips icons are present
       expect(
-          find.byIcon(Icons.local_fire_department), findsOneWidget); // Banner
+        find.byIcon(Icons.local_fire_department),
+        findsOneWidget,
+      ); // Banner
     });
 
-    testWidgets('should handle button taps and show SnackBar on dialer failure',
-        (tester) async {
+    testWidgets('should handle button taps and show SnackBar on dialer failure', (
+      tester,
+    ) async {
       // Act
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: ReportFireScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
 
       // Tap the Fire Service button (url_launcher will fail in test environment)
       await tester.tap(find.text('Call 999 — Fire Service'));
@@ -119,32 +108,29 @@ void main() {
       // which typically shows "binding has not been initialized" error
     });
 
-    testWidgets('should render all buttons with minimum touch target size',
-        (tester) async {
+    testWidgets('should render all buttons with minimum touch target size', (
+      tester,
+    ) async {
       // Act
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: ReportFireScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
 
       // Assert - Check all buttons meet accessibility requirements (48dp minimum)
-      final buttons =
-          tester.widgetList<ElevatedButton>(find.byType(ElevatedButton));
+      final buttons = tester.widgetList<ElevatedButton>(
+        find.byType(ElevatedButton),
+      );
       for (final button in buttons) {
         final buttonBox = tester.renderObject<RenderBox>(find.byWidget(button));
-        expect(buttonBox.size.height, greaterThanOrEqualTo(48.0),
-            reason: 'Button must meet minimum touch target size of 48dp');
+        expect(
+          buttonBox.size.height,
+          greaterThanOrEqualTo(48.0),
+          reason: 'Button must meet minimum touch target size of 48dp',
+        );
       }
     });
 
     testWidgets('should maintain proper layout structure', (tester) async {
       // Act
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: ReportFireScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
 
       // Assert - Verify layout hierarchy (MaterialApp adds its own SafeArea)
       expect(find.byType(Scaffold), findsOneWidget);
@@ -167,19 +153,19 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert - Verify themed elements exist
-      expect(find.byType(Container),
-          findsAtLeastNWidgets(1)); // At least banner container visible
-      expect(find.text('Call 999 — Fire Service'),
-          findsOneWidget); // At least one button visible
+      expect(
+        find.byType(Container),
+        findsAtLeastNWidgets(1),
+      ); // At least banner container visible
+      expect(
+        find.text('Call 999 — Fire Service'),
+        findsOneWidget,
+      ); // At least one button visible
     });
 
     testWidgets('should handle SnackBar dismissal correctly', (tester) async {
       // Act
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: ReportFireScreen(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
 
       // Tap button to potentially trigger SnackBar
       await tester.tap(find.text('Call 999 — Fire Service'));
@@ -214,17 +200,17 @@ void main() {
 
       // Assert
       expect(find.text('Custom Fire Report'), findsOneWidget);
-      expect(find.byType(AppBar),
-          findsAtLeastNWidgets(1)); // Factory creates nested Scaffold
+      expect(
+        find.byType(AppBar),
+        findsAtLeastNWidgets(1),
+      ); // Factory creates nested Scaffold
     });
 
     testWidgets('withoutAppBar factory should work correctly', (tester) async {
       // Act
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: ReportFireScreenFactory.withoutAppBar(),
-          ),
+          home: Scaffold(body: ReportFireScreenFactory.withoutAppBar()),
         ),
       );
 

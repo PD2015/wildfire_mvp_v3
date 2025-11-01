@@ -147,8 +147,11 @@ class AttemptEndEvent extends TelemetryEvent {
   final bool success;
 
   const AttemptEndEvent(
-      this.source, this.elapsed, this.success, DateTime timestamp)
-      : super(timestamp);
+    this.source,
+    this.elapsed,
+    this.success,
+    DateTime timestamp,
+  ) : super(timestamp);
 
   @override
   String toString() =>
@@ -170,7 +173,7 @@ class CompleteEvent extends TelemetryEvent {
   final Duration totalElapsed;
 
   const CompleteEvent(this.chosenSource, this.totalElapsed, DateTime timestamp)
-      : super(timestamp);
+    : super(timestamp);
 
   @override
   String toString() =>

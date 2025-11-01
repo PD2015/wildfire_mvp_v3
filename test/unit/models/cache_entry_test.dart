@@ -98,8 +98,9 @@ void main() {
         fakeClock.setTime(baseTime.add(const Duration(hours: 6)));
         expect(entry.isExpired(fakeClock), isFalse); // Exactly 6 hours
 
-        fakeClock
-            .setTime(baseTime.add(const Duration(hours: 6, milliseconds: 1)));
+        fakeClock.setTime(
+          baseTime.add(const Duration(hours: 6, milliseconds: 1)),
+        );
         expect(entry.isExpired(fakeClock), isTrue); // Just over 6 hours
       });
 
@@ -162,20 +163,22 @@ void main() {
         expect(recreatedEntry, equals(originalEntry));
       });
 
-      test('fromJson throws UnsupportedVersionError for unsupported version',
-          () {
-        final json = {
-          'version': '2.0',
-          'timestamp': baseTime.millisecondsSinceEpoch,
-          'geohash': 'gcvwr',
-          'data': testFireRisk.toJson(),
-        };
+      test(
+        'fromJson throws UnsupportedVersionError for unsupported version',
+        () {
+          final json = {
+            'version': '2.0',
+            'timestamp': baseTime.millisecondsSinceEpoch,
+            'geohash': 'gcvwr',
+            'data': testFireRisk.toJson(),
+          };
 
-        expect(
-          () => CacheEntry.fromJson(json, (data) => FireRisk.fromJson(data)),
-          throwsA(isA<UnsupportedVersionError>()),
-        );
-      });
+          expect(
+            () => CacheEntry.fromJson(json, (data) => FireRisk.fromJson(data)),
+            throwsA(isA<UnsupportedVersionError>()),
+          );
+        },
+      );
 
       test('fromJson throws SerializationError for malformed JSON', () {
         final json = {
@@ -198,8 +201,10 @@ void main() {
           'data': testFireRisk.toJson(),
         };
 
-        final entry =
-            CacheEntry.fromJson(json, (data) => FireRisk.fromJson(data));
+        final entry = CacheEntry.fromJson(
+          json,
+          (data) => FireRisk.fromJson(data),
+        );
         expect(entry.version, equals('1.0')); // Default version
       });
     });

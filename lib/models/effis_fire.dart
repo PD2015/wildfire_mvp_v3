@@ -51,12 +51,14 @@ class EffisFire extends Equatable {
     final lat = (coordinates[1] as num).toDouble();
 
     // Parse fire date - EFFIS uses ISO 8601 format
-    final fireDateStr = properties['firedate']?.toString() ??
+    final fireDateStr =
+        properties['firedate']?.toString() ??
         properties['lastupdate']?.toString() ??
         DateTime.now().toIso8601String();
 
     return EffisFire(
-      id: json['id']?.toString() ??
+      id:
+          json['id']?.toString() ??
           properties['fid']?.toString() ??
           'effis_fire_${DateTime.now().millisecondsSinceEpoch}',
       location: LatLng(lat, lon),

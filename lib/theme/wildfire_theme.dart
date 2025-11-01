@@ -34,9 +34,7 @@ class WildfireTheme {
       // Card theme for consistent elevation and colors
       cardTheme: CardThemeData(
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
         color: RiskPalette.white,
       ),
 
@@ -73,12 +71,8 @@ class WildfireTheme {
           color: RiskPalette.darkGray,
           fontWeight: FontWeight.w600,
         ),
-        bodyLarge: TextStyle(
-          color: RiskPalette.darkGray,
-        ),
-        bodyMedium: TextStyle(
-          color: RiskPalette.midGray,
-        ),
+        bodyLarge: TextStyle(color: RiskPalette.darkGray),
+        bodyMedium: TextStyle(color: RiskPalette.midGray),
         labelLarge: TextStyle(
           color: RiskPalette.white,
           fontWeight: FontWeight.w500,
@@ -86,9 +80,7 @@ class WildfireTheme {
       ),
 
       // Icon theme
-      iconTheme: const IconThemeData(
-        color: RiskPalette.midGray,
-      ),
+      iconTheme: const IconThemeData(color: RiskPalette.midGray),
 
       // Scaffold background
       scaffoldBackgroundColor: RiskPalette.white,
@@ -124,9 +116,7 @@ class WildfireTheme {
       // Card theme for dark mode
       cardTheme: CardThemeData(
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
         color: RiskPalette.darkGray,
       ),
 
@@ -163,12 +153,8 @@ class WildfireTheme {
           color: RiskPalette.white,
           fontWeight: FontWeight.w600,
         ),
-        bodyLarge: TextStyle(
-          color: RiskPalette.white,
-        ),
-        bodyMedium: TextStyle(
-          color: RiskPalette.lightGray,
-        ),
+        bodyLarge: TextStyle(color: RiskPalette.white),
+        bodyMedium: TextStyle(color: RiskPalette.lightGray),
         labelLarge: TextStyle(
           color: RiskPalette.white,
           fontWeight: FontWeight.w500,
@@ -176,9 +162,7 @@ class WildfireTheme {
       ),
 
       // Icon theme for dark mode
-      iconTheme: const IconThemeData(
-        color: RiskPalette.lightGray,
-      ),
+      iconTheme: const IconThemeData(color: RiskPalette.lightGray),
 
       // Scaffold background for dark mode
       scaffoldBackgroundColor: RiskPalette.black,

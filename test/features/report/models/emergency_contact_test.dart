@@ -102,14 +102,18 @@ void main() {
         // Test Police Scotland constant
         expect(EmergencyContact.policeScotland.phoneNumber, '101');
         expect(EmergencyContact.policeScotland.name, 'Police Scotland');
-        expect(EmergencyContact.policeScotland.priority,
-            EmergencyPriority.nonEmergency);
+        expect(
+          EmergencyContact.policeScotland.priority,
+          EmergencyPriority.nonEmergency,
+        );
 
         // Test Crimestoppers constant
         expect(EmergencyContact.crimestoppers.phoneNumber, '0800 555 111');
         expect(EmergencyContact.crimestoppers.name, 'Crimestoppers');
-        expect(EmergencyContact.crimestoppers.priority,
-            EmergencyPriority.anonymous);
+        expect(
+          EmergencyContact.crimestoppers.priority,
+          EmergencyPriority.anonymous,
+        );
       });
     });
 
@@ -118,7 +122,9 @@ void main() {
         expect(EmergencyPriority.values, hasLength(3));
         expect(EmergencyPriority.values, contains(EmergencyPriority.urgent));
         expect(
-            EmergencyPriority.values, contains(EmergencyPriority.nonEmergency));
+          EmergencyPriority.values,
+          contains(EmergencyPriority.nonEmergency),
+        );
         expect(EmergencyPriority.values, contains(EmergencyPriority.anonymous));
       });
     });

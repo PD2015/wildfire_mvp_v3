@@ -20,8 +20,10 @@ class LocationResolverImpl implements LocationResolver {
   /// Scotland centroid coordinates for default fallback location
   // ORIGINAL: static const LatLng _scotlandCentroid = LatLng(55.8642, -4.2518);
   // TEST MODE: Aviemore coordinates to test UK fire risk services
-  static const LatLng _scotlandCentroid =
-      LatLng(57.2, -3.8); // Aviemore, UK - emulator GPS workaround
+  static const LatLng _scotlandCentroid = LatLng(
+    57.2,
+    -3.8,
+  ); // Aviemore, UK - emulator GPS workaround
   // static const LatLng _scotlandCentroid = LatLng(55.8642, -4.2518);
 
   /// Cache keys for SharedPreferences persistence
@@ -33,8 +35,9 @@ class LocationResolverImpl implements LocationResolver {
   static const String _currentVersion = '1.0';
 
   @override
-  Future<Either<LocationError, LatLng>> getLatLon(
-      {bool allowDefault = true}) async {
+  Future<Either<LocationError, LatLng>> getLatLon({
+    bool allowDefault = true,
+  }) async {
     final stopwatch = Stopwatch()..start();
 
     try {
@@ -49,7 +52,8 @@ class LocationResolverImpl implements LocationResolver {
 
       if (isTestRegionSet) {
         debugPrint(
-            'TEST_REGION=${FeatureFlags.testRegion}: Skipping GPS to use test region coordinates');
+          'TEST_REGION=${FeatureFlags.testRegion}: Skipping GPS to use test region coordinates',
+        );
         // Return error to trigger MapController's test region fallback
         // Don't use default centroid when test region is explicitly set
         return const Left(LocationError.gpsUnavailable);
@@ -60,7 +64,8 @@ class LocationResolverImpl implements LocationResolver {
       if (gpsResult.isRight()) {
         final coords = gpsResult.getOrElse(() => _scotlandCentroid);
         debugPrint(
-            'Location resolved via GPS: ${GeographicUtils.logRedact(coords.latitude, coords.longitude)}');
+          'Location resolved via GPS: ${GeographicUtils.logRedact(coords.latitude, coords.longitude)}',
+        );
         return Right(coords);
       } else {
         debugPrint('GPS unavailable: ${gpsResult.fold((e) => e, (r) => '')}');
@@ -71,33 +76,38 @@ class LocationResolverImpl implements LocationResolver {
       if (cacheResult.isRight()) {
         final coords = cacheResult.getOrElse(() => _scotlandCentroid);
         debugPrint(
-            'Location resolved via cache: ${GeographicUtils.logRedact(coords.latitude, coords.longitude)}');
+          'Location resolved via cache: ${GeographicUtils.logRedact(coords.latitude, coords.longitude)}',
+        );
         return Right(coords);
       }
 
       // Tier 4: Manual entry (caller responsibility)
       if (!allowDefault) {
         debugPrint(
-            'Location resolution requires manual entry (allowDefault=false)');
+          'Location resolution requires manual entry (allowDefault=false)',
+        );
         return const Left(LocationError.permissionDenied);
       }
 
       // Tier 5: Scotland centroid default
       debugPrint(
-          'Location resolved via default: ${GeographicUtils.logRedact(_scotlandCentroid.latitude, _scotlandCentroid.longitude)}');
+        'Location resolved via default: ${GeographicUtils.logRedact(_scotlandCentroid.latitude, _scotlandCentroid.longitude)}',
+      );
       return const Right(_scotlandCentroid);
     } catch (e) {
       debugPrint('Location resolution error: $e');
       if (allowDefault) {
         debugPrint(
-            'Falling back to default: ${GeographicUtils.logRedact(_scotlandCentroid.latitude, _scotlandCentroid.longitude)}');
+          'Falling back to default: ${GeographicUtils.logRedact(_scotlandCentroid.latitude, _scotlandCentroid.longitude)}',
+        );
         return const Right(_scotlandCentroid);
       }
       return const Left(LocationError.gpsUnavailable);
     } finally {
       stopwatch.stop();
       debugPrint(
-          'Total location resolution time: ${stopwatch.elapsedMilliseconds}ms');
+        'Total location resolution time: ${stopwatch.elapsedMilliseconds}ms',
+      );
     }
   }
 
@@ -169,7 +179,8 @@ class LocationResolverImpl implements LocationResolver {
         } else {
           // Clear corrupted cache (NaN, infinite, or out of range coordinates)
           debugPrint(
-              'Invalid cached coordinates: lat=$lat, lon=$lon. Clearing cache.');
+            'Invalid cached coordinates: lat=$lat, lon=$lon. Clearing cache.',
+          );
           await prefs.remove(_latKey);
           await prefs.remove(_lonKey);
           await prefs.remove(_versionKey);
@@ -184,7 +195,8 @@ class LocationResolverImpl implements LocationResolver {
 
   /// Fallback to cache when GPS is unavailable
   Future<Either<LocationError, LatLng>> _fallbackToCache(
-      bool allowDefault) async {
+    bool allowDefault,
+  ) async {
     final cacheResult = await _tryCache();
     if (cacheResult.isRight()) {
       return cacheResult;
@@ -202,7 +214,8 @@ class LocationResolverImpl implements LocationResolver {
   Future<void> saveManual(LatLng location, {String? placeName}) async {
     if (!location.isValid) {
       throw ArgumentError(
-          'Invalid coordinates: ${location.latitude}, ${location.longitude}');
+        'Invalid coordinates: ${location.latitude}, ${location.longitude}',
+      );
     }
 
     try {
@@ -217,7 +230,8 @@ class LocationResolverImpl implements LocationResolver {
       ]);
 
       debugPrint(
-          'Manual location saved: ${GeographicUtils.logRedact(location.latitude, location.longitude)}${placeName != null ? ' ($placeName)' : ''}');
+        'Manual location saved: ${GeographicUtils.logRedact(location.latitude, location.longitude)}${placeName != null ? ' ($placeName)' : ''}',
+      );
     } catch (e) {
       debugPrint('Failed to save manual location: $e');
       rethrow;

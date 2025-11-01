@@ -42,7 +42,8 @@ class ControllableEffisService implements EffisService {
     Duration timeout = const Duration(seconds: 8),
   }) async {
     callLog.add(
-        'getActiveFires(${bounds.toBboxString()}, timeout: ${timeout.inSeconds}s)');
+      'getActiveFires(${bounds.toBboxString()}, timeout: ${timeout.inSeconds}s)',
+    );
 
     // Simulate network delay if configured
     if (_responseDelay != null) {
@@ -106,58 +107,67 @@ void main() {
       // Assert: Should succeed with mock data
       expect(result.isRight(), isTrue);
 
-      result.fold(
-        (error) => fail('Expected Right, got Left: ${error.message}'),
-        (incidents) {
-          // Mock service returns 0-3 incidents depending on asset availability in test environment
-          // In test environment, rootBundle may not load assets, returning empty list (still Right)
-          expect(incidents, isA<List<FireIncident>>());
+      result.fold((error) => fail('Expected Right, got Left: ${error.message}'), (
+        incidents,
+      ) {
+        // Mock service returns 0-3 incidents depending on asset availability in test environment
+        // In test environment, rootBundle may not load assets, returning empty list (still Right)
+        expect(incidents, isA<List<FireIncident>>());
 
-          // If incidents loaded, verify they're from mock source
-          if (incidents.isNotEmpty) {
-            expect(incidents.first.source, DataSource.mock);
-            expect(incidents.first.freshness, Freshness.mock);
-          }
-        },
-      );
+        // If incidents loaded, verify they're from mock source
+        if (incidents.isNotEmpty) {
+          expect(incidents.first.source, DataSource.mock);
+          expect(incidents.first.freshness, Freshness.mock);
+        }
+      });
 
       // Verify EFFIS was never called (MAP_LIVE_DATA=false)
       expect(controllableEffis.callLog, isEmpty);
     });
 
-    test('EFFIS timeout (>8s) falls back to Mock when MAP_LIVE_DATA=true',
-        () async {
-      // Note: This test documents expected behavior when MAP_LIVE_DATA=true
-      // In actual test environment, MAP_LIVE_DATA=false so EFFIS is skipped
-      // This test is skipped because we can't set MAP_LIVE_DATA=true in tests
-      // The behavior is tested indirectly via manual testing with --dart-define
+    test(
+      'EFFIS timeout (>8s) falls back to Mock when MAP_LIVE_DATA=true',
+      () async {
+        // Note: This test documents expected behavior when MAP_LIVE_DATA=true
+        // In actual test environment, MAP_LIVE_DATA=false so EFFIS is skipped
+        // This test is skipped because we can't set MAP_LIVE_DATA=true in tests
+        // The behavior is tested indirectly via manual testing with --dart-define
 
-      // Expected flow when MAP_LIVE_DATA=true:
-      // 1. EFFIS times out after 8s
-      // 2. Falls back to Mock (never fails)
-      // 3. Returns mock data with source=mock, freshness=mock
+        // Expected flow when MAP_LIVE_DATA=true:
+        // 1. EFFIS times out after 8s
+        // 2. Falls back to Mock (never fails)
+        // 3. Returns mock data with source=mock, freshness=mock
 
-      expect(true, isTrue,
-          reason: 'Test documented for MAP_LIVE_DATA=true scenario');
-    },
-        skip:
-            'Cannot test MAP_LIVE_DATA=true in test environment (feature flag is const)');
+        expect(
+          true,
+          isTrue,
+          reason: 'Test documented for MAP_LIVE_DATA=true scenario',
+        );
+      },
+      skip:
+          'Cannot test MAP_LIVE_DATA=true in test environment (feature flag is const)',
+    );
 
-    test('EFFIS 4xx/5xx error falls back to Mock when MAP_LIVE_DATA=true',
-        () async {
-      // Note: Similar to timeout test - documents expected behavior
-      // Cannot be tested in unit/integration tests due to const feature flag
+    test(
+      'EFFIS 4xx/5xx error falls back to Mock when MAP_LIVE_DATA=true',
+      () async {
+        // Note: Similar to timeout test - documents expected behavior
+        // Cannot be tested in unit/integration tests due to const feature flag
 
-      // Expected flow when MAP_LIVE_DATA=true:
-      // 1. EFFIS returns ApiError (4xx/5xx)
-      // 2. Falls back to Mock (never fails)
-      // 3. Returns mock data
+        // Expected flow when MAP_LIVE_DATA=true:
+        // 1. EFFIS returns ApiError (4xx/5xx)
+        // 2. Falls back to Mock (never fails)
+        // 3. Returns mock data
 
-      expect(true, isTrue,
-          reason: 'Test documented for MAP_LIVE_DATA=true scenario');
-    },
-        skip:
-            'Cannot test MAP_LIVE_DATA=true in test environment (feature flag is const)');
+        expect(
+          true,
+          isTrue,
+          reason: 'Test documented for MAP_LIVE_DATA=true scenario',
+        );
+      },
+      skip:
+          'Cannot test MAP_LIVE_DATA=true in test environment (feature flag is const)',
+    );
 
     test('Mock service never fails (resilience principle)', () async {
       // Arrange - EFFIS not configured (will use default mock behavior)
@@ -187,18 +197,25 @@ void main() {
       );
     });
 
-    test('EFFIS respects 8s timeout when configured', () async {
-      // Note: This test verifies timeout handling in the service
-      // With MAP_LIVE_DATA=false, EFFIS is not called
-      // Test documents expected behavior for MAP_LIVE_DATA=true
+    test(
+      'EFFIS respects 8s timeout when configured',
+      () async {
+        // Note: This test verifies timeout handling in the service
+        // With MAP_LIVE_DATA=false, EFFIS is not called
+        // Test documents expected behavior for MAP_LIVE_DATA=true
 
-      // Expected: EFFIS getActiveFires is called with timeout: 8s parameter
-      // This is verified in unit tests and via manual testing
+        // Expected: EFFIS getActiveFires is called with timeout: 8s parameter
+        // This is verified in unit tests and via manual testing
 
-      expect(true, isTrue, reason: 'Timeout enforcement tested in unit tests');
-    },
-        skip:
-            'EFFIS not called when MAP_LIVE_DATA=false (current test environment)');
+        expect(
+          true,
+          isTrue,
+          reason: 'Timeout enforcement tested in unit tests',
+        );
+      },
+      skip:
+          'EFFIS not called when MAP_LIVE_DATA=false (current test environment)',
+    );
 
     test('service completes within reasonable time budget', () async {
       // Arrange
@@ -211,8 +228,11 @@ void main() {
       stopwatch.stop();
 
       expect(result.isRight(), isTrue);
-      expect(stopwatch.elapsedMilliseconds, lessThan(1000),
-          reason: 'With MAP_LIVE_DATA=false, should complete quickly (<1s)');
+      expect(
+        stopwatch.elapsedMilliseconds,
+        lessThan(1000),
+        reason: 'With MAP_LIVE_DATA=false, should complete quickly (<1s)',
+      );
     });
 
     test('telemetry: Mock fallback is traceable via logging', () async {
@@ -236,8 +256,11 @@ void main() {
       // - "Tier 1 (EFFIS WFS) success: N fires" OR "Tier 1 (EFFIS WFS) failed: ..."
       // - "Tier 2: Falling back to Mock service"
 
-      expect(true, isTrue,
-          reason: 'Telemetry via developer.log verified manually');
+      expect(
+        true,
+        isTrue,
+        reason: 'Telemetry via developer.log verified manually',
+      );
     });
   });
 }

@@ -23,11 +23,11 @@ class MockMapController extends MapController {
   MapState _mockState;
 
   MockMapController(this._mockState)
-      : super(
-          locationResolver: _NoOpLocationResolver(),
-          fireLocationService: _NoOpFireLocationService(),
-          fireRiskService: _NoOpFireRiskService(),
-        );
+    : super(
+        locationResolver: _NoOpLocationResolver(),
+        fireLocationService: _NoOpFireLocationService(),
+        fireRiskService: _NoOpFireRiskService(),
+      );
 
   @override
   MapState get state => _mockState;
@@ -47,8 +47,9 @@ class MockMapController extends MapController {
 /// No-op LocationResolver for testing
 class _NoOpLocationResolver implements LocationResolver {
   @override
-  Future<Either<LocationError, LatLng>> getLatLon(
-      {bool allowDefault = true}) async {
+  Future<Either<LocationError, LatLng>> getLatLon({
+    bool allowDefault = true,
+  }) async {
     return const Right(LatLng(55.9533, -3.1883)); // Edinburgh
   }
 
@@ -62,7 +63,8 @@ class _NoOpLocationResolver implements LocationResolver {
 class _NoOpFireLocationService implements FireLocationService {
   @override
   Future<Either<ApiError, List<FireIncident>>> getActiveFires(
-      LatLngBounds bounds) async {
+    LatLngBounds bounds,
+  ) async {
     return const Right([]); // Empty list
   }
 }
@@ -131,9 +133,7 @@ void main() {
 
       // Build MapScreen
       await tester.pumpWidget(
-        MaterialApp(
-          home: MapScreen(controller: mockController),
-        ),
+        MaterialApp(home: MapScreen(controller: mockController)),
       );
 
       // Wait for widget tree to settle
@@ -151,8 +151,9 @@ void main() {
       expect(mockIncidents.length, 2);
     });
 
-    testWidgets('"Check risk here" button is ≥44dp touch target (C3)',
-        (tester) async {
+    testWidgets('"Check risk here" button is ≥44dp touch target (C3)', (
+      tester,
+    ) async {
       // Skip on unsupported platforms (macOS desktop)
       if (!kIsWeb && Platform.isMacOS) {
         return; // Skip test on macOS desktop
@@ -170,9 +171,7 @@ void main() {
 
       // Build MapScreen
       await tester.pumpWidget(
-        MaterialApp(
-          home: MapScreen(controller: mockController),
-        ),
+        MaterialApp(home: MapScreen(controller: mockController)),
       );
 
       await tester.pumpAndSettle();
@@ -186,10 +185,16 @@ void main() {
 
       // Verify ≥44dp touch target (iOS requirement)
       // 44dp = 44 logical pixels in Flutter
-      expect(fabSize.width, greaterThanOrEqualTo(44.0),
-          reason: 'FAB width must be ≥44dp for accessibility (C3)');
-      expect(fabSize.height, greaterThanOrEqualTo(44.0),
-          reason: 'FAB height must be ≥44dp for accessibility (C3)');
+      expect(
+        fabSize.width,
+        greaterThanOrEqualTo(44.0),
+        reason: 'FAB width must be ≥44dp for accessibility (C3)',
+      );
+      expect(
+        fabSize.height,
+        greaterThanOrEqualTo(44.0),
+        reason: 'FAB height must be ≥44dp for accessibility (C3)',
+      );
 
       // Verify semantic label exists by finding widget with partial semantic label match
       // The RiskCheckButton wraps FAB with Semantics(label: 'Check fire risk at this location')
@@ -198,14 +203,17 @@ void main() {
             widget.properties.label != null &&
             widget.properties.label!.toLowerCase().contains('risk');
       });
-      expect(semanticFinder, findsOneWidget,
-          reason:
-              'FAB must have descriptive semantic label containing "risk" (C3)');
+      expect(
+        semanticFinder,
+        findsOneWidget,
+        reason:
+            'FAB must have descriptive semantic label containing "risk" (C3)',
+      );
     });
 
-    testWidgets(
-        'source chip displays "DEMO DATA", "LIVE", or "CACHED" (C4, T019)',
-        (tester) async {
+    testWidgets('source chip displays "DEMO DATA", "LIVE", or "CACHED" (C4, T019)', (
+      tester,
+    ) async {
       // Skip on unsupported platforms (macOS desktop)
       if (!kIsWeb && Platform.isMacOS) {
         return; // Skip test on macOS desktop
@@ -222,17 +230,18 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: MapScreen(controller: mockController),
-        ),
+        MaterialApp(home: MapScreen(controller: mockController)),
       );
 
       await tester.pumpAndSettle();
 
       // Verify "DEMO DATA" text appears (T019 - prominent demo mode indicator)
-      expect(find.text('DEMO DATA'), findsOneWidget,
-          reason:
-              'Source chip must display "DEMO DATA" for mock data when MAP_LIVE_DATA=false (C4, T019)');
+      expect(
+        find.text('DEMO DATA'),
+        findsOneWidget,
+        reason:
+            'Source chip must display "DEMO DATA" for mock data when MAP_LIVE_DATA=false (C4, T019)',
+      );
 
       // Test LIVE freshness
       mockController.setState(
@@ -246,8 +255,11 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('LIVE'), findsOneWidget,
-          reason: 'Source chip must display "LIVE" for live data (C4)');
+      expect(
+        find.text('LIVE'),
+        findsOneWidget,
+        reason: 'Source chip must display "LIVE" for live data (C4)',
+      );
 
       // Test CACHED freshness
       mockController.setState(
@@ -261,8 +273,11 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      expect(find.text('CACHED'), findsOneWidget,
-          reason: 'Source chip must display "CACHED" for cached data (C4)');
+      expect(
+        find.text('CACHED'),
+        findsOneWidget,
+        reason: 'Source chip must display "CACHED" for cached data (C4)',
+      );
     });
 
     testWidgets('loading spinner has semanticLabel (C3)', (tester) async {
@@ -277,9 +292,7 @@ void main() {
       final mockController = MockMapController(const MapLoading());
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: MapScreen(controller: mockController),
-        ),
+        MaterialApp(home: MapScreen(controller: mockController)),
       );
 
       await tester.pump();
@@ -297,11 +310,16 @@ void main() {
 
       // Get the Semantics widget and check its label
       final semanticsWidget = tester.widget<Semantics>(semanticsFinder);
-      expect(semanticsWidget.properties.label, isNotEmpty,
-          reason: 'Loading spinner must have semantic label (C3)');
       expect(
-          semanticsWidget.properties.label!.toLowerCase(), contains('loading'),
-          reason: 'Semantic label should describe loading state');
+        semanticsWidget.properties.label,
+        isNotEmpty,
+        reason: 'Loading spinner must have semantic label (C3)',
+      );
+      expect(
+        semanticsWidget.properties.label!.toLowerCase(),
+        contains('loading'),
+        reason: 'Semantic label should describe loading state',
+      );
     });
 
     // Placeholder tests for remaining test cases (not critical for Option 3)
@@ -311,14 +329,16 @@ void main() {
       // This would require platform-specific integration tests or manual testing
     });
 
-    testWidgets('marker info windows have semantic labels (C3)',
-        (tester) async {
+    testWidgets('marker info windows have semantic labels (C3)', (
+      tester,
+    ) async {
       // Note: Marker info windows are created by GoogleMap plugin internally
       // Semantic labels would need to be verified through integration tests or manual testing
     });
 
-    testWidgets('"Last updated" timestamp visible for live/cached data (C4)',
-        (tester) async {
+    testWidgets('"Last updated" timestamp visible for live/cached data (C4)', (
+      tester,
+    ) async {
       // Skip on unsupported platforms (macOS desktop)
       if (!kIsWeb && Platform.isMacOS) {
         return; // Skip test on macOS desktop
@@ -335,28 +355,30 @@ void main() {
       );
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: MapScreen(controller: mockController),
-        ),
+        MaterialApp(home: MapScreen(controller: mockController)),
       );
 
       await tester.pumpAndSettle();
 
       // Verify MapSourceChip is displayed
-      expect(find.byType(MapSourceChip), findsOneWidget,
-          reason: 'MapSourceChip should be visible on map screen');
+      expect(
+        find.byType(MapSourceChip),
+        findsOneWidget,
+        reason: 'MapSourceChip should be visible on map screen',
+      );
 
       // Verify data source indicator is present (either timestamp or "DEMO DATA")
       final hasTimestamp = find.textContaining(
-          RegExp(r'(Just now|ago|min|hour|day)', caseSensitive: false));
+        RegExp(r'(Just now|ago|min|hour|day)', caseSensitive: false),
+      );
       final hasDemoData = find.text('DEMO DATA');
 
       expect(
-          hasTimestamp.evaluate().isNotEmpty ||
-              hasDemoData.evaluate().isNotEmpty,
-          true,
-          reason:
-              'Either timestamp or demo data indicator should be visible (C4)');
+        hasTimestamp.evaluate().isNotEmpty || hasDemoData.evaluate().isNotEmpty,
+        true,
+        reason:
+            'Either timestamp or demo data indicator should be visible (C4)',
+      );
 
       // Test with CACHED data
       mockController.setState(
@@ -372,11 +394,13 @@ void main() {
 
       // Verify timestamp still visible for cached data
       expect(
-          find.textContaining(
-              RegExp(r'(Just now|ago|min|hour|day)', caseSensitive: false)),
-          findsOneWidget,
-          reason:
-              'Timestamp should be visible in source chip for cached data (C4)');
+        find.textContaining(
+          RegExp(r'(Just now|ago|min|hour|day)', caseSensitive: false),
+        ),
+        findsOneWidget,
+        reason:
+            'Timestamp should be visible in source chip for cached data (C4)',
+      );
 
       // Note: DEMO DATA chip (mock + MAP_LIVE_DATA=false) intentionally does not show timestamp
       // to distinguish it visually from production data sources (T019)

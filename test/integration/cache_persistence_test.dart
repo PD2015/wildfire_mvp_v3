@@ -47,67 +47,73 @@ void main() {
     });
 
     test(
-        'set FireRisk; create a new FireRiskCacheImpl with a fresh SharedPreferences (same mock storage map); get returns some(); freshness==cached',
-        () async {
-      // Initialize SharedPreferences with empty mock data
-      final mockData = <String, Object>{};
-      SharedPreferences.setMockInitialValues(mockData);
+      'set FireRisk; create a new FireRiskCacheImpl with a fresh SharedPreferences (same mock storage map); get returns some(); freshness==cached',
+      () async {
+        // Initialize SharedPreferences with empty mock data
+        final mockData = <String, Object>{};
+        SharedPreferences.setMockInitialValues(mockData);
 
-      // Create first cache instance and store data
-      final prefs1 = await SharedPreferences.getInstance();
-      final cache1 = FireRiskCacheImpl(prefs: prefs1, clock: fakeClock);
+        // Create first cache instance and store data
+        final prefs1 = await SharedPreferences.getInstance();
+        final cache1 = FireRiskCacheImpl(prefs: prefs1, clock: fakeClock);
 
-      final setResult =
-          await cache1.set(lat: 55.9533, lon: -3.1883, data: testFireRisk);
-      expect(setResult.isRight(), true);
+        final setResult = await cache1.set(
+          lat: 55.9533,
+          lon: -3.1883,
+          data: testFireRisk,
+        );
+        expect(setResult.isRight(), true);
 
-      // Create second cache instance with same mock storage
-      // Note: SharedPreferences.getInstance() returns same instance with same mock data
-      final prefs2 = await SharedPreferences.getInstance();
-      final cache2 = FireRiskCacheImpl(prefs: prefs2, clock: fakeClock);
+        // Create second cache instance with same mock storage
+        // Note: SharedPreferences.getInstance() returns same instance with same mock data
+        final prefs2 = await SharedPreferences.getInstance();
+        final cache2 = FireRiskCacheImpl(prefs: prefs2, clock: fakeClock);
 
-      // Retrieve data from second cache instance
-      final cached = await cache2.get('gcvwr');
+        // Retrieve data from second cache instance
+        final cached = await cache2.get('gcvwr');
 
-      expect(cached.isSome(), true);
-      cached.fold(
-        () => fail('Expected cached data to persist'),
-        (fireRisk) {
+        expect(cached.isSome(), true);
+        cached.fold(() => fail('Expected cached data to persist'), (fireRisk) {
           expect(fireRisk.freshness, Freshness.cached);
           expect(fireRisk.level, testFireRisk.level);
           expect(fireRisk.fwi, testFireRisk.fwi);
           expect(fireRisk.source, testFireRisk.source);
-        },
-      );
-    });
+        });
+      },
+    );
 
-    test('cached data survives within same SharedPreferences instance',
-        () async {
-      // Initialize with empty mock data
-      SharedPreferences.setMockInitialValues(<String, Object>{});
+    test(
+      'cached data survives within same SharedPreferences instance',
+      () async {
+        // Initialize with empty mock data
+        SharedPreferences.setMockInitialValues(<String, Object>{});
 
-      // First cache instance - store data
-      final prefs = await SharedPreferences.getInstance();
-      final cache1 = FireRiskCacheImpl(prefs: prefs, clock: fakeClock);
+        // First cache instance - store data
+        final prefs = await SharedPreferences.getInstance();
+        final cache1 = FireRiskCacheImpl(prefs: prefs, clock: fakeClock);
 
-      await cache1.set(lat: 55.9533, lon: -3.1883, data: testFireRisk);
-      await cache1.set(
-          lat: 55.8642, lon: -4.2518, data: testFireRisk); // Glasgow
+        await cache1.set(lat: 55.9533, lon: -3.1883, data: testFireRisk);
+        await cache1.set(
+          lat: 55.8642,
+          lon: -4.2518,
+          data: testFireRisk,
+        ); // Glasgow
 
-      // Second cache instance using same SharedPreferences instance
-      final cache2 = FireRiskCacheImpl(prefs: prefs, clock: fakeClock);
+        // Second cache instance using same SharedPreferences instance
+        final cache2 = FireRiskCacheImpl(prefs: prefs, clock: fakeClock);
 
-      // Verify both entries persist across cache instances
-      final edinburgh = await cache2.get('gcvwr'); // Edinburgh
-      final glasgow = await cache2.get('gcuvz'); // Glasgow
+        // Verify both entries persist across cache instances
+        final edinburgh = await cache2.get('gcvwr'); // Edinburgh
+        final glasgow = await cache2.get('gcuvz'); // Glasgow
 
-      expect(edinburgh.isSome(), true);
-      expect(glasgow.isSome(), true);
+        expect(edinburgh.isSome(), true);
+        expect(glasgow.isSome(), true);
 
-      // Verify metadata consistency
-      final metadata = await cache2.getMetadata();
-      expect(metadata.totalEntries, greaterThan(0));
-    });
+        // Verify metadata consistency
+        final metadata = await cache2.getMetadata();
+        expect(metadata.totalEntries, greaterThan(0));
+      },
+    );
 
     test('cache persistence works with TTL expiration', () async {
       final mockData = <String, Object>{};
@@ -168,8 +174,7 @@ void main() {
       expect(metadata2.totalEntries, greaterThan(0));
     });
 
-    test('corrupted cache data handled gracefully on persistence reload',
-        () async {
+    test('corrupted cache data handled gracefully on persistence reload', () async {
       final mockData = <String, Object>{
         // Store valid entry
         'cache_entry_gcvwr':
@@ -178,7 +183,7 @@ void main() {
         'cache_entry_gcpue': 'invalid json',
         // Valid metadata
         'cache_metadata':
-            '{"totalEntries":2,"lastCleanup":${DateTime.utc(2025, 10, 4, 12, 0, 0).millisecondsSinceEpoch},"accessLog":{}}'
+            '{"totalEntries":2,"lastCleanup":${DateTime.utc(2025, 10, 4, 12, 0, 0).millisecondsSinceEpoch},"accessLog":{}}',
       };
 
       SharedPreferences.setMockInitialValues(mockData);

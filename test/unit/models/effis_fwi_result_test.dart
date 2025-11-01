@@ -24,12 +24,12 @@ void main() {
             "ffmc": 88.5,
             "isi": 4.8,
             "bui": 25.4,
-            "datetime": "2023-09-13T00:00:00Z"
+            "datetime": "2023-09-13T00:00:00Z",
           },
           "geometry": {
             "type": "Point",
-            "coordinates": [-3.1883, 55.9533]
-          }
+            "coordinates": [-3.1883, 55.9533],
+          },
         };
 
         final result = EffisFwiResult.fromJson(jsonData);
@@ -65,12 +65,12 @@ void main() {
               "ffmc": 85.0,
               "isi": 5.0,
               "bui": 25.0,
-              "datetime": "2023-09-13T00:00:00Z"
+              "datetime": "2023-09-13T00:00:00Z",
             },
             "geometry": {
               "type": "Point",
-              "coordinates": [-3.0, 55.0]
-            }
+              "coordinates": [-3.0, 55.0],
+            },
           };
 
           final result = EffisFwiResult.fromJson(jsonData);
@@ -97,7 +97,8 @@ void main() {
               break;
             default:
               throw ArgumentError(
-                  'Unknown risk level: ${testCase["expectedRisk"]}');
+                'Unknown risk level: ${testCase["expectedRisk"]}',
+              );
           }
           expect(result.riskLevel, equals(expectedRisk));
         }
@@ -115,12 +116,12 @@ void main() {
             "ffmc": 85.0,
             "isi": 5.0,
             "bui": 25.0,
-            "datetime": "2023-09-13T00:00:00Z"
+            "datetime": "2023-09-13T00:00:00Z",
           },
           "geometry": {
             "type": "Point",
-            "coordinates": [-3.0, 55.0]
-          }
+            "coordinates": [-3.0, 55.0],
+          },
         };
 
         final result = EffisFwiResult.fromJson(jsonData);
@@ -146,12 +147,12 @@ void main() {
               "ffmc": 85.0,
               "isi": 5.0,
               "bui": 25.0,
-              "datetime": dateTimeStr
+              "datetime": dateTimeStr,
             },
             "geometry": {
               "type": "Point",
-              "coordinates": [-3.0, 55.0]
-            }
+              "coordinates": [-3.0, 55.0],
+            },
           };
 
           final result = EffisFwiResult.fromJson(jsonData);
@@ -178,16 +179,19 @@ void main() {
               "ffmc": 85.0,
               "isi": 5.0,
               "bui": 25.0,
-              "datetime": invalidDateTime
+              "datetime": invalidDateTime,
             },
             "geometry": {
               "type": "Point",
-              "coordinates": [-3.0, 55.0]
-            }
+              "coordinates": [-3.0, 55.0],
+            },
           };
 
-          expect(() => EffisFwiResult.fromJson(jsonData), throwsArgumentError,
-              reason: 'Should reject invalid datetime: $invalidDateTime');
+          expect(
+            () => EffisFwiResult.fromJson(jsonData),
+            throwsArgumentError,
+            reason: 'Should reject invalid datetime: $invalidDateTime',
+          );
         }
       });
     });
@@ -206,12 +210,12 @@ void main() {
               "ffmc": 85.0,
               "isi": 5.0,
               "bui": 25.0,
-              "datetime": "2023-09-13T00:00:00Z"
+              "datetime": "2023-09-13T00:00:00Z",
             },
             "geometry": {
               "type": "Point",
-              "coordinates": [-3.0, 55.0]
-            }
+              "coordinates": [-3.0, 55.0],
+            },
           };
 
           final result = EffisFwiResult.fromJson(jsonData);
@@ -229,16 +233,19 @@ void main() {
             "ffmc": 85.0,
             "isi": 5.0,
             "bui": 25.0,
-            "datetime": "2023-09-13T00:00:00Z"
+            "datetime": "2023-09-13T00:00:00Z",
           },
           "geometry": {
             "type": "Point",
-            "coordinates": [-3.0, 55.0]
-          }
+            "coordinates": [-3.0, 55.0],
+          },
         };
 
-        expect(() => EffisFwiResult.fromJson(jsonData), throwsArgumentError,
-            reason: 'Should reject negative FWI values');
+        expect(
+          () => EffisFwiResult.fromJson(jsonData),
+          throwsArgumentError,
+          reason: 'Should reject negative FWI values',
+        );
       });
     });
 
@@ -261,9 +268,9 @@ void main() {
               "ffmc": 85.0,
               "isi": 5.0,
               "bui": 25.0,
-              "datetime": "2023-09-13T00:00:00Z"
+              "datetime": "2023-09-13T00:00:00Z",
             },
-            "geometry": {"type": "Point", "coordinates": coords}
+            "geometry": {"type": "Point", "coordinates": coords},
           };
 
           final result = EffisFwiResult.fromJson(jsonData);
@@ -290,13 +297,16 @@ void main() {
               "ffmc": 85.0,
               "isi": 5.0,
               "bui": 25.0,
-              "datetime": "2023-09-13T00:00:00Z"
+              "datetime": "2023-09-13T00:00:00Z",
             },
-            "geometry": {"type": "Point", "coordinates": coords}
+            "geometry": {"type": "Point", "coordinates": coords},
           };
 
-          expect(() => EffisFwiResult.fromJson(jsonData), throwsArgumentError,
-              reason: 'Should reject invalid coordinates: $coords');
+          expect(
+            () => EffisFwiResult.fromJson(jsonData),
+            throwsArgumentError,
+            reason: 'Should reject invalid coordinates: $coords',
+          );
         }
       });
     });
@@ -312,12 +322,12 @@ void main() {
             "ffmc": 85.0,
             "isi": 5.0,
             "bui": 25.0,
-            "datetime": "2023-09-13T00:00:00Z"
+            "datetime": "2023-09-13T00:00:00Z",
           },
           "geometry": {
             "type": "Point",
-            "coordinates": [-3.0, 55.0]
-          }
+            "coordinates": [-3.0, 55.0],
+          },
         };
 
         final mandatoryFields = [
@@ -327,16 +337,18 @@ void main() {
           'ffmc',
           'isi',
           'bui',
-          'datetime'
+          'datetime',
         ];
 
         for (final field in mandatoryFields) {
           final incompleteJson = Map<String, dynamic>.from(baseJson);
           (incompleteJson['properties'] as Map<String, dynamic>).remove(field);
 
-          expect(() => EffisFwiResult.fromJson(incompleteJson),
-              throwsArgumentError,
-              reason: 'Should require field: $field');
+          expect(
+            () => EffisFwiResult.fromJson(incompleteJson),
+            throwsArgumentError,
+            reason: 'Should require field: $field',
+          );
         }
       });
 
@@ -350,17 +362,19 @@ void main() {
             "ffmc": 85.0,
             "isi": 5.0,
             "bui": 25.0,
-            "datetime": "2023-09-13T00:00:00Z"
+            "datetime": "2023-09-13T00:00:00Z",
           },
           "geometry": {
-            "type": "Point"
+            "type": "Point",
             // Missing coordinates
-          }
+          },
         };
 
-        expect(() => EffisFwiResult.fromJson(jsonWithoutCoords),
-            throwsArgumentError,
-            reason: 'Should require geometry coordinates');
+        expect(
+          () => EffisFwiResult.fromJson(jsonWithoutCoords),
+          throwsArgumentError,
+          reason: 'Should require geometry coordinates',
+        );
       });
     });
 
@@ -375,12 +389,12 @@ void main() {
             "ffmc": 88.5,
             "isi": 4.8,
             "bui": 25.4,
-            "datetime": "2023-09-13T00:00:00Z"
+            "datetime": "2023-09-13T00:00:00Z",
           },
           "geometry": {
             "type": "Point",
-            "coordinates": [-3.1883, 55.9533]
-          }
+            "coordinates": [-3.1883, 55.9533],
+          },
         };
 
         final result1 = EffisFwiResult.fromJson(jsonData);
@@ -399,12 +413,12 @@ void main() {
             "ffmc": 88.5,
             "isi": 4.8,
             "bui": 25.4,
-            "datetime": "2023-09-13T00:00:00Z"
+            "datetime": "2023-09-13T00:00:00Z",
           },
           "geometry": {
             "type": "Point",
-            "coordinates": [-3.1883, 55.9533]
-          }
+            "coordinates": [-3.1883, 55.9533],
+          },
         };
 
         final jsonData2 = {
@@ -416,12 +430,12 @@ void main() {
             "ffmc": 88.5,
             "isi": 4.8,
             "bui": 25.4,
-            "datetime": "2023-09-13T00:00:00Z"
+            "datetime": "2023-09-13T00:00:00Z",
           },
           "geometry": {
             "type": "Point",
-            "coordinates": [-3.1883, 55.9533]
-          }
+            "coordinates": [-3.1883, 55.9533],
+          },
         };
 
         final result1 = EffisFwiResult.fromJson(jsonData1);

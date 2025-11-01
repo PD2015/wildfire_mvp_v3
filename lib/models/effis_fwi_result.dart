@@ -103,11 +103,13 @@ class EffisFwiResult extends Equatable {
         datetime = DateTime.parse(datetimeStr);
         if (!datetime.isUtc) {
           throw ArgumentError(
-              'DateTime must be in UTC format (end with Z): $datetimeStr');
+            'DateTime must be in UTC format (end with Z): $datetimeStr',
+          );
         }
       } catch (e) {
         throw ArgumentError(
-            'Invalid datetime format: $datetimeStr. Expected UTC ISO format like 2023-09-13T00:00:00Z');
+          'Invalid datetime format: $datetimeStr. Expected UTC ISO format like 2023-09-13T00:00:00Z',
+        );
       }
 
       // Extract coordinates
@@ -139,22 +141,23 @@ class EffisFwiResult extends Equatable {
     }
     if (value is! num) {
       throw ArgumentError(
-          'Field $key must be a number, got: ${value.runtimeType}');
+        'Field $key must be a number, got: ${value.runtimeType}',
+      );
     }
     return value.toDouble();
   }
 
   @override
   List<Object?> get props => [
-        fwi,
-        dc,
-        dmc,
-        ffmc,
-        isi,
-        bui,
-        datetime,
-        longitude,
-        latitude,
-        riskLevel,
-      ];
+    fwi,
+    dc,
+    dmc,
+    ffmc,
+    isi,
+    bui,
+    datetime,
+    longitude,
+    latitude,
+    riskLevel,
+  ];
 }

@@ -43,9 +43,7 @@ class WildFireApp extends StatelessWidget {
         builder: (context, state, child) {
           return Scaffold(
             body: child,
-            bottomNavigationBar: AppBottomNav(
-              currentPath: state.uri.path,
-            ),
+            bottomNavigationBar: AppBottomNav(currentPath: state.uri.path),
           );
         },
         routes: [

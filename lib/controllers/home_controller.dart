@@ -50,8 +50,8 @@ class HomeController extends ChangeNotifier {
   HomeController({
     required LocationResolver locationResolver,
     required FireRiskService fireRiskService,
-  })  : _locationResolver = locationResolver,
-        _fireRiskService = fireRiskService {
+  }) : _locationResolver = locationResolver,
+       _fireRiskService = fireRiskService {
     developer.log('HomeController initialized', name: 'HomeController');
   }
 
@@ -87,8 +87,10 @@ class HomeController extends ChangeNotifier {
   /// Includes re-entrancy protection and timeout handling.
   Future<void> load() async {
     if (_isLoading) {
-      developer.log('Load request ignored - already loading',
-          name: 'HomeController');
+      developer.log(
+        'Load request ignored - already loading',
+        name: 'HomeController',
+      );
       return;
     }
 
@@ -101,8 +103,10 @@ class HomeController extends ChangeNotifier {
   /// user feedback. Includes the same re-entrancy protection and timeout.
   Future<void> retry() async {
     if (_isLoading) {
-      developer.log('Retry request ignored - already loading',
-          name: 'HomeController');
+      developer.log(
+        'Retry request ignored - already loading',
+        name: 'HomeController',
+      );
       return;
     }
 
@@ -118,8 +122,10 @@ class HomeController extends ChangeNotifier {
   /// [placeName] - Optional human-readable name for the location
   Future<void> setManualLocation(LatLng location, {String? placeName}) async {
     if (_isLoading) {
-      developer.log('Manual location request ignored - already loading',
-          name: 'HomeController');
+      developer.log(
+        'Manual location request ignored - already loading',
+        name: 'HomeController',
+      );
       return;
     }
 
@@ -127,18 +133,23 @@ class HomeController extends ChangeNotifier {
       // Save the manual location via LocationResolver
       await _locationResolver.saveManual(location, placeName: placeName);
       developer.log(
-          'Manual location set: ${LocationUtils.logRedact(location.latitude, location.longitude)}${placeName != null ? ' ($placeName)' : ''}',
-          name: 'HomeController');
+        'Manual location set: ${LocationUtils.logRedact(location.latitude, location.longitude)}${placeName != null ? ' ($placeName)' : ''}',
+        name: 'HomeController',
+      );
 
       // Immediately refresh with the new location
       await _performLoad(isRetry: false);
     } catch (e) {
-      developer.log('Failed to set manual location: $e',
-          name: 'HomeController');
-      _updateState(HomeStateError(
-        errorMessage: 'Failed to save location: ${e.toString()}',
-        canRetry: true,
-      ));
+      developer.log(
+        'Failed to set manual location: $e',
+        name: 'HomeController',
+      );
+      _updateState(
+        HomeStateError(
+          errorMessage: 'Failed to save location: ${e.toString()}',
+          canRetry: true,
+        ),
+      );
     }
   }
 
@@ -156,51 +167,56 @@ class HomeController extends ChangeNotifier {
   /// Core data loading implementation with timeout and error handling
   Future<void> _performLoad({required bool isRetry}) async {
     _isLoading = true;
-    _updateState(HomeStateLoading(
-      isRetry: isRetry,
-      startTime: DateTime.now(),
-    ));
+    _updateState(HomeStateLoading(isRetry: isRetry, startTime: DateTime.now()));
 
     // Set up global timeout
     _timeoutTimer?.cancel();
     _timeoutTimer = Timer(_globalDeadline, () {
       if (_isLoading) {
         developer.log(
-            'Global deadline exceeded (${_globalDeadline.inSeconds}s)',
-            name: 'HomeController');
+          'Global deadline exceeded (${_globalDeadline.inSeconds}s)',
+          name: 'HomeController',
+        );
         _handleTimeout();
       }
     });
 
     try {
       // Step 1: Resolve location
-      final locationResult =
-          await _locationResolver.getLatLon(allowDefault: true);
+      final locationResult = await _locationResolver.getLatLon(
+        allowDefault: true,
+      );
 
       late final LatLng location;
       switch (locationResult) {
         case Right(:final value):
           location = value;
           developer.log(
-              'Location resolved: ${LocationUtils.logRedact(location.latitude, location.longitude)}',
-              name: 'HomeController');
+            'Location resolved: ${LocationUtils.logRedact(location.latitude, location.longitude)}',
+            name: 'HomeController',
+          );
         case Left(:final value):
           // If TEST_REGION is set, use test region center (same as MapController)
           // Otherwise, treat as error
           if (FeatureFlags.testRegion != 'scotland') {
             location = _getTestRegionCenter();
             developer.log(
-                'Using test region: ${FeatureFlags.testRegion} at ${LocationUtils.logRedact(location.latitude, location.longitude)}',
-                name: 'HomeController');
+              'Using test region: ${FeatureFlags.testRegion} at ${LocationUtils.logRedact(location.latitude, location.longitude)}',
+              name: 'HomeController',
+            );
           } else {
-            developer.log('Location resolution failed: $value',
-                name: 'HomeController');
+            developer.log(
+              'Location resolution failed: $value',
+              name: 'HomeController',
+            );
             _finishLoading();
-            _updateState(HomeStateError(
-              errorMessage:
-                  'Location unavailable: ${_getLocationErrorMessage(value)}',
-              canRetry: true,
-            ));
+            _updateState(
+              HomeStateError(
+                errorMessage:
+                    'Location unavailable: ${_getLocationErrorMessage(value)}',
+                canRetry: true,
+              ),
+            );
             return;
           }
       }
@@ -215,47 +231,61 @@ class HomeController extends ChangeNotifier {
       switch (riskResult) {
         case Right(:final value):
           developer.log(
-              'Fire risk data obtained: ${value.level} from ${value.source}',
-              name: 'HomeController');
+            'Fire risk data obtained: ${value.level} from ${value.source}',
+            name: 'HomeController',
+          );
           developer.log(
-              '🔥🔥🔥 FIRE RISK RESULT: ${value.level} from ${value.source} (FWI: ${value.fwi})',
-              name: 'HomeController');
+            '🔥🔥🔥 FIRE RISK RESULT: ${value.level} from ${value.source} (FWI: ${value.fwi})',
+            name: 'HomeController',
+          );
           _finishLoading();
-          _updateState(HomeStateSuccess(
-            riskData: value,
-            location: location,
-            lastUpdated: DateTime.now(),
-          ));
+          _updateState(
+            HomeStateSuccess(
+              riskData: value,
+              location: location,
+              lastUpdated: DateTime.now(),
+            ),
+          );
         case Left(:final value):
-          developer.log('Fire risk service failed: ${value.message}',
-              name: 'HomeController');
+          developer.log(
+            'Fire risk service failed: ${value.message}',
+            name: 'HomeController',
+          );
           _finishLoading();
-          _updateState(HomeStateError(
-            errorMessage: 'Fire risk data unavailable: ${value.message}',
-            canRetry: true,
-          ));
+          _updateState(
+            HomeStateError(
+              errorMessage: 'Fire risk data unavailable: ${value.message}',
+              canRetry: true,
+            ),
+          );
       }
     } catch (e) {
       developer.log('Unexpected error during load: $e', name: 'HomeController');
       _finishLoading();
-      _updateState(HomeStateError(
-        errorMessage: 'Unexpected error: ${e.toString()}',
-        canRetry: true,
-      ));
+      _updateState(
+        HomeStateError(
+          errorMessage: 'Unexpected error: ${e.toString()}',
+          canRetry: true,
+        ),
+      );
     }
   }
 
   /// Handles global timeout scenario
   void _handleTimeout() {
     if (_isLoading) {
-      developer.log('Operation timed out after ${_globalDeadline.inSeconds}s',
-          name: 'HomeController');
+      developer.log(
+        'Operation timed out after ${_globalDeadline.inSeconds}s',
+        name: 'HomeController',
+      );
       _finishLoading();
-      _updateState(HomeStateError(
-        errorMessage:
-            'Request timed out after ${_globalDeadline.inSeconds} seconds',
-        canRetry: true,
-      ));
+      _updateState(
+        HomeStateError(
+          errorMessage:
+              'Request timed out after ${_globalDeadline.inSeconds} seconds',
+          canRetry: true,
+        ),
+      );
     }
   }
 

@@ -23,8 +23,10 @@ void main() {
         expect(UrlLauncherUtils.isValidPhoneNumber(''), isFalse);
         expect(UrlLauncherUtils.isValidPhoneNumber('12'), isFalse);
         expect(UrlLauncherUtils.isValidPhoneNumber('abc'), isFalse);
-        expect(UrlLauncherUtils.isValidPhoneNumber('12345678901234567890'),
-            isFalse);
+        expect(
+          UrlLauncherUtils.isValidPhoneNumber('12345678901234567890'),
+          isFalse,
+        );
       });
     });
 
@@ -33,58 +35,66 @@ void main() {
         expect(UrlLauncherUtils.formatTelUri('999'), 'tel:999');
         expect(UrlLauncherUtils.formatTelUri('101'), 'tel:101');
         expect(UrlLauncherUtils.formatTelUri('0800 555 111'), 'tel:0800555111');
-        expect(UrlLauncherUtils.formatTelUri('+44 800 555 111'),
-            'tel:44800555111');
+        expect(
+          UrlLauncherUtils.formatTelUri('+44 800 555 111'),
+          'tel:44800555111',
+        );
         expect(UrlLauncherUtils.formatTelUri('0800-555-111'), 'tel:0800555111');
       });
 
       test('removes all non-digit characters', () {
         expect(
-            UrlLauncherUtils.formatTelUri('(0800) 555-111'), 'tel:0800555111');
+          UrlLauncherUtils.formatTelUri('(0800) 555-111'),
+          'tel:0800555111',
+        );
         expect(UrlLauncherUtils.formatTelUri('0800.555.111'), 'tel:0800555111');
-        expect(UrlLauncherUtils.formatTelUri('0800 - 555 - 111'),
-            'tel:0800555111');
+        expect(
+          UrlLauncherUtils.formatTelUri('0800 - 555 - 111'),
+          'tel:0800555111',
+        );
       });
     });
 
     group('Error Messages', () {
-      test('generates appropriate error messages for different call results',
-          () {
-        const contact = EmergencyContact.fireService;
+      test(
+        'generates appropriate error messages for different call results',
+        () {
+          const contact = EmergencyContact.fireService;
 
-        // Test unsupported platform message
-        final unsupportedMessage = UrlLauncherUtils.getErrorMessage(
-          CallResult.unsupported,
-          contact,
-        );
-        expect(unsupportedMessage, contains('Could not open dialer'));
-        expect(unsupportedMessage, contains('999'));
-        expect(unsupportedMessage, contains('manually'));
+          // Test unsupported platform message
+          final unsupportedMessage = UrlLauncherUtils.getErrorMessage(
+            CallResult.unsupported,
+            contact,
+          );
+          expect(unsupportedMessage, contains('Could not open dialer'));
+          expect(unsupportedMessage, contains('999'));
+          expect(unsupportedMessage, contains('manually'));
 
-        // Test failed call message
-        final failedMessage = UrlLauncherUtils.getErrorMessage(
-          CallResult.failed,
-          contact,
-        );
-        expect(failedMessage, contains('Could not open dialer'));
-        expect(failedMessage, contains('999'));
+          // Test failed call message
+          final failedMessage = UrlLauncherUtils.getErrorMessage(
+            CallResult.failed,
+            contact,
+          );
+          expect(failedMessage, contains('Could not open dialer'));
+          expect(failedMessage, contains('999'));
 
-        // Test cancelled call message
-        final cancelledMessage = UrlLauncherUtils.getErrorMessage(
-          CallResult.cancelled,
-          contact,
-        );
-        expect(cancelledMessage, contains('cancelled'));
-        expect(cancelledMessage, contains('999'));
+          // Test cancelled call message
+          final cancelledMessage = UrlLauncherUtils.getErrorMessage(
+            CallResult.cancelled,
+            contact,
+          );
+          expect(cancelledMessage, contains('cancelled'));
+          expect(cancelledMessage, contains('999'));
 
-        // Test success message
-        final successMessage = UrlLauncherUtils.getErrorMessage(
-          CallResult.success,
-          contact,
-        );
-        expect(successMessage, contains('Successfully opened'));
-        expect(successMessage, contains('999'));
-      });
+          // Test success message
+          final successMessage = UrlLauncherUtils.getErrorMessage(
+            CallResult.success,
+            contact,
+          );
+          expect(successMessage, contains('Successfully opened'));
+          expect(successMessage, contains('999'));
+        },
+      );
     });
 
     group('Platform Support Detection', () {
@@ -175,7 +185,9 @@ void main() {
 
           // Verify phone number validation
           expect(
-              UrlLauncherUtils.isValidPhoneNumber(contact.phoneNumber), isTrue);
+            UrlLauncherUtils.isValidPhoneNumber(contact.phoneNumber),
+            isTrue,
+          );
 
           // Verify error message generation
           final errorMessage = UrlLauncherUtils.getErrorMessage(
@@ -188,8 +200,9 @@ void main() {
 
       test('telUri property matches formatTelUri function', () {
         for (final contact in EmergencyContact.scottishFireContacts) {
-          final expectedUri =
-              UrlLauncherUtils.formatTelUri(contact.phoneNumber);
+          final expectedUri = UrlLauncherUtils.formatTelUri(
+            contact.phoneNumber,
+          );
           expect(contact.telUri, equals(expectedUri));
         }
       });

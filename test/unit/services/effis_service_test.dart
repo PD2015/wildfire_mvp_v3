@@ -53,45 +53,50 @@ void main() {
     });
 
     group('getFwi success scenarios', () {
-      test('should parse Edinburgh success fixture to EffisFwiResult',
-          () async {
-        // Mock HTTP response
-        when(mockHttpClient.get(
-          any,
-          headers: anyNamed('headers'),
-        )).thenAnswer((_) async => http.Response(
+      test(
+        'should parse Edinburgh success fixture to EffisFwiResult',
+        () async {
+          // Mock HTTP response
+          when(
+            mockHttpClient.get(any, headers: anyNamed('headers')),
+          ).thenAnswer(
+            (_) async => http.Response(
               edinburghSuccessFixture,
               200,
               headers: {'content-type': 'application/json'},
-            ));
+            ),
+          );
 
-        // Create service
-        final service = EffisServiceImpl(httpClient: mockHttpClient);
+          // Create service
+          final service = EffisServiceImpl(httpClient: mockHttpClient);
 
-        // Execute request
-        final result = await service.getFwi(lat: 55.9533, lon: -3.1883);
+          // Execute request
+          final result = await service.getFwi(lat: 55.9533, lon: -3.1883);
 
-        // Verify successful result
-        expect(result.isRight(), isTrue);
-        final fwiResult =
-            result.getOrElse(() => throw Exception('Expected Right'));
-        expect(fwiResult.fwi, equals(12.0));
-        expect(
-            fwiResult.datetime, equals(DateTime.parse("2023-09-13T00:00:00Z")));
-        expect(fwiResult.longitude, equals(-3.1883));
-        expect(fwiResult.latitude, equals(55.9533));
-      });
+          // Verify successful result
+          expect(result.isRight(), isTrue);
+          final fwiResult = result.getOrElse(
+            () => throw Exception('Expected Right'),
+          );
+          expect(fwiResult.fwi, equals(12.0));
+          expect(
+            fwiResult.datetime,
+            equals(DateTime.parse("2023-09-13T00:00:00Z")),
+          );
+          expect(fwiResult.longitude, equals(-3.1883));
+          expect(fwiResult.latitude, equals(55.9533));
+        },
+      );
 
       test('should construct correct WMS GetFeatureInfo URL', () async {
         // Mock HTTP response
-        when(mockHttpClient.get(
-          any,
-          headers: anyNamed('headers'),
-        )).thenAnswer((_) async => http.Response(
-              jsonEncode({"type": "FeatureCollection", "features": []}),
-              200,
-              headers: {'content-type': 'application/json'},
-            ));
+        when(mockHttpClient.get(any, headers: anyNamed('headers'))).thenAnswer(
+          (_) async => http.Response(
+            jsonEncode({"type": "FeatureCollection", "features": []}),
+            200,
+            headers: {'content-type': 'application/json'},
+          ),
+        );
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -100,9 +105,9 @@ void main() {
         await service.getFwi(lat: 55.9533, lon: -3.1883);
 
         // Verify URL construction
-        final captured =
-            verify(mockHttpClient.get(captureAny, headers: anyNamed('headers')))
-                .captured;
+        final captured = verify(
+          mockHttpClient.get(captureAny, headers: anyNamed('headers')),
+        ).captured;
         final requestUri = captured.first as Uri;
 
         expect(requestUri.scheme, equals('https'));
@@ -111,9 +116,13 @@ void main() {
         expect(requestUri.queryParameters['VERSION'], equals('1.3.0'));
         expect(requestUri.queryParameters['REQUEST'], equals('GetFeatureInfo'));
         expect(
-            requestUri.queryParameters['LAYERS'], equals('nasa_geos5.query'));
-        expect(requestUri.queryParameters['QUERY_LAYERS'],
-            equals('nasa_geos5.query'));
+          requestUri.queryParameters['LAYERS'],
+          equals('nasa_geos5.query'),
+        );
+        expect(
+          requestUri.queryParameters['QUERY_LAYERS'],
+          equals('nasa_geos5.query'),
+        );
         expect(requestUri.queryParameters['CRS'], equals('EPSG:4326'));
         expect(requestUri.queryParameters['INFO_FORMAT'], equals('text/plain'));
         expect(requestUri.queryParameters['FEATURE_COUNT'], equals('1'));
@@ -123,14 +132,13 @@ void main() {
     group('getFwi error scenarios', () {
       test('should map 404 response to notFound ApiError', () async {
         // Mock 404 response
-        when(mockHttpClient.get(
-          any,
-          headers: anyNamed('headers'),
-        )).thenAnswer((_) async => http.Response(
-              'Not Found',
-              404,
-              headers: {'content-type': 'text/plain'},
-            ));
+        when(mockHttpClient.get(any, headers: anyNamed('headers'))).thenAnswer(
+          (_) async => http.Response(
+            'Not Found',
+            404,
+            headers: {'content-type': 'text/plain'},
+          ),
+        );
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -140,55 +148,63 @@ void main() {
 
         // Verify error mapping
         expect(result.isLeft(), isTrue);
-        final error =
-            result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        final error = result.fold(
+          (l) => l,
+          (r) => throw Exception('Expected Left'),
+        );
         expect(error.reason, equals(ApiErrorReason.notFound));
         expect(error.statusCode, equals(404));
       });
 
-      test('should retry 503 responses with exponential backoff then fail',
-          () async {
-        // Mock 503 responses for all retry attempts
-        when(mockHttpClient.get(
-          any,
-          headers: anyNamed('headers'),
-        )).thenAnswer((_) async => http.Response(
+      test(
+        'should retry 503 responses with exponential backoff then fail',
+        () async {
+          // Mock 503 responses for all retry attempts
+          when(
+            mockHttpClient.get(any, headers: anyNamed('headers')),
+          ).thenAnswer(
+            (_) async => http.Response(
               'Service Unavailable',
               503,
               headers: {'content-type': 'text/plain'},
-            ));
+            ),
+          );
 
-        // Create service
-        final service = EffisServiceImpl(httpClient: mockHttpClient);
+          // Create service
+          final service = EffisServiceImpl(httpClient: mockHttpClient);
 
-        // Execute getFwi
-        final result = await service.getFwi(
-          lat: 55.9533,
-          lon: -3.1883,
-          maxRetries: 3,
-        );
+          // Execute getFwi
+          final result = await service.getFwi(
+            lat: 55.9533,
+            lon: -3.1883,
+            maxRetries: 3,
+          );
 
-        // Verify error after all retries exhausted
-        expect(result.isLeft(), isTrue);
-        final error =
-            result.fold((l) => l, (r) => throw Exception('Expected Left'));
-        expect(error.reason, equals(ApiErrorReason.serviceUnavailable));
-        expect(error.statusCode, equals(503));
+          // Verify error after all retries exhausted
+          expect(result.isLeft(), isTrue);
+          final error = result.fold(
+            (l) => l,
+            (r) => throw Exception('Expected Left'),
+          );
+          expect(error.reason, equals(ApiErrorReason.serviceUnavailable));
+          expect(error.statusCode, equals(503));
 
-        // Verify retry attempts (initial + 3 retries = 4 total)
-        verify(mockHttpClient.get(any, headers: anyNamed('headers'))).called(4);
-      });
+          // Verify retry attempts (initial + 3 retries = 4 total)
+          verify(
+            mockHttpClient.get(any, headers: anyNamed('headers')),
+          ).called(4);
+        },
+      );
 
       test('should handle malformed JSON response', () async {
         // Mock malformed JSON response
-        when(mockHttpClient.get(
-          any,
-          headers: anyNamed('headers'),
-        )).thenAnswer((_) async => http.Response(
-              '{"invalid": json}',
-              200,
-              headers: {'content-type': 'application/json'},
-            ));
+        when(mockHttpClient.get(any, headers: anyNamed('headers'))).thenAnswer(
+          (_) async => http.Response(
+            '{"invalid": json}',
+            200,
+            headers: {'content-type': 'application/json'},
+          ),
+        );
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -198,17 +214,18 @@ void main() {
 
         // Verify error mapping
         expect(result.isLeft(), isTrue);
-        final error =
-            result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        final error = result.fold(
+          (l) => l,
+          (r) => throw Exception('Expected Left'),
+        );
         expect(error.message, contains('Failed to parse JSON response'));
       });
 
       test('should handle timeout errors', () async {
         // Mock timeout exception
-        when(mockHttpClient.get(
-          any,
-          headers: anyNamed('headers'),
-        )).thenThrow(const SocketException('Connection timed out'));
+        when(
+          mockHttpClient.get(any, headers: anyNamed('headers')),
+        ).thenThrow(const SocketException('Connection timed out'));
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -222,21 +239,22 @@ void main() {
 
         // Verify timeout error
         expect(result.isLeft(), isTrue);
-        final error =
-            result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        final error = result.fold(
+          (l) => l,
+          (r) => throw Exception('Expected Left'),
+        );
         expect(error.message, contains('connection'));
       });
 
       test('should handle empty features response', () async {
         // Mock empty features response
-        when(mockHttpClient.get(
-          any,
-          headers: anyNamed('headers'),
-        )).thenAnswer((_) async => http.Response(
-              jsonEncode({"type": "FeatureCollection", "features": []}),
-              200,
-              headers: {'content-type': 'application/json'},
-            ));
+        when(mockHttpClient.get(any, headers: anyNamed('headers'))).thenAnswer(
+          (_) async => http.Response(
+            jsonEncode({"type": "FeatureCollection", "features": []}),
+            200,
+            headers: {'content-type': 'application/json'},
+          ),
+        );
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -246,8 +264,10 @@ void main() {
 
         // Verify error mapping
         expect(result.isLeft(), isTrue);
-        final error =
-            result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        final error = result.fold(
+          (l) => l,
+          (r) => throw Exception('Expected Left'),
+        );
         expect(error.message, contains('No FWI data available'));
       });
     });
@@ -255,14 +275,13 @@ void main() {
     group('HTTP headers and configuration', () {
       test('should send correct User-Agent and Accept headers', () async {
         // Mock HTTP response
-        when(mockHttpClient.get(
-          any,
-          headers: anyNamed('headers'),
-        )).thenAnswer((_) async => http.Response(
-              edinburghSuccessFixture,
-              200,
-              headers: {'content-type': 'application/json'},
-            ));
+        when(mockHttpClient.get(any, headers: anyNamed('headers'))).thenAnswer(
+          (_) async => http.Response(
+            edinburghSuccessFixture,
+            200,
+            headers: {'content-type': 'application/json'},
+          ),
+        );
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -271,9 +290,9 @@ void main() {
         await service.getFwi(lat: 55.9533, lon: -3.1883);
 
         // Verify headers
-        final captured =
-            verify(mockHttpClient.get(any, headers: captureAnyNamed('headers')))
-                .captured;
+        final captured = verify(
+          mockHttpClient.get(any, headers: captureAnyNamed('headers')),
+        ).captured;
         final headers = captured.first as Map<String, String>;
         expect(headers['User-Agent'], equals('WildFire/0.1 (prototype)'));
         expect(headers['Accept'], equals('application/json,*/*;q=0.8'));
@@ -289,8 +308,10 @@ void main() {
         final result = await service.getFwi(lat: 91.0, lon: 0.0);
 
         expect(result.isLeft(), isTrue);
-        final error =
-            result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        final error = result.fold(
+          (l) => l,
+          (r) => throw Exception('Expected Left'),
+        );
         expect(error.message, contains('Latitude must be between -90 and 90'));
       });
 
@@ -302,24 +323,27 @@ void main() {
         final result = await service.getFwi(lat: 0.0, lon: 181.0);
 
         expect(result.isLeft(), isTrue);
-        final error =
-            result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        final error = result.fold(
+          (l) => l,
+          (r) => throw Exception('Expected Left'),
+        );
         expect(
-            error.message, contains('Longitude must be between -180 and 180'));
+          error.message,
+          contains('Longitude must be between -180 and 180'),
+        );
       });
     });
 
     group('retry behavior and exponential backoff (T016)', () {
       test('should not retry on 4xx client errors', () async {
         // Mock 400 response (client error - should not retry)
-        when(mockHttpClient.get(
-          any,
-          headers: anyNamed('headers'),
-        )).thenAnswer((_) async => http.Response(
-              'Bad Request',
-              400,
-              headers: {'content-type': 'text/plain'},
-            ));
+        when(mockHttpClient.get(any, headers: anyNamed('headers'))).thenAnswer(
+          (_) async => http.Response(
+            'Bad Request',
+            400,
+            headers: {'content-type': 'text/plain'},
+          ),
+        );
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -333,8 +357,10 @@ void main() {
 
         // Verify error without retries
         expect(result.isLeft(), isTrue);
-        final error =
-            result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        final error = result.fold(
+          (l) => l,
+          (r) => throw Exception('Expected Left'),
+        );
         expect(error.statusCode, equals(400));
 
         // Verify no retries (only 1 attempt)
@@ -344,10 +370,9 @@ void main() {
       test('should succeed on retry after initial failures', () async {
         // Mock first call fails, second succeeds
         var callCount = 0;
-        when(mockHttpClient.get(
-          any,
-          headers: anyNamed('headers'),
-        )).thenAnswer((_) async {
+        when(mockHttpClient.get(any, headers: anyNamed('headers'))).thenAnswer((
+          _,
+        ) async {
           callCount++;
           if (callCount == 1) {
             return http.Response('Service Unavailable', 503);
@@ -372,8 +397,9 @@ void main() {
 
         // Verify successful result after retries
         expect(result.isRight(), isTrue);
-        final fwiResult =
-            result.getOrElse(() => throw Exception('Expected Right'));
+        final fwiResult = result.getOrElse(
+          () => throw Exception('Expected Right'),
+        );
         expect(fwiResult.fwi, equals(12.0));
 
         // Verify retry attempts (2 total: 1 failure + 1 success)
@@ -382,14 +408,13 @@ void main() {
 
       test('should respect maxRetries parameter', () async {
         // Mock 503 responses for all attempts
-        when(mockHttpClient.get(
-          any,
-          headers: anyNamed('headers'),
-        )).thenAnswer((_) async => http.Response(
-              'Service Unavailable',
-              503,
-              headers: {'content-type': 'text/plain'},
-            ));
+        when(mockHttpClient.get(any, headers: anyNamed('headers'))).thenAnswer(
+          (_) async => http.Response(
+            'Service Unavailable',
+            503,
+            headers: {'content-type': 'text/plain'},
+          ),
+        );
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);
@@ -403,8 +428,10 @@ void main() {
 
         // Verify error after limited retries
         expect(result.isLeft(), isTrue);
-        final error =
-            result.fold((l) => l, (r) => throw Exception('Expected Left'));
+        final error = result.fold(
+          (l) => l,
+          (r) => throw Exception('Expected Left'),
+        );
         expect(error.reason, equals(ApiErrorReason.serviceUnavailable));
 
         // Verify retry attempts (initial + 1 retry = 2 total)

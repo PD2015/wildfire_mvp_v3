@@ -25,9 +25,9 @@ class MapController extends ChangeNotifier {
     required LocationResolver locationResolver,
     required FireLocationService fireLocationService,
     required FireRiskService fireRiskService,
-  })  : _locationResolver = locationResolver,
-        _fireLocationService = fireLocationService,
-        _fireRiskService = fireRiskService;
+  }) : _locationResolver = locationResolver,
+       _fireLocationService = fireLocationService,
+       _fireRiskService = fireRiskService;
 
   /// Get test region coordinates based on TEST_REGION environment variable
   static LatLng _getTestRegionCenter() {
@@ -59,16 +59,14 @@ class MapController extends ChangeNotifier {
       // Step 1: Resolve location
       final locationResult = await _locationResolver.getLatLon();
 
-      final LatLng centerLocation = locationResult.fold(
-        (error) {
-          // Use test region based on environment variable
-          final testCenter = _getTestRegionCenter();
-          debugPrint(
-              '🗺️ Using test region: ${FeatureFlags.testRegion} at ${testCenter.latitude},${testCenter.longitude}');
-          return testCenter;
-        },
-        (location) => location,
-      );
+      final LatLng centerLocation = locationResult.fold((error) {
+        // Use test region based on environment variable
+        final testCenter = _getTestRegionCenter();
+        debugPrint(
+          '🗺️ Using test region: ${FeatureFlags.testRegion} at ${testCenter.latitude},${testCenter.longitude}',
+        );
+        return testCenter;
+      }, (location) => location);
 
       // Step 2: Create default bbox around location (~220km radius to cover all of Scotland)
       final bounds = LatLngBounds(
@@ -84,13 +82,15 @@ class MapController extends ChangeNotifier {
 
       // Step 3: Fetch fire incidents
       debugPrint(
-          '🗺️ MapController: Fetching fires for bounds: SW(${bounds.southwest.latitude},${bounds.southwest.longitude}) NE(${bounds.northeast.latitude},${bounds.northeast.longitude})');
+        '🗺️ MapController: Fetching fires for bounds: SW(${bounds.southwest.latitude},${bounds.southwest.longitude}) NE(${bounds.northeast.latitude},${bounds.northeast.longitude})',
+      );
       final firesResult = await _fireLocationService.getActiveFires(bounds);
 
       firesResult.fold(
         (error) {
           debugPrint(
-              '🗺️ MapController: Error loading fires: ${error.message}');
+            '🗺️ MapController: Error loading fires: ${error.message}',
+          );
           _state = MapError(
             message: 'Failed to load fire data: ${error.message}',
             lastKnownLocation: centerLocation,
@@ -98,18 +98,22 @@ class MapController extends ChangeNotifier {
         },
         (incidents) {
           debugPrint(
-              '🗺️ MapController: Loaded ${incidents.length} fire incidents');
+            '🗺️ MapController: Loaded ${incidents.length} fire incidents',
+          );
           if (incidents.isNotEmpty) {
             debugPrint(
-                '🗺️ MapController: First incident: ${incidents.first.description} at ${incidents.first.location.latitude},${incidents.first.location.longitude}');
+              '🗺️ MapController: First incident: ${incidents.first.description} at ${incidents.first.location.latitude},${incidents.first.location.longitude}',
+            );
             debugPrint(
-                '🗺️ MapController: Freshness: ${incidents.first.freshness}, Source: ${incidents.first.source}');
+              '🗺️ MapController: Freshness: ${incidents.first.freshness}, Source: ${incidents.first.source}',
+            );
           }
           _state = MapSuccess(
             incidents: incidents,
             centerLocation: centerLocation,
-            freshness:
-                incidents.isEmpty ? Freshness.live : incidents.first.freshness,
+            freshness: incidents.isEmpty
+                ? Freshness.live
+                : incidents.first.freshness,
             lastUpdated: DateTime.now(),
           );
         },
@@ -117,9 +121,7 @@ class MapController extends ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      _state = MapError(
-        message: 'Initialization failed: $e',
-      );
+      _state = MapError(message: 'Initialization failed: $e');
       notifyListeners();
     }
   }
@@ -132,8 +134,9 @@ class MapController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final firesResult =
-          await _fireLocationService.getActiveFires(visibleBounds);
+      final firesResult = await _fireLocationService.getActiveFires(
+        visibleBounds,
+      );
 
       firesResult.fold(
         (error) {
@@ -145,17 +148,16 @@ class MapController extends ChangeNotifier {
               lastKnownLocation: previousState.centerLocation,
             );
           } else {
-            _state = MapError(
-              message: 'Failed to refresh: ${error.message}',
-            );
+            _state = MapError(message: 'Failed to refresh: ${error.message}');
           }
         },
         (incidents) {
           _state = MapSuccess(
             incidents: incidents,
             centerLocation: visibleBounds.center,
-            freshness:
-                incidents.isEmpty ? Freshness.live : incidents.first.freshness,
+            freshness: incidents.isEmpty
+                ? Freshness.live
+                : incidents.first.freshness,
             lastUpdated: DateTime.now(),
           );
         },
@@ -165,10 +167,12 @@ class MapController extends ChangeNotifier {
     } catch (e) {
       _state = MapError(
         message: 'Refresh failed: $e',
-        cachedIncidents:
-            previousState is MapSuccess ? previousState.incidents : null,
-        lastKnownLocation:
-            previousState is MapSuccess ? previousState.centerLocation : null,
+        cachedIncidents: previousState is MapSuccess
+            ? previousState.incidents
+            : null,
+        lastKnownLocation: previousState is MapSuccess
+            ? previousState.centerLocation
+            : null,
       );
       notifyListeners();
     }
