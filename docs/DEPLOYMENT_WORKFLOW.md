@@ -1,6 +1,6 @@
 # Deployment Workflow - GitFlow with Local Merge Strategy
 
-**Version**: 2.0 (2025-10-30)  
+**Version**: 2.1 (2025-11-01)  
 **Philosophy**: Test locally, validate in staging, deploy to production with confidence
 
 ## 🎯 Core Principles
@@ -17,10 +17,10 @@
 ```
 main (production)
   ↑ merge locally after staging validation
-develop (staging)
+staging (staging environment)
   ↑ PR merge after code review
 feature/xxx (development)
-  ↑ branch from develop
+  ↑ branch from staging
 ```
 
 ### Branch Purposes
@@ -28,7 +28,7 @@ feature/xxx (development)
 | Branch | Environment | Auto-Deploy | Purpose |
 |--------|------------|-------------|---------|
 | `main` | **Production** | ❌ Manual approval | Live site (wildfire-app-e11f8.web.app) |
-| `develop` | **Staging** | ✅ Auto | Integration testing, QA, stakeholder review |
+| `staging` | **Staging** | ✅ Auto | Integration testing, QA, stakeholder review |
 | `feature/*` | **Preview** | ✅ Auto (PR only) | Development, code review |
 
 ---
@@ -38,9 +38,9 @@ feature/xxx (development)
 ### Phase 1: Feature Development (Local)
 
 ```bash
-# 1. Start from latest develop
-git checkout develop
-git pull origin develop
+# 1. Start from latest staging
+git checkout staging
+git pull origin staging
 
 # 2. Create feature branch
 git checkout -b feature/new-feature
@@ -58,14 +58,14 @@ git push origin feature/new-feature
 
 ---
 
-### Phase 2: Integration (PR to develop)
+### Phase 2: Integration (PR to staging)
 
 ```bash
-# 1. Update feature branch with latest develop
-git checkout develop
-git pull origin develop
+# 1. Update feature branch with latest staging
+git checkout staging
+git pull origin staging
 git checkout feature/new-feature
-git merge develop  # ← Resolve conflicts locally
+git merge staging  # ← Resolve conflicts locally
 
 # 2. Test merged state
 flutter test
@@ -74,8 +74,8 @@ flutter analyze
 # 3. Push updated feature
 git push origin feature/new-feature
 
-# 4. Create PR to develop (on GitHub)
-gh pr create --base develop --title "feat: new feature" --body "Description"
+# 4. Create PR to staging (on GitHub)
+gh pr create --base staging --title "feat: new feature" --body "Description"
 ```
 
 **GitHub Actions**:
@@ -84,13 +84,13 @@ gh pr create --base develop --title "feat: new feature" --body "Description"
 - ✅ Preview deployment to `pr-N` channel
 - 👁️ Code review required
 
-**Deliverable**: PR merged to `develop` after review
+**Deliverable**: PR merged to `staging` after review
 
 ---
 
-### Phase 3: Staging Validation (develop branch)
+### Phase 3: Staging Validation (staging branch)
 
-When PR merges to `develop`:
+When PR merges to `staging`:
 
 ```bash
 # Automatic triggers:
@@ -113,15 +113,15 @@ When PR merges to `develop`:
 ### Phase 4: Production Release Preparation (Local)
 
 ```bash
-# 1. Ensure develop is fully tested in staging
+# 1. Ensure staging is fully tested
 # Check staging: https://wildfire-app-e11f8-staging.web.app
 
 # 2. Update local main
 git checkout main
 git pull origin main
 
-# 3. Merge develop into main LOCALLY
-git merge develop
+# 3. Merge staging into main LOCALLY
+git merge staging
 # If conflicts: resolve, test, then continue
 
 # 4. Final verification
@@ -191,24 +191,24 @@ git push origin main
 
 ### Starting New Feature
 ```bash
-git checkout develop && git pull origin develop
+git checkout staging && git pull origin staging
 git checkout -b feature/my-feature
 # Develop...
 git push origin feature/my-feature
-gh pr create --base develop --title "feat: my feature"
+gh pr create --base staging --title "feat: my feature"
 ```
 
-### Merging to Staging (develop)
+### Merging to Staging
 ```bash
 # After PR approved and merged, check staging deployment
-gh run list --branch=develop --limit 1
+gh run list --branch=staging --limit 1
 # Wait for success, then test: https://wildfire-app-e11f8-staging.web.app
 ```
 
 ### Releasing to Production (main)
 ```bash
 git checkout main && git pull origin main
-git merge develop  # Resolve conflicts if any
+git merge staging  # Resolve conflicts if any
 flutter test && flutter analyze
 git tag v1.2.3 -m "Release 1.2.3"
 git push origin main --tags
@@ -235,21 +235,21 @@ firebase hosting:rollback
 └─────────────────────────────────────────────────────────────┘
 
 ┌──────────────┐
-│ feature/xxx  │ ← Branch from develop
+│ feature/xxx  │ ← Branch from staging
 └──────┬───────┘
        │ Local development & testing
-       │ git merge develop (resolve conflicts)
+       │ git merge staging (resolve conflicts)
        │ flutter test (all pass)
        ↓
 ┌──────────────┐
-│  Pull Request │ → base: develop
+│  Pull Request │ → base: staging
 └──────┬───────┘
        │ CI: Gates, Build, Preview deploy
        │ Code review
-       │ Merge to develop
+       │ Merge to staging
        ↓
 ┌──────────────┐
-│   develop    │ ← Staging environment
+│   staging    │ ← Staging environment
 └──────┬───────┘   Auto-deploy to staging channel
        │ Manual QA testing (1-3 days)
        │ Stakeholder approval
@@ -259,7 +259,7 @@ firebase hosting:rollback
 ┌──────────────┐
 │  Local merge │ ← YOU control this
 │  to main     │   git checkout main
-└──────┬───────┘   git merge develop (local)
+└──────┬───────┘   git merge staging (local)
        │ flutter test (verify)
        │ git push origin main
        ↓
@@ -285,7 +285,7 @@ firebase hosting:rollback
 
 ### 2. Staging Environment
 **Problem**: Testing in production is risky  
-**Solution**: `develop` branch auto-deploys to staging for validation
+**Solution**: `staging` branch auto-deploys to staging for validation
 
 ### 3. Manual Production Approval
 **Problem**: Auto-deploy on merge can deploy broken code  
@@ -313,7 +313,7 @@ feature → PR → merge on GitHub → main → AUTO-DEPLOY 🔴
 
 ### Improved (Safe)
 ```bash
-feature → PR → develop → staging (test 1-3 days) → 
+feature → PR → staging → staging env (test 1-3 days) → 
 local merge to main → manual approval → DEPLOY ✅
 All conflicts resolved locally
 All tests pass before main updated
@@ -331,7 +331,7 @@ To implement this workflow, update `.github/workflows/flutter.yml`:
 deploy-staging:
   name: Deploy Staging
   needs: build-web
-  if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+  if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
   runs-on: ubuntu-latest
   steps:
     - name: Deploy to staging channel
@@ -389,6 +389,6 @@ gh api repos/PD2015/wildfire_mvp_v3/branches/main/protection \
 
 ---
 
-**Last Updated**: 2025-10-30  
+**Last Updated**: 2025-11-01  
 **Owner**: Engineering Team  
 **Review**: After any deployment issue or quarterly

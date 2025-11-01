@@ -260,6 +260,36 @@ jobs:
           channelId: 'pr-${{ github.event.pull_request.number }}'
           expires: 7d
 
+  # Deploy to staging environment (auto-deploy on push to staging) (A11)
+  deploy-staging:
+    name: Deploy Staging Environment
+    needs: build-web
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: staging
+      url: https://wildfire-app-e11f8-staging.web.app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Download web artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build
+          path: build/web/
+      
+      - name: Deploy to staging channel
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
+          channelId: staging
+          expires: 90d
+
   # Deploy to production (requires manual approval) (A11)
   deploy-production:
     name: Deploy Production

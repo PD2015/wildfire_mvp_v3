@@ -11,12 +11,12 @@
        ↓
 ┌─────────────┐
 │ PULL REQUEST│──────┐
-│  to develop │      │ CI: Test, Build, Preview
+│  to staging │      │ CI: Test, Build, Preview
 └──────┬──────┘      │ Code Review
        │ merge       │
        ↓             ↓
 ┌─────────────┐  ┌─────────────┐
-│   develop   │  │   PR Preview│
+│   staging   │  │   PR Preview│
 │  (STAGING)  │  │   Channel   │
 └──────┬──────┘  └─────────────┘
        │ QA: 1-3 days
@@ -50,7 +50,7 @@ Time: ────────────────────────�
 feature/a     ●───●───●───●
 branch              ╲       ╲
                      ╲       ╲
-develop      ─────────●───────●──────●───────────────●────→
+staging      ─────────●───────●──────●───────────────●────→
 branch               merge PR  │      │  auto-deploy │
                                │      │              │
                                │      ↓              ↓
@@ -85,7 +85,7 @@ branch                         │                  deploy
 │                     Code Review                          │
 ├──────────────────────────────────────────────────────────┤
 │ State: UNDER_REVIEW                                      │
-│ Location: PR to develop                                  │
+│ Location: PR to staging                                  │
 │ Testing: CI + Preview deploy                             │
 │ Deployed: PR preview channel (temporary)                 │
 └───────────────────────┬──────────────────────────────────┘
@@ -95,7 +95,7 @@ branch                         │                  deploy
 │                  Staging Validation                      │
 ├──────────────────────────────────────────────────────────┤
 │ State: IN_STAGING                                        │
-│ Location: develop branch                                 │
+│ Location: staging branch                                 │
 │ Testing: Manual QA, integration tests                    │
 │ Deployed: Staging channel (wildfire-staging)            │
 │ Duration: 1-3 days                                       │
@@ -130,11 +130,11 @@ branch                         │                  deploy
 Case 1: Clean merge (most common)
 ─────────────────────────────────
 
-develop:     A───B───C
+staging:     A───B───C
                       ╲
 feature:              ●───D───E
                            
-$ git merge develop
+$ git merge staging
 Fast-forward merge ✅
 No conflicts
 Test and push ✅
@@ -143,11 +143,11 @@ Test and push ✅
 Case 2: Merge conflict (requires local resolution)
 ───────────────────────────────────────────────────
 
-develop:     A───B───C───D
+staging:     A───B───C───D
                   ╲       ╲
 feature:          ●───E───F
                       
-$ git merge develop
+$ git merge staging
 CONFLICT in lib/file.dart ⚠️
 
 Local resolution:
@@ -160,7 +160,7 @@ Local resolution:
 7. git push
 
 Result: 
-develop:     A───B───C───D
+staging:     A───B───C───D
                   ╲       ╲
 feature:          ●───E───F───M (merge commit)
                                 ↑
@@ -170,7 +170,7 @@ feature:          ●───E───F───M (merge commit)
 Case 3: GitHub UI merge (AVOID)
 ────────────────────────────────
 
-develop:     A───B───C───D
+staging:     A───B───C───D
                   ╲       ╲
 feature:          ●───E───F
                       
@@ -251,8 +251,8 @@ Click "Resolve conflicts" in GitHub
 ┌─────────────────────────────────────────────────────────────┐
 │                      STAGING                                │
 ├─────────────────────────────────────────────────────────────┤
-│ Branch:   develop                                           │
-│ Deploys:  Auto on push to develop                           │
+│ Branch:   staging                                           │
+│ Deploys:  Auto on push to staging                           │
 │ URL:      wildfire-app-e11f8-staging.web.app               │
 │ Lifetime: Permanent                                         │
 │ Purpose:  Integration testing, QA, stakeholder validation   │
@@ -314,7 +314,7 @@ in 1 hour      issue        │Previous │           │Previous │
                                 │                     │
                                 ↓                     ↓
                            Fix root cause        Fix root cause
-                           in develop            in develop
+                           in staging            in staging
                            Test in staging       Test in staging
                            Release when ready    Release when ready
 ```
@@ -326,8 +326,8 @@ START
   │
   ↓
 ┌─────────────────┐
-│ develop tested  │
-│ in staging?     │
+│ staging tested  │
+│ in staging env? │
 └────┬────────────┘
      │
      ├─ No → Continue testing in staging
@@ -349,7 +349,7 @@ START
      ↓
 ┌─────────────────┐
 │ git merge       │
-│ develop         │
+│ staging         │
 └────┬────────────┘
      │
      ├─ Conflicts? → Resolve locally → Test
@@ -428,5 +428,5 @@ START
 
 ---
 
-**Last Updated**: 2025-10-30  
+**Last Updated**: 2025-11-01  
 **Related**: docs/DEPLOYMENT_WORKFLOW.md
