@@ -24,20 +24,16 @@
       "parameters": {
         "required_status_checks": [
           {
-            "context": "Quality Gates (Format, Analyze, Test)",
-            "integration_id": null
+            "context": "Quality Gates (Format, Analyze, Test)"
           },
           {
-            "context": "Constitutional Compliance (C1-C5)",
-            "integration_id": null
+            "context": "Constitutional Compliance (C1-C5)"
           },
           {
-            "context": "Build Web Artifact",
-            "integration_id": null
+            "context": "Build Web Artifact"
           },
           {
-            "context": "Verify iOS Xcode Build Phase",
-            "integration_id": null
+            "context": "Verify iOS Xcode Build Phase"
           }
         ],
         "strict_required_status_checks_policy": true
