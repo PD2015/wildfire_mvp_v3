@@ -423,6 +423,8 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      preview_url: ${{ steps.deploy.outputs.details_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -435,6 +437,7 @@ jobs:
           path: build/web/
       
       - name: Deploy to Firebase preview channel
+        id: deploy
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
@@ -442,6 +445,34 @@ jobs:
           projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
           channelId: 'pr-${{ github.event.pull_request.number }}'
           expires: 7d
+
+  # Run integration tests against deployed preview (A11)
+  test-preview:
+    name: Test Preview Deployment
+    needs: deploy-preview
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.5'
+          channel: 'stable'
+          cache: true
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Run integration tests against preview URL
+        run: |
+          flutter test integration_test/report_fire_integration_test.dart \
+            --dart-define=TEST_TARGET_URL=${{ needs.deploy-preview.outputs.preview_url }} \
+            --platform=chrome
+        continue-on-error: true
+        # Note: Tests may fail if Google Maps API restrictions don't include preview URLs
+        # Add preview URL pattern to Google Cloud Console HTTP referrer restrictions
 
   # Deploy to staging environment (auto-deploy on push to staging) (A11)
   deploy-staging:

@@ -18,6 +18,7 @@ We follow the [Divio Documentation System](https://documentation.divio.com/) wit
 
 #### Testing
 - [Integration Testing Guide](guides/testing/integration-tests.md) *(pending consolidation)*
+- [Preview Deployment Testing](guides/testing/preview-deployment-testing.md) - Testing web apps in deployed environments
 - [Platform-Specific Testing](guides/testing/platform-specific.md) *(pending consolidation)*
 - [Test Troubleshooting](guides/testing/troubleshooting.md) *(pending consolidation)*
 
