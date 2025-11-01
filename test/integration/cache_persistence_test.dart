@@ -174,8 +174,7 @@ void main() {
       expect(metadata2.totalEntries, greaterThan(0));
     });
 
-    test('corrupted cache data handled gracefully on persistence reload',
-        () async {
+    test('corrupted cache data handled gracefully on persistence reload', () async {
       final mockData = <String, Object>{
         // Store valid entry
         'cache_entry_gcvwr':

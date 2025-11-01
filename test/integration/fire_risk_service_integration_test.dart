@@ -236,8 +236,8 @@ void main() {
 
           // Validate telemetry sequence: EFFIS → SEPA → Cache
           final startEvents = spyTelemetry.eventsOfType<AttemptStartEvent>();
-          final fallbackEvents =
-              spyTelemetry.eventsOfType<FallbackDepthEvent>();
+          final fallbackEvents = spyTelemetry
+              .eventsOfType<FallbackDepthEvent>();
 
           expect(startEvents.length, 3);
           expect(startEvents[0].source, TelemetrySource.effis);

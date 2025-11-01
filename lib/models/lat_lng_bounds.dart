@@ -34,9 +34,9 @@ class LatLngBounds extends Equatable {
 
   /// Computed properties
   LatLng get center => LatLng(
-        (southwest.latitude + northeast.latitude) / 2,
-        (southwest.longitude + northeast.longitude) / 2,
-      );
+    (southwest.latitude + northeast.latitude) / 2,
+    (southwest.longitude + northeast.longitude) / 2,
+  );
 
   double get width => northeast.longitude - southwest.longitude;
   double get height => northeast.latitude - southwest.latitude;

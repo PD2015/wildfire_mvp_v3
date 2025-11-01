@@ -33,9 +33,8 @@ class GeolocatorServiceImpl implements GeolocatorService {
   Future<Position> getCurrentPosition({
     LocationAccuracy desiredAccuracy = LocationAccuracy.best,
     Duration? timeLimit,
-  }) =>
-      Geolocator.getCurrentPosition(
-        desiredAccuracy: desiredAccuracy,
-        timeLimit: timeLimit,
-      );
+  }) => Geolocator.getCurrentPosition(
+    desiredAccuracy: desiredAccuracy,
+    timeLimit: timeLimit,
+  );
 }

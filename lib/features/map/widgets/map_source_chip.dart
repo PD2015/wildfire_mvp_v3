@@ -100,10 +100,10 @@ class MapSourceChip extends StatelessWidget {
                 Text(
                   'DEMO DATA',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.amber.shade900,
-                        letterSpacing: 1.2,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.amber.shade900,
+                    letterSpacing: 1.2,
+                  ),
                 ),
               ],
             ),
@@ -127,9 +127,9 @@ class MapSourceChip extends StatelessWidget {
               Text(
                 _getSourceLabel(),
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: _getSourceColor(context),
-                    ),
+                  fontWeight: FontWeight.bold,
+                  color: _getSourceColor(context),
+                ),
               ),
               const SizedBox(width: 8),
               Text(

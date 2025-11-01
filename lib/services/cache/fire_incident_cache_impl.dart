@@ -51,8 +51,8 @@ class FireIncidentCacheImpl implements FireIncidentCache {
   /// - [prefs]: SharedPreferences instance for persistent storage
   /// - [clock]: Clock for testable time operations (defaults to SystemClock)
   FireIncidentCacheImpl({required SharedPreferences prefs, Clock? clock})
-      : _prefs = prefs,
-        _clock = clock ?? SystemClock();
+    : _prefs = prefs,
+      _clock = clock ?? SystemClock();
 
   /// Retrieve cached fire incident list by geohash key with TTL enforcement
   ///
@@ -219,8 +219,8 @@ class FireIncidentCacheImpl implements FireIncidentCache {
   Future<void> clear() async {
     try {
       final keys = _prefs.getKeys().where(
-            (key) => key.startsWith(_entryKeyPrefix),
-          );
+        (key) => key.startsWith(_entryKeyPrefix),
+      );
       for (final key in keys) {
         _prefs.remove(key);
       }
@@ -290,8 +290,8 @@ class FireIncidentCacheImpl implements FireIncidentCache {
 
     try {
       final keys = _prefs.getKeys().where(
-            (key) => key.startsWith(_entryKeyPrefix),
-          );
+        (key) => key.startsWith(_entryKeyPrefix),
+      );
 
       for (final key in keys) {
         final geohashKey = key.substring(_entryKeyPrefix.length);
@@ -368,8 +368,8 @@ class FireIncidentCacheImpl implements FireIncidentCache {
   Future<void> _updateTotalEntries() async {
     try {
       final keys = _prefs.getKeys().where(
-            (key) => key.startsWith(_entryKeyPrefix),
-          );
+        (key) => key.startsWith(_entryKeyPrefix),
+      );
       final metadata = await getMetadata();
 
       await _saveMetadata(metadata.copyWith(totalEntries: keys.length));

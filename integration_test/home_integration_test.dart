@@ -88,7 +88,8 @@ void main() {
 
         // App should have either resolved location or fallen back gracefully
         // (showing data or showing a retry button, not just blank error)
-        final hasContent = find
+        final hasContent =
+            find
                 .textContaining('Risk', findRichText: true)
                 .evaluate()
                 .isNotEmpty ||
@@ -147,7 +148,8 @@ void main() {
         await tester.pumpAndSettle(const Duration(seconds: 2));
 
         // Check if we're in an error state without cached data
-        final errorWithoutData = find
+        final errorWithoutData =
+            find
                 .textContaining('Unable to load', findRichText: true)
                 .evaluate()
                 .isNotEmpty &&
@@ -221,7 +223,8 @@ void main() {
         await tester.pumpAndSettle(const Duration(seconds: 2));
 
         // Check if we're in an error state without cached data
-        final errorWithoutData = find
+        final errorWithoutData =
+            find
                 .textContaining('Unable to load', findRichText: true)
                 .evaluate()
                 .isNotEmpty &&
@@ -297,7 +300,8 @@ void main() {
           await tester.pumpAndSettle(const Duration(seconds: 5));
 
           // After retry, either data loads or error persists
-          final hasContentAfterRetry = find
+          final hasContentAfterRetry =
+              find
                   .textContaining('Risk', findRichText: true)
                   .evaluate()
                   .isNotEmpty ||
@@ -425,7 +429,8 @@ void main() {
         // - Risk data (from cache/fallback)
         // - Manual entry option
         // - Error with retry
-        final hasValidState = find
+        final hasValidState =
+            find
                 .textContaining('Risk', findRichText: true)
                 .evaluate()
                 .isNotEmpty ||

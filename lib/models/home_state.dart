@@ -98,11 +98,11 @@ class HomeStateError extends HomeState {
 
   @override
   List<Object?> get props => [
-        errorMessage,
-        cachedData,
-        cachedLocation,
-        canRetry,
-      ];
+    errorMessage,
+    cachedData,
+    cachedLocation,
+    canRetry,
+  ];
 
   @override
   String toString() =>

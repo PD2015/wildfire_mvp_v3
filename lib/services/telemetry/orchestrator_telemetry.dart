@@ -173,7 +173,7 @@ class CompleteEvent extends TelemetryEvent {
   final Duration totalElapsed;
 
   const CompleteEvent(this.chosenSource, this.totalElapsed, DateTime timestamp)
-      : super(timestamp);
+    : super(timestamp);
 
   @override
   String toString() =>

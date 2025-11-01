@@ -188,9 +188,9 @@ class _Banner extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: foreground,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      color: foreground,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(

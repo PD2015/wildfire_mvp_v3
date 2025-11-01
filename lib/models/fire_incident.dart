@@ -99,7 +99,8 @@ class FireIncident extends Equatable {
             DateTime.now().toIso8601String(),
       ),
       intensity: intensity,
-      description: properties['description']?.toString() ??
+      description:
+          properties['description']?.toString() ??
           properties['country']?.toString(),
       areaHectares: areaHa?.toDouble(),
     );
@@ -171,13 +172,13 @@ class FireIncident extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        location,
-        source,
-        freshness,
-        timestamp,
-        intensity,
-        description,
-        areaHectares,
-      ];
+    id,
+    location,
+    source,
+    freshness,
+    timestamp,
+    intensity,
+    description,
+    areaHectares,
+  ];
 }
