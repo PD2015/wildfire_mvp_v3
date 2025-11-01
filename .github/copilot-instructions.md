@@ -86,6 +86,110 @@ Dart 3.0+ with Flutter SDK: Follow standard conventions
 - Always use GeographicUtils.logRedact() for coordinate logging (C2 compliance)
 - Commit messages follow Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`
 
+## Documentation Guidelines
+
+All documentation follows the **Divio Documentation System** with 4 categories organized in structured folders:
+
+### Documentation Structure
+```
+docs/
+├── README.md                    # Main navigation hub (start here)
+├── guides/                      # How-to guides (problem-oriented)
+│   ├── setup/                   # Setup & configuration guides
+│   ├── testing/                 # Testing methodologies
+│   └── security/                # Security best practices
+├── reference/                   # Reference material (information-oriented)
+│   └── Technical specs, API docs, test data
+├── explanation/                 # Explanation (understanding-oriented)
+│   └── Architecture, decisions, concepts
+├── tutorials/                   # Tutorials (learning-oriented)
+│   └── Step-by-step learning paths
+├── runbooks/                    # Operational procedures
+│   └── incident-response/       # Emergency response procedures
+└── history/                     # Archived & deprecated docs
+    ├── sessions/                # Historical session summaries
+    └── deprecated/              # Superseded documentation
+```
+
+### When Creating/Updating Documentation
+
+**1. Choose the Right Category** (Divio System):
+- **Guides (How-To)**: "How do I configure Google Maps?" → `guides/setup/google-maps.md`
+- **Reference**: "What are the FWI thresholds?" → `reference/test-regions.md`
+- **Explanation**: "Why do we use worktrees?" → `WORKTREE_WORKFLOW.md`
+- **Tutorials**: "Learn Flutter testing step-by-step" → `tutorials/` (future)
+- **Runbooks**: "Security incident response" → `runbooks/incident-response/security-incidents.md`
+
+**2. Always Add Frontmatter**:
+```markdown
+---
+title: Google Maps Setup Guide
+status: active
+last_updated: 2025-11-01
+category: guides
+subcategory: setup
+related:
+  - guides/security/api-key-management.md
+  - reference/test-regions.md
+replaces:
+  - ../history/deprecated/GOOGLE_MAPS_API_SETUP.md
+---
+```
+
+**3. Use Existing Docs as Templates**:
+- Setup guides: See `guides/setup/google-maps.md`
+- Testing guides: See `guides/testing/integration-tests.md`
+- Security guides: See `guides/security/api-key-management.md`
+- Reference docs: See `reference/test-coverage.md`
+
+**4. Link Related Documentation**:
+- Use relative paths in `related:` frontmatter section
+- Cross-reference in document body with relative links
+- Update `docs/README.md` navigation if adding major new doc
+
+**5. Archive, Don't Delete**:
+- Move deprecated docs to `history/deprecated/`
+- Move session summaries to `history/sessions/`
+- Track archived files in new doc's `replaces:` frontmatter
+- Preserve git history (use `git mv`, not delete + create)
+
+**6. Documentation Anti-Patterns (Avoid)**:
+- ❌ Creating duplicate docs with similar content
+- ❌ Documentation in root `docs/` without category
+- ❌ Missing frontmatter on active documentation
+- ❌ Deleting old docs (archive them instead)
+- ❌ Breaking internal links without updating references
+
+**7. Key Documentation Principles**:
+- ✅ Single source of truth (consolidate, don't duplicate)
+- ✅ Clear categorization (users can find what they need)
+- ✅ Maintained history (archived docs preserve context)
+- ✅ Living documents (update `last_updated` when editing)
+- ✅ Discoverable (proper linking and navigation)
+
+### Quick Reference for Agents
+
+**Creating new doc?**
+1. Choose category folder (`guides/`, `reference/`, etc.)
+2. Add frontmatter with title, status, category, related docs
+3. Follow existing doc structure in that category
+4. Update `docs/README.md` if it's a major addition
+
+**Updating existing doc?**
+1. Update `last_updated` in frontmatter
+2. Preserve existing structure and style
+3. Check if related docs need updates
+4. Update links if moving/renaming
+
+**Consolidating docs?**
+1. Create new comprehensive doc in proper category folder
+2. Add `replaces:` frontmatter listing archived files
+3. Use `git mv` to archive old docs to `history/`
+4. Update internal links in related documents
+5. Commit with clear consolidation message
+
+**Full strategy**: See `docs/DOCUMENTATION_STRATEGY.md`
+
 ## Recent Changes
 - 012-a11-ci-cd: Added Dart 3.9.2, Flutter 3.35.5 stable + Firebase Hosting (deployment infrastructure), GitHub Actions (CI/CD orchestration), google_maps_flutter ^2.5.0 (mapping component), firebase-tools CLI (deployment tool)
 - **2025-10-20**: A10 Web Support - Clarified macOS web (Chrome/Safari) vs macOS desktop distinction. Google Maps works on web via google_maps_flutter_web ^0.5.14+2. Updated platform detection comments and unsupported platform messaging.
