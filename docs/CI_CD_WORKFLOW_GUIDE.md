@@ -1,7 +1,7 @@
 ---
 title: CI/CD Workflow Guide
 status: active
-last_updated: 2025-10-30
+last_updated: 2025-11-01
 category: guides
 subcategory: deployment
 related:
@@ -13,7 +13,7 @@ related:
 # CI/CD Pipeline & Workflow Guide
 
 **Project**: WildFire MVP v3  
-**Last Updated**: 30 October 2025  
+**Last Updated**: 1 November 2025  
 **Pipeline**: GitHub Actions + Firebase Hosting  
 
 ---
@@ -22,13 +22,15 @@ related:
 
 1. [Pipeline Architecture](#pipeline-architecture)
 2. [Workflow Phases](#workflow-phases)
-3. [Best Practices](#best-practices)
-4. [Feature Development Workflow](#feature-development-workflow)
-5. [Troubleshooting](#troubleshooting)
-6. [Monitoring & Commands](#monitoring--commands)
-7. [Worktrees & CI/CD](#worktrees--cicd)
-8. [Production Deployment](#production-deployment)
-9. [Quick Reference](#quick-reference)
+3. [Web Testing Strategy](#web-testing-strategy)
+4. [Staging Environment (Under Review)](#staging-environment-under-review)
+5. [Best Practices](#best-practices)
+6. [Feature Development Workflow](#feature-development-workflow)
+7. [Troubleshooting](#troubleshooting)
+8. [Monitoring & Commands](#monitoring--commands)
+9. [Worktrees & CI/CD](#worktrees--cicd)
+10. [Production Deployment](#production-deployment)
+11. [Quick Reference](#quick-reference)
 
 ---
 
@@ -62,22 +64,24 @@ related:
 │  4. Retention: 7 days                                          │
 └─────────────────────────────────────────────────────────────────┘
                               ↓
-            ┌─────────────────┴─────────────────┐
-            ↓                                   ↓
-┌───────────────────────────┐     ┌───────────────────────────┐
-│ Phase 3a: PR Preview      │     │ Phase 3b: Production      │
-│ (if pull_request)         │     │ (if push to main)         │
-├───────────────────────────┤     ├───────────────────────────┤
-│ deploy-preview job:       │     │ deploy-production job:    │
-│ 1. Download artifact      │     │ 1. Download artifact      │
-│ 2. Deploy to Firebase     │     │ 2. WAIT FOR APPROVAL ⏸️   │
-│    Channel: pr-{number}   │     │ 3. Deploy to Firebase     │
-│ 3. Post comment with URL  │     │    Channel: live          │
-│ 4. Auto-cleanup: 7 days   │     │ 4. URL: production site   │
-└───────────────────────────┘     └───────────────────────────┘
-         ↓                                     ↓
-   Preview URL:                          Production URL:
-   pr-123--wildfire-app-e11f8.web.app   wildfire-app-e11f8.web.app
+            ┌─────────────────┴──────────────────┬───────────────┐
+            ↓                                    ↓               ↓
+┌───────────────────────┐     ┌──────────────────────────┐     ┌───────────────────────┐
+│ Phase 3a: PR Preview  │     │ Phase 3b: Staging 🚧     │     │ Phase 3c: Production  │
+│ (if pull_request)     │     │ (if push to staging)     │     │ (if push to main)     │
+├───────────────────────┤     ├──────────────────────────┤     ├───────────────────────┤
+│ deploy-preview:       │     │ deploy-staging:          │     │ deploy-production:    │
+│ 1. Download artifact  │     │ 1. Download artifact     │     │ 1. Download artifact  │
+│ 2. Deploy to Firebase │     │ 2. Deploy to Firebase    │     │ 2. WAIT FOR APPROVAL  │
+│    Channel: pr-{num}  │     │    Channel: staging      │     │ 3. Deploy to Firebase │
+│ 3. Post comment       │     │ 3. No approval needed ⚠️ │     │    Channel: live      │
+│ 4. Expires: 7 days    │     │ 4. Expires: 90 days      │     │ 4. Manual approval ✅ │
+└───────────────────────┘     └──────────────────────────┘     └───────────────────────┘
+         ↓                                ↓                               ↓
+   Preview URL:                    Staging URL:                    Production URL:
+   pr-123--app.web.app             app-staging.web.app             app.web.app
+
+🚧 = Under review - see "Staging Environment (Under Review)" section
 ```
 
 ### **Key Components**
@@ -85,10 +89,10 @@ related:
 | Component | Purpose | Configuration |
 |-----------|---------|---------------|
 | **GitHub Actions** | CI/CD orchestration | `.github/workflows/flutter.yml` |
-| **Firebase Hosting** | Web hosting (preview + production) | `firebase.json`, `.firebaserc` |
+| **Firebase Hosting** | Web hosting (preview + staging + production) | `firebase.json`, `.firebaserc` |
 | **GitHub Secrets** | Secure API key storage | Repository Settings → Secrets |
 | **GitHub Environments** | Production approval gate | Repository Settings → Environments |
-| **Firebase Channels** | PR preview deployments | Auto-created per PR |
+| **Firebase Channels** | PR preview + staging deployments | Auto-created per PR, staging channel |
 
 ---
 
@@ -239,6 +243,350 @@ related:
 - M2: Zero deployments without approval ✅
 - M3: Zero API key exposures ✅
 - M5: Production availability ≥99.9% ✅
+
+---
+
+## 🧪 Web Testing Strategy
+
+### **Why Web Tests Are Special**
+
+Web integration tests **cannot run in CI** due to Google Maps JavaScript API requirements:
+
+1. **Maps loads in HTML** (before Flutter starts)
+2. **CI has no API keys** (security - can't expose in logs)
+3. **Maps error breaks page** (prevents Flutter widget tree from rendering)
+4. **Result**: Navigation bar doesn't appear, tests fail
+
+**Solution**: Test against **deployed environments** where API keys are securely injected.
+
+---
+
+### **Three Testing Approaches**
+
+#### **1. Automated Post-Deployment Tests** (Implemented) ✅
+
+**Job**: `test-preview` in `.github/workflows/flutter.yml`
+
+**Runs**: After `deploy-preview` completes
+
+**What it does**:
+```yaml
+- name: Run integration tests against preview URL
+  run: |
+    flutter test integration_test/report_fire_integration_test.dart \
+      --dart-define=TEST_TARGET_URL=${{ needs.deploy-preview.outputs.preview_url }} \
+      --platform=chrome
+  continue-on-error: true
+```
+
+**Status**: Currently soft-fail (`continue-on-error: true`)
+
+**To enable strict enforcement**:
+1. Add Firebase preview URL pattern to Google Maps API restrictions:
+   ```
+   https://wildfire-app-e11f8--pr-*-*.web.app/*
+   ```
+2. Remove `continue-on-error: true`
+3. Tests will block PR merge if they fail
+
+---
+
+#### **2. Manual QA Checklist** (Recommended for All PRs)
+
+**When**: Before approving/merging PRs that touch UI or navigation
+
+**Process**:
+1. Get preview URL from PR comment (posted by Firebase action)
+2. Run through checklist (see [Preview Deployment Testing Guide](guides/testing/preview-deployment-testing.md))
+3. Document results in PR review
+
+**QA Checklist** (abbreviated):
+- ✅ Home screen loads with risk banner
+- ✅ Navigation bar shows 3 destinations (Home, Map, Report Fire)
+- ✅ Click "Map" → Map tiles load (no watermark)
+- ✅ Click "Report Fire" → Emergency buttons render
+- ✅ No console errors in browser DevTools
+
+**Full checklist**: See `docs/guides/testing/preview-deployment-testing.md`
+
+---
+
+#### **3. Staging Environment Smoke Tests**
+
+**When**: Before promoting to production
+
+**URL**: https://wildfire-app-e11f8-staging.web.app
+
+**Manual validation**:
+- Run full QA checklist
+- Test on real mobile devices
+- Verify analytics/monitoring
+- Check Lighthouse scores
+
+**Automated (future)**:
+```bash
+flutter test integration_test/ \
+  --dart-define=TEST_TARGET_URL=https://wildfire-app-e11f8-staging.web.app \
+  --platform=chrome
+```
+
+---
+
+### **HTTP Referrer Configuration**
+
+**Required for web testing**: Google Maps API key must allow these referrers:
+
+**Development**:
+```
+localhost:*
+127.0.0.1:*
+```
+
+**Preview Deployments**:
+```
+https://wildfire-app-e11f8--pr-*-*.web.app/*
+```
+
+**Staging**:
+```
+https://wildfire-app-e11f8-staging.web.app/*
+```
+
+**Production**:
+```
+https://wildfire-app-e11f8.web.app/*
+```
+
+**How to update**: Google Cloud Console → APIs & Services → Credentials → Your Web API Key → HTTP referrers
+
+---
+
+### **Detailed Guide**
+
+For comprehensive testing procedures, troubleshooting, and best practices, see:
+
+📖 **[Preview Deployment Testing Guide](guides/testing/preview-deployment-testing.md)**
+
+---
+
+## 🚧 Staging Environment (Under Review)
+
+### **Current Configuration**
+
+The staging environment is currently configured to **auto-deploy on push to the `staging` branch** without manual approval.
+
+**Job**: `deploy-staging`
+
+**Trigger**: `if: github.event_name == 'push' && github.ref == 'refs/heads/staging'`
+
+**Configuration**:
+```yaml
+deploy-staging:
+  name: Deploy Staging Environment
+  needs: build-web
+  if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
+  runs-on: ubuntu-latest
+  timeout-minutes: 10
+  environment:
+    name: staging
+    url: https://wildfire-app-e11f8-staging.web.app
+  steps:
+    - Download web artifact
+    - Deploy to Firebase channel: staging
+    - Expiration: 90 days (vs 7 days for PR previews)
+```
+
+**Intended Use Case**:
+- Integration testing environment between PR previews and production
+- Longer-lived than PR previews (90 days vs 7 days)
+- Accessible at: `https://wildfire-app-e11f8-staging.web.app`
+
+---
+
+### **⚠️ Under Review: Deployment Strategy**
+
+The automatic deployment behavior for staging is currently under review. This configuration was implemented but not fully documented in the original A11 CI/CD specification.
+
+**Questions to Address**:
+1. Should staging require manual approval like production?
+2. Should staging only deploy from specific branches (e.g., `develop`)?
+3. Should staging exist as a separate environment at all?
+
+---
+
+### **Alternative Options**
+
+#### **Option 1: Keep Current Setup (Auto-Deploy on Push)**
+
+**Current State**: ✅ Implemented
+
+**Pros**:
+- Fast feedback for integration testing
+- No manual intervention needed
+- Mirrors common staging environment patterns
+- Useful for testing merged features before production
+
+**Cons**:
+- No human verification before deployment
+- Could deploy broken code to staging if CI passes but has runtime issues
+- Adds complexity to deployment pipeline
+- Staging URL could be shared externally and show unfinished work
+
+**Use Case**: 
+```bash
+# Developer merges feature branch to staging
+git checkout staging
+git merge feature-branch
+git push origin staging
+# ✅ Automatically deploys to staging.web.app (no approval needed)
+```
+
+---
+
+#### **Option 2: Add Manual Approval (Like Production)**
+
+**Implementation**: Add GitHub Environment protection rules
+
+**Changes Needed**:
+1. GitHub Settings → Environments → staging → Add required reviewers
+2. Update workflow: Keep `environment: staging` configuration (triggers approval gate)
+
+**Pros**:
+- Human verification before deployment
+- Catches issues that tests might miss
+- Consistent with production deployment model
+- More controlled release process
+
+**Cons**:
+- Slower feedback cycle (requires manual action)
+- Extra approval step may be redundant if already tested in PR previews
+- May slow down development velocity
+
+**Use Case**:
+```bash
+# Push to staging triggers workflow
+git push origin staging
+# ⏸️ Waits for approval in GitHub Actions UI
+# 👤 Reviewer approves deployment
+# ✅ Deploys to staging.web.app after approval
+```
+
+---
+
+#### **Option 3: Remove Staging Entirely (Simplified Flow)**
+
+**Implementation**: Delete `deploy-staging` job from workflow
+
+**Deployment Flow**:
+```
+PR Preview (temporary) → Production (manual approval)
+```
+
+**Pros**:
+- Simpler pipeline (fewer moving parts)
+- Less configuration to maintain
+- PR previews may be sufficient for testing
+- One less environment to monitor
+
+**Cons**:
+- No integration testing environment
+- Can't test merged features together before production
+- May need production rollbacks more frequently
+- Loses 90-day persistent testing URL
+
+**Use Case**:
+- Teams that don't need integration testing
+- Projects where PR previews provide enough confidence
+- Smaller teams with less complex deployment needs
+
+---
+
+#### **Option 4: Staging as Branch-Based Preview (No Auto-Deploy)**
+
+**Implementation**: Staging branch uses PR preview mechanism
+
+**Changes Needed**:
+1. Remove `deploy-staging` job
+2. Create PR from `staging` → `main` for integration testing
+3. Use PR preview URL as "staging" environment
+
+**Pros**:
+- Reuses existing preview infrastructure
+- No special staging configuration needed
+- Explicit "promotion" from staging to production via PR merge
+- Clear audit trail of what's in staging
+
+**Cons**:
+- Always requires open PR from staging to main
+- Preview URLs are less memorable than staging.web.app
+- 7-day expiration (vs 90 days for current staging)
+
+**Use Case**:
+```bash
+# Create staging PR (kept open)
+gh pr create --base main --head staging --title "Staging → Production"
+# Uses preview URL: pr-staging--wildfire-app.web.app
+# When ready, merge PR to deploy to production
+```
+
+---
+
+#### **Option 5: Deploy from Develop Branch (Git Flow Model)**
+
+**Implementation**: Auto-deploy from `develop` branch instead of `staging`
+
+**Branch Strategy**:
+```
+feature/* → develop (auto-deploy to staging) → main (manual deploy to production)
+```
+
+**Changes Needed**:
+1. Rename `staging` branch to `develop` (or update trigger)
+2. Update workflow condition: `github.ref == 'refs/heads/develop'`
+3. Team works on feature branches → merge to develop → merge develop to main
+
+**Pros**:
+- Follows Git Flow naming conventions
+- Clear separation: develop = integration, main = production
+- Automatic integration testing
+- Standard workflow many teams recognize
+
+**Cons**:
+- Requires discipline to not commit directly to develop
+- Adds branch management overhead
+- May still want manual approval for staging
+
+**Use Case**:
+```bash
+# Feature work
+git checkout -b feature/new-thing
+# ... work ...
+git push origin feature/new-thing
+gh pr create --base develop  # Merge to develop first
+# ✅ Auto-deploys to staging.web.app
+
+# When develop is stable
+gh pr create --base main --head develop  # Merge to main
+# ✅ Requires approval, deploys to production
+```
+
+---
+
+### **Recommendation Needed**
+
+**Current Status**: Option 1 is implemented but under review.
+
+**Decision Points**:
+1. **Team workflow**: How does the team prefer to test integrated features?
+2. **Risk tolerance**: Is automatic staging deployment acceptable?
+3. **Testing needs**: Do PR previews provide sufficient testing, or is a persistent staging environment valuable?
+4. **Approval overhead**: Is manual staging approval worth the extra step?
+
+**Next Steps**:
+- [ ] Review with team to decide on preferred option
+- [ ] Update workflow YAML if changing approach
+- [ ] Update this documentation with final decision
+- [ ] Document staging workflow in feature development guide (if keeping staging)
 
 ---
 
@@ -1210,6 +1558,25 @@ firebase hosting:channel:open pr-123
 
 # Delete preview
 firebase hosting:channel:delete pr-123
+```
+
+---
+
+### **Staging (Under Review)**
+```bash
+# Push to staging branch (auto-deploys currently)
+git push origin staging
+
+# View staging site
+open https://wildfire-app-e11f8-staging.web.app
+
+# Check staging channel
+firebase hosting:channel:list | grep staging
+
+# Manual deploy to staging (if needed)
+firebase deploy --only hosting:staging
+
+# Note: See "Staging Environment (Under Review)" section for configuration options
 ```
 
 ---

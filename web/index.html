@@ -34,12 +34,17 @@
 
   <!-- Google Maps JavaScript API (required for google_maps_flutter_web) -->
   <!-- Web platform implementation uses Maps JavaScript API (not native SDKs) -->
-  <!-- For development: Works without API key (shows "For development purposes only" watermark) -->
-  <!-- For production: Add your Web API key: ?key=YOUR_WEB_API_KEY -->
+  <!-- For development: Use run_web.sh script which injects key from env/dev.env.json -->
+  <!-- For CI/CD: Build script (build_web_ci.sh) injects key from GitHub Secrets -->
   <!-- API key restrictions: Set HTTP referrer restrictions in Google Cloud Console -->
   <!--   - Development: http://localhost:* -->
   <!--   - Production: https://yourdomain.com/* -->
-  <script src="https://maps.googleapis.com/maps/api/js%MAPS_API_KEY%"></script>
+  <!-- 
+    DEVELOPMENT WORKFLOW:
+    Option 1: ./scripts/run_web.sh (recommended - auto-injects key)
+    Option 2: flutter run -d chrome (works but shows watermark)
+  -->
+  <script src="https://maps.googleapis.com/maps/api/js"></script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
