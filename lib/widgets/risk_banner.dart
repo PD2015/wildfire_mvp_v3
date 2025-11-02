@@ -16,9 +16,7 @@ class RiskBannerConfig extends Equatable {
   /// Whether to show the weather panel
   final bool showWeatherPanel;
 
-  const RiskBannerConfig({
-    this.showWeatherPanel = false,
-  });
+  const RiskBannerConfig({this.showWeatherPanel = false});
 
   @override
   List<Object?> get props => [showWeatherPanel];
@@ -121,8 +119,9 @@ class RiskBanner extends StatelessWidget {
                 height: 20.0,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.0,
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(RiskPalette.midGray),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    RiskPalette.midGray,
+                  ),
                 ),
               ),
               SizedBox(width: 12.0),
@@ -176,19 +175,12 @@ class RiskBanner extends StatelessWidget {
               if (locationLabel != null) ...[
                 Row(
                   children: [
-                    Icon(
-                      Icons.location_on,
-                      color: textColor,
-                      size: 16.0,
-                    ),
+                    Icon(Icons.location_on, color: textColor, size: 16.0),
                     const SizedBox(width: 4.0),
                     Expanded(
                       child: Text(
                         locationLabel!,
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 14.0,
-                        ),
+                        style: TextStyle(color: textColor, fontSize: 14.0),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
@@ -356,19 +348,12 @@ class RiskBanner extends StatelessWidget {
               if (locationLabel != null) ...[
                 Row(
                   children: [
-                    Icon(
-                      Icons.location_on,
-                      color: textColor,
-                      size: 16.0,
-                    ),
+                    Icon(Icons.location_on, color: textColor, size: 16.0),
                     const SizedBox(width: 4.0),
                     Expanded(
                       child: Text(
                         locationLabel!,
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 14.0,
-                        ),
+                        style: TextStyle(color: textColor, fontSize: 14.0),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
