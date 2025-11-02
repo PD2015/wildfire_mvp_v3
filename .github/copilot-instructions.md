@@ -15,6 +15,8 @@ Auto-generated from all feature plans. Last updated: 2025-10-19
 - Firebase Hosting (web build artifacts), GitHub Secrets (API keys: FIREBASE_SERVICE_ACCOUNT, FIREBASE_PROJECT_ID, GOOGLE_MAPS_API_KEY_WEB_PREVIEW, GOOGLE_MAPS_API_KEY_WEB_PRODUCTION) (012-a11-ci-cd)
 - Dart 3.9.2, Flutter 3.35.5 stable + Flutter SDK, go_router (navigation/routing), Material Design Icons (Icons.warning_amber) (015-rename-home-fire)
 - No new storage requirements - UI/routing changes only (015-rename-home-fire)
+- Dart 3.9.2, Flutter 3.35.5 stable + Flutter SDK, Material Design, existing RiskPalette, CachedBadge widge (016-016-a14-riskbanner)
+- N/A (UI-only changes, no data persistence) (016-016-a14-riskbanner)
 
 ## Project Structure
 ```
@@ -193,9 +195,9 @@ replaces:
 **Full strategy**: See `docs/DOCUMENTATION_STRATEGY.md`
 
 ## Recent Changes
+- 016-016-a14-riskbanner: Added Dart 3.9.2, Flutter 3.35.5 stable + Flutter SDK, Material Design, existing RiskPalette, CachedBadge widge
 - 015-rename-home-fire: Added Dart 3.9.2, Flutter 3.35.5 stable + Flutter SDK, go_router (navigation/routing), Material Design Icons (Icons.warning_amber)
 - 012-a11-ci-cd: Added Dart 3.9.2, Flutter 3.35.5 stable + Firebase Hosting (deployment infrastructure), GitHub Actions (CI/CD orchestration), google_maps_flutter ^2.5.0 (mapping component), firebase-tools CLI (deployment tool)
-- **2025-10-20**: A10 Web Support - Clarified macOS web (Chrome/Safari) vs macOS desktop distinction. Google Maps works on web via google_maps_flutter_web ^0.5.14+2. Updated platform detection comments and unsupported platform messaging.
 
 ## Utility Classes Reference
 
