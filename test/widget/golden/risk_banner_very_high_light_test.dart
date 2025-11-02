@@ -6,7 +6,9 @@ import 'package:wildfire_mvp_v3/models/risk_level.dart';
 
 void main() {
   group('RiskBanner Golden Test - VeryHigh Light', () {
-    testWidgets('should match golden image for VeryHigh risk level in light theme', (WidgetTester tester) async {
+    testWidgets(
+        'should match golden image for VeryHigh risk level in light theme',
+        (WidgetTester tester) async {
       // Fixed test data for reproducibility
       final testFireRisk = FireRisk(
         level: RiskLevel.veryHigh,
