@@ -243,15 +243,21 @@ void main() {
           // Weather panel should have rounded corners and semi-transparent background
           final weatherContainer = containers.firstWhere((container) {
             final decoration = container.decoration as BoxDecoration?;
+            final color = decoration?.color;
+            final alphaValue =
+                color != null ? (color.a * 255.0).round() & 0xff : null;
             return decoration?.borderRadius != null &&
-                decoration?.color?.alpha != null &&
-                decoration!.color!.alpha < 255;
+                alphaValue != null &&
+                alphaValue < 255;
           });
 
           expect(weatherContainer, isNotNull);
           final decoration = weatherContainer.decoration as BoxDecoration;
           expect(decoration.borderRadius, isNotNull);
-          expect(decoration.color?.alpha, lessThan(255));
+          final alphaValue = decoration.color != null
+              ? (decoration.color!.a * 255.0).round() & 0xff
+              : null;
+          expect(alphaValue, lessThan(255));
         });
       });
     });
