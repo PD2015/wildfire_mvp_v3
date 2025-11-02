@@ -84,9 +84,9 @@ Flutter app structure:
 
 ## Phase 3.4: Integration & Polish
 
-- [ ] **T014** [P] Update RiskBanner quickstart docs: Add note to `specs/003-a3-riskbanner-home/quickstart.md` about new golden tests and internal banner timestamp/source display changes
+- [X] **T014** [P] Update RiskBanner quickstart docs: Add note to `specs/003-a3-riskbanner-home/quickstart.md` about new golden tests and internal banner timestamp/source display changes
 
-- [ ] **T015** [P] Update testing documentation: Add documentation about new golden test coverage and visual regression prevention in relevant testing docs
+- [X] **T015** [P] Update testing documentation: Add documentation about new golden test coverage and visual regression prevention in relevant testing docs
 
 ## Dependencies
 - Setup (T001) before everything else
