@@ -47,8 +47,11 @@ void main() {
         };
 
         // Verify mapping is documented
-        expect(testRegionCoordinates.keys.length, equals(6),
-            reason: 'Should support 6 test regions');
+        expect(
+          testRegionCoordinates.keys.length,
+          equals(6),
+          reason: 'Should support 6 test regions',
+        );
 
         // Verify default is Scotland
         expect(testRegionCoordinates['scotland'], isNotNull);
@@ -61,8 +64,11 @@ void main() {
               'flutter run -d android --dart-define=TEST_REGION=california --dart-define=MAP_LIVE_DATA=true',
         };
 
-        expect(integrationTestCommands, isNotEmpty,
-            reason: 'Integration test commands documented');
+        expect(
+          integrationTestCommands,
+          isNotEmpty,
+          reason: 'Integration test commands documented',
+        );
       });
 
       test('Documents expected behavior for TEST_REGION feature', () {
@@ -83,13 +89,19 @@ void main() {
           'Geohash cache uses regional coordinates',
         ];
 
-        expect(expectedBehavior.length, equals(6),
-            reason: 'Six critical behaviors documented');
+        expect(
+          expectedBehavior.length,
+          equals(6),
+          reason: 'Six critical behaviors documented',
+        );
 
         // Reference to integration test runbook
         const runbookPath = 'docs/runbooks/manual-integration-tests.md';
-        expect(runbookPath, isNotEmpty,
-            reason: 'Integration test runbook exists');
+        expect(
+          runbookPath,
+          isNotEmpty,
+          reason: 'Integration test runbook exists',
+        );
       });
     });
   });

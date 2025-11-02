@@ -21,10 +21,7 @@ class ReportFireScreen extends StatelessWidget {
     final bannerFg = cs.onTertiaryContainer;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Report a Fire'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Report a Fire'), centerTitle: true),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -79,8 +76,10 @@ class ReportFireScreen extends StatelessWidget {
             style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
-          Text('Call Crimestoppers on 0800 555 111.',
-              style: textTheme.bodyLarge),
+          Text(
+            'Call Crimestoppers on 0800 555 111.',
+            style: textTheme.bodyLarge,
+          ),
           const SizedBox(height: 12),
           EmergencyButton(
             contact: EmergencyContact.crimestoppers,
@@ -102,7 +101,9 @@ class ReportFireScreen extends StatelessWidget {
   /// Handles emergency call attempts with error handling and user feedback
   /// Uses existing UrlLauncherUtils infrastructure
   Future<void> _handleEmergencyCall(
-      BuildContext context, EmergencyContact contact) async {
+    BuildContext context,
+    EmergencyContact contact,
+  ) async {
     await UrlLauncherUtils.handleEmergencyCall(
       contact: contact,
       onFailure: (errorMessage) =>
@@ -112,7 +113,10 @@ class ReportFireScreen extends StatelessWidget {
 
   /// Shows SnackBar when emergency call fails with manual dialing option
   void _showCallFailureSnackBar(
-      BuildContext context, String errorMessage, EmergencyContact contact) {
+    BuildContext context,
+    String errorMessage,
+    EmergencyContact contact,
+  ) {
     final messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
     messenger.showSnackBar(
@@ -191,14 +195,13 @@ class _Banner extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyLarge
-                        ?.copyWith(color: foreground),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(color: foreground),
                   ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -258,13 +261,14 @@ class _TipsCard extends StatelessWidget {
 
           // Expandable "More Safety Guidance" section
           Theme(
-            data: Theme.of(context).copyWith(
-              dividerColor: Colors.transparent,
-            ),
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
             child: ExpansionTile(
               tilePadding: EdgeInsets.zero,
-              childrenPadding:
-                  const EdgeInsets.only(left: 16, top: 8, bottom: 4),
+              childrenPadding: const EdgeInsets.only(
+                left: 16,
+                top: 8,
+                bottom: 4,
+              ),
               title: Text(
                 'More Safety Guidance',
                 style: textTheme.bodyMedium?.copyWith(
@@ -299,10 +303,7 @@ extension ReportFireScreenFactory on ReportFireScreen {
   static Widget withTitle(String title) {
     return Builder(
       builder: (context) => Scaffold(
-        appBar: AppBar(
-          title: Text(title),
-          centerTitle: true,
-        ),
+        appBar: AppBar(title: Text(title), centerTitle: true),
         body: const ReportFireScreen(),
       ),
     );
@@ -311,10 +312,7 @@ extension ReportFireScreenFactory on ReportFireScreen {
   /// Creates ReportFireScreen without AppBar (for embedding in other screens)
   static Widget withoutAppBar() {
     return const SafeArea(
-      child: Padding(
-        padding: EdgeInsets.all(24.0),
-        child: ReportFireScreen(),
-      ),
+      child: Padding(padding: EdgeInsets.all(24.0), child: ReportFireScreen()),
     );
   }
 }

@@ -23,7 +23,8 @@ class UrlLauncherUtils {
   /// }
   /// ```
   static Future<CallResult> launchEmergencyCall(
-      EmergencyContact contact) async {
+    EmergencyContact contact,
+  ) async {
     try {
       debugPrint('🚨 Attempting emergency call: ${contact.displayText}');
 

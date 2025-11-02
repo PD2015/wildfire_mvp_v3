@@ -23,10 +23,7 @@ import '../utils/time_format.dart';
 /// - C1: Clean code with proper state management integration
 class HomeScreen extends StatefulWidget {
   /// Home screen with required controller dependency injection
-  const HomeScreen({
-    super.key,
-    required this.controller,
-  });
+  const HomeScreen({super.key, required this.controller});
 
   /// HomeController for state management and data operations
   final HomeController controller;
@@ -54,32 +51,31 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Wildfire Risk'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Wildfire Risk'), centerTitle: true),
       body: ListenableBuilder(
         listenable: _controller,
         builder: (context, child) {
           return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Main risk banner display
-                  _buildRiskBanner(),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Main risk banner display
+                    _buildRiskBanner(),
 
-                  const SizedBox(height: 24.0),
+                    const SizedBox(height: 24.0),
 
-                  // Action buttons
-                  _buildActionButtons(),
+                    // Action buttons
+                    _buildActionButtons(),
 
-                  const SizedBox(height: 16.0),
+                    const SizedBox(height: 16.0),
 
-                  // Additional info based on state
-                  _buildStateInfo(),
-                ],
+                    // Additional info based on state
+                    _buildStateInfo(),
+                  ],
+                ),
               ),
             ),
           );
@@ -94,16 +90,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
     switch (homeState) {
       case HomeStateLoading():
-        return const RiskBanner(
-          state: RiskBannerLoading(),
-        );
+        return const RiskBanner(state: RiskBannerLoading());
 
       case HomeStateSuccess(:final riskData, :final lastUpdated):
         return Column(
           children: [
-            RiskBanner(
-              state: RiskBannerSuccess(riskData),
-            ),
+            RiskBanner(state: RiskBannerSuccess(riskData)),
             const SizedBox(height: 8.0),
             _buildTimestampInfo(riskData, lastUpdated),
           ],
@@ -113,10 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return Column(
           children: [
             RiskBanner(
-              state: RiskBannerError(
-                errorMessage,
-                cached: cachedData,
-              ),
+              state: RiskBannerError(errorMessage, cached: cachedData),
             ),
             if (cachedData != null) ...[
               const SizedBox(height: 8.0),
@@ -354,9 +343,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           'Unable to load current data',
                           style:
                               Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onErrorContainer,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onErrorContainer,
                                   ),
                         ),
                         if (cachedData == null) ...[
@@ -365,9 +354,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             errorMessage,
                             style:
                                 Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onErrorContainer,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onErrorContainer,
                                     ),
                           ),
                         ],

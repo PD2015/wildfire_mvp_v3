@@ -26,9 +26,8 @@ class GeolocatorServiceImpl implements GeolocatorService {
       Geolocator.requestPermission();
 
   @override
-  Future<Position?> getLastKnownPosition() => Geolocator.getLastKnownPosition(
-        forceAndroidLocationManager: false,
-      );
+  Future<Position?> getLastKnownPosition() =>
+      Geolocator.getLastKnownPosition(forceAndroidLocationManager: false);
 
   @override
   Future<Position> getCurrentPosition({

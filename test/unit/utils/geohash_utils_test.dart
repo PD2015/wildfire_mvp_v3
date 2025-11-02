@@ -56,10 +56,14 @@ void main() {
       });
 
       test('throws ArgumentError for invalid precision', () {
-        expect(() => GeohashUtils.encode(55.9533, -3.1883, precision: 0),
-            throwsArgumentError);
-        expect(() => GeohashUtils.encode(55.9533, -3.1883, precision: -1),
-            throwsArgumentError);
+        expect(
+          () => GeohashUtils.encode(55.9533, -3.1883, precision: 0),
+          throwsArgumentError,
+        );
+        expect(
+          () => GeohashUtils.encode(55.9533, -3.1883, precision: -1),
+          throwsArgumentError,
+        );
       });
     });
 

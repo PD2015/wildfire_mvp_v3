@@ -23,12 +23,14 @@ class _TestFireRiskService implements FireRiskService {
     required double lon,
     Duration? deadline,
   }) async {
-    return Right(FireRisk(
-      level: RiskLevel.low,
-      freshness: Freshness.live,
-      source: DataSource.mock,
-      observedAt: DateTime.now().toUtc(),
-    ));
+    return Right(
+      FireRisk(
+        level: RiskLevel.low,
+        freshness: Freshness.live,
+        source: DataSource.mock,
+        observedAt: DateTime.now().toUtc(),
+      ),
+    );
   }
 }
 

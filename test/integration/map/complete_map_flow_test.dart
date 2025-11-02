@@ -53,8 +53,9 @@ class MockLocationResolver implements LocationResolver {
   }
 
   @override
-  Future<Either<LocationError, LatLng>> getLatLon(
-      {bool allowDefault = true}) async {
+  Future<Either<LocationError, LatLng>> getLatLon({
+    bool allowDefault = true,
+  }) async {
     callCount++;
 
     if (_errorToReturn != null) {
@@ -103,7 +104,8 @@ class MockFireLocationService implements FireLocationService {
 
   @override
   Future<Either<ApiError, List<FireIncident>>> getActiveFires(
-      LatLngBounds bounds) async {
+    LatLngBounds bounds,
+  ) async {
     callCount++;
     requestedBounds.add(bounds);
 
@@ -233,9 +235,7 @@ void main() {
 
         // Act: Build MapScreen
         await tester.pumpWidget(
-          MaterialApp(
-            home: MapScreen(controller: controller),
-          ),
+          MaterialApp(home: MapScreen(controller: controller)),
         );
 
         // Wait for controller to initialize
@@ -272,9 +272,7 @@ void main() {
         }
 
         // Arrange: Mock GPS permission denied
-        mockLocationResolver.mockError(
-          LocationError.permissionDenied,
-        );
+        mockLocationResolver.mockError(LocationError.permissionDenied);
 
         // Mock empty incident list
         mockFireLocationService.mockIncidents([]);
@@ -287,9 +285,7 @@ void main() {
 
         // Act: Build and initialize
         await tester.pumpWidget(
-          MaterialApp(
-            home: MapScreen(controller: controller),
-          ),
+          MaterialApp(home: MapScreen(controller: controller)),
         );
 
         await tester.pump();
@@ -336,9 +332,7 @@ void main() {
 
         // Act: Build MapScreen
         await tester.pumpWidget(
-          MaterialApp(
-            home: MapScreen(controller: controller),
-          ),
+          MaterialApp(home: MapScreen(controller: controller)),
         );
 
         await tester.pump();
@@ -383,9 +377,7 @@ void main() {
 
         // Act: Build MapScreen
         await tester.pumpWidget(
-          MaterialApp(
-            home: MapScreen(controller: controller),
-          ),
+          MaterialApp(home: MapScreen(controller: controller)),
         );
 
         await tester.pump();
@@ -434,9 +426,7 @@ void main() {
 
         // Act: Build and initialize
         await tester.pumpWidget(
-          MaterialApp(
-            home: MapScreen(controller: controller),
-          ),
+          MaterialApp(home: MapScreen(controller: controller)),
         );
 
         await tester.pump();
@@ -446,8 +436,11 @@ void main() {
         stopwatch.stop();
 
         // Assert: Completed within deadline
-        expect(stopwatch.elapsed.inSeconds, lessThan(8),
-            reason: 'Map flow must complete within 8s global deadline (T034)');
+        expect(
+          stopwatch.elapsed.inSeconds,
+          lessThan(8),
+          reason: 'Map flow must complete within 8s global deadline (T034)',
+        );
 
         // Assert: Map rendered successfully
         expect(find.byType(gmaps.GoogleMap), findsOneWidget);
@@ -479,9 +472,7 @@ void main() {
 
         // Act: Build MapScreen
         await tester.pumpWidget(
-          MaterialApp(
-            home: MapScreen(controller: controller),
-          ),
+          MaterialApp(home: MapScreen(controller: controller)),
         );
 
         await tester.pump();
@@ -529,9 +520,7 @@ void main() {
           );
 
           await tester.pumpWidget(
-            MaterialApp(
-              home: MapScreen(controller: controller),
-            ),
+            MaterialApp(home: MapScreen(controller: controller)),
           );
 
           await tester.pump();
@@ -598,9 +587,7 @@ void main() {
 
         // Act: Build MapScreen
         await tester.pumpWidget(
-          MaterialApp(
-            home: MapScreen(controller: controller),
-          ),
+          MaterialApp(home: MapScreen(controller: controller)),
         );
 
         await tester.pump();

@@ -260,8 +260,10 @@ class TestData {
   static const LatLng edinburgh = LatLng(55.9533, -3.1883);
   static const LatLng london = LatLng(51.5074, -0.1278);
   static const LatLng glasgow = LatLng(55.8642, -4.2518);
-  static const LatLng scotlandCentroid =
-      LatLng(57.2, -3.8); // Aviemore, UK - matches location_resolver_impl.dart
+  static const LatLng scotlandCentroid = LatLng(
+    57.2,
+    -3.8,
+  ); // Aviemore, UK - matches location_resolver_impl.dart
 
   // Invalid coordinates for testing
   static const LatLng invalidLat = LatLng(999.0, -3.1883);

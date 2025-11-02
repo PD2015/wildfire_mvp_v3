@@ -60,7 +60,7 @@ flutter run -d emulator-5554 --dart-define=MAP_LIVE_DATA=false
 
 ```
 integration_test/
-├── home_integration_test.dart    # 9 tests - Home screen workflows
+├── home_integration_test.dart    # 9 tests - Fire Risk screen workflows
 ├── map_integration_test.dart     # 8 tests - Map functionality (manual)
 └── app_integration_test.dart     # 9 tests - Navigation and lifecycle
 ```
@@ -79,7 +79,7 @@ integration_test/
 - ✅ Map rendering, markers, navigation, zoom controls
 
 #### 3. **App Navigation Tests** (9 tests)
-- ✅ Tab navigation (Home ↔ Map)
+- ✅ Tab navigation (Fire Risk ↔ Map)
 - ✅ App lifecycle (background/foreground)
 - ✅ Deep linking and route handling
 - ✅ Error state recovery

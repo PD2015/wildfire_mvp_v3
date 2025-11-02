@@ -38,7 +38,8 @@ class MapSuccess extends MapState {
   void _validate() {
     if (!centerLocation.isValid) {
       throw ArgumentError(
-          'MapSuccess centerLocation must have valid coordinates');
+        'MapSuccess centerLocation must have valid coordinates',
+      );
     }
     if (lastUpdated.isAfter(DateTime.now())) {
       throw ArgumentError('MapSuccess lastUpdated must not be in the future');
@@ -46,8 +47,12 @@ class MapSuccess extends MapState {
   }
 
   @override
-  List<Object?> get props =>
-      [incidents, centerLocation, freshness, lastUpdated];
+  List<Object?> get props => [
+        incidents,
+        centerLocation,
+        freshness,
+        lastUpdated,
+      ];
 }
 
 /// Error state with optional cached data

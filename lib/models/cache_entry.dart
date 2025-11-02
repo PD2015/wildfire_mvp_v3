@@ -33,8 +33,10 @@ class CacheEntry<T> extends Equatable {
   ///
   /// Returns: Duration since entry was cached
   Duration age(Clock clock) {
-    assert(timestamp.isUtc,
-        'Timestamp must be UTC for consistent TTL calculations');
+    assert(
+      timestamp.isUtc,
+      'Timestamp must be UTC for consistent TTL calculations',
+    );
     return clock.nowUtc().difference(timestamp);
   }
 
@@ -89,8 +91,9 @@ class CacheEntry<T> extends Equatable {
 
       return CacheEntry(
         data: fromJsonT(json['data'] as Map<String, dynamic>),
-        timestamp: DateTime.fromMillisecondsSinceEpoch(json['timestamp'] as int)
-            .toUtc(),
+        timestamp: DateTime.fromMillisecondsSinceEpoch(
+          json['timestamp'] as int,
+        ).toUtc(),
         geohash: json['geohash'] as String,
         version: version,
       );

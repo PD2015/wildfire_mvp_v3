@@ -32,223 +32,272 @@ void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Map Screen Integration Tests (On Device) - SKIPPED', () {
-    testWidgets('GoogleMap renders on device with fire markers visible',
-        (WidgetTester tester) async {
-      // SKIPPED: GoogleMap continuously schedules frames, incompatible with test framework
-      // Use manual testing instead (see docs/MAP_MANUAL_TESTING.md)
+    testWidgets(
+      'GoogleMap renders on device with fire markers visible',
+      (WidgetTester tester) async {
+        // SKIPPED: GoogleMap continuously schedules frames, incompatible with test framework
+        // Use manual testing instead (see docs/MAP_MANUAL_TESTING.md)
 
-      app.main();
-      // Use pump() instead of pumpAndSettle() to avoid GoogleMap animation hang
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump();
+        app.main();
+        // Use pump() instead of pumpAndSettle() to avoid GoogleMap animation hang
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pump();
 
-      // Navigate to map screen
-      final mapNavButton = find.text('Map');
-      expect(mapNavButton, findsOneWidget);
-      await tester.tap(mapNavButton);
+        // Navigate to map screen
+        final mapNavButton = find.text('Map');
+        expect(mapNavButton, findsOneWidget);
+        await tester.tap(mapNavButton);
 
-      // Give GoogleMap time to initialize without waiting for animations
-      await tester.pump(const Duration(seconds: 3));
-      await tester.pump();
+        // Give GoogleMap time to initialize without waiting for animations
+        await tester.pump(const Duration(seconds: 3));
+        await tester.pump();
 
-      // Verify GoogleMap widget rendered
-      expect(find.byType(gmaps.GoogleMap), findsOneWidget,
+        // Verify GoogleMap widget rendered
+        expect(
+          find.byType(gmaps.GoogleMap),
+          findsOneWidget,
           reason:
-              'GoogleMap widget should render on device with platform support');
+              'GoogleMap widget should render on device with platform support',
+        );
 
-      // Verify map screen is displayed
-      expect(find.byType(MapScreen), findsOneWidget);
+        // Verify map screen is displayed
+        expect(find.byType(MapScreen), findsOneWidget);
 
-      // Allow any pending frames from GoogleMap to complete before test ends
-      await tester.pump();
-      await tester.pump();
+        // Allow any pending frames from GoogleMap to complete before test ends
+        await tester.pump();
+        await tester.pump();
 
-      debugPrint('✅ GoogleMap rendered successfully on device');
-    }, skip: true, timeout: const Timeout(Duration(minutes: 2)));
-
-    testWidgets('Fire incident markers appear on map',
-        (WidgetTester tester) async {
-      // SKIPPED: GoogleMap continuously schedules frames, incompatible with test framework
-
-      app.main();
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump();
-
-      // Navigate to map
-      await tester.tap(find.text('Map'));
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump();
-
-      // Note: Markers are rendered by GoogleMap platform view
-      // We can verify the GoogleMap exists and received marker data
-      final googleMapFinder = find.byType(gmaps.GoogleMap);
-      expect(googleMapFinder, findsOneWidget);
-
-      final mapWidget = tester.widget<gmaps.GoogleMap>(googleMapFinder);
-      expect(mapWidget.markers, isNotEmpty,
-          reason: 'GoogleMap should have markers for fire incidents');
-
-      debugPrint('✅ ${mapWidget.markers.length} fire markers rendered');
-    }, skip: true, timeout: const Timeout(Duration(minutes: 2)));
-
-    testWidgets('"Check risk here" FAB is visible and ≥44dp (C3 accessibility)',
-        (WidgetTester tester) async {
-      // SKIPPED: GoogleMap continuously schedules frames, incompatible with test framework
-
-      app.main();
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump();
-
-      await tester.tap(find.text('Map'));
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump();
-
-      // Find FAB
-      final fab = find.byType(FloatingActionButton);
-      expect(fab, findsOneWidget);
-
-      // Verify size ≥44dp
-      final fabSize = tester.getSize(fab);
-      expect(fabSize.width, greaterThanOrEqualTo(44.0),
-          reason: 'FAB width must be ≥44dp for C3 accessibility compliance');
-      expect(fabSize.height, greaterThanOrEqualTo(44.0),
-          reason: 'FAB height must be ≥44dp for C3 accessibility compliance');
-
-      debugPrint('✅ FAB size: ${fabSize.width}x${fabSize.height}dp');
-    }, skip: true, timeout: const Timeout(Duration(minutes: 2)));
+        debugPrint('✅ GoogleMap rendered successfully on device');
+      },
+      skip: true,
+      timeout: const Timeout(Duration(minutes: 2)),
+    );
 
     testWidgets(
-        'Source chip displays "DEMO DATA" for mock data (C4 transparency)',
-        (WidgetTester tester) async {
-      // SKIPPED: GoogleMap continuously schedules frames, incompatible with test framework
+      'Fire incident markers appear on map',
+      (WidgetTester tester) async {
+        // SKIPPED: GoogleMap continuously schedules frames, incompatible with test framework
 
-      app.main();
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump();
+        app.main();
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pump();
 
-      await tester.tap(find.text('Map'));
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump();
+        // Navigate to map
+        await tester.tap(find.text('Map'));
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pump();
 
-      // Verify source chip exists and displays "DEMO DATA"
-      // Note: Actual text depends on MAP_LIVE_DATA flag
-      final sourceChip = find.textContaining('DATA', findRichText: true);
-      expect(sourceChip, findsAtLeastNWidgets(1),
-          reason: 'Data source chip must be visible (C4 transparency)');
+        // Note: Markers are rendered by GoogleMap platform view
+        // We can verify the GoogleMap exists and received marker data
+        final googleMapFinder = find.byType(gmaps.GoogleMap);
+        expect(googleMapFinder, findsOneWidget);
 
-      debugPrint('✅ Source chip visible with data transparency');
-    }, skip: true, timeout: const Timeout(Duration(minutes: 2)));
+        final mapWidget = tester.widget<gmaps.GoogleMap>(googleMapFinder);
+        expect(
+          mapWidget.markers,
+          isNotEmpty,
+          reason: 'GoogleMap should have markers for fire incidents',
+        );
+
+        debugPrint('✅ ${mapWidget.markers.length} fire markers rendered');
+      },
+      skip: true,
+      timeout: const Timeout(Duration(minutes: 2)),
+    );
 
     testWidgets(
-        'Map loads and becomes interactive within 3s (T035 performance)',
-        (WidgetTester tester) async {
-      // SKIPPED: GoogleMap continuously schedules frames, incompatible with test framework
+      '"Check risk here" FAB is visible and ≥44dp (C3 accessibility)',
+      (WidgetTester tester) async {
+        // SKIPPED: GoogleMap continuously schedules frames, incompatible with test framework
 
-      app.main();
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump();
+        app.main();
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pump();
 
-      final stopwatch = Stopwatch()..start();
+        await tester.tap(find.text('Map'));
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pump();
 
-      // Navigate to map
-      await tester.tap(find.text('Map'));
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump();
+        // Find FAB
+        final fab = find.byType(FloatingActionButton);
+        expect(fab, findsOneWidget);
 
-      // Verify GoogleMap rendered
-      expect(find.byType(gmaps.GoogleMap), findsOneWidget);
+        // Verify size ≥44dp
+        final fabSize = tester.getSize(fab);
+        expect(
+          fabSize.width,
+          greaterThanOrEqualTo(44.0),
+          reason: 'FAB width must be ≥44dp for C3 accessibility compliance',
+        );
+        expect(
+          fabSize.height,
+          greaterThanOrEqualTo(44.0),
+          reason: 'FAB height must be ≥44dp for C3 accessibility compliance',
+        );
 
-      stopwatch.stop();
+        debugPrint('✅ FAB size: ${fabSize.width}x${fabSize.height}dp');
+      },
+      skip: true,
+      timeout: const Timeout(Duration(minutes: 2)),
+    );
 
-      // Check performance requirement
-      expect(stopwatch.elapsedMilliseconds, lessThan(3000),
-          reason: 'Map must become interactive within 3s (T035)');
+    testWidgets(
+      'Source chip displays "DEMO DATA" for mock data (C4 transparency)',
+      (WidgetTester tester) async {
+        // SKIPPED: GoogleMap continuously schedules frames, incompatible with test framework
 
-      debugPrint(
-          '✅ Map load time: ${stopwatch.elapsedMilliseconds}ms (target: <3000ms)');
-    }, skip: true, timeout: const Timeout(Duration(minutes: 2)));
+        app.main();
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pump();
 
-    testWidgets('Map can be panned and zoomed (interactive verification)',
-        (WidgetTester tester) async {
-      // SKIPPED: GoogleMap continuously schedules frames, incompatible with test framework
+        await tester.tap(find.text('Map'));
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pump();
 
-      app.main();
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump();
+        // Verify source chip exists and displays "DEMO DATA"
+        // Note: Actual text depends on MAP_LIVE_DATA flag
+        final sourceChip = find.textContaining('DATA', findRichText: true);
+        expect(
+          sourceChip,
+          findsAtLeastNWidgets(1),
+          reason: 'Data source chip must be visible (C4 transparency)',
+        );
 
-      await tester.tap(find.text('Map'));
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump();
+        debugPrint('✅ Source chip visible with data transparency');
+      },
+      skip: true,
+      timeout: const Timeout(Duration(minutes: 2)),
+    );
 
-      final googleMap = find.byType(gmaps.GoogleMap);
-      expect(googleMap, findsOneWidget);
+    testWidgets(
+      'Map loads and becomes interactive within 3s (T035 performance)',
+      (WidgetTester tester) async {
+        // SKIPPED: GoogleMap continuously schedules frames, incompatible with test framework
 
-      final mapWidget = tester.widget<gmaps.GoogleMap>(googleMap);
+        app.main();
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pump();
 
-      // Verify gestures are enabled
-      expect(mapWidget.gestureRecognizers, isNotEmpty,
-          reason: 'Map should support pan/zoom gestures');
+        final stopwatch = Stopwatch()..start();
 
-      // Note: Actual pan/zoom testing requires platform-specific gesture simulation
-      // This verifies the map is configured for interaction
-      debugPrint('✅ Map configured with interactive gestures');
-    }, skip: true, timeout: const Timeout(Duration(minutes: 2)));
+        // Navigate to map
+        await tester.tap(find.text('Map'));
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pump();
 
-    testWidgets('Map handles no fire incidents gracefully (empty state)',
-        (WidgetTester tester) async {
-      // SKIPPED: GoogleMap continuously schedules frames, incompatible with test framework
+        // Verify GoogleMap rendered
+        expect(find.byType(gmaps.GoogleMap), findsOneWidget);
 
-      app.main();
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump();
+        stopwatch.stop();
 
-      await tester.tap(find.text('Map'));
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump();
+        // Check performance requirement
+        expect(
+          stopwatch.elapsedMilliseconds,
+          lessThan(3000),
+          reason: 'Map must become interactive within 3s (T035)',
+        );
 
-      // Map should render even with 0 markers
-      expect(find.byType(gmaps.GoogleMap), findsOneWidget);
+        debugPrint(
+          '✅ Map load time: ${stopwatch.elapsedMilliseconds}ms (target: <3000ms)',
+        );
+      },
+      skip: true,
+      timeout: const Timeout(Duration(minutes: 2)),
+    );
 
-      debugPrint('✅ Map renders with empty marker set');
-    }, skip: true, timeout: const Timeout(Duration(minutes: 2)));
+    testWidgets(
+      'Map can be panned and zoomed (interactive verification)',
+      (WidgetTester tester) async {
+        // SKIPPED: GoogleMap continuously schedules frames, incompatible with test framework
 
-    testWidgets('Timestamp visible in source chip (C4 transparency)',
-        (WidgetTester tester) async {
-      // SKIPPED: GoogleMap continuously schedules frames, incompatible with test framework
+        app.main();
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pump();
 
-      app.main();
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump();
+        await tester.tap(find.text('Map'));
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pump();
 
-      await tester.tap(find.text('Map'));
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pump();
+        final googleMap = find.byType(gmaps.GoogleMap);
+        expect(googleMap, findsOneWidget);
 
-      // Look for relative time strings
-      final timestampPatterns = [
-        'Just now',
-        'ago',
-        'min',
-        'hour',
-        'day',
-      ];
+        final mapWidget = tester.widget<gmaps.GoogleMap>(googleMap);
 
-      bool foundTimestamp = false;
-      for (final pattern in timestampPatterns) {
-        if (find
-            .textContaining(pattern, findRichText: true)
-            .evaluate()
-            .isNotEmpty) {
-          foundTimestamp = true;
-          debugPrint('✅ Found timestamp pattern: $pattern');
-          break;
+        // Verify gestures are enabled
+        expect(
+          mapWidget.gestureRecognizers,
+          isNotEmpty,
+          reason: 'Map should support pan/zoom gestures',
+        );
+
+        // Note: Actual pan/zoom testing requires platform-specific gesture simulation
+        // This verifies the map is configured for interaction
+        debugPrint('✅ Map configured with interactive gestures');
+      },
+      skip: true,
+      timeout: const Timeout(Duration(minutes: 2)),
+    );
+
+    testWidgets(
+      'Map handles no fire incidents gracefully (empty state)',
+      (WidgetTester tester) async {
+        // SKIPPED: GoogleMap continuously schedules frames, incompatible with test framework
+
+        app.main();
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pump();
+
+        await tester.tap(find.text('Map'));
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pump();
+
+        // Map should render even with 0 markers
+        expect(find.byType(gmaps.GoogleMap), findsOneWidget);
+
+        debugPrint('✅ Map renders with empty marker set');
+      },
+      skip: true,
+      timeout: const Timeout(Duration(minutes: 2)),
+    );
+
+    testWidgets(
+      'Timestamp visible in source chip (C4 transparency)',
+      (WidgetTester tester) async {
+        // SKIPPED: GoogleMap continuously schedules frames, incompatible with test framework
+
+        app.main();
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pump();
+
+        await tester.tap(find.text('Map'));
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pump();
+
+        // Look for relative time strings
+        final timestampPatterns = ['Just now', 'ago', 'min', 'hour', 'day'];
+
+        bool foundTimestamp = false;
+        for (final pattern in timestampPatterns) {
+          if (find
+              .textContaining(pattern, findRichText: true)
+              .evaluate()
+              .isNotEmpty) {
+            foundTimestamp = true;
+            debugPrint('✅ Found timestamp pattern: $pattern');
+            break;
+          }
         }
-      }
 
-      expect(foundTimestamp, isTrue,
-          reason: 'Timestamp should be visible for data transparency (C4)');
+        expect(
+          foundTimestamp,
+          isTrue,
+          reason: 'Timestamp should be visible for data transparency (C4)',
+        );
 
-      debugPrint('✅ Timestamp found in source chip');
-    }, skip: true, timeout: const Timeout(Duration(minutes: 2)));
+        debugPrint('✅ Timestamp found in source chip');
+      },
+      skip: true,
+      timeout: const Timeout(Duration(minutes: 2)),
+    );
   });
 }
