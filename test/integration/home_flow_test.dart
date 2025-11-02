@@ -11,7 +11,6 @@ import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/screens/home_screen.dart';
 import 'package:wildfire_mvp_v3/widgets/manual_location_dialog.dart';
-import 'package:wildfire_mvp_v3/widgets/risk_banner.dart';
 
 /// Mock LocationResolver for controlled testing
 class MockLocationResolver implements LocationResolver {
