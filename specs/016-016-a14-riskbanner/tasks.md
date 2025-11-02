@@ -80,7 +80,7 @@ Flutter app structure:
 
 - [X] **T012** Wire coordinates in HomeScreen: In `lib/screens/home_screen.dart` success state branch, build coordsLabel using '(${LocationUtils.logRedact(location.latitude, location.longitude)})' format and pass to RiskBanner(locationLabel: coordsLabel, ...) (C2: Logging compliance with 2-decimal precision)
 
-- [ ] **T013** Remove external elements from HomeScreen: In `lib/screens/home_screen.dart`, remove external timestamp row and source chip usage to avoid duplication with internal banner display; preserve other external info (e.g., cached indicator card) as needed
+- [X] **T013** Remove external elements from HomeScreen: In `lib/screens/home_screen.dart`, remove external timestamp row and source chip usage to avoid duplication with internal banner display; preserve other external info (e.g., cached indicator card) as needed
 
 ## Phase 3.4: Integration & Polish
 
