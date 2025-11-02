@@ -46,16 +46,16 @@ Flutter app structure:
 
 ## Phase 3.1: Setup & Foundation
 
-- [ ] **T001** [P] Add visual tokens in RiskBanner: Add local constants kBannerRadius=16.0, kBannerPadding=EdgeInsets.all(16), kBannerElevation=2.0 in `lib/widgets/risk_banner.dart`; refactor success/loading/error states to use Material Card with these tokens
+- [X] **T001** [P] Add visual tokens in RiskBanner: Add local constants kBannerRadius=16.0, kBannerPadding=EdgeInsets.all(16), kBannerElevation=2.0 in `lib/widgets/risk_banner.dart`; refactor success/loading/error states to use Material Card with these tokens
 
 ## Phase 3.2: Tests First (TDD) ⚠️ MUST COMPLETE BEFORE 3.3
 **CRITICAL: These tests MUST be written and MUST FAIL before ANY implementation**
 
-- [ ] **T002** [P] Golden test (VeryLow light): Create `test/widget/golden/risk_banner_very_low_light_test.dart` with VeryLow risk level, light theme, fixed timestamp, source=EFFIS for reproducibility
+- [X] **T002** [P] Golden test (VeryLow light): Create `test/widget/golden/risk_banner_very_low_light_test.dart` with VeryLow risk level, light theme, fixed timestamp, source=EFFIS for reproducibility
 
-- [ ] **T003** [P] Golden test (Low light): Create `test/widget/golden/risk_banner_low_light_test.dart` with Low risk level, light theme, fixed timestamp, source=EFFIS for reproducibility
+- [X] **T003** [P] Golden test (Low light): Create `test/widget/golden/risk_banner_low_light_test.dart` with Low risk level, light theme, fixed timestamp, source=EFFIS for reproducibility
 
-- [ ] **T004** [P] Golden test (Moderate light): Create `test/widget/golden/risk_banner_moderate_light_test.dart` with Moderate risk level, light theme, fixed timestamp, source=EFFIS for reproducibility
+- [X] **T004** [P] Golden test (Moderate light): Create `test/widget/golden/risk_banner_moderate_light_test.dart` with Moderate risk level, light theme, fixed timestamp, source=EFFIS for reproducibility
 
 - [ ] **T005** [P] Golden test (High light): Create `test/widget/golden/risk_banner_high_light_test.dart` with High risk level, light theme, fixed timestamp, source=EFFIS for reproducibility
 
