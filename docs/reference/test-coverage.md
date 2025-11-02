@@ -107,13 +107,39 @@ replaces:
 **Coverage**: Widgets, screens, user interactions
 
 #### Key Test Suites
-- **RiskBanner**: 25 tests (FWI display, colors, timestamps)
-- **HomeScreen**: 35 tests (layout, location display, error states)
+- **RiskBanner**: 32 tests (Card layout, colors, weather panel, source display)
+- **HomeScreen**: 20 tests (layout, location display, error states)
 - **MapScreen**: 20 tests (basic rendering, mock controller integration)
 - **Error Views**: 15 tests (retry buttons, error messages)
-- **Accessibility**: 25 tests (touch targets ≥44dp, semantic labels)
+- **Accessibility**: 33 tests (touch targets ≥44dp, semantic labels)
 
 **Status**: ✅ All passing (100% success rate)
+
+### Golden Tests (Visual Regression Prevention)
+
+**Total**: 7 tests (A14 RiskBanner visual refresh)  
+**Execution Time**: ~3 seconds  
+**Coverage**: Pixel-perfect UI verification across themes and risk levels
+
+#### RiskBanner Golden Test Suite
+- **Risk Levels**: All 6 levels (Very Low, Low, Moderate, High, Very High, Extreme)
+- **Themes**: Light + Dark mode coverage
+- **Special States**: Cached data indicator
+- **Test Files**: `test/widget/golden/risk_banner_*_test.dart`
+- **Baselines**: `test/widget/golden/goldens/*.png`
+
+**Purpose**: Prevents unintended visual regressions in Material Card design, Scottish color palette, typography, spacing, and layout.
+
+**Usage**:
+```bash
+# Run golden tests (compare against baselines)
+flutter test test/widget/golden/
+
+# Update baselines after intentional design changes
+flutter test --update-goldens test/widget/golden/
+```
+
+**Status**: ✅ All 7 passing (100% success rate)
 
 ### Integration Tests (End-to-End Workflows)
 
