@@ -1,37 +1,70 @@
 ---
 title: Git Worktree Workflow
 status: active
-last_updated: 2025-10-30
+last_updated: 2025-11-01
 category: explanation
 subcategory: development
 related:
+  - DEPLOYMENT_WORKFLOW.md
+  - DEPLOYMENT_DIAGRAMS.md
   - GITLEAKS_CONFIGURATION.md
   - guides/security/api-key-management.md
+  - guides/deployment/3-tier-deployment.md
 ---
 
 # Git Worktree Workflow for Multi-Agent Development
 
 ## Overview
-This guide explains how to use git worktrees for parallel development with multiple agent instances.
+This guide explains how to use git worktrees for parallel development with multiple agent instances, following the 3-tier deployment strategy (PR preview → staging → production).
 
 ## Current Repository State
 
 **Main worktree**: `/Users/lizstevenson/Desktop/WildFire-App/Documentation/wildfire_app_docs/apps/flutter/wildfire_mvp_v3`
 
 **Active branches**:
-- `main` - Production branch
+- `main` - Production branch (deployed to production)
+- `staging` - Integration branch (deployed to staging environment)
 - `014-a12b-report-fire` - Current feature work
-- `a12b` - Alias for `014-a12b-report-fire` (for convenience)
+
+## ⚠️ IMPORTANT: Always Branch from Staging
+
+**All new feature branches and worktrees MUST be created from `staging`, not `main`.**
+
+### Why Branch from Staging?
+1. ✅ Start with the latest integrated code
+2. ✅ PR previews show accurate comparison with staging
+3. ✅ Reduces merge conflicts when merging to staging
+4. ✅ Maintains proper GitFlow: feature → staging → main
+
+### ❌ Don't Do This (Branching from main):
+```bash
+# WRONG: Creates branch from outdated main
+git worktree add ../wildfire_mvp_v3_feature -b feature/new main
+```
+
+### ✅ Do This (Branching from staging):
+```bash
+# CORRECT: Creates branch from current staging
+git worktree add ../wildfire_mvp_v3_feature -b feature/new staging
+#                                                            ↑
+#                                                    Branch from staging!
+```
 
 ## Creating a New Worktree
 
-### For a new feature branch:
+### For a new feature branch (RECOMMENDED):
 ```bash
-# Create worktree with new branch
-git worktree add ../wildfire_mvp_v3_feature-name -b feature-name
+# Create worktree with new branch from staging
+git worktree add ../wildfire_mvp_v3_feature-name -b feature/feature-name staging
 
-# Example: Create worktree for map improvements
-git worktree add ../wildfire_mvp_v3_map-improvements -b map-improvements
+# Example: Create worktree for map improvements from staging
+git worktree add ../wildfire_mvp_v3_map-improvements -b feature/map-improvements staging
+
+# Example: Create worktree for bug fix from staging
+git worktree add ../wildfire_mvp_v3_bug-fix -b fix/location-error staging
+
+# Example: Create worktree for documentation from staging
+git worktree add ../wildfire_mvp_v3_docs -b docs/update-readme staging
 ```
 
 ### For working on existing branch:
@@ -39,8 +72,8 @@ git worktree add ../wildfire_mvp_v3_map-improvements -b map-improvements
 # Create worktree from existing branch
 git worktree add ../wildfire_mvp_v3_branch-name branch-name
 
-# Example: Create worktree for a12b work
-git worktree add ../wildfire_mvp_v3_a12b a12b
+# Example: Create worktree for existing feature work
+git worktree add ../wildfire_mvp_v3_a12b 014-a12b-report-fire
 ```
 
 ## Multi-Agent Workflow Pattern
@@ -52,19 +85,62 @@ git worktree add ../wildfire_mvp_v3_a12b a12b
 cd ~/Desktop/WildFire-App/Documentation/wildfire_app_docs/apps/flutter/wildfire_mvp_v3
 git checkout 014-a12b-report-fire
 # Agent 1 makes changes...
+git push origin 014-a12b-report-fire
+# Create PR to staging
+gh pr create --base staging --head 014-a12b-report-fire
 ```
 
-**Agent 2 (New worktree)**: Working on Map improvements
+**Agent 2 (New worktree)**: Working on Map improvements from staging
 ```bash
 cd ~/Desktop/WildFire-App/Documentation/wildfire_app_docs/apps/flutter
-git worktree add wildfire_mvp_v3_map-improvements -b map-improvements
+# IMPORTANT: Branch from staging
+git worktree add wildfire_mvp_v3_map-improvements -b feature/map-improvements staging
 cd wildfire_mvp_v3_map-improvements
 # Agent 2 makes changes...
+git push origin feature/map-improvements
+# Create PR to staging (triggers PR preview)
+gh pr create --base staging --head feature/map-improvements
+```
+
+### Complete Feature Workflow (3-Tier Strategy):
+```bash
+# 1. Create worktree from staging
+git worktree add ../wildfire_mvp_v3_new-feature -b feature/new-widget staging
+cd ../wildfire_mvp_v3_new-feature
+
+# 2. Make changes and commit
+git add .
+git commit -m "feat: add new widget"
+git push origin feature/new-widget
+
+# 3. Create PR to staging (triggers PR preview)
+gh pr create --base staging --title "Add new widget" --body "Implements widget feature"
+# ✅ PR preview deploys to: pr-{number}-wildfire-app.web.app
+
+# 4. After review, merge PR to staging
+# ✅ Staging environment auto-deploys
+
+# 5. QA tests staging for 1-3 days
+# Check staging at: wildfire-app-e11f8-staging.web.app
+
+# 6. After QA approval, merge staging → main
+git checkout main
+git pull origin main
+git merge staging
+git push origin main
+# ✅ Manual approval required for production deployment
+
+# 7. Cleanup worktree
+cd ~/Desktop/WildFire-App/Documentation/wildfire_app_docs/apps/flutter/wildfire_mvp_v3
+git worktree remove ../wildfire_mvp_v3_new-feature
 ```
 
 ### Benefits:
 - ✅ Each agent has isolated working directory
 - ✅ No branch switching conflicts
+- ✅ All features branch from latest staging code
+- ✅ PR previews show accurate staging comparison
+- ✅ Follows proper GitFlow: feature → staging → main
 - ✅ Can run different Flutter commands simultaneously
 - ✅ Shared git history (commits are visible across worktrees)
 
@@ -92,27 +168,40 @@ git worktree move /old/path /new/path
 
 ## Best Practices
 
-### 1. **Naming Convention**
-Use descriptive suffixes for worktree directories:
-```
-wildfire_mvp_v3          # Main worktree
-wildfire_mvp_v3_a12b     # Feature: Report Fire
-wildfire_mvp_v3_map      # Feature: Map improvements
-wildfire_mvp_v3_cache    # Feature: Cache optimization
+### 1. **Always Branch from Staging** ⚠️ CRITICAL
+```bash
+# CORRECT: New features branch from staging
+git worktree add ../wildfire_mvp_v3_feature -b feature/name staging
+
+# WRONG: Don't branch from main (outdated code)
+git worktree add ../wildfire_mvp_v3_feature -b feature/name main  # ❌
 ```
 
-### 2. **One Branch Per Worktree**
+### 2. **Naming Convention**
+Use descriptive suffixes for worktree directories:
+```
+wildfire_mvp_v3                    # Main worktree (staging branch)
+wildfire_mvp_v3_report-fire        # Feature: Report Fire
+wildfire_mvp_v3_map-improvements   # Feature: Map improvements
+wildfire_mvp_v3_cache-optimization # Feature: Cache optimization
+wildfire_mvp_v3_docs-update        # Documentation work
+```
+
+### 3. **One Branch Per Worktree**
 - Never check out the same branch in multiple worktrees
 - Git prevents this to avoid conflicts
 
-### 3. **Cleanup After Merge**
+### 4. **Cleanup After Merge**
 ```bash
-# After feature is merged to main
+# After feature is merged to staging
 git worktree remove ../wildfire_mvp_v3_feature-name
-git branch -d feature-name
+git branch -d feature/feature-name
+
+# Optional: Delete remote branch after merge
+git push origin --delete feature/feature-name
 ```
 
-### 4. **Environment Variables**
+### 5. **Environment Variables**
 Each worktree can have its own environment:
 ```bash
 # In worktree 1: Use mock data
@@ -122,6 +211,16 @@ flutter run --dart-define-from-file=env/dev.env.json
 # In worktree 2: Use live data
 cd wildfire_mvp_v3_map
 flutter run --dart-define-from-file=env/prod.env.json
+```
+
+### 6. **Create PRs to Staging**
+Always target staging as the base branch for pull requests:
+```bash
+# CORRECT: PR to staging
+gh pr create --base staging --head feature/name
+
+# WRONG: Direct PR to main (bypasses staging QA)
+gh pr create --base main --head feature/name  # ❌
 ```
 
 ### 5. **JAVA_HOME Configuration**
