@@ -6,6 +6,7 @@ import '../widgets/risk_banner.dart';
 import '../widgets/manual_location_dialog.dart';
 import '../services/models/fire_risk.dart';
 import '../utils/time_format.dart';
+import '../utils/location_utils.dart';
 
 /// Home screen that displays wildfire risk information with user controls
 ///
@@ -92,20 +93,42 @@ class _HomeScreenState extends State<HomeScreen> {
       case HomeStateLoading():
         return const RiskBanner(state: RiskBannerLoading());
 
-      case HomeStateSuccess(:final riskData, :final lastUpdated):
+      case HomeStateSuccess(:final riskData, :final location, :final lastUpdated):
+        // Format location with privacy-compliant 2-decimal precision (C2)
+        final locationLabel = LocationUtils.logRedact(
+          location.latitude,
+          location.longitude,
+        );
+
         return Column(
           children: [
-            RiskBanner(state: RiskBannerSuccess(riskData)),
+            RiskBanner(
+              state: RiskBannerSuccess(riskData),
+              locationLabel: locationLabel,
+            ),
             const SizedBox(height: 8.0),
             _buildTimestampInfo(riskData, lastUpdated),
           ],
         );
 
-      case HomeStateError(:final errorMessage, :final cachedData):
+      case HomeStateError(
+            :final errorMessage,
+            :final cachedData,
+            :final cachedLocation,
+          ):
+        // Format cached location with privacy-compliant 2-decimal precision (C2)
+        final locationLabel = cachedLocation != null
+            ? LocationUtils.logRedact(
+                cachedLocation.latitude,
+                cachedLocation.longitude,
+              )
+            : null;
+
         return Column(
           children: [
             RiskBanner(
               state: RiskBannerError(errorMessage, cached: cachedData),
+              locationLabel: locationLabel,
             ),
             if (cachedData != null) ...[
               const SizedBox(height: 8.0),

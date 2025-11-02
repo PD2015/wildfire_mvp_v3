@@ -78,7 +78,7 @@ Flutter app structure:
 
 - [X] **T011** [P] Add RiskBannerConfig: Create RiskBannerConfig class with bool showWeatherPanel=false default; in `lib/widgets/risk_banner.dart`, when config.showWeatherPanel == true, render nested rounded container with three columns (Temperature, Humidity, Wind Speed) and placeholder values; when false/null, no weather panel
 
-- [ ] **T012** Wire coordinates in HomeScreen: In `lib/screens/home_screen.dart` success state branch, build coordsLabel using '(${LocationUtils.logRedact(location.latitude, location.longitude)})' format and pass to RiskBanner(locationLabel: coordsLabel, ...) (C2: Logging compliance with 2-decimal precision)
+- [X] **T012** Wire coordinates in HomeScreen: In `lib/screens/home_screen.dart` success state branch, build coordsLabel using '(${LocationUtils.logRedact(location.latitude, location.longitude)})' format and pass to RiskBanner(locationLabel: coordsLabel, ...) (C2: Logging compliance with 2-decimal precision)
 
 - [ ] **T013** Remove external elements from HomeScreen: In `lib/screens/home_screen.dart`, remove external timestamp row and source chip usage to avoid duplication with internal banner display; preserve other external info (e.g., cached indicator card) as needed
 
