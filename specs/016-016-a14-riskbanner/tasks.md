@@ -65,12 +65,12 @@ Flutter app structure:
 
 - [ ] **T008** [P] Golden test (Moderate dark): Create `test/widget/golden/risk_banner_moderate_dark_test.dart` with Moderate risk level, dark theme, fixed timestamp, source=EFFIS for reproducibility
 
-- [X] **T009**: Update widget tests (`test/widgets/risk_banner_test.dart`)
-  - [X] Replace `Container` lookups with `Card` widget lookups
-  - [X] Update color verification to check `card.color` property
-  - [X] Update source text assertions to match new format "Data Source: $name"
-  - [X] Update golden test finders to use `find.byType(RiskBanner)`
-  - **Result**: 28 functional tests passing, 15 golden tests need regeneration (expected)
+- [X] **T010**: Update success layout with location row
+  - [X] Wrap location Text in `Expanded` widget to prevent overflow
+  - [X] Add `overflow: TextOverflow.ellipsis` and `maxLines: 1` for long location names
+  - [X] Apply same fix to error state with cached data (line ~355)
+  - [X] Regenerate golden test images with `--update-goldens`
+  - **Result**: Overflow fixed ✅, all 7 golden tests passing ✅
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
 

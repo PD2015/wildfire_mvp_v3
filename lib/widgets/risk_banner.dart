@@ -182,11 +182,15 @@ class RiskBanner extends StatelessWidget {
                       size: 16.0,
                     ),
                     const SizedBox(width: 4.0),
-                    Text(
-                      locationLabel!,
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: 14.0,
+                    Expanded(
+                      child: Text(
+                        locationLabel!,
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 14.0,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
                   ],
@@ -358,11 +362,15 @@ class RiskBanner extends StatelessWidget {
                       size: 16.0,
                     ),
                     const SizedBox(width: 4.0),
-                    Text(
-                      locationLabel!,
-                      style: TextStyle(
-                        color: textColor,
-                        fontSize: 14.0,
+                    Expanded(
+                      child: Text(
+                        locationLabel!,
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 14.0,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
                   ],
