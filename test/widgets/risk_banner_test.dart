@@ -54,20 +54,11 @@ void main() {
             ),
           );
 
-          // Find the main container with risk level background color
-          final containers = tester.widgetList<Container>(
-            find.byType(Container),
-          );
-          final decoratedContainer = containers.firstWhere((container) {
-            final decoration = container.decoration as BoxDecoration?;
-            return decoration?.color != null &&
-                decoration!.color != Colors.transparent &&
-                decoration.color != RiskPalette.lightGray;
-          });
-          final decoration = decoratedContainer.decoration as BoxDecoration;
+          // Find the Card widget with risk level background color
+          final card = tester.widget<Card>(find.byType(Card));
           final expectedColor = _getRiskLevelColorTest(level);
 
-          expect(decoration.color, equals(expectedColor));
+          expect(card.color, equals(expectedColor));
         });
 
         testWidgets('displays correct risk level text for ${level.name}', (
@@ -90,11 +81,11 @@ void main() {
       }
 
       for (final source in DataSource.values) {
-        testWidgets('displays correct source chip for ${source.name}', (
+        testWidgets('displays correct source text for ${source.name}', (
           tester,
         ) async {
           final fireRisk = _fakeFireRisk(source: source);
-          final expectedSourceText = _getSourceName(source);
+          final expectedSourceText = 'Data Source: ${_getSourceName(source)}';
 
           await tester.pumpWidget(
             MaterialApp(
@@ -249,20 +240,13 @@ void main() {
           ),
         );
 
-        // Find the main container (skip the outer container with constraints)
-        final containers = tester.widgetList<Container>(find.byType(Container));
-        final mainContainer = containers.firstWhere((container) {
-          final decoration = container.decoration as BoxDecoration?;
-          return decoration?.color != null &&
-              decoration!.color != RiskPalette.lightGray;
-        });
-
-        final decoration = mainContainer.decoration as BoxDecoration;
+        // Find the Card widget with cached risk level background color
+        final card = tester.widget<Card>(find.byType(Card));
         final expectedColor = _getRiskLevelColorTest(
           RiskLevel.veryHigh,
         ).withValues(alpha: 0.6);
 
-        expect(decoration.color, equals(expectedColor));
+        expect(card.color, equals(expectedColor));
       });
     });
 
@@ -339,7 +323,7 @@ void main() {
           );
 
           await expectLater(
-            find.byType(Container).first,
+            find.byType(RiskBanner),
             matchesGoldenFile('goldens/risk_banner/${level.name}_light.png'),
           );
         });
@@ -369,7 +353,7 @@ void main() {
           );
 
           await expectLater(
-            find.byType(Container).first,
+            find.byType(RiskBanner),
             matchesGoldenFile('goldens/risk_banner/${level.name}_dark.png'),
           );
         });
@@ -396,7 +380,7 @@ void main() {
       );
 
       await expectLater(
-        find.byType(Container).first,
+        find.byType(RiskBanner),
         matchesGoldenFile('goldens/risk_banner/cached_state.png'),
       );
     });
@@ -418,7 +402,7 @@ void main() {
       );
 
       await expectLater(
-        find.byType(Container).first,
+        find.byType(RiskBanner),
         matchesGoldenFile('goldens/risk_banner/error_with_retry.png'),
       );
     });
@@ -441,7 +425,7 @@ void main() {
       );
 
       await expectLater(
-        find.byType(Container).first,
+        find.byType(RiskBanner),
         matchesGoldenFile('goldens/risk_banner/error_with_cached.png'),
       );
     });

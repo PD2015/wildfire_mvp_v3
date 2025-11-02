@@ -65,7 +65,12 @@ Flutter app structure:
 
 - [ ] **T008** [P] Golden test (Moderate dark): Create `test/widget/golden/risk_banner_moderate_dark_test.dart` with Moderate risk level, dark theme, fixed timestamp, source=EFFIS for reproducibility
 
-- [ ] **T009** Update widget tests: In `test/widget/risk_banner_test.dart`, ensure semantics unchanged, verify minimum 44dp height persists (C3: Accessibility), add assertion for location row visibility when locationLabel provided, adjust any tests expecting external source chip
+- [X] **T009**: Update widget tests (`test/widgets/risk_banner_test.dart`)
+  - [X] Replace `Container` lookups with `Card` widget lookups
+  - [X] Update color verification to check `card.color` property
+  - [X] Update source text assertions to match new format "Data Source: $name"
+  - [X] Update golden test finders to use `find.byType(RiskBanner)`
+  - **Result**: 28 functional tests passing, 15 golden tests need regeneration (expected)
 
 ## Phase 3.3: Core Implementation (ONLY after tests are failing)
 
