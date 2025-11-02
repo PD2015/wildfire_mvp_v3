@@ -76,7 +76,7 @@ Flutter app structure:
 
 - [ ] **T010** Update success layout: In `lib/widgets/risk_banner.dart`, keep existing title "Wildfire Risk: {LEVEL}"; add location row with Icon(Icons.location_on) + locationLabel text when provided; show "Updated {relative time}" and "Data Source: {EFFIS|SEPA|Cache|Mock}" as plain text inside banner; preserve CachedBadge when freshness == cached; remove any chip widget usage
 
-- [ ] **T011** [P] Add RiskBannerConfig: Create RiskBannerConfig class with bool showWeatherPanel=false default; in `lib/widgets/risk_banner.dart`, when config.showWeatherPanel == true, render nested rounded container with three columns (Temperature, Humidity, Wind Speed) and placeholder values; when false/null, no weather panel
+- [X] **T011** [P] Add RiskBannerConfig: Create RiskBannerConfig class with bool showWeatherPanel=false default; in `lib/widgets/risk_banner.dart`, when config.showWeatherPanel == true, render nested rounded container with three columns (Temperature, Humidity, Wind Speed) and placeholder values; when false/null, no weather panel
 
 - [ ] **T012** Wire coordinates in HomeScreen: In `lib/screens/home_screen.dart` success state branch, build coordsLabel using '(${LocationUtils.logRedact(location.latitude, location.longitude)})' format and pass to RiskBanner(locationLabel: coordsLabel, ...) (C2: Logging compliance with 2-decimal precision)
 

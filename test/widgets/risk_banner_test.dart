@@ -153,6 +153,107 @@ void main() {
           findsOneWidget,
         );
       });
+
+      group('Weather Panel', () {
+        testWidgets('does not display weather panel by default', (
+          tester,
+        ) async {
+          final fireRisk = _fakeFireRisk();
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: RiskBanner(state: RiskBannerSuccess(fireRisk)),
+              ),
+            ),
+          );
+
+          // Weather panel should not be visible with default config
+          expect(find.text('Temperature'), findsNothing);
+          expect(find.text('Humidity'), findsNothing);
+          expect(find.text('Wind Speed'), findsNothing);
+        });
+
+        testWidgets('displays weather panel when config enabled', (
+          tester,
+        ) async {
+          final fireRisk = _fakeFireRisk();
+          const config = RiskBannerConfig(showWeatherPanel: true);
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: RiskBanner(
+                  state: RiskBannerSuccess(fireRisk),
+                  config: config,
+                ),
+              ),
+            ),
+          );
+
+          // Weather panel should be visible
+          expect(find.text('Temperature'), findsOneWidget);
+          expect(find.text('Humidity'), findsOneWidget);
+          expect(find.text('Wind Speed'), findsOneWidget);
+        });
+
+        testWidgets('displays placeholder weather values', (tester) async {
+          final fireRisk = _fakeFireRisk();
+          const config = RiskBannerConfig(showWeatherPanel: true);
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: RiskBanner(
+                  state: RiskBannerSuccess(fireRisk),
+                  config: config,
+                ),
+              ),
+            ),
+          );
+
+          // Check placeholder values
+          expect(find.text('18°C'), findsOneWidget);
+          expect(find.text('65%'), findsOneWidget);
+          expect(find.text('12 mph'), findsOneWidget);
+        });
+
+        testWidgets('weather panel has proper rounded container', (
+          tester,
+        ) async {
+          final fireRisk = _fakeFireRisk();
+          const config = RiskBannerConfig(showWeatherPanel: true);
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: RiskBanner(
+                  state: RiskBannerSuccess(fireRisk),
+                  config: config,
+                ),
+              ),
+            ),
+          );
+
+          // Find the weather panel container
+          final containers = tester.widgetList<Container>(
+            find.byType(Container),
+          );
+
+          // Weather panel should have rounded corners and semi-transparent background
+          final weatherContainer = containers.firstWhere((container) {
+            final decoration = container.decoration as BoxDecoration?;
+            return decoration?.borderRadius != null &&
+                decoration?.color?.alpha != null &&
+                decoration!.color!.alpha < 255;
+          });
+
+          expect(weatherContainer, isNotNull);
+          final decoration = weatherContainer.decoration as BoxDecoration;
+          expect(decoration.borderRadius, isNotNull);
+          expect(decoration.color?.alpha, lessThan(255));
+        });
+      });
     });
 
     group('Error State', () {
@@ -443,7 +544,8 @@ FireRisk _fakeFireRisk({
     level: level,
     source: source,
     freshness: freshness,
-    observedAt: observedAtUtc ??
+    observedAt:
+        observedAtUtc ??
         DateTime.now().toUtc().subtract(const Duration(minutes: 30)),
   );
 }
