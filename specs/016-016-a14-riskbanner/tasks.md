@@ -57,13 +57,13 @@ Flutter app structure:
 
 - [X] **T004** [P] Golden test (Moderate light): Create `test/widget/golden/risk_banner_moderate_light_test.dart` with Moderate risk level, light theme, fixed timestamp, source=EFFIS for reproducibility
 
-- [ ] **T005** [P] Golden test (High light): Create `test/widget/golden/risk_banner_high_light_test.dart` with High risk level, light theme, fixed timestamp, source=EFFIS for reproducibility
+- [X] **T005** [P] Golden test (High light): Create `test/widget/golden/risk_banner_high_light_test.dart` with High risk level, light theme, fixed timestamp, source=EFFIS for reproducibility
 
-- [ ] **T006** [P] Golden test (VeryHigh light): Create `test/widget/golden/risk_banner_very_high_light_test.dart` with VeryHigh risk level, light theme, fixed timestamp, source=EFFIS for reproducibility
+- [X] **T006** [P] Golden test (VeryHigh light): Create `test/widget/golden/risk_banner_very_high_light_test.dart` with VeryHigh risk level, light theme, fixed timestamp, source=EFFIS for reproducibility
 
-- [ ] **T007** [P] Golden test (Extreme light): Create `test/widget/golden/risk_banner_extreme_light_test.dart` with Extreme risk level, light theme, fixed timestamp, source=EFFIS for reproducibility
+- [X] **T007** [P] Golden test (Extreme light): Create `test/widget/golden/risk_banner_extreme_light_test.dart` with Extreme risk level, light theme, fixed timestamp, source=EFFIS for reproducibility
 
-- [ ] **T008** [P] Golden test (Moderate dark): Create `test/widget/golden/risk_banner_moderate_dark_test.dart` with Moderate risk level, dark theme, fixed timestamp, source=EFFIS for reproducibility
+- [X] **T008** [P] Golden test (Moderate dark): Create `test/widget/golden/risk_banner_moderate_dark_test.dart` with Moderate risk level, dark theme, fixed timestamp, source=EFFIS for reproducibility
 
 - [X] **T010**: Update success layout with location row
   - [X] Wrap location Text in `Expanded` widget to prevent overflow
