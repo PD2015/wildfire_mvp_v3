@@ -2,9 +2,9 @@ name: Flutter CI/CD
 
 on:
   push:
-    branches: [ main, develop, staging, 'feature/*', '**-a*-**' ]
+    branches: [ main, staging, 'feature/*', '**-a*-**' ]
   pull_request:
-    branches: [ main, develop, staging ]
+    branches: [ main, staging ]
 
 permissions:
   checks: write
@@ -508,7 +508,7 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
           channelId: staging
-          expires: 90d
+          expires: 30d
 
   # Deploy to production (requires manual approval) (A11)
   deploy-production:
