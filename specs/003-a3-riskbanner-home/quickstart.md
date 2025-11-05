@@ -320,6 +320,49 @@ class _HomeScreenState extends State<HomeScreen> {
 
 **Expected Result**: Clear error message like "Unable to load current wildfire risk data"
 
+## Visual Refresh (A14 - November 2025)
+
+### Material Card Design
+RiskBanner now uses Material Design 3 Card widgets with consistent visual tokens:
+- **Card Styling**: 16dp corner radius, 2.0 elevation, proper shadow
+- **Padding**: 16dp internal padding for content
+- **Layout**: Standardized spacing with 8dp/16dp increments
+
+### Internal Timestamp & Source Display
+Timestamp and data source information are now shown **internally** within the RiskBanner:
+- **Location**: Displayed below risk level inside the card
+- **Format**: "Updated {relative time}" + "Data Source: {EFFIS|SEPA|Cache|Mock}"
+- **Benefits**: Consolidated UI, reduced duplication, single source of truth
+
+**Migration Note**: If your HomeScreen previously displayed external timestamp/source rows, these should be removed to avoid duplication.
+
+### Golden Test Coverage
+The RiskBanner now has comprehensive visual regression testing:
+- **7 Golden Tests**: All 6 risk levels × 2 themes (light/dark) + cached state
+- **Test Location**: `test/widget/golden/risk_banner_*_test.dart`
+- **Baseline Images**: `test/widget/golden/goldens/*.png`
+- **Purpose**: Prevents unintended visual changes, ensures pixel-perfect rendering
+
+To update golden baselines after intentional visual changes:
+```bash
+flutter test --update-goldens test/widget/golden/
+```
+
+### Privacy-Compliant Location Display
+Coordinates are now shown with 2-decimal precision (C2 constitutional compliance):
+- **Format**: "55.95, -3.19" (Edinburgh example)
+- **Precision**: ±1.1km accuracy
+- **Implementation**: Use `LocationUtils.logRedact()` for coordinate formatting
+
+### Weather Panel (Optional)
+Future enhancement placeholder for weather conditions:
+```dart
+RiskBanner(
+  state: RiskBannerSuccess(riskData),
+  config: RiskBannerConfig(showWeatherPanel: true), // Future use
+)
+```
+
 ## Performance Expectations
 
 - **Initial Load**: < 500ms for cached data
