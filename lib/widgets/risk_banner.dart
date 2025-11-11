@@ -6,6 +6,22 @@ import '../theme/risk_palette.dart';
 import '../utils/time_format.dart';
 import 'badges/cached_badge.dart';
 
+// Visual tokens for consistent banner styling
+const double kBannerRadius = 16.0;
+const EdgeInsets kBannerPadding = EdgeInsets.all(16.0);
+const double kBannerElevation = 2.0;
+
+/// Configuration class for RiskBanner widget features
+class RiskBannerConfig extends Equatable {
+  /// Whether to show the weather panel
+  final bool showWeatherPanel;
+
+  const RiskBannerConfig({this.showWeatherPanel = false});
+
+  @override
+  List<Object?> get props => [showWeatherPanel];
+}
+
 /// State representation for the RiskBanner widget
 sealed class RiskBannerState extends Equatable {
   const RiskBannerState();
@@ -52,7 +68,19 @@ class RiskBanner extends StatelessWidget {
   /// Optional callback for retry action in error states
   final VoidCallback? onRetry;
 
-  const RiskBanner({super.key, required this.state, this.onRetry});
+  /// Optional location label for coordinate display
+  final String? locationLabel;
+
+  /// Configuration for banner features
+  final RiskBannerConfig config;
+
+  const RiskBanner({
+    super.key,
+    required this.state,
+    this.onRetry,
+    this.locationLabel,
+    this.config = const RiskBannerConfig(),
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -75,29 +103,34 @@ class RiskBanner extends StatelessWidget {
   Widget _buildLoadingState() {
     return Semantics(
       label: 'Loading wildfire risk data',
-      child: Container(
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: RiskPalette.lightGray,
-          borderRadius: BorderRadius.circular(8.0),
+      child: const Card(
+        elevation: kBannerElevation,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(kBannerRadius)),
         ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 20.0,
-              height: 20.0,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.0,
-                valueColor: AlwaysStoppedAnimation<Color>(RiskPalette.midGray),
+        color: RiskPalette.lightGray,
+        child: Padding(
+          padding: kBannerPadding,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 20.0,
+                height: 20.0,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.0,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    RiskPalette.midGray,
+                  ),
+                ),
               ),
-            ),
-            SizedBox(width: 12.0),
-            Text(
-              'Loading wildfire risk...',
-              style: TextStyle(color: RiskPalette.midGray, fontSize: 16.0),
-            ),
-          ],
+              SizedBox(width: 12.0),
+              Text(
+                'Loading wildfire risk...',
+                style: TextStyle(color: RiskPalette.midGray, fontSize: 16.0),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -116,68 +149,125 @@ class RiskBanner extends StatelessWidget {
     return Semantics(
       label:
           'Current wildfire risk $levelName, $timeText, data from $sourceName',
-      child: Container(
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(8.0),
+      child: Card(
+        elevation: kBannerElevation,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(kBannerRadius),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Main risk level title
-            Text(
-              'Wildfire Risk: ${levelName.toUpperCase()}',
-              style: TextStyle(
-                color: textColor,
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8.0),
-
-            // Source and timestamp row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Source chip
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8.0,
-                    vertical: 4.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: textColor.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: Text(
-                    sourceName,
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 12.0,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+        color: backgroundColor,
+        child: Padding(
+          padding: kBannerPadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Main risk level title
+              Text(
+                'Wildfire Risk: ${levelName.toUpperCase()}',
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.bold,
                 ),
-
-                // Cached badge if applicable
-                if (data.freshness == Freshness.cached) const CachedBadge(),
-              ],
-            ),
-
-            const SizedBox(height: 4.0),
-
-            // Timestamp
-            Text(
-              timeText,
-              style: TextStyle(
-                color: textColor.withValues(alpha: 0.8),
-                fontSize: 14.0,
               ),
-            ),
-          ],
+              const SizedBox(height: 8.0),
+
+              // Location row (if locationLabel is provided)
+              if (locationLabel != null) ...[
+                Row(
+                  children: [
+                    Icon(Icons.location_on, color: textColor, size: 16.0),
+                    const SizedBox(width: 4.0),
+                    Expanded(
+                      child: Text(
+                        locationLabel!,
+                        style: TextStyle(color: textColor, fontSize: 14.0),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8.0),
+              ],
+
+              // Timestamp
+              Text(
+                timeText,
+                style: TextStyle(
+                  color: textColor.withValues(alpha: 0.8),
+                  fontSize: 14.0,
+                ),
+              ),
+
+              const SizedBox(height: 4.0),
+
+              // Data Source as plain text
+              Text(
+                'Data Source: $sourceName',
+                style: TextStyle(
+                  color: textColor.withValues(alpha: 0.8),
+                  fontSize: 14.0,
+                ),
+              ),
+
+              // Cached badge if applicable
+              if (data.freshness == Freshness.cached) ...[
+                const SizedBox(height: 8.0),
+                const CachedBadge(),
+              ],
+
+              // Weather panel (if enabled)
+              if (config.showWeatherPanel) ...[
+                const SizedBox(height: 12.0),
+                _buildWeatherPanel(textColor),
+              ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  /// Builds the weather panel with placeholder values
+  Widget _buildWeatherPanel(Color textColor) {
+    return Container(
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: textColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(kBannerRadius - 4.0),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildWeatherItem('Temperature', '18°C', textColor),
+          _buildWeatherItem('Humidity', '65%', textColor),
+          _buildWeatherItem('Wind Speed', '12 mph', textColor),
+        ],
+      ),
+    );
+  }
+
+  /// Builds individual weather items
+  Widget _buildWeatherItem(String label, String value, Color textColor) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            color: textColor,
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4.0),
+        Text(
+          label,
+          style: TextStyle(
+            color: textColor.withValues(alpha: 0.8),
+            fontSize: 12.0,
+          ),
+        ),
+      ],
     );
   }
 
@@ -206,105 +296,116 @@ class RiskBanner extends StatelessWidget {
     return Semantics(
       label:
           'Error loading current data, showing cached $levelName wildfire risk from $timeText',
-      child: Container(
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(color: RiskPalette.midGray, width: 2.0),
+      child: Card(
+        elevation: kBannerElevation,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(kBannerRadius),
+          side: const BorderSide(color: RiskPalette.midGray, width: 2.0),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Error indicator
-            const Row(
-              children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  color: RiskPalette.midGray,
-                  size: 20.0,
+        color: backgroundColor,
+        child: Padding(
+          padding: kBannerPadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Error indicator
+              const Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: RiskPalette.midGray,
+                    size: 20.0,
+                  ),
+                  SizedBox(width: 8.0),
+                  Expanded(
+                    child: Text(
+                      'Unable to load current data',
+                      style: TextStyle(
+                        color: RiskPalette.midGray,
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8.0),
+
+              // Cached risk level
+              Text(
+                'Wildfire Risk: ${levelName.toUpperCase()}',
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.bold,
                 ),
-                SizedBox(width: 8.0),
-                Expanded(
-                  child: Text(
-                    'Unable to load current data',
-                    style: TextStyle(
-                      color: RiskPalette.midGray,
-                      fontSize: 14.0,
-                      fontWeight: FontWeight.w500,
+              ),
+
+              const SizedBox(height: 8.0),
+
+              // Location row (if locationLabel is provided)
+              if (locationLabel != null) ...[
+                Row(
+                  children: [
+                    Icon(Icons.location_on, color: textColor, size: 16.0),
+                    const SizedBox(width: 4.0),
+                    Expanded(
+                      child: Text(
+                        locationLabel!,
+                        style: TextStyle(color: textColor, fontSize: 14.0),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8.0),
+              ],
+
+              // Timestamp
+              Text(
+                timeText,
+                style: TextStyle(
+                  color: textColor.withValues(alpha: 0.8),
+                  fontSize: 14.0,
+                ),
+              ),
+
+              const SizedBox(height: 4.0),
+
+              // Data Source as plain text
+              Text(
+                'Data Source: $sourceName',
+                style: TextStyle(
+                  color: textColor.withValues(alpha: 0.8),
+                  fontSize: 14.0,
+                ),
+              ),
+
+              const SizedBox(height: 8.0),
+
+              // Cached badge
+              const CachedBadge(),
+
+              const SizedBox(height: 12.0),
+
+              // Retry button
+              if (onRetry != null)
+                SizedBox(
+                  height: 44.0, // A11y minimum touch target
+                  child: ElevatedButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh, size: 18.0),
+                    label: const Text('Retry'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: RiskPalette.blueAccent,
+                      foregroundColor: RiskPalette.white,
                     ),
                   ),
                 ),
-              ],
-            ),
-
-            const SizedBox(height: 8.0),
-
-            // Cached risk level
-            Text(
-              'Wildfire Risk: ${levelName.toUpperCase()}',
-              style: TextStyle(
-                color: textColor,
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 8.0),
-
-            // Source and cached badge row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8.0,
-                    vertical: 4.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: textColor.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: Text(
-                    sourceName,
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 12.0,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                const CachedBadge(),
-              ],
-            ),
-
-            const SizedBox(height: 4.0),
-
-            Text(
-              timeText,
-              style: TextStyle(
-                color: textColor.withValues(alpha: 0.8),
-                fontSize: 14.0,
-              ),
-            ),
-
-            const SizedBox(height: 12.0),
-
-            // Retry button
-            if (onRetry != null)
-              SizedBox(
-                height: 44.0, // A11y minimum touch target
-                child: ElevatedButton.icon(
-                  onPressed: onRetry,
-                  icon: const Icon(Icons.refresh, size: 18.0),
-                  label: const Text('Retry'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: RiskPalette.blueAccent,
-                    foregroundColor: RiskPalette.white,
-                  ),
-                ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -314,64 +415,67 @@ class RiskBanner extends StatelessWidget {
   Widget _buildErrorWithoutCachedData(String message) {
     return Semantics(
       label: 'Unable to load wildfire risk data',
-      child: Container(
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: RiskPalette.lightGray,
-          borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(color: RiskPalette.midGray, width: 1.0),
+      child: Card(
+        elevation: kBannerElevation,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(kBannerRadius),
+          side: const BorderSide(color: RiskPalette.midGray, width: 1.0),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              children: [
-                Icon(
-                  Icons.error_outline_rounded,
+        color: RiskPalette.lightGray,
+        child: Padding(
+          padding: kBannerPadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(
+                    Icons.error_outline_rounded,
+                    color: RiskPalette.midGray,
+                    size: 24.0,
+                  ),
+                  SizedBox(width: 12.0),
+                  Expanded(
+                    child: Text(
+                      'Unable to load wildfire risk data',
+                      style: TextStyle(
+                        color: RiskPalette.darkGray,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8.0),
+
+              Text(
+                message,
+                style: const TextStyle(
                   color: RiskPalette.midGray,
-                  size: 24.0,
+                  fontSize: 14.0,
                 ),
-                SizedBox(width: 12.0),
-                Expanded(
-                  child: Text(
-                    'Unable to load wildfire risk data',
-                    style: TextStyle(
-                      color: RiskPalette.darkGray,
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.w500,
+              ),
+
+              const SizedBox(height: 12.0),
+
+              // Retry button
+              if (onRetry != null)
+                SizedBox(
+                  height: 44.0, // A11y minimum touch target
+                  child: ElevatedButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh, size: 18.0),
+                    label: const Text('Retry'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: RiskPalette.blueAccent,
+                      foregroundColor: RiskPalette.white,
                     ),
                   ),
                 ),
-              ],
-            ),
-
-            const SizedBox(height: 8.0),
-
-            Text(
-              message,
-              style: const TextStyle(
-                color: RiskPalette.midGray,
-                fontSize: 14.0,
-              ),
-            ),
-
-            const SizedBox(height: 12.0),
-
-            // Retry button
-            if (onRetry != null)
-              SizedBox(
-                height: 44.0, // A11y minimum touch target
-                child: ElevatedButton.icon(
-                  onPressed: onRetry,
-                  icon: const Icon(Icons.refresh, size: 18.0),
-                  label: const Text('Retry'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: RiskPalette.blueAccent,
-                    foregroundColor: RiskPalette.white,
-                  ),
-                ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
