@@ -5,7 +5,7 @@ import '../models/home_state.dart';
 import '../widgets/risk_banner.dart';
 import '../widgets/manual_location_dialog.dart';
 import '../services/models/fire_risk.dart';
-import '../utils/time_format.dart';
+import '../utils/location_utils.dart';
 
 /// Home screen that displays wildfire risk information with user controls
 ///
@@ -92,20 +92,36 @@ class _HomeScreenState extends State<HomeScreen> {
       case HomeStateLoading():
         return const RiskBanner(state: RiskBannerLoading());
 
-      case HomeStateSuccess(:final riskData, :final lastUpdated):
-        return Column(
-          children: [
-            RiskBanner(state: RiskBannerSuccess(riskData)),
-            const SizedBox(height: 8.0),
-            _buildTimestampInfo(riskData, lastUpdated),
-          ],
+      case HomeStateSuccess(:final riskData, :final location):
+        // Format location with privacy-compliant 2-decimal precision (C2)
+        final locationLabel = LocationUtils.logRedact(
+          location.latitude,
+          location.longitude,
         );
 
-      case HomeStateError(:final errorMessage, :final cachedData):
+        return RiskBanner(
+          state: RiskBannerSuccess(riskData),
+          locationLabel: locationLabel,
+        );
+
+      case HomeStateError(
+          :final errorMessage,
+          :final cachedData,
+          :final cachedLocation,
+        ):
+        // Format cached location with privacy-compliant 2-decimal precision (C2)
+        final locationLabel = cachedLocation != null
+            ? LocationUtils.logRedact(
+                cachedLocation.latitude,
+                cachedLocation.longitude,
+              )
+            : null;
+
         return Column(
           children: [
             RiskBanner(
               state: RiskBannerError(errorMessage, cached: cachedData),
+              locationLabel: locationLabel,
             ),
             if (cachedData != null) ...[
               const SizedBox(height: 8.0),
@@ -116,117 +132,26 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// Builds timestamp and source information for successful states
-  Widget _buildTimestampInfo(FireRisk riskData, DateTime lastUpdated) {
-    final relativeTime = formatRelativeTime(
-      utcNow: DateTime.now().toUtc(),
-      updatedUtc: lastUpdated.toUtc(),
-    );
-
+  /// Builds cached data indicator for error states with cached data
+  Widget _buildCachedDataInfo(FireRisk cachedData) {
     return Semantics(
-      label:
-          'Data updated $relativeTime from ${_getSourceDisplayName(riskData.source)}',
+      label: 'Showing cached data',
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.access_time,
+            Icons.cached,
             size: 14.0,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: 4.0),
           Text(
-            'Updated $relativeTime',
+            'Showing cached data',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
           ),
-          const SizedBox(width: 8.0),
-          _buildSourceChip(riskData.source),
         ],
-      ),
-    );
-  }
-
-  /// Builds cached data information for error states with cached data
-  /// C4 Compliance: Shows timestamp and source even in error states
-  Widget _buildCachedDataInfo(FireRisk cachedData) {
-    final relativeTime = formatRelativeTime(
-      utcNow: DateTime.now().toUtc(),
-      updatedUtc: cachedData.observedAt.toUtc(),
-    );
-
-    return Semantics(
-      label:
-          'Showing cached data from ${_getSourceDisplayName(cachedData.source)}, updated $relativeTime',
-      child: Column(
-        children: [
-          // Cached data indicator row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.cached,
-                size: 14.0,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 4.0),
-              Text(
-                'Showing cached data',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8.0),
-          // Timestamp and source row (C4 transparency)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.access_time,
-                size: 14.0,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 4.0),
-              Text(
-                'Updated $relativeTime',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-              const SizedBox(width: 8.0),
-              _buildSourceChip(cachedData.source, isCached: true),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Builds source chip for data attribution
-  Widget _buildSourceChip(DataSource source, {bool isCached = false}) {
-    final displayName = _getSourceDisplayName(source);
-    final chipColor = isCached
-        ? Theme.of(context).colorScheme.secondaryContainer
-        : Theme.of(context).colorScheme.primaryContainer;
-    final textColor = isCached
-        ? Theme.of(context).colorScheme.onSecondaryContainer
-        : Theme.of(context).colorScheme.onPrimaryContainer;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
-      decoration: BoxDecoration(
-        color: chipColor,
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: Text(
-        isCached ? 'Cached' : displayName,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: textColor,
-              fontWeight: FontWeight.w500,
-            ),
       ),
     );
   }
@@ -382,20 +307,6 @@ class _HomeScreenState extends State<HomeScreen> {
     if (coordinates != null && mounted) {
       // Call the controller's setManualLocation which will save via LocationResolver
       await _controller.setManualLocation(coordinates);
-    }
-  }
-
-  /// Converts DataSource enum to display-friendly name
-  String _getSourceDisplayName(DataSource source) {
-    switch (source) {
-      case DataSource.effis:
-        return 'EFFIS';
-      case DataSource.sepa:
-        return 'SEPA';
-      case DataSource.cache:
-        return 'Cache';
-      case DataSource.mock:
-        return 'Mock';
     }
   }
 }

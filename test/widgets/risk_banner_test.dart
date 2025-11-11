@@ -54,20 +54,11 @@ void main() {
             ),
           );
 
-          // Find the main container with risk level background color
-          final containers = tester.widgetList<Container>(
-            find.byType(Container),
-          );
-          final decoratedContainer = containers.firstWhere((container) {
-            final decoration = container.decoration as BoxDecoration?;
-            return decoration?.color != null &&
-                decoration!.color != Colors.transparent &&
-                decoration.color != RiskPalette.lightGray;
-          });
-          final decoration = decoratedContainer.decoration as BoxDecoration;
+          // Find the Card widget with risk level background color
+          final card = tester.widget<Card>(find.byType(Card));
           final expectedColor = _getRiskLevelColorTest(level);
 
-          expect(decoration.color, equals(expectedColor));
+          expect(card.color, equals(expectedColor));
         });
 
         testWidgets('displays correct risk level text for ${level.name}', (
@@ -90,11 +81,11 @@ void main() {
       }
 
       for (final source in DataSource.values) {
-        testWidgets('displays correct source chip for ${source.name}', (
+        testWidgets('displays correct source text for ${source.name}', (
           tester,
         ) async {
           final fireRisk = _fakeFireRisk(source: source);
-          final expectedSourceText = _getSourceName(source);
+          final expectedSourceText = 'Data Source: ${_getSourceName(source)}';
 
           await tester.pumpWidget(
             MaterialApp(
@@ -161,6 +152,113 @@ void main() {
           ),
           findsOneWidget,
         );
+      });
+
+      group('Weather Panel', () {
+        testWidgets('does not display weather panel by default', (
+          tester,
+        ) async {
+          final fireRisk = _fakeFireRisk();
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: RiskBanner(state: RiskBannerSuccess(fireRisk)),
+              ),
+            ),
+          );
+
+          // Weather panel should not be visible with default config
+          expect(find.text('Temperature'), findsNothing);
+          expect(find.text('Humidity'), findsNothing);
+          expect(find.text('Wind Speed'), findsNothing);
+        });
+
+        testWidgets('displays weather panel when config enabled', (
+          tester,
+        ) async {
+          final fireRisk = _fakeFireRisk();
+          const config = RiskBannerConfig(showWeatherPanel: true);
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: RiskBanner(
+                  state: RiskBannerSuccess(fireRisk),
+                  config: config,
+                ),
+              ),
+            ),
+          );
+
+          // Weather panel should be visible
+          expect(find.text('Temperature'), findsOneWidget);
+          expect(find.text('Humidity'), findsOneWidget);
+          expect(find.text('Wind Speed'), findsOneWidget);
+        });
+
+        testWidgets('displays placeholder weather values', (tester) async {
+          final fireRisk = _fakeFireRisk();
+          const config = RiskBannerConfig(showWeatherPanel: true);
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: RiskBanner(
+                  state: RiskBannerSuccess(fireRisk),
+                  config: config,
+                ),
+              ),
+            ),
+          );
+
+          // Check placeholder values
+          expect(find.text('18°C'), findsOneWidget);
+          expect(find.text('65%'), findsOneWidget);
+          expect(find.text('12 mph'), findsOneWidget);
+        });
+
+        testWidgets('weather panel has proper rounded container', (
+          tester,
+        ) async {
+          final fireRisk = _fakeFireRisk();
+          const config = RiskBannerConfig(showWeatherPanel: true);
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: RiskBanner(
+                  state: RiskBannerSuccess(fireRisk),
+                  config: config,
+                ),
+              ),
+            ),
+          );
+
+          // Find the weather panel container
+          final containers = tester.widgetList<Container>(
+            find.byType(Container),
+          );
+
+          // Weather panel should have rounded corners and semi-transparent background
+          final weatherContainer = containers.firstWhere((container) {
+            final decoration = container.decoration as BoxDecoration?;
+            final color = decoration?.color;
+            final alphaValue =
+                color != null ? (color.a * 255.0).round() & 0xff : null;
+            return decoration?.borderRadius != null &&
+                alphaValue != null &&
+                alphaValue < 255;
+          });
+
+          expect(weatherContainer, isNotNull);
+          final decoration = weatherContainer.decoration as BoxDecoration;
+          expect(decoration.borderRadius, isNotNull);
+          final alphaValue = decoration.color != null
+              ? (decoration.color!.a * 255.0).round() & 0xff
+              : null;
+          expect(alphaValue, lessThan(255));
+        });
       });
     });
 
@@ -249,20 +347,13 @@ void main() {
           ),
         );
 
-        // Find the main container (skip the outer container with constraints)
-        final containers = tester.widgetList<Container>(find.byType(Container));
-        final mainContainer = containers.firstWhere((container) {
-          final decoration = container.decoration as BoxDecoration?;
-          return decoration?.color != null &&
-              decoration!.color != RiskPalette.lightGray;
-        });
-
-        final decoration = mainContainer.decoration as BoxDecoration;
+        // Find the Card widget with cached risk level background color
+        final card = tester.widget<Card>(find.byType(Card));
         final expectedColor = _getRiskLevelColorTest(
           RiskLevel.veryHigh,
         ).withValues(alpha: 0.6);
 
-        expect(decoration.color, equals(expectedColor));
+        expect(card.color, equals(expectedColor));
       });
     });
 
