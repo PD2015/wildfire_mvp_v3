@@ -49,3 +49,7 @@ specs/012-a11-ci-cd/contracts/build-script-contract.sh:generic-api-key:199
 # "REDACTED" strings in security documentation are intentional examples showing what was exposed
 #
 # Test examples in documentation use inline gitleaks:allow comments (best practice)
+
+# RiskBanner specification - False positive on Flutter constant naming (kBannerPadding=16.0)
+cd2452759d5423fc6e0370099fa5602ebc69f1e1:specs/016-016-a14-riskbanner/PROGRESS_REPORT.md:generic-api-key:12
+
