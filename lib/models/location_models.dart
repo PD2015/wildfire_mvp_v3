@@ -39,6 +39,85 @@ class LatLng extends Equatable {
   String toString() => 'LatLng($latitude, $longitude)';
 }
 
+/// Geographic bounds defined by southwest and northeast corners
+class LatLngBounds extends Equatable {
+  final LatLng southwest;
+  final LatLng northeast;
+
+  const LatLngBounds({
+    required this.southwest,
+    required this.northeast,
+  });
+
+  /// Factory constructor with validation
+  factory LatLngBounds.validated({
+    required LatLng southwest,
+    required LatLng northeast,
+  }) {
+    if (!southwest.isValid || !northeast.isValid) {
+      throw ArgumentError('Invalid coordinates in bounds');
+    }
+
+    if (southwest.latitude >= northeast.latitude) {
+      throw ArgumentError(
+        'Southwest latitude (${southwest.latitude}) must be less than '
+        'northeast latitude (${northeast.latitude})',
+      );
+    }
+
+    if (southwest.longitude >= northeast.longitude) {
+      throw ArgumentError(
+        'Southwest longitude (${southwest.longitude}) must be less than '
+        'northeast longitude (${northeast.longitude})',
+      );
+    }
+
+    return LatLngBounds(southwest: southwest, northeast: northeast);
+  }
+
+  /// Check if a coordinate is within these bounds
+  bool contains(LatLng point) {
+    return point.latitude >= southwest.latitude &&
+        point.latitude <= northeast.latitude &&
+        point.longitude >= southwest.longitude &&
+        point.longitude <= northeast.longitude;
+  }
+
+  /// Calculate the center point of these bounds
+  LatLng get center {
+    final centerLat = (southwest.latitude + northeast.latitude) / 2;
+    final centerLon = (southwest.longitude + northeast.longitude) / 2;
+    return LatLng(centerLat, centerLon);
+  }
+
+  /// Calculate the span of these bounds
+  LatLng get span {
+    final latSpan = northeast.latitude - southwest.latitude;
+    final lonSpan = northeast.longitude - southwest.longitude;
+    return LatLng(latSpan, lonSpan);
+  }
+
+  /// Expand bounds by the given distance in degrees
+  LatLngBounds expand(double degrees) {
+    return LatLngBounds(
+      southwest: LatLng(
+        southwest.latitude - degrees,
+        southwest.longitude - degrees,
+      ),
+      northeast: LatLng(
+        northeast.latitude + degrees,
+        northeast.longitude + degrees,
+      ),
+    );
+  }
+
+  @override
+  List<Object> get props => [southwest, northeast];
+
+  @override
+  String toString() => 'LatLngBounds($southwest, $northeast)';
+}
+
 /// Location resolution error types
 enum LocationError {
   /// GPS permission denied by user
