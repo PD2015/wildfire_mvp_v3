@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dartz/dartz.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../fire_incident_cache.dart';
 import '../../models/fire_incident.dart';
@@ -336,6 +337,91 @@ class FireIncidentCacheImpl implements FireIncidentCache {
   ) async {
     final geohash = GeohashUtils.encode(lat, lon, precision: 5);
     return await get(geohash);
+  }
+
+  /// Get all cached fire incidents within viewport bounds (Task 8)
+  ///
+  /// Implements geohash-based spatial query to efficiently retrieve incidents
+  /// across multiple cache entries that overlap with the requested viewport.
+  ///
+  /// Algorithm:
+  /// 1. Calculate geohash coverage for viewport using GeohashUtils.coverBounds
+  /// 2. Query cache for each geohash (with TTL enforcement)
+  /// 3. Aggregate incidents from all cache entries
+  /// 4. Deduplicate by incident ID
+  /// 5. Filter incidents to ensure they fall within exact viewport bounds
+  /// 6. Mark all incidents with Freshness.cached
+  ///
+  /// Performance:
+  /// - Typical viewport at precision 5: 1-9 geohash queries
+  /// - Target: <200ms for viewport query with 100+ incidents
+  /// - Lazy TTL cleanup reduces overhead on read operations
+  ///
+  /// Privacy: Uses geohash spatial keys, no raw coordinates in logs
+  /// Resilience: Handles corrupted cache entries gracefully with partial results
+  @override
+  Future<Option<List<FireIncident>>> getIncidentsForViewport(
+    gmaps.LatLngBounds bounds,
+  ) async {
+    try {
+      // Calculate geohashes covering the viewport
+      final geohashes = GeohashUtils.coverBounds(
+        latMin: bounds.southwest.latitude,
+        latMax: bounds.northeast.latitude,
+        lonMin: bounds.southwest.longitude,
+        lonMax: bounds.northeast.longitude,
+        precision: 5,
+      );
+
+      if (geohashes.isEmpty) return none();
+
+      // Query cache for all overlapping geohashes
+      final allIncidents = <FireIncident>[];
+      final seenIds = <String>{};
+
+      for (final geohash in geohashes) {
+        final cached = await get(geohash);
+        cached.fold(
+          () => null, // Cache miss, continue
+          (incidents) {
+            // Deduplicate and filter to exact bounds
+            for (final incident in incidents) {
+              if (seenIds.contains(incident.id)) continue;
+              
+              // Check if incident falls within exact viewport bounds
+              if (_isWithinBounds(incident, bounds)) {
+                allIncidents.add(incident);
+                seenIds.add(incident.id);
+              }
+            }
+          },
+        );
+      }
+
+      // Return aggregated incidents or none if empty
+      if (allIncidents.isEmpty) return none();
+
+      // All incidents already marked with Freshness.cached from get()
+      return some(allIncidents);
+    } catch (e) {
+      // Graceful degradation: log error (if logger available), return cache miss
+      return none();
+    }
+  }
+
+  /// Check if fire incident location falls within viewport bounds
+  ///
+  /// Includes small tolerance (~11 meters) for edge cases due to floating point precision.
+  bool _isWithinBounds(FireIncident incident, gmaps.LatLngBounds bounds) {
+    const tolerance = 0.0001; // ~11 meters tolerance
+
+    final lat = incident.location.latitude;
+    final lon = incident.location.longitude;
+
+    return lat >= (bounds.southwest.latitude - tolerance) &&
+        lat <= (bounds.northeast.latitude + tolerance) &&
+        lon >= (bounds.southwest.longitude - tolerance) &&
+        lon <= (bounds.northeast.longitude + tolerance);
   }
 
   /// Update access time for LRU tracking
