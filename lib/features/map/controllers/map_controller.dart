@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:dartz/dartz.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
-import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart';
+import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart' as bounds;
 import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
@@ -69,7 +69,7 @@ class MapController extends ChangeNotifier {
       }, (location) => location);
 
       // Step 2: Create default bbox around location (~220km radius to cover all of Scotland)
-      final bounds = LatLngBounds(
+      final mapBounds = bounds.LatLngBounds(
         southwest: LatLng(
           centerLocation.latitude - 2.0,
           centerLocation.longitude - 2.0,
@@ -82,9 +82,9 @@ class MapController extends ChangeNotifier {
 
       // Step 3: Fetch fire incidents
       debugPrint(
-        '🗺️ MapController: Fetching fires for bounds: SW(${bounds.southwest.latitude},${bounds.southwest.longitude}) NE(${bounds.northeast.latitude},${bounds.northeast.longitude})',
+        '🗺️ MapController: Fetching fires for bounds: SW(${mapBounds.southwest.latitude},${mapBounds.southwest.longitude}) NE(${mapBounds.northeast.latitude},${mapBounds.northeast.longitude})',
       );
-      final firesResult = await _fireLocationService.getActiveFires(bounds);
+      final firesResult = await _fireLocationService.getActiveFires(mapBounds);
 
       firesResult.fold(
         (error) {
@@ -111,8 +111,7 @@ class MapController extends ChangeNotifier {
           _state = MapSuccess(
             incidents: incidents,
             centerLocation: centerLocation,
-            freshness:
-                incidents.isEmpty ? Freshness.live : incidents.first.freshness,
+            freshness: incidents.isEmpty ? Freshness.live : incidents.first.freshness,
             lastUpdated: DateTime.now(),
           );
         },
@@ -126,7 +125,7 @@ class MapController extends ChangeNotifier {
   }
 
   /// Refresh fire data for visible map region
-  Future<void> refreshMapData(LatLngBounds visibleBounds) async {
+  Future<void> refreshMapData(bounds.LatLngBounds visibleBounds) async {
     final previousState = _state;
 
     _state = const MapLoading();
@@ -154,8 +153,7 @@ class MapController extends ChangeNotifier {
           _state = MapSuccess(
             incidents: incidents,
             centerLocation: visibleBounds.center,
-            freshness:
-                incidents.isEmpty ? Freshness.live : incidents.first.freshness,
+            freshness: incidents.isEmpty ? Freshness.live : incidents.first.freshness,
             lastUpdated: DateTime.now(),
           );
         },
@@ -165,10 +163,8 @@ class MapController extends ChangeNotifier {
     } catch (e) {
       _state = MapError(
         message: 'Refresh failed: $e',
-        cachedIncidents:
-            previousState is MapSuccess ? previousState.incidents : null,
-        lastKnownLocation:
-            previousState is MapSuccess ? previousState.centerLocation : null,
+        cachedIncidents: previousState is MapSuccess ? previousState.incidents : null,
+        lastKnownLocation: previousState is MapSuccess ? previousState.centerLocation : null,
       );
       notifyListeners();
     }

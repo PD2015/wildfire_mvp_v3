@@ -9,6 +9,7 @@ import 'package:wildfire_mvp_v3/models/api_error.dart';
 import 'package:wildfire_mvp_v3/models/active_fires_response.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
+import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart';
 import 'package:wildfire_mvp_v3/services/active_fires_service.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/utils/location_utils.dart';
@@ -127,7 +128,7 @@ class MockActiveFiresService implements ActiveFiresService {
     final now = DateTime.now().toUtc();
 
     // High-risk locations across Scotland with realistic scenarios
-    final riskLocations = [
+    const riskLocations = [
       // Highland wildfires (typical hotspots)
       _MockFireLocation(
         LatLng(57.2, -3.8), // Near Aviemore - Cairngorms

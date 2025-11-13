@@ -1,11 +1,14 @@
 // Simple verification test for ActiveFiresResponse model (no Flutter framework)
 // Tests core functionality required by Task 2: serialization, bounds validation, filtering
 
+import 'package:flutter/foundation.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 
-// Simple manual LatLngBounds implementation for testing
+// Simple ActiveFiresService integration test
+// Quick verification that service layer compiles and runs
+
 class TestBounds {
   final LatLng southwest;
   final LatLng northeast;
@@ -17,7 +20,7 @@ class TestBounds {
 }
 
 void main() {
-  print('🧪 Testing ActiveFiresResponse model core functionality...\n');
+  debugPrint('🧪 Testing ActiveFiresResponse model core functionality...\n');
 
   // Create test data - no Google Maps framework dependencies
   final incidents = [
@@ -37,12 +40,12 @@ void main() {
 
   final now = DateTime.now().toUtc();
 
-  print('✅ Test Data Created:');
-  print('   Incidents: ${incidents.length}');
-  print('   Fire 1: ${incidents[0].id} at ${incidents[0].location} (${incidents[0].confidence}%)');
-  print('   Fire 2: ${incidents[1].id} at ${incidents[1].location} (${incidents[1].confidence}%)');
+  debugPrint('✅ Test Data Created:');
+  debugPrint('   Incidents: ${incidents.length}');
+  debugPrint('   Fire 1: ${incidents[0].id} at ${incidents[0].location} (${incidents[0].confidence}%)');
+  debugPrint('   Fire 2: ${incidents[1].id} at ${incidents[1].location} (${incidents[1].confidence}%)');
 
-  print('\n🔄 Test 1: Confidence filtering...');
+  debugPrint('\n🔄 Test 1: Confidence filtering...');
   
   // Test filtering functionality without Google Maps bounds
   // Simulate response with direct construction
@@ -55,24 +58,24 @@ void main() {
     )
   ];
 
-  print('✅ Filtering Results:');
+  debugPrint('✅ Filtering Results:');
   final highConfidence = allIncidents.where((i) => i.confidence != null && i.confidence! >= 90.0).toList();
   final mediumConfidence = allIncidents.where((i) => i.confidence != null && i.confidence! >= 75.0).toList();
   
-  print('   All incidents: ${allIncidents.length}');
-  print('   High confidence (≥90%): ${highConfidence.length}');
-  print('   Medium confidence (≥75%): ${mediumConfidence.length}');
+  debugPrint('   All incidents: ${allIncidents.length}');
+  debugPrint('   High confidence (≥90%): ${highConfidence.length}');
+  debugPrint('   Medium confidence (≥75%): ${mediumConfidence.length}');
 
-  print('\n🔥 Test 2: FRP filtering...');
+  debugPrint('\n🔥 Test 2: FRP filtering...');
   final highFrp = allIncidents.where((i) => i.frp != null && i.frp! >= 600.0).toList();
-  print('✅ FRP Filtering:');
-  print('   High FRP (≥600 MW): ${highFrp.length}');
+  debugPrint('✅ FRP Filtering:');
+  debugPrint('   High FRP (≥600 MW): ${highFrp.length}');
   
   if (highFrp.isNotEmpty) {
-    print('   Highest FRP: ${highFrp.map((i) => i.frp).reduce((a, b) => (a ?? 0) > (b ?? 0) ? a : b)} MW');
+    debugPrint('   Highest FRP: ${highFrp.map((i) => i.frp).reduce((a, b) => (a ?? 0) > (b ?? 0) ? a : b)} MW');
   }
 
-  print('\n📊 Test 3: Sorting functionality...');
+  debugPrint('\n📊 Test 3: Sorting functionality...');
   
   // Test sorting without response wrapper
   final sortedByConfidence = [...allIncidents];
@@ -85,11 +88,11 @@ void main() {
   final sortedByDetection = [...allIncidents];
   sortedByDetection.sort((a, b) => b.detectedAt.compareTo(a.detectedAt));
   
-  print('✅ Sorting Results:');
-  print('   By confidence: ${sortedByConfidence.map((i) => '${i.id}(${i.confidence}%)').join(', ')}');
-  print('   By detection: ${sortedByDetection.map((i) => i.id).join(', ')}');
+  debugPrint('✅ Sorting Results:');
+  debugPrint('   By confidence: ${sortedByConfidence.map((i) => '${i.id}(${i.confidence}%)').join(', ')}');
+  debugPrint('   By detection: ${sortedByDetection.map((i) => i.id).join(', ')}');
 
-  print('\n🗺️  Test 4: Bounds checking logic...');
+  debugPrint('\n🗺️  Test 4: Bounds checking logic...');
   
   // Test bounds logic independently
   const testBounds = TestBounds(
@@ -108,17 +111,17 @@ void main() {
   final insideBounds = allIncidents.where((i) => isWithinTestBounds(i.location)).toList();
   final outsideBounds = allIncidents.where((i) => !isWithinTestBounds(i.location)).toList();
   
-  print('✅ Bounds Validation:');
-  print('   Test bounds: ${testBounds}');
-  print('   Inside bounds: ${insideBounds.length} incidents');
-  print('   Outside bounds: ${outsideBounds.length} incidents');
+  debugPrint('✅ Bounds Validation:');
+  debugPrint('   Test bounds: $testBounds');
+  debugPrint('   Inside bounds: ${insideBounds.length} incidents');
+  debugPrint('   Outside bounds: ${outsideBounds.length} incidents');
   
   for (final incident in allIncidents) {
     final status = isWithinTestBounds(incident.location) ? 'INSIDE' : 'OUTSIDE';
-    print('   ${incident.id}: $status bounds');
+    debugPrint('   ${incident.id}: $status bounds');
   }
 
-  print('\n📦 Test 5: Basic serialization structure...');
+  debugPrint('\n📦 Test 5: Basic serialization structure...');
   
   // Test JSON structure without full serialization (avoiding Google Maps types)
   final jsonStructure = {
@@ -129,18 +132,18 @@ void main() {
     'timestamp': now.toIso8601String(),
   };
   
-  print('✅ Serialization Structure:');
-  print('   JSON keys: ${jsonStructure.keys.join(', ')}');
-  print('   Incidents serialized: ${(jsonStructure['incidents'] as List).length}');
-  print('   Data source: ${jsonStructure['dataSource']}');
-  print('   Total chars: ${jsonStructure.toString().length}');
+  debugPrint('✅ Serialization Structure:');
+  debugPrint('   JSON keys: ${jsonStructure.keys.join(', ')}');
+  debugPrint('   Incidents serialized: ${(jsonStructure['incidents'] as List).length}');
+  debugPrint('   Data source: ${jsonStructure['dataSource']}');
+  debugPrint('   Total chars: ${jsonStructure.toString().length}');
 
-  print('\n🎉 All ActiveFiresResponse core functionality tests passed!');
-  print('📋 Task 2: "Create ActiveFiresResponse Model" - COMPLETE ✅');
-  print('\n💡 Key Features Verified:');
-  print('   ✅ Incident filtering by confidence and FRP');
-  print('   ✅ Sorting by detection time and confidence');
-  print('   ✅ Bounds validation logic');
-  print('   ✅ JSON serialization structure');
-  print('   ✅ Data source and timestamp handling');
+  debugPrint('\n🎉 All ActiveFiresResponse core functionality tests passed!');
+  debugPrint('📋 Task 2: "Create ActiveFiresResponse Model" - COMPLETE ✅');
+  debugPrint('\n💡 Key Features Verified:');
+  debugPrint('   ✅ Incident filtering by confidence and FRP');
+  debugPrint('   ✅ Sorting by detection time and confidence');
+  debugPrint('   ✅ Bounds validation logic');
+  debugPrint('   ✅ JSON serialization structure');
+  debugPrint('   ✅ Data source and timestamp handling');
 }

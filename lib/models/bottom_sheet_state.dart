@@ -79,6 +79,7 @@ class BottomSheetLoading extends BottomSheetState {
 /// Bottom sheet loaded with fire incident data
 class BottomSheetLoaded extends BottomSheetState {
   /// Fire incident to display in bottom sheet
+  @override
   final FireIncident fireIncident;
   
   /// User's current location for distance calculations

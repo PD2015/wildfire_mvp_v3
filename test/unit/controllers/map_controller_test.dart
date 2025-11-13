@@ -124,7 +124,7 @@ class TestData {
     DataSource source = DataSource.mock,
     Freshness freshness = Freshness.mock,
   }) {
-    return FireIncident(
+    return FireIncident.test(
       id: id,
       location: location,
       source: source,

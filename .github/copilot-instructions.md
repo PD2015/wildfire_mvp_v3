@@ -778,23 +778,32 @@ flutter build apk --dart-define-from-file=env/prod.env.json
 ### Logging in Production Code
 
 **Problem**: `avoid_print` analyzer warning  
-**Solution**: Use `debugPrint()` instead of `print()` for production-safe logging
+**Solution**: **ALWAYS use `debugPrint()`** - consistent across all code types
 
 ```dart
-// ❌ WRONG: print() in production code triggers analyzer warning
+// ❌ WRONG: print() in any code triggers analyzer warning
 print('🗺️ Using test region: ${FeatureFlags.testRegion}');
 
-// ✅ CORRECT: debugPrint() is production-safe (automatically stripped in release builds)
+// ✅ CORRECT: debugPrint() everywhere - production safe, no warnings, consistent
 debugPrint('🗺️ Using test region: ${FeatureFlags.testRegion}');
 
 // Import required:
 import 'package:flutter/foundation.dart';  // For debugPrint()
 ```
 
-**When to use each**:
-- `debugPrint()` - Production code (controllers, services, widgets) - preferred for most logging
+**BEST PRACTICE - Use `debugPrint()` everywhere**:
+- ✅ **Production code** (lib/): debugPrint() - automatically stripped in release builds
+- ✅ **Test scripts**: debugPrint() - consistent, no analyzer warnings
+- ✅ **Debug scripts**: debugPrint() - works everywhere, clean code
+- ✅ **Performance tests**: debugPrint() - same output as print() but no warnings
+
+**When NOT to use print()**:
+- ❌ Never use `print()` - creates analyzer warnings and inconsistency
+- ❌ Ignore directives (`// ignore_for_file: avoid_print`) add complexity
+- ❌ Mixed approaches (some print(), some debugPrint()) create confusion
+
+**Alternative logging for structured data**:
 - `developer.log()` - Structured logging with tags/levels: `developer.log('message', name: 'ServiceName')`
-- `print()` - Tests only (performance tests, integration test output)
 
 ### Const Constructors and Declarations
 
@@ -991,30 +1000,27 @@ expect(
 ```
 
 **Print Statements in Tests**:
-`print()` is acceptable in performance tests and debug scripts, but must be documented with analyzer ignore directive.
+Use `debugPrint()` for all test output to maintain consistency and avoid analyzer warnings.
 
 ```dart
-// ✅ CORRECT: Performance test with print() for metrics reporting
+// ✅ CORRECT: Performance test with debugPrint() for metrics reporting
 // test/performance/map_performance_test.dart
-// NOTE: print() statements are intentional in performance tests for reporting metrics
-// ignore_for_file: avoid_print
+import 'package:flutter/foundation.dart';
 
 testWidgets('Map loads within 3s', (tester) async {
   final stopwatch = Stopwatch()..start();
   // ... test code ...
   stopwatch.stop();
-  print('✅ Map load time: ${stopwatch.elapsedMilliseconds}ms');  // OK with ignore directive
+  debugPrint('✅ Map load time: ${stopwatch.elapsedMilliseconds}ms');  // Clean, consistent
 });
 
 // ✅ CORRECT: Debug script
 // test_ser.dart
-// Debug script for testing serialization
-// NOTE: print() is intentional for debug output
-// ignore_for_file: avoid_print
+import 'package:flutter/foundation.dart';
 
 void main() {
   final json = model.toJson();
-  print('Serialized: $json');  // OK with ignore directive
+  debugPrint('Serialized: $json');  // No analyzer warnings, works everywhere
 }
 
 // ❌ WRONG: print() in production code (lib/)

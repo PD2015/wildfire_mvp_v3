@@ -6,7 +6,7 @@ import 'package:dartz/dartz.dart';
 import 'package:wildfire_mvp_v3/models/api_error.dart';
 import 'package:wildfire_mvp_v3/models/active_fires_response.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
-import 'package:wildfire_mvp_v3/models/location_models.dart';
+import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart';
 
 /// Service interface for fetching active fire incidents within a geographic viewport
 /// 
