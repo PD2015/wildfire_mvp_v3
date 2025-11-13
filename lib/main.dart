@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 // Service imports
 import 'services/fire_risk_service.dart';
@@ -12,10 +11,8 @@ import 'services/contracts/service_contracts.dart' as contracts;
 import 'services/effis_service_impl.dart';
 import 'services/mock_service.dart';
 import 'services/fire_location_service.dart';
-import 'services/fire_location_service_impl.dart';
-import 'services/mock_fire_service.dart';
-import 'services/fire_incident_cache.dart';
-import 'services/cache/fire_incident_cache_impl.dart';
+import 'services/active_fires_service_factory.dart';
+import 'services/active_fires_service_adapter.dart';
 
 // Model imports
 import 'models/api_error.dart';
@@ -121,20 +118,12 @@ Future<ServiceContainer> _initializeServices() async {
     // TODO: Add cache service when implemented
   );
 
-  // Initialize cache service for fire incidents (T018)
-  final prefs = await SharedPreferences.getInstance();
-  final FireIncidentCache fireIncidentCache = FireIncidentCacheImpl(
-    prefs: prefs,
-  );
+  // Initialize fire location service using ActiveFiresService (Task 8)
+  // This replaces the previous FireLocationServiceImpl with the new interface
+  final activeFiresService = ActiveFiresServiceFactory.create();
+  final FireLocationService fireLocationService = ActiveFiresServiceAdapter(activeFiresService);
 
-  // Initialize fire location service (A10 - EFFIS WFS + Cache + Mock fallback)
-  final mockFireService = MockFireService();
-  final FireLocationService fireLocationService = FireLocationServiceImpl(
-    effisService: effisServiceImpl,
-    cache: fireIncidentCache,
-    mockService: mockFireService,
-    // TODO: Add SEPA service when implemented (T017)
-  );
+  debugPrint('🔥 Using ActiveFiresService: ${activeFiresService.metadata.description}');
 
   return ServiceContainer(
     locationResolver: locationResolver,

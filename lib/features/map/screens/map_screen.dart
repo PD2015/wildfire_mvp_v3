@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/fire_information_bottom_sheet.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
@@ -89,6 +90,7 @@ class _MapScreenState extends State<MapScreen> {
         ),
         onTap: () {
           debugPrint('🎯 Marker tapped: $title (${incident.intensity})');
+          _controller.showFireDetails(incident.id);
         },
       );
     }).toSet();
@@ -148,16 +150,30 @@ class _MapScreenState extends State<MapScreen> {
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 1,
       ),
-      body: switch (state) {
-        MapLoading() => Center(
-            child: Semantics(
-              label: 'Loading map data',
-              child: const CircularProgressIndicator(),
+      body: Stack(
+        children: [
+          // Main map content
+          switch (state) {
+            MapLoading() => Center(
+                child: Semantics(
+                  label: 'Loading map data',
+                  child: const CircularProgressIndicator(),
+                ),
+              ),
+            MapSuccess() => _buildMapView(state),
+            MapError() => _buildErrorView(state),
+          },
+          // Bottom sheet overlay
+          if (_controller.bottomSheetState.isVisible)
+            Positioned.fill(
+              child: FireInformationBottomSheet(
+                state: _controller.bottomSheetState,
+                onClose: _controller.hideBottomSheet,
+                onRetry: _controller.retryLoadFireDetails,
+              ),
             ),
-          ),
-        MapSuccess() => _buildMapView(state),
-        MapError() => _buildErrorView(state),
-      },
+        ],
+      ),
       floatingActionButton: RiskCheckButton(controller: _controller),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
