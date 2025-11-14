@@ -11,17 +11,41 @@ import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 
 /// Adapter that implements FireLocationService using ActiveFiresService
 /// 
-/// This allows existing code that depends on FireLocationService to work
-/// with the new ActiveFiresService implementations without modification.
+/// **DEPRECATED**: This adapter is no longer needed. Use `FireLocationServiceOrchestrator`
+/// directly in your composition root instead. The orchestrator provides the same
+/// functionality with better error handling, caching, and telemetry support.
 /// 
-/// Usage:
+/// **Migration Guide**:
 /// ```dart
+/// // Old approach (deprecated):
 /// final activeFiresService = ActiveFiresServiceFactory.create();
 /// final fireLocationService = ActiveFiresServiceAdapter(activeFiresService);
 /// 
-/// // Use as normal FireLocationService
-/// final result = await fireLocationService.getActiveFires(bounds);
+/// // New approach (recommended):
+/// final prefs = await SharedPreferences.getInstance();
+/// final cache = FireIncidentCacheImpl(prefs);
+/// final liveService = const String.fromEnvironment('MAP_LIVE_DATA') == 'true'
+///     ? ActiveFiresServiceImpl(httpClient: httpClient)
+///     : null;
+/// final mockService = MockActiveFiresService();
+/// final orchestrator = FireLocationServiceOrchestrator(
+///   liveService: liveService,
+///   cacheService: cache,
+///   mockService: mockService,
+/// );
 /// ```
+/// 
+/// **Why migrate?**
+/// - 3-tier fallback chain (Live → Cache → Mock) with timeout enforcement
+/// - Automatic cache population for offline support
+/// - Telemetry events for monitoring service health
+/// - Better error messages and debugging information
+/// 
+/// **See**: `lib/services/fire_location_service_orchestrator.dart` for implementation
+/// **See**: `lib/main.dart` for example composition root setup
+@Deprecated('Use FireLocationServiceOrchestrator instead. '
+    'This adapter will be removed in a future version. '
+    'See class documentation for migration guide.')
 class ActiveFiresServiceAdapter implements FireLocationService {
   final ActiveFiresService _activeFiresService;
 
