@@ -179,7 +179,7 @@ class MockActiveFiresService implements ActiveFiresService {
       _MockFireLocation(
         LatLng(58.2, -4.1), // Sutherland
         'Remote Highland Fire',
-        intensity: 'very_high',
+        intensity: 'high', // Changed from 'very_high' to valid 'high'
         baseConfidence: 88.0,
         baseFrp: 2200.0,
       ),
