@@ -8,6 +8,7 @@ import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
+import 'package:wildfire_mvp_v3/utils/debounced_viewport_loader.dart';
 import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet.dart';
 
 /// Map screen with Google Maps integration showing active fire incidents
@@ -35,6 +36,7 @@ class _MapScreenState extends State<MapScreen> {
   late MapController _controller;
   FireIncident? _selectedIncident;
   bool _isBottomSheetVisible = false;
+  late DebouncedViewportLoader _viewportLoader;
 
   @override
   void initState() {
@@ -45,6 +47,14 @@ class _MapScreenState extends State<MapScreen> {
     }
     _controller = widget.controller!;
     _controller.addListener(_onControllerUpdate);
+    
+    // Initialize debounced viewport loader
+    _viewportLoader = DebouncedViewportLoader(
+      onViewportChanged: (bounds) async {
+        await _controller.refreshMapData(bounds);
+      },
+    );
+    
     // Initialize map data on mount
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.initialize();
@@ -61,6 +71,7 @@ class _MapScreenState extends State<MapScreen> {
   void dispose() {
     _controller.removeListener(_onControllerUpdate);
     _mapController?.dispose();
+    _viewportLoader.dispose();
     super.dispose();
   }
 
@@ -354,6 +365,9 @@ class _MapScreenState extends State<MapScreen> {
               bottom: 80.0, // Room for FAB
               right: 16.0,
             ),
+            // Debounced viewport loading (Task 17-18)
+            onCameraMove: _viewportLoader.onCameraMove,
+            onCameraIdle: _viewportLoader.onCameraIdle,
           ),
         ),
         // Source chip positioned at top
