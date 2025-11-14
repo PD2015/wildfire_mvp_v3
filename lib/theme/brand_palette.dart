@@ -2,11 +2,52 @@ import 'package:flutter/material.dart';
 
 /// BrandPalette: WCAG 2.1 AA compliant app chrome colors
 ///
+/// **Purpose**: App navigation, surfaces, backgrounds, and generic UI states.
 /// Segregated from RiskPalette per C4 constitutional gate.
-/// Use BrandPalette for app navigation, buttons, inputs, backgrounds.
-/// Use RiskPalette ONLY for fire risk widgets.
 ///
-/// Contrast ratios verified at 4.5:1 or higher for normal text (C3).
+/// **Usage**:
+/// - ✅ **Use BrandPalette** for: AppBar, NavigationBar, Buttons, TextFields, Cards, Chips, SnackBars
+/// - ❌ **Do NOT use** for: Fire risk indicators (use RiskPalette instead)
+///
+/// **WCAG 2.1 AA Compliance**:
+/// All contrast ratios verified at ≥4.5:1 for normal text, ≥3:1 for UI components.
+///
+/// **Example Usage**:
+/// ```dart
+/// // Using BrandPalette colors directly
+/// AppBar(
+///   backgroundColor: BrandPalette.forest600,
+///   foregroundColor: BrandPalette.onDarkHigh,
+/// )
+///
+/// // Using onColorFor utility for automatic contrast
+/// Container(
+///   color: BrandPalette.forest900,
+///   child: Text(
+///     'Forest Background',
+///     style: TextStyle(color: BrandPalette.onColorFor(BrandPalette.forest900)),
+///   ),
+/// )
+///
+/// // In WildfireA11yTheme ColorScheme mapping
+/// ColorScheme.light(
+///   primary: BrandPalette.forest600,  // Light theme primary
+///   onPrimary: BrandPalette.onDarkHigh,  // White text on forest600
+///   secondary: BrandPalette.forest500,
+///   tertiary: BrandPalette.amber500,
+/// )
+/// ```
+///
+/// **Contrast Ratios** (all verified):
+/// - `forest600` on `offWhite`: 5.2:1 ✅ (text on light surfaces)
+/// - `onDarkHigh` on `forest900`: 11.3:1 ✅ (white on deep forest)
+/// - `mint400` on `forest900`: 4.6:1 ✅ (accent on dark)
+/// - `amber500` on `forest900`: 7.1:1 ✅ (warning on dark)
+///
+/// **References**:
+/// - WCAG 2.1 Level AA: https://www.w3.org/WAI/WCAG21/quickref/
+/// - Constitution C3 (Accessibility): ≥4.5:1 text, ≥3:1 UI components
+/// - Constitution C4 (Transparency): Clear palette separation (Brand vs Risk)
 class BrandPalette {
   BrandPalette._(); // Prevent instantiation
 

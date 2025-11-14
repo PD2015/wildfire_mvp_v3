@@ -277,7 +277,7 @@
 ## Phase 3.7: Documentation & Manual QA
 
 ### Documentation Updates
-- [ ] **T022** [P] Update `docs/ux_cues.md` with BrandPalette vs RiskPalette usage
+- [x] **T022** [P] Update `docs/ux_cues.md` with BrandPalette vs RiskPalette usage
   - Add section: "## Color System Architecture"
   - Document BrandPalette: "App chrome (navigation, surfaces, backgrounds, generic UI states)"
   - Document RiskPalette: "Fire risk visualization ONLY (risk banners, risk chips, risk indicators)"
@@ -285,19 +285,22 @@
   - Add WCAG 2.1 AA compliance statement (≥4.5:1 text, ≥3:1 UI)
   - Reference `lib/theme/brand_palette.dart` and `lib/theme/wildfire_a11y_theme.dart`
   - Add constitutional gate reference: "Per C4: RiskPalette colors only for risk widgets"
+  - **COMPLETED**: Added comprehensive color system architecture, contrast ratios, usage examples ✅
 
-- [ ] **T023** [P] Add README section linking to theme preview
+- [x] **T023** [P] Add README section linking to theme preview
   - Add "## Accessibility & Theming" section to root README.md
   - Link to DartPad preview (if available) or include theme screenshots
   - Document light/dark mode support with system preference detection
   - Document WCAG 2.1 AA compliance
   - Link to `docs/ux_cues.md` for detailed color usage guidelines
+  - **COMPLETED**: Added comprehensive accessibility section with dual-palette architecture, theme examples, ux_cues.md link ✅
 
-- [ ] **T024** [P] Add dartdoc examples to BrandPalette and WildfireA11yTheme
+- [x] **T024** [P] Add dartdoc examples to BrandPalette and WildfireA11yTheme
   - In `lib/theme/brand_palette.dart`: Add usage example showing onColorFor() utility
   - In `lib/theme/wildfire_a11y_theme.dart`: Add MaterialApp wiring example
   - Document contrast ratios in dartdoc comments
   - Reference WCAG 2.1 AA standards in class-level documentation
+  - **COMPLETED**: Added comprehensive dartdoc with usage examples, contrast ratios, MaterialApp integration, widget theme access ✅
 
 ### Manual QA (T010 Icon Contrast - C3: Accessibility)
 - [ ] **T025** Manual verification: T010 icon contrast on Android
