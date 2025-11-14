@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:wildfire_mvp_v3/theme/wildfire_a11y_theme.dart';
 
 /// Simplified MaterialApp integration tests for WildfireA11yTheme
-/// 
+///
 /// Tests focus on theme properties directly without loading full app context.
 /// Full app integration verified via manual QA (quickstart.md steps 4-6).
 void main() {
