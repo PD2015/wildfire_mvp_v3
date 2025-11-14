@@ -6,7 +6,9 @@ import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/fire_information_bottom_sheet.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
+import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
+import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet.dart';
 
 /// Map screen with Google Maps integration showing active fire incidents
 ///
@@ -31,6 +33,8 @@ class _MapScreenState extends State<MapScreen> {
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
   late MapController _controller;
+  FireIncident? _selectedIncident;
+  bool _isBottomSheetVisible = false;
 
   @override
   void initState() {
@@ -75,6 +79,8 @@ class _MapScreenState extends State<MapScreen> {
           ? incident.description!
           : 'Fire Incident #${incident.id}';
 
+      final isSelected = _selectedIncident?.id == incident.id;
+
       return Marker(
         markerId: MarkerId(incident.id),
         position: LatLng(
@@ -82,6 +88,7 @@ class _MapScreenState extends State<MapScreen> {
           incident.location.longitude,
         ),
         icon: _getMarkerIcon(incident.intensity),
+        alpha: isSelected ? 1.0 : 0.8, // Highlight selected marker
         infoWindow: InfoWindow(
           title: title,
           snippet:
@@ -90,7 +97,10 @@ class _MapScreenState extends State<MapScreen> {
         ),
         onTap: () {
           debugPrint('🎯 Marker tapped: $title (${incident.intensity})');
-          _controller.showFireDetails(incident.id);
+          setState(() {
+            _selectedIncident = incident;
+            _isBottomSheetVisible = true;
+          });
         },
       );
     }).toSet();
@@ -163,13 +173,40 @@ class _MapScreenState extends State<MapScreen> {
             MapSuccess() => _buildMapView(state),
             MapError() => _buildErrorView(state),
           },
-          // Bottom sheet overlay
+          // Legacy bottom sheet overlay (keep for existing features)
           if (_controller.bottomSheetState.isVisible)
             Positioned.fill(
               child: FireInformationBottomSheet(
                 state: _controller.bottomSheetState,
                 onClose: _controller.hideBottomSheet,
                 onRetry: _controller.retryLoadFireDetails,
+              ),
+            ),
+          // New fire details bottom sheet (Task 12 integration)
+          if (_isBottomSheetVisible && _selectedIncident != null)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isBottomSheetVisible = false;
+                    _selectedIncident = null;
+                  });
+                },
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  child: GestureDetector(
+                    onTap: () {}, // Prevent tap from closing when tapping sheet
+                    child: FireDetailsBottomSheet(
+                      incident: _selectedIncident!,
+                      onClose: () {
+                        setState(() {
+                          _isBottomSheetVisible = false;
+                          _selectedIncident = null;
+                        });
+                      },
+                    ),
+                  ),
+                ),
               ),
             ),
         ],
