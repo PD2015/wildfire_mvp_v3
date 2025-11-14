@@ -181,15 +181,16 @@
 ## Phase 3.5: Ad-Hoc Colors.* Sweep (Parallel Where Possible)
 
 ### Map Screen Update
-- [ ] **T013** [P] Update `lib/features/map/screens/map_screen.dart`
+- [x] **T013** [P] Update `lib/features/map/screens/map_screen.dart`
   - Replace `Colors.green` with `Theme.of(context).colorScheme.primary`
   - Replace `Colors.grey` with `Theme.of(context).colorScheme.surfaceVariant`
   - Replace any `Colors.white` with `Theme.of(context).colorScheme.surface` (or onPrimary if on colored bg)
   - Replace any `Colors.black` with `Theme.of(context).colorScheme.onSurface`
   - Verify no ad-hoc Colors.* remain (except Colors.transparent if needed)
+  - **COMPLETED**: Fixed 7 violations (grey, red, orange, cyan, green)
 
 ### App-Wide Sweep (Parallel - Different Files)
-- [ ] **T014** [P] Sweep `lib/features/` for ad-hoc Colors.* usage
+- [x] **T014** [P] Sweep `lib/features/` for ad-hoc Colors.* usage
   - Use `grep -r "Colors\." lib/features/ | grep -v "import"` to find violations
   - For each violation:
     * Colors.green → theme.colorScheme.primary
@@ -202,13 +203,25 @@
   - Add `// Uses theme.colorScheme per C4` comments where helpful
   - Run `./scripts/verify_no_adhoc_colors.sh` after sweep
   - Expected: Verification script PASSES
+  - **COMPLETED**: Fixed map_source_chip.dart (8 violations), report_fire_screen.dart (1 acceptable - Colors.transparent)
 
-- [ ] **T015** [P] Sweep `lib/widgets/` for ad-hoc Colors.* usage
-  - Use `grep -r "Colors\." lib/widgets/ | grep -v "import"` to find violations
+  - **COMPLETED**: No violations found (widgets already clean)
+
+- [x] **T016** [P] Sweep `lib/screens/` for ad-hoc Colors.* usage (if directory exists)
+  - Use `grep -r "Colors\." lib/screens/ | grep -v "import"` to find violations
   - Apply same replacement mapping as T014
-  - EXCLUDE `lib/widgets/risk_banner.dart` (preserves RiskPalette per C4)
   - Run `./scripts/verify_no_adhoc_colors.sh` after sweep
   - Expected: Verification script PASSES
+  - **COMPLETED**: lib/screens/ does not exist (screens in lib/features/)
+
+- [x] **T017** [P] Sweep remaining `lib/` directories (controllers, utils) for ad-hoc Colors.* usage
+  - Use `grep -r "Colors\." lib/ --exclude-dir=features --exclude-dir=widgets --exclude-dir=screens --exclude-dir=theme | grep -v "import"` to find violations
+  - Apply same replacement mapping as T014
+  - Run `./scripts/verify_no_adhoc_colors.sh` after final sweep
+  - Expected: Verification script PASSES with zero violations
+  - **COMPLETED**: No violations found in controllers/utils/models/services
+  - **VERIFICATION**: `./scripts/verify_no_adhoc_colors.sh` PASSES ✅
+
 
 - [ ] **T016** [P] Sweep `lib/screens/` for ad-hoc Colors.* usage (if directory exists)
   - Use `grep -r "Colors\." lib/screens/ | grep -v "import"` to find violations

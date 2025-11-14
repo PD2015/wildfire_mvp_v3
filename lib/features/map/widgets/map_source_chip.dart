@@ -34,13 +34,14 @@ class MapSourceChip extends StatelessWidget {
   }
 
   Color _getSourceColor(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     switch (source) {
       case Freshness.live:
-        return Colors.green;
+        return colorScheme.primary;
       case Freshness.cached:
-        return Colors.orange;
+        return colorScheme.tertiary;
       case Freshness.mock:
-        return Colors.blue;
+        return colorScheme.secondary;
     }
   }
 
@@ -77,14 +78,15 @@ class MapSourceChip extends StatelessWidget {
         !FeatureFlags.mapLiveData && source == Freshness.mock;
 
     if (isDemoMode) {
+      final colorScheme = Theme.of(context).colorScheme;
       return Semantics(
         label: 'Demo Data - For testing purposes only',
         child: Card(
           elevation: 6,
-          color: Colors.amber.shade50,
+          color: colorScheme.tertiaryContainer,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Colors.amber.shade700, width: 2),
+            side: BorderSide(color: colorScheme.tertiary, width: 2),
           ),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -94,14 +96,14 @@ class MapSourceChip extends StatelessWidget {
                 Icon(
                   Icons.science_outlined,
                   size: 20,
-                  color: Colors.amber.shade900,
+                  color: colorScheme.onTertiaryContainer,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'DEMO DATA',
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.amber.shade900,
+                        color: colorScheme.onTertiaryContainer,
                         letterSpacing: 1.2,
                       ),
                 ),
@@ -136,7 +138,9 @@ class MapSourceChip extends StatelessWidget {
                 _formatTimestamp(),
                 style: Theme.of(
                   context,
-                ).textTheme.labelSmall?.copyWith(color: Colors.grey[600]),
+                ).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
               ),
             ],
           ),

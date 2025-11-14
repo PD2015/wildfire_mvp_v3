@@ -179,7 +179,7 @@ class _MapScreenState extends State<MapScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.map_outlined, size: 64.0, color: Colors.grey),
+              Icon(Icons.map_outlined, size: 64.0, color: Theme.of(context).colorScheme.onSurfaceVariant),
               const SizedBox(height: 16.0),
               Text(
                 'Map Not Available',
@@ -223,10 +223,10 @@ class _MapScreenState extends State<MapScreen> {
                                       Icon(
                                         Icons.local_fire_department,
                                         color: incident.intensity == 'high'
-                                            ? Colors.red
+                                            ? Theme.of(context).colorScheme.error
                                             : incident.intensity == 'moderate'
-                                                ? Colors.orange
-                                                : Colors.cyan,
+                                                ? Theme.of(context).colorScheme.tertiary
+                                                : Theme.of(context).colorScheme.primary,
                                         size: 20,
                                       ),
                                       const SizedBox(width: 8),
@@ -327,7 +327,7 @@ class _MapScreenState extends State<MapScreen> {
                     Icon(
                       Icons.check_circle_outline,
                       size: 48,
-                      color: Colors.green[700],
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -348,7 +348,7 @@ class _MapScreenState extends State<MapScreen> {
                       'Data source: ${state.freshness.name.toUpperCase()}',
                       style: Theme.of(
                         context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                      ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -367,7 +367,11 @@ class _MapScreenState extends State<MapScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64.0, color: Colors.red),
+            Icon(
+              Icons.error_outline,
+              size: 64.0,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 16.0),
             Text(
               'Failed to load map',
