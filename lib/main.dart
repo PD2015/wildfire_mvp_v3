@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Service imports
 import 'services/fire_risk_service.dart';
@@ -11,8 +12,13 @@ import 'services/contracts/service_contracts.dart' as contracts;
 import 'services/effis_service_impl.dart';
 import 'services/mock_service.dart';
 import 'services/fire_location_service.dart';
-import 'services/active_fires_service_factory.dart';
-import 'services/active_fires_service_adapter.dart';
+import 'services/fire_location_service_orchestrator.dart';
+import 'services/active_fires_service.dart';
+import 'services/active_fires_service_impl.dart';
+import 'services/mock_active_fires_service.dart';
+import 'services/fire_incident_cache.dart';
+import 'services/cache/fire_incident_cache_impl.dart';
+import 'config/feature_flags.dart';
 
 // Model imports
 import 'models/api_error.dart';
@@ -118,18 +124,53 @@ Future<ServiceContainer> _initializeServices() async {
     // TODO: Add cache service when implemented
   );
 
-  // Initialize fire location service using ActiveFiresService (Task 8)
-  // This replaces the previous FireLocationServiceImpl with the new interface
-  final activeFiresService = ActiveFiresServiceFactory.create();
-  final FireLocationService fireLocationService = ActiveFiresServiceAdapter(activeFiresService);
-
-  debugPrint('🔥 Using ActiveFiresService: ${activeFiresService.metadata.description}');
+  // Initialize fire location service using orchestrator (Task 9)
+  // This implements the 3-tier fallback chain: Live API → Cache → Mock
+  final FireLocationService fireLocationService = await _initializeFireLocationOrchestrator(httpClient);
 
   return ServiceContainer(
     locationResolver: locationResolver,
     fireRiskService: fireRiskService,
     fireLocationService: fireLocationService,
   );
+}
+
+/// Initialize FireLocationServiceOrchestrator with fallback chain
+/// 
+/// Creates orchestrator with:
+/// - Live service (if MAP_LIVE_DATA=true): ActiveFiresServiceImpl
+/// - Cache service: FireIncidentCacheImpl with SharedPreferences
+/// - Mock service: MockActiveFiresService (never fails)
+Future<FireLocationService> _initializeFireLocationOrchestrator(
+  http.Client httpClient,
+) async {
+  // Initialize cache with SharedPreferences
+  final prefs = await SharedPreferences.getInstance();
+  final FireIncidentCache cache = FireIncidentCacheImpl(prefs: prefs);
+
+  // Initialize live service (if enabled)
+  final ActiveFiresService? liveService = FeatureFlags.mapLiveData
+      ? ActiveFiresServiceImpl(httpClient: httpClient)
+      : null;
+
+  // Initialize mock service (always created as fallback)
+  final ActiveFiresService mockService = MockActiveFiresService();
+
+  // Create orchestrator with 3-tier fallback chain
+  final orchestrator = FireLocationServiceOrchestrator(
+    liveService: liveService,
+    mockService: mockService,
+    cache: cache,
+    // No telemetry in production (can add SpyTelemetry for debugging)
+  );
+
+  debugPrint('🔥 FireLocationServiceOrchestrator initialized:');
+  debugPrint('  - Live service: ${liveService != null ? "ENABLED (${liveService.metadata.description})" : "DISABLED"}');
+  debugPrint('  - Cache service: ENABLED');
+  debugPrint('  - Mock service: ENABLED (fallback)');
+  debugPrint('  - MAP_LIVE_DATA: ${FeatureFlags.mapLiveData}');
+
+  return orchestrator;
 }
 
 /// Root app widget with lifecycle management
