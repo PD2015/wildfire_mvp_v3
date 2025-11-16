@@ -34,60 +34,76 @@ class ReportFireScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Step 1 — Emergency (999)
-          Text(
-            '1) If the fire is spreading or unsafe:',
-            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Call 999 and ask for the Fire Service.\n'
-            'Give your location, what\'s burning, and a safe access point.',
-            style: textTheme.bodyLarge,
-          ),
-          const SizedBox(height: 12),
-          EmergencyButton(
-            contact: EmergencyContact.fireService,
-            onPressed: () =>
-                _handleEmergencyCall(context, EmergencyContact.fireService),
+          // Emergency Actions Card - Groups all three contact options
+          Card(
+            elevation: 2.0,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Step 1 — Emergency (999)
+                  Text(
+                    '1) If the fire is spreading or unsafe:',
+                    style: textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Call 999 and ask for the Fire Service.\n'
+                    'Give your location, what\'s burning, and a safe access point.',
+                    style: textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 12),
+                  EmergencyButton(
+                    contact: EmergencyContact.fireService,
+                    onPressed: () => _handleEmergencyCall(
+                        context, EmergencyContact.fireService),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Step 2 — Police Scotland (101)
+                  Text(
+                    '2) If someone is lighting a fire irresponsibly:',
+                    style: textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Text('Call Police Scotland on 101.',
+                      style: textTheme.bodyLarge),
+                  const SizedBox(height: 12),
+                  EmergencyButton(
+                    contact: EmergencyContact.policeScotland,
+                    onPressed: () => _handleEmergencyCall(
+                        context, EmergencyContact.policeScotland),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Step 3 — Crimestoppers (0800 555 111)
+                  Text(
+                    '3) Want to report anonymously?',
+                    style: textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Call Crimestoppers on 0800 555 111.',
+                    style: textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 12),
+                  EmergencyButton(
+                    contact: EmergencyContact.crimestoppers,
+                    onPressed: () => _handleEmergencyCall(
+                        context, EmergencyContact.crimestoppers),
+                  ),
+                ],
+              ),
+            ),
           ),
 
-          const SizedBox(height: 24),
-
-          // Step 2 — Police Scotland (101)
-          Text(
-            '2) If someone is lighting a fire irresponsibly:',
-            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          Text('Call Police Scotland on 101.', style: textTheme.bodyLarge),
-          const SizedBox(height: 12),
-          EmergencyButton(
-            contact: EmergencyContact.policeScotland,
-            onPressed: () =>
-                _handleEmergencyCall(context, EmergencyContact.policeScotland),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Step 3 — Crimestoppers (0800 555 111)
-          Text(
-            '3) Want to report anonymously?',
-            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Call Crimestoppers on 0800 555 111.',
-            style: textTheme.bodyLarge,
-          ),
-          const SizedBox(height: 12),
-          EmergencyButton(
-            contact: EmergencyContact.crimestoppers,
-            onPressed: () =>
-                _handleEmergencyCall(context, EmergencyContact.crimestoppers),
-          ),
-
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           // Tips card
           _TipsCard(cs: cs, textTheme: textTheme),
