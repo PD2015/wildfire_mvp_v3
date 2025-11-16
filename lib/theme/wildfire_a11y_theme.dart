@@ -206,17 +206,33 @@ class WildfireA11yTheme {
       ),
 
       // NavigationBarTheme: bottom navigation with accessible colors
+      // Material 3 pattern: solid indicator with high-contrast icon colors
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: colorScheme.surface,
-        indicatorColor: colorScheme.tertiary.withValues(alpha: 0.20),
+        // Solid forest600 indicator for strong visual presence
+        indicatorColor: BrandPalette.forest600,
         elevation: 8,
         shadowColor: Colors.black.withValues(alpha: 0.25),
-        labelTextStyle: WidgetStateProperty.all(
-          const TextStyle(
+        // White icons on dark forest600 indicator (high contrast)
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(
+                color: BrandPalette.onDarkHigh, size: 24);
+          }
+          return IconThemeData(color: BrandPalette.onLightMedium, size: 24);
+        }),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const TextStyle(
+              color: BrandPalette.forest600,
+              fontWeight: FontWeight.w600,
+            );
+          }
+          return const TextStyle(
             color: BrandPalette.onLightMedium,
             fontWeight: FontWeight.w600,
-          ),
-        ),
+          );
+        }),
       ),
 
       // FloatingActionButtonTheme: mint tertiary accent
@@ -362,17 +378,32 @@ class WildfireA11yTheme {
       ),
 
       // NavigationBarTheme: bottom navigation with accessible colors
+      // Dark mode: lighter mint indicator for visual interest
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: colorScheme.surface,
-        indicatorColor: colorScheme.tertiary.withValues(alpha: 0.25),
+        // Mint400 indicator stands out on dark forest background
+        indicatorColor: BrandPalette.mint400,
         elevation: 8,
         shadowColor: Colors.black.withValues(alpha: 0.35),
-        labelTextStyle: WidgetStateProperty.all(
-          const TextStyle(
+        // Dark icons on light mint indicator (high contrast)
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: BrandPalette.forest900, size: 24);
+          }
+          return IconThemeData(color: BrandPalette.onDarkMedium, size: 24);
+        }),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const TextStyle(
+              color: BrandPalette.mint400,
+              fontWeight: FontWeight.w600,
+            );
+          }
+          return const TextStyle(
             color: BrandPalette.onDarkMedium,
             fontWeight: FontWeight.w600,
-          ),
-        ),
+          );
+        }),
       ),
 
       // FloatingActionButtonTheme: mint tertiary accent
