@@ -341,6 +341,7 @@ class _MapScreenState extends State<MapScreen> {
     return Stack(
       children: [
         Semantics(
+          key: const ValueKey('map_semantics'),
           label: 'Map showing ${state.incidents.length} fire incidents',
           child: GoogleMap(
             key: const ValueKey('wildfire_map'),
