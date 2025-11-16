@@ -26,6 +26,7 @@ class DebouncedViewportLoader {
 
   Timer? _debounceTimer;
   CameraPosition? _lastPosition;
+  CameraPosition? _lastLoadedPosition; // Track last position we loaded for
   bool _isLoading = false;
 
   /// Create a debounced viewport loader.
@@ -70,6 +71,14 @@ class DebouncedViewportLoader {
       return;
     }
 
+    // Check if viewport has actually changed since last load
+    if (_lastLoadedPosition != null &&
+        _isSameViewport(_lastPosition!, _lastLoadedPosition!)) {
+      debugPrint(
+          '🗺️ DebouncedViewportLoader: Skipping load - viewport unchanged');
+      return;
+    }
+
     _isLoading = true;
 
     try {
@@ -81,6 +90,9 @@ class DebouncedViewportLoader {
       );
 
       await onViewportChanged(visibleBounds);
+
+      // Track this position as loaded
+      _lastLoadedPosition = _lastPosition;
 
       debugPrint('🗺️ DebouncedViewportLoader: Viewport load complete');
     } catch (e) {
@@ -125,6 +137,21 @@ class DebouncedViewportLoader {
     );
   }
 
+  /// Check if two camera positions represent the same viewport.
+  ///
+  /// Compares target coordinates and zoom level with small tolerance
+  /// to prevent redundant loads on identical viewports.
+  bool _isSameViewport(CameraPosition pos1, CameraPosition pos2) {
+    const latLonTolerance = 0.001; // ~100m at equator
+    const zoomTolerance = 0.1;
+
+    return (pos1.target.latitude - pos2.target.latitude).abs() <
+            latLonTolerance &&
+        (pos1.target.longitude - pos2.target.longitude).abs() <
+            latLonTolerance &&
+        (pos1.zoom - pos2.zoom).abs() < zoomTolerance;
+  }
+
   /// Check if loader is currently loading data.
   bool get isLoading => _isLoading;
 
@@ -137,6 +164,7 @@ class DebouncedViewportLoader {
     _debounceTimer = null;
     _isLoading = false;
     _lastPosition = null;
+    _lastLoadedPosition = null; // Reset loaded position tracking
   }
 
   /// Dispose of resources (cancel timers).
