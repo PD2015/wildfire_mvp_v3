@@ -212,7 +212,10 @@ class _MapScreenState extends State<MapScreen> {
                   });
                 },
                 child: Container(
-                  color: Colors.black.withValues(alpha: 0.5),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .scrim
+                      .withValues(alpha: 0.5),
                   child: GestureDetector(
                     onTap: () {}, // Prevent tap from closing when tapping sheet
                     child: FireDetailsBottomSheet(

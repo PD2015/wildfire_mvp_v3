@@ -42,11 +42,12 @@ class DemoDataChip extends StatelessWidget {
             color: RiskPalette.white,
             width: 2,
           ),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: Color(0x33000000), // 20% opacity black
+              color:
+                  Theme.of(context).colorScheme.shadow.withValues(alpha: 0.2),
               blurRadius: 4,
-              offset: Offset(0, 2),
+              offset: const Offset(0, 2),
             ),
           ],
         ),

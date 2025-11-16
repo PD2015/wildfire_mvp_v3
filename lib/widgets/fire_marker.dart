@@ -118,7 +118,8 @@ class FireMarker extends StatelessWidget {
                 : null,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
+                color:
+                    Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -126,7 +127,7 @@ class FireMarker extends StatelessWidget {
           ),
           child: Icon(
             Icons.local_fire_department,
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.onError,
             size: _markerSize * 0.6,
             semanticLabel: '',
           ),

@@ -98,7 +98,8 @@ class MapSourceChip extends StatelessWidget {
           backgroundColor: colorScheme.tertiaryContainer,
           side: BorderSide(color: colorScheme.tertiary, width: 2),
           elevation: 6,
-          shadowColor: Colors.black.withValues(alpha: 0.3),
+          shadowColor:
+              Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),
         ),
       );
     }
@@ -137,7 +138,8 @@ class MapSourceChip extends StatelessWidget {
         backgroundColor: sourceColor.withValues(alpha: 0.1),
         side: BorderSide(color: sourceColor, width: 1),
         elevation: 4,
-        shadowColor: Colors.black.withValues(alpha: 0.2),
+        shadowColor:
+            Theme.of(context).colorScheme.shadow.withValues(alpha: 0.2),
       ),
     );
   }
