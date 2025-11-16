@@ -37,7 +37,6 @@ class _MapScreenState extends State<MapScreen> {
   FireIncident? _selectedIncident;
   bool _isBottomSheetVisible = false;
   late DebouncedViewportLoader _viewportLoader;
-  MapSuccess? _lastSuccessState; // Preserve last successful map state
 
   @override
   void initState() {
@@ -66,7 +65,6 @@ class _MapScreenState extends State<MapScreen> {
     if (mounted) {
       final state = _controller.state;
       if (state is MapSuccess) {
-        _lastSuccessState = state; // Preserve for persistent map display
         _updateMarkers(state);
       }
       setState(() {});
@@ -179,37 +177,17 @@ class _MapScreenState extends State<MapScreen> {
       ),
       body: Stack(
         children: [
-          // Keep GoogleMap mounted using last successful state to preserve camera position
-          // Display map if we have any successful state (current or previous)
-          if (_lastSuccessState != null) _buildMapView(_lastSuccessState!),
-
-          // Show loading overlay during refreshes (semi-transparent over map)
-          if (state is MapLoading && _lastSuccessState != null)
-            Container(
-              color: Colors.black45,
-              child: Center(
+          // Main map content - simple switch on current state
+          switch (state) {
+            MapLoading() => Center(
                 child: Semantics(
                   label: 'Loading map data',
                   child: const CircularProgressIndicator(),
                 ),
               ),
-            ),
-
-          // Show full-screen loading on initial load (no map yet)
-          if (state is MapLoading && _lastSuccessState == null)
-            Container(
-              color: Colors.white,
-              child: Center(
-                child: Semantics(
-                  label: 'Loading map data',
-                  child: const CircularProgressIndicator(),
-                ),
-              ),
-            ),
-
-          // Show error overlay
-          if (state is MapError) _buildErrorView(state),
-
+            MapSuccess() => _buildMapView(state),
+            MapError() => _buildErrorView(state),
+          },
           // Legacy bottom sheet overlay (keep for existing features)
           if (_controller.bottomSheetState.isVisible)
             Positioned.fill(

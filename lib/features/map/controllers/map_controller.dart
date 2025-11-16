@@ -134,8 +134,8 @@ class MapController extends ChangeNotifier {
   Future<void> refreshMapData(bounds.LatLngBounds visibleBounds) async {
     final previousState = _state;
 
-    _state = const MapLoading();
-    notifyListeners();
+    // DON'T set state to loading during viewport refresh - causes map widget unmount
+    // Just fetch data in background and update markers when ready
 
     try {
       final firesResult = await _fireLocationService.getActiveFires(
