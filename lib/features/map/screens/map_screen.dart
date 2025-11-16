@@ -81,6 +81,12 @@ class _MapScreenState extends State<MapScreen> {
 
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
+
+    // CRITICAL: Set map controller for accurate viewport bounds
+    _viewportLoader.setMapController(controller);
+
+    debugPrint(
+        '🗺️ MapScreen: GoogleMapController initialized, viewport loader configured');
   }
 
   void _updateMarkers(MapSuccess state) {

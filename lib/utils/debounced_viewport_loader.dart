@@ -9,6 +9,9 @@ import 'package:wildfire_mvp_v3/models/location_models.dart' as models;
 /// Implements 300ms debounce delay for camera position changes.
 /// Cancels in-flight requests when new viewport queries arrive.
 ///
+/// **Best Practice**: Uses GoogleMapController.getVisibleRegion() for accurate
+/// viewport bounds instead of manual zoom-based calculations.
+///
 /// Usage:
 /// ```dart
 /// final loader = DebouncedViewportLoader(
@@ -16,6 +19,9 @@ import 'package:wildfire_mvp_v3/models/location_models.dart' as models;
 ///     await _mapController.refreshMapData(bounds);
 ///   },
 /// );
+///
+/// // After GoogleMap onMapCreated:
+/// loader.setMapController(mapController);
 ///
 /// // In GoogleMap onCameraMove callback:
 /// loader.onCameraMove(newPosition);
@@ -26,17 +32,32 @@ class DebouncedViewportLoader {
 
   Timer? _debounceTimer;
   CameraPosition? _lastPosition;
-  CameraPosition? _lastLoadedPosition; // Track last position we loaded for
+  bounds.LatLngBounds? _lastLoadedBounds; // Track last bounds we loaded for
   bool _isLoading = false;
+  GoogleMapController?
+      _mapController; // Actual map controller for accurate bounds
 
   /// Create a debounced viewport loader.
   ///
   /// [onViewportChanged] is called after debounce delay with visible bounds.
   /// [debounceDuration] defaults to 300ms to balance responsiveness and API efficiency.
+  ///
+  /// **Important**: Call [setMapController] after map creation to enable
+  /// accurate viewport bounds via GoogleMapController.getVisibleRegion().
   DebouncedViewportLoader({
     required this.onViewportChanged,
     this.debounceDuration = const Duration(milliseconds: 300),
   });
+
+  /// Set the GoogleMapController for accurate viewport bounds.
+  ///
+  /// **Must be called after GoogleMap onMapCreated callback.**
+  /// Enables use of getVisibleRegion() instead of manual calculations.
+  void setMapController(GoogleMapController controller) {
+    _mapController = controller;
+    debugPrint(
+        '🗺️ DebouncedViewportLoader: Map controller set - using accurate viewport bounds');
+  }
 
   /// Handle camera movement event.
   ///
@@ -71,14 +92,6 @@ class DebouncedViewportLoader {
       return;
     }
 
-    // Check if viewport has actually changed since last load
-    if (_lastLoadedPosition != null &&
-        _isSameViewport(_lastPosition!, _lastLoadedPosition!)) {
-      debugPrint(
-          '🗺️ DebouncedViewportLoader: Skipping load - viewport unchanged');
-      return;
-    }
-
     // Cancel debounce timer to prevent double load
     // (onCameraIdle fires before timer completes)
     _debounceTimer?.cancel();
@@ -87,17 +100,54 @@ class DebouncedViewportLoader {
     _isLoading = true;
 
     try {
-      final visibleBounds = _calculateVisibleBounds(_lastPosition!);
-      debugPrint(
-        '🗺️ DebouncedViewportLoader: Loading fires for viewport: '
-        'SW(${visibleBounds.southwest.latitude.toStringAsFixed(2)},${visibleBounds.southwest.longitude.toStringAsFixed(2)}) '
-        'NE(${visibleBounds.northeast.latitude.toStringAsFixed(2)},${visibleBounds.northeast.longitude.toStringAsFixed(2)})',
-      );
+      // Use GoogleMapController.getVisibleRegion() for accurate bounds
+      // Falls back to calculation if controller not available yet
+      bounds.LatLngBounds visibleBounds;
+
+      if (_mapController != null) {
+        // BEST PRACTICE: Use actual visible region from GoogleMapController
+        final region = await _mapController!.getVisibleRegion();
+
+        // Convert google_maps_flutter.LatLngBounds to our bounds.LatLngBounds
+        visibleBounds = bounds.LatLngBounds(
+          southwest: models.LatLng(
+            region.southwest.latitude,
+            region.southwest.longitude,
+          ),
+          northeast: models.LatLng(
+            region.northeast.latitude,
+            region.northeast.longitude,
+          ),
+        );
+
+        debugPrint(
+          '🗺️ DebouncedViewportLoader: Using accurate getVisibleRegion() bounds: '
+          'SW(${visibleBounds.southwest.latitude.toStringAsFixed(4)},${visibleBounds.southwest.longitude.toStringAsFixed(4)}) '
+          'NE(${visibleBounds.northeast.latitude.toStringAsFixed(4)},${visibleBounds.northeast.longitude.toStringAsFixed(4)})',
+        );
+      } else {
+        // Fallback: Calculate approximate bounds (less accurate)
+        visibleBounds = _calculateVisibleBounds(_lastPosition!);
+        debugPrint(
+          '🗺️ DebouncedViewportLoader: Using calculated bounds (map controller not set): '
+          'SW(${visibleBounds.southwest.latitude.toStringAsFixed(4)},${visibleBounds.southwest.longitude.toStringAsFixed(4)}) '
+          'NE(${visibleBounds.northeast.latitude.toStringAsFixed(4)},${visibleBounds.northeast.longitude.toStringAsFixed(4)})',
+        );
+      }
+
+      // Check if bounds have significantly changed since last load
+      if (_lastLoadedBounds != null &&
+          _isSameBounds(visibleBounds, _lastLoadedBounds!)) {
+        debugPrint(
+            '🗺️ DebouncedViewportLoader: Skipping load - viewport unchanged');
+        _isLoading = false;
+        return;
+      }
 
       await onViewportChanged(visibleBounds);
 
-      // Track this position as loaded
-      _lastLoadedPosition = _lastPosition;
+      // Track this bounds as loaded
+      _lastLoadedBounds = visibleBounds;
 
       debugPrint('🗺️ DebouncedViewportLoader: Viewport load complete');
     } catch (e) {
@@ -109,8 +159,9 @@ class DebouncedViewportLoader {
 
   /// Calculate visible map bounds from camera position.
   ///
-  /// Estimates bounds based on zoom level and center coordinates.
-  /// More accurate than waiting for LatLngBounds from map controller.
+  /// **FALLBACK ONLY**: Used when GoogleMapController not available yet.
+  /// Less accurate than getVisibleRegion() due to manual zoom calculations.
+  /// Prefers getVisibleRegion() when map controller is set.
   bounds.LatLngBounds _calculateVisibleBounds(CameraPosition position) {
     // Approximate visible area based on zoom level
     // Zoom level 0: whole world (~360° longitude, ~170° latitude)
@@ -143,19 +194,21 @@ class DebouncedViewportLoader {
     );
   }
 
-  /// Check if two camera positions represent the same viewport.
+  /// Check if two bounds represent the same viewport.
   ///
-  /// Compares target coordinates and zoom level with small tolerance
+  /// Compares southwest/northeast corners with small tolerance
   /// to prevent redundant loads on identical viewports.
-  bool _isSameViewport(CameraPosition pos1, CameraPosition pos2) {
-    const latLonTolerance = 0.001; // ~100m at equator
-    const zoomTolerance = 0.1;
+  bool _isSameBounds(bounds.LatLngBounds bounds1, bounds.LatLngBounds bounds2) {
+    const tolerance = 0.0001; // ~10m at equator - very precise
 
-    return (pos1.target.latitude - pos2.target.latitude).abs() <
-            latLonTolerance &&
-        (pos1.target.longitude - pos2.target.longitude).abs() <
-            latLonTolerance &&
-        (pos1.zoom - pos2.zoom).abs() < zoomTolerance;
+    return (bounds1.southwest.latitude - bounds2.southwest.latitude).abs() <
+            tolerance &&
+        (bounds1.southwest.longitude - bounds2.southwest.longitude).abs() <
+            tolerance &&
+        (bounds1.northeast.latitude - bounds2.northeast.latitude).abs() <
+            tolerance &&
+        (bounds1.northeast.longitude - bounds2.northeast.longitude).abs() <
+            tolerance;
   }
 
   /// Check if loader is currently loading data.
@@ -170,7 +223,7 @@ class DebouncedViewportLoader {
     _debounceTimer = null;
     _isLoading = false;
     _lastPosition = null;
-    _lastLoadedPosition = null; // Reset loaded position tracking
+    _lastLoadedBounds = null; // Reset loaded bounds tracking
   }
 
   /// Dispose of resources (cancel timers).
