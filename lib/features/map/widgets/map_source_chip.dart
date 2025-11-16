@@ -81,70 +81,63 @@ class MapSourceChip extends StatelessWidget {
       final colorScheme = Theme.of(context).colorScheme;
       return Semantics(
         label: 'Demo Data - For testing purposes only',
-        child: Card(
-          elevation: 6,
-          color: colorScheme.tertiaryContainer,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: colorScheme.tertiary, width: 2),
+        child: Chip(
+          avatar: Icon(
+            Icons.science_outlined,
+            size: 20,
+            color: colorScheme.onTertiaryContainer,
           ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.science_outlined,
-                  size: 20,
+          label: Text(
+            'DEMO DATA',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
                   color: colorScheme.onTertiaryContainer,
+                  letterSpacing: 1.2,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'DEMO DATA',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onTertiaryContainer,
-                        letterSpacing: 1.2,
-                      ),
-                ),
-              ],
-            ),
           ),
+          backgroundColor: colorScheme.tertiaryContainer,
+          side: BorderSide(color: colorScheme.tertiary, width: 2),
+          elevation: 6,
+          shadowColor: Colors.black.withValues(alpha: 0.3),
         ),
       );
     }
 
     // Standard source chip for live/cached data
+    final sourceColor = _getSourceColor(context);
     return Semantics(
       label: 'Data source: ${_getSourceLabel()}, updated ${_formatTimestamp()}',
-      child: Card(
-        elevation: 4,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(_getSourceIcon(), size: 16, color: _getSourceColor(context)),
-              const SizedBox(width: 8),
-              Text(
-                _getSourceLabel(),
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: _getSourceColor(context),
-                    ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                _formatTimestamp(),
-                style: Theme.of(
-                  context,
-                ).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            ],
-          ),
+      child: Chip(
+        avatar: Icon(
+          _getSourceIcon(),
+          size: 16,
+          color: sourceColor,
         ),
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _getSourceLabel(),
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: sourceColor,
+                  ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              _formatTimestamp(),
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
+        ),
+        backgroundColor: sourceColor.withValues(alpha: 0.1),
+        side: BorderSide(color: sourceColor, width: 1),
+        elevation: 4,
+        shadowColor: Colors.black.withValues(alpha: 0.2),
       ),
     );
   }

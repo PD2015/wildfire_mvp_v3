@@ -107,7 +107,7 @@ class WildfireA11yTheme {
       onTertiary: BrandPalette.onDarkHigh,
       surface: Colors.white,
       onSurface: BrandPalette.onLightHigh,
-      surfaceVariant: const Color(0xFFE7F1EF),
+      surfaceContainerHighest: const Color(0xFFE7F1EF),
       onSurfaceVariant: BrandPalette.onLightMedium,
       error: Colors.red.shade700,
       onError: BrandPalette.onDarkHigh,
@@ -158,7 +158,7 @@ class WildfireA11yTheme {
       // InputDecoration: outlined style with sufficient padding
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colorScheme.surface,
+        fillColor: colorScheme.surfaceContainerHighest,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: colorScheme.outline),
@@ -170,6 +170,14 @@ class WildfireA11yTheme {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: colorScheme.error, width: 2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -196,7 +204,9 @@ class WildfireA11yTheme {
       appBarTheme: AppBarTheme(
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
-        elevation: 2,
+        elevation: 0,
+        scrolledUnderElevation: 3,
+        surfaceTintColor: colorScheme.surfaceTint,
         centerTitle: true,
         titleTextStyle: TextStyle(
           color: colorScheme.onPrimary,
@@ -276,7 +286,7 @@ class WildfireA11yTheme {
       onTertiary: BrandPalette.onDarkHigh,
       surface: BrandPalette.forest500,
       onSurface: BrandPalette.onDarkHigh,
-      surfaceVariant: BrandPalette.forest400,
+      surfaceContainerHighest: BrandPalette.forest400,
       onSurfaceVariant: BrandPalette.onDarkMedium,
       error: BrandPalette.amber500,
       onError: BrandPalette.onDarkHigh,
@@ -327,7 +337,7 @@ class WildfireA11yTheme {
       // InputDecoration: outlined style with sufficient padding
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colorScheme.surface,
+        fillColor: colorScheme.surfaceContainerHighest,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: colorScheme.outline),
@@ -339,6 +349,14 @@ class WildfireA11yTheme {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: colorScheme.error, width: 2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
