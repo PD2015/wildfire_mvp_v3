@@ -12,6 +12,7 @@ We follow the [Divio Documentation System](https://documentation.divio.com/) wit
 **Problem-solving documentation** - Step-by-step instructions for specific tasks
 
 #### Setup
+- [Git Hooks Setup](guides/setup/git-hooks.md) - **START HERE** - Configure security hooks to prevent API key leaks
 - [Google Maps Configuration](guides/setup/google-maps.md) - Complete setup for Web, iOS, Android
 - [Firebase Configuration](FIREBASE_DEPLOYMENT.md) *(to be moved)*
 - [API Keys Management](API_KEY_SETUP.md) *(to be moved)*

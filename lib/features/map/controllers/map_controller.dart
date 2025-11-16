@@ -1,25 +1,30 @@
 import 'package:flutter/foundation.dart';
 import 'package:dartz/dartz.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
+import 'package:wildfire_mvp_v3/models/bottom_sheet_state.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
-import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart';
+import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart' as bounds;
 import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
+import 'package:wildfire_mvp_v3/utils/distance_calculator.dart';
 import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 
 /// MapController manages state for MapScreen
 ///
-/// Orchestrates location resolution, fire data fetching, risk assessment.
+/// Orchestrates location resolution, fire data fetching, risk assessment,
+/// and bottom sheet state for fire incident details.
 class MapController extends ChangeNotifier {
   final LocationResolver _locationResolver;
   final FireLocationService _fireLocationService;
   final FireRiskService _fireRiskService;
 
   MapState _state = const MapLoading();
+  BottomSheetState _bottomSheetState = const BottomSheetHidden();
 
   MapState get state => _state;
+  BottomSheetState get bottomSheetState => _bottomSheetState;
 
   MapController({
     required LocationResolver locationResolver,
@@ -69,7 +74,7 @@ class MapController extends ChangeNotifier {
       }, (location) => location);
 
       // Step 2: Create default bbox around location (~220km radius to cover all of Scotland)
-      final bounds = LatLngBounds(
+      final mapBounds = bounds.LatLngBounds(
         southwest: LatLng(
           centerLocation.latitude - 2.0,
           centerLocation.longitude - 2.0,
@@ -82,9 +87,9 @@ class MapController extends ChangeNotifier {
 
       // Step 3: Fetch fire incidents
       debugPrint(
-        '🗺️ MapController: Fetching fires for bounds: SW(${bounds.southwest.latitude},${bounds.southwest.longitude}) NE(${bounds.northeast.latitude},${bounds.northeast.longitude})',
+        '🗺️ MapController: Fetching fires for bounds: SW(${mapBounds.southwest.latitude},${mapBounds.southwest.longitude}) NE(${mapBounds.northeast.latitude},${mapBounds.northeast.longitude})',
       );
-      final firesResult = await _fireLocationService.getActiveFires(bounds);
+      final firesResult = await _fireLocationService.getActiveFires(mapBounds);
 
       firesResult.fold(
         (error) {
@@ -126,11 +131,11 @@ class MapController extends ChangeNotifier {
   }
 
   /// Refresh fire data for visible map region
-  Future<void> refreshMapData(LatLngBounds visibleBounds) async {
+  Future<void> refreshMapData(bounds.LatLngBounds visibleBounds) async {
     final previousState = _state;
 
-    _state = const MapLoading();
-    notifyListeners();
+    // DON'T set state to loading during viewport refresh - causes map widget unmount
+    // Just fetch data in background and update markers when ready
 
     try {
       final firesResult = await _fireLocationService.getActiveFires(
@@ -188,6 +193,86 @@ class MapController extends ChangeNotifier {
       );
     } catch (e) {
       return Left('Risk check error: $e');
+    }
+  }
+
+  /// Show fire incident details in bottom sheet
+  Future<void> showFireDetails(String fireIncidentId) async {
+    debugPrint('🗒️ MapController: Showing fire details for $fireIncidentId');
+
+    _bottomSheetState = BottomSheetLoading(
+      fireIncidentId: fireIncidentId,
+      loadingMessage: 'Loading fire details...',
+    );
+    notifyListeners();
+
+    try {
+      // Find the fire incident in current state
+      if (_state is! MapSuccess) {
+        _bottomSheetState = BottomSheetError(
+          message: 'Map data not available. Please wait for map to load.',
+        );
+        notifyListeners();
+        return;
+      }
+
+      final mapState = _state as MapSuccess;
+      final fireIncident = mapState.incidents.firstWhere(
+        (incident) => incident.id == fireIncidentId,
+        orElse: () => throw Exception('Fire incident not found'),
+      );
+
+      // Get user location for distance calculation
+      LatLng? userLocation;
+      String? distanceAndDirection;
+
+      try {
+        final locationResult = await _locationResolver.getLatLon();
+        locationResult.fold(
+          (error) {
+            debugPrint(
+                '🗒️ MapController: Could not get user location for distance: $error');
+          },
+          (location) {
+            userLocation = location;
+            distanceAndDirection =
+                DistanceCalculator.formatDistanceAndDirection(
+                    location, fireIncident.location);
+          },
+        );
+      } catch (e) {
+        debugPrint('🗒️ MapController: Error calculating distance: $e');
+      }
+
+      _bottomSheetState = BottomSheetLoaded(
+        fireIncident: fireIncident,
+        userLocation: userLocation,
+        distanceAndDirection: distanceAndDirection,
+      );
+      notifyListeners();
+    } catch (e) {
+      debugPrint('🗒️ MapController: Error showing fire details: $e');
+      _bottomSheetState = BottomSheetError(
+        message: 'Failed to load fire details: $e',
+      );
+      notifyListeners();
+    }
+  }
+
+  /// Hide bottom sheet
+  void hideBottomSheet() {
+    debugPrint('🗒️ MapController: Hiding bottom sheet');
+    _bottomSheetState = const BottomSheetHidden();
+    notifyListeners();
+  }
+
+  /// Retry loading fire details (for error state)
+  Future<void> retryLoadFireDetails() async {
+    if (_bottomSheetState is BottomSheetError) {
+      final errorState = _bottomSheetState as BottomSheetError;
+      if (errorState.fireIncidentId != null) {
+        await showFireDetails(errorState.fireIncidentId!);
+      }
     }
   }
 

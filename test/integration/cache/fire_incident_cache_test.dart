@@ -34,7 +34,7 @@ void main() {
       () async {
         // Arrange: Create test incident list
         final incidents = [
-          FireIncident(
+          FireIncident.test(
             id: 'test1',
             location: const LatLng(55.9533, -3.1883), // Edinburgh
             source: DataSource.effis,
@@ -44,7 +44,7 @@ void main() {
             description: 'Test fire 1',
             areaHectares: 15.5,
           ),
-          FireIncident(
+          FireIncident.test(
             id: 'test2',
             location: const LatLng(55.8642, -4.2518), // Glasgow
             source: DataSource.effis,
@@ -85,7 +85,7 @@ void main() {
     test('cache respects 6-hour TTL', () async {
       // Arrange: Store incident at T=0
       final incidents = [
-        FireIncident(
+        FireIncident.test(
           id: 'test1',
           location: const LatLng(55.9533, -3.1883),
           source: DataSource.effis,
@@ -115,7 +115,7 @@ void main() {
     test('cache uses geohash spatial keys (precision 5 = ~4.9km)', () async {
       // Arrange: Two locations in same geohash cell (precision 5)
       final incidents1 = [
-        FireIncident(
+        FireIncident.test(
           id: 'fire1',
           location: const LatLng(55.9533, -3.1883), // Edinburgh center
           source: DataSource.effis,
@@ -148,7 +148,7 @@ void main() {
       // Arrange: Fill cache with 100 entries (spread across different geohash cells)
       for (int i = 0; i < 100; i++) {
         final incidents = [
-          FireIncident(
+          FireIncident.test(
             id: 'fire_$i',
             location: LatLng(
               50.0 + i * 0.1,
@@ -172,7 +172,7 @@ void main() {
 
       // Act: Add 101st entry (should trigger LRU eviction)
       final newIncident = [
-        FireIncident(
+        FireIncident.test(
           id: 'fire_new',
           location: const LatLng(60.0, 0.0),
           source: DataSource.effis,
@@ -221,7 +221,7 @@ void main() {
     test('cache cleanup removes expired entries', () async {
       // Arrange: Add entry that will expire
       final incidents = [
-        FireIncident(
+        FireIncident.test(
           id: 'test1',
           location: const LatLng(55.9533, -3.1883),
           source: DataSource.effis,
