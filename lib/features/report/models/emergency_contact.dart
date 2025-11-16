@@ -141,7 +141,7 @@ class EmergencyContact extends Equatable {
   static const crimestoppers = EmergencyContact(
     name: 'Crimestoppers',
     phoneNumber: '0800 555 111',
-    priority: EmergencyPriority.anonymous,
+    priority: EmergencyPriority.nonEmergency,
     description: 'Anonymous reporting of suspicious activities',
   );
 
