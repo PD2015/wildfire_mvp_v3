@@ -3,13 +3,9 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
-import 'package:wildfire_mvp_v3/features/map/widgets/fire_information_bottom_sheet.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
-import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
-import 'package:wildfire_mvp_v3/utils/debounced_viewport_loader.dart';
-import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet.dart';
 
 /// Map screen with Google Maps integration showing active fire incidents
 ///
@@ -34,9 +30,6 @@ class _MapScreenState extends State<MapScreen> {
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
   late MapController _controller;
-  FireIncident? _selectedIncident;
-  bool _isBottomSheetVisible = false;
-  late DebouncedViewportLoader _viewportLoader;
 
   @override
   void initState() {
@@ -47,14 +40,6 @@ class _MapScreenState extends State<MapScreen> {
     }
     _controller = widget.controller!;
     _controller.addListener(_onControllerUpdate);
-
-    // Initialize debounced viewport loader
-    _viewportLoader = DebouncedViewportLoader(
-      onViewportChanged: (bounds) async {
-        await _controller.refreshMapData(bounds);
-      },
-    );
-
     // Initialize map data on mount
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.initialize();
@@ -63,10 +48,6 @@ class _MapScreenState extends State<MapScreen> {
 
   void _onControllerUpdate() {
     if (mounted) {
-      final state = _controller.state;
-      if (state is MapSuccess) {
-        _updateMarkers(state);
-      }
       setState(() {});
     }
   }
@@ -75,18 +56,11 @@ class _MapScreenState extends State<MapScreen> {
   void dispose() {
     _controller.removeListener(_onControllerUpdate);
     _mapController?.dispose();
-    _viewportLoader.dispose();
     super.dispose();
   }
 
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
-
-    // CRITICAL: Set map controller for accurate viewport bounds
-    _viewportLoader.setMapController(controller);
-
-    debugPrint(
-        '🗺️ MapScreen: GoogleMapController initialized, viewport loader configured');
   }
 
   void _updateMarkers(MapSuccess state) {
@@ -100,8 +74,6 @@ class _MapScreenState extends State<MapScreen> {
           ? incident.description!
           : 'Fire Incident #${incident.id}';
 
-      final isSelected = _selectedIncident?.id == incident.id;
-
       return Marker(
         markerId: MarkerId(incident.id),
         position: LatLng(
@@ -109,7 +81,6 @@ class _MapScreenState extends State<MapScreen> {
           incident.location.longitude,
         ),
         icon: _getMarkerIcon(incident.intensity),
-        alpha: isSelected ? 1.0 : 0.8, // Highlight selected marker
         infoWindow: InfoWindow(
           title: title,
           snippet:
@@ -118,10 +89,6 @@ class _MapScreenState extends State<MapScreen> {
         ),
         onTap: () {
           debugPrint('🎯 Marker tapped: $title (${incident.intensity})');
-          setState(() {
-            _selectedIncident = incident;
-            _isBottomSheetVisible = true;
-          });
         },
       );
     }).toSet();
@@ -181,57 +148,16 @@ class _MapScreenState extends State<MapScreen> {
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 1,
       ),
-      body: Stack(
-        children: [
-          // Main map content - simple switch on current state
-          switch (state) {
-            MapLoading() => Center(
-                child: Semantics(
-                  label: 'Loading map data',
-                  child: const CircularProgressIndicator(),
-                ),
-              ),
-            MapSuccess() => _buildMapView(state),
-            MapError() => _buildErrorView(state),
-          },
-          // Legacy bottom sheet overlay (keep for existing features)
-          if (_controller.bottomSheetState.isVisible)
-            Positioned.fill(
-              child: FireInformationBottomSheet(
-                state: _controller.bottomSheetState,
-                onClose: _controller.hideBottomSheet,
-                onRetry: _controller.retryLoadFireDetails,
-              ),
+      body: switch (state) {
+        MapLoading() => Center(
+            child: Semantics(
+              label: 'Loading map data',
+              child: const CircularProgressIndicator(),
             ),
-          // New fire details bottom sheet (Task 12 integration)
-          if (_isBottomSheetVisible && _selectedIncident != null)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isBottomSheetVisible = false;
-                    _selectedIncident = null;
-                  });
-                },
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  child: GestureDetector(
-                    onTap: () {}, // Prevent tap from closing when tapping sheet
-                    child: FireDetailsBottomSheet(
-                      incident: _selectedIncident!,
-                      onClose: () {
-                        setState(() {
-                          _isBottomSheetVisible = false;
-                          _selectedIncident = null;
-                        });
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
+          ),
+        MapSuccess() => _buildMapView(state),
+        MapError() => _buildErrorView(state),
+      },
       floatingActionButton: RiskCheckButton(controller: _controller),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
@@ -345,16 +271,20 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _buildMapView(MapSuccess state) {
+    // Update markers when data changes
+    _updateMarkers(state);
+
     return Stack(
       children: [
         Semantics(
-          key: const ValueKey('map_semantics'),
           label: 'Map showing ${state.incidents.length} fire incidents',
           child: GoogleMap(
-            key: const ValueKey('wildfire_map'),
             onMapCreated: _onMapCreated,
-            initialCameraPosition: const CameraPosition(
-              target: LatLng(57.2, -3.8), // Scotland centroid - constant
+            initialCameraPosition: CameraPosition(
+              target: LatLng(
+                state.centerLocation.latitude,
+                state.centerLocation.longitude,
+              ),
               zoom: 8.0,
             ),
             markers: _markers,
@@ -371,9 +301,6 @@ class _MapScreenState extends State<MapScreen> {
               bottom: 80.0, // Room for FAB
               right: 16.0,
             ),
-            // Debounced viewport loading (Task 17-18)
-            onCameraMove: _viewportLoader.onCameraMove,
-            onCameraIdle: _viewportLoader.onCameraIdle,
           ),
         ),
         // Source chip positioned at top

@@ -203,7 +203,7 @@ void main() {
 
         // Mock fire incidents
         final mockIncidents = [
-          FireIncident.test(
+          FireIncident(
             id: 'test_fire_1',
             location: const LatLng(55.9533, -3.1883),
             source: DataSource.mock,
@@ -213,7 +213,7 @@ void main() {
             description: 'Edinburgh - Holyrood Park',
             areaHectares: 45.0,
           ),
-          FireIncident.test(
+          FireIncident(
             id: 'test_fire_2',
             location: const LatLng(55.8642, -4.2518),
             source: DataSource.mock,
@@ -408,7 +408,7 @@ void main() {
 
         mockLocationResolver.mockLocation(const LatLng(55.9533, -3.1883));
         mockFireLocationService.mockIncidents([
-          FireIncident.test(
+          FireIncident(
             id: 'test_fire',
             location: const LatLng(55.9533, -3.1883),
             source: DataSource.mock,
@@ -501,7 +501,7 @@ void main() {
         // Arrange
         mockLocationResolver.mockLocation(const LatLng(55.9533, -3.1883));
         mockFireLocationService.mockIncidents([
-          FireIncident.test(
+          FireIncident(
             id: 'test_fire',
             location: const LatLng(55.9533, -3.1883),
             source: DataSource.mock,
@@ -539,7 +539,7 @@ void main() {
           // Re-mock for next iteration
           mockLocationResolver.mockLocation(const LatLng(55.9533, -3.1883));
           mockFireLocationService.mockIncidents([
-            FireIncident.test(
+            FireIncident(
               id: 'test_fire',
               location: const LatLng(55.9533, -3.1883),
               source: DataSource.mock,
@@ -569,7 +569,7 @@ void main() {
         // Arrange: Mock data with different freshness values
         mockLocationResolver.mockLocation(const LatLng(55.9533, -3.1883));
         mockFireLocationService.mockIncidents([
-          FireIncident.test(
+          FireIncident(
             id: 'test_fire',
             location: const LatLng(55.9533, -3.1883),
             source: DataSource.mock,
