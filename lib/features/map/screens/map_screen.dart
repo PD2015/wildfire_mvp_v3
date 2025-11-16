@@ -177,17 +177,24 @@ class _MapScreenState extends State<MapScreen> {
       ),
       body: Stack(
         children: [
-          // Main map content
-          switch (state) {
-            MapLoading() => Center(
+          // Keep GoogleMap mounted at all times to preserve camera position
+          if (state is MapSuccess) _buildMapView(state),
+
+          // Show loading overlay instead of replacing map widget
+          if (state is MapLoading)
+            Container(
+              color: Colors.black45,
+              child: Center(
                 child: Semantics(
                   label: 'Loading map data',
                   child: const CircularProgressIndicator(),
                 ),
               ),
-            MapSuccess() => _buildMapView(state),
-            MapError() => _buildErrorView(state),
-          },
+            ),
+
+          // Show error overlay
+          if (state is MapError) _buildErrorView(state),
+
           // Legacy bottom sheet overlay (keep for existing features)
           if (_controller.bottomSheetState.isVisible)
             Positioned.fill(
