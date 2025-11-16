@@ -186,16 +186,24 @@ class _ManualLocationDialogState extends State<ManualLocationDialog> {
       ),
       actions: [
         // Cancel button
-        OutlinedButton(
-          key: const Key('cancel_button'),
-          onPressed: _handleCancel,
-          child: const Text('Cancel'),
+        Semantics(
+          label: 'Cancel',
+          button: true,
+          child: OutlinedButton(
+            key: const Key('cancel_button'),
+            onPressed: _handleCancel,
+            child: const Text('Cancel'),
+          ),
         ),
         // Save button
-        ElevatedButton(
-          key: const Key('save_button'),
-          onPressed: _isValidInput ? _handleSave : null,
-          child: const Text('Save Location'),
+        Semantics(
+          label: 'Save manual location',
+          button: true,
+          child: ElevatedButton(
+            key: const Key('save_button'),
+            onPressed: _isValidInput ? _handleSave : null,
+            child: const Text('Save Location'),
+          ),
         ),
       ],
     );
