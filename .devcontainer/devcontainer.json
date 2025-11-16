@@ -1,0 +1,40 @@
+{
+  "name": "WildFire Agent B (Map)",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "forwardPorts": [
+    8082,
+    5174
+  ],
+  "portsAttributes": {
+    "8082": {
+      "label": "Flutter Web App",
+      "onAutoForward": "notify"
+    },
+    "5174": {
+      "label": "Dev Server",
+      "onAutoForward": "silent"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Dart-Code.dart-code",
+        "Dart-Code.flutter"
+      ],
+      "settings": {
+        "dart.flutterSdkPath": "/home/vscode/flutter",
+        "editor.formatOnSave": true,
+        "editor.rulers": [
+          120
+        ],
+        "dart.lineLength": 120,
+        "files.trimTrailingWhitespace": true
+      }
+    }
+  },
+  "postCreateCommand": "flutter pub get && flutter doctor",
+  "remoteUser": "vscode"
+}

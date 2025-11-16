@@ -156,8 +156,8 @@ dev_dependencies:
 git clone <repository-url>
 cd wildfire_mvp_v3
 
-# Enable git hooks for auto-formatting (recommended)
-git config core.hooksPath .githooks
+# Enable git hooks for auto-formatting and secret scanning (REQUIRED)
+./scripts/setup-git-hooks.sh
 
 # Install dependencies
 flutter pub get
