@@ -453,9 +453,10 @@ void main() {
         await controller.refreshMapData(newBounds);
 
         // Assert
-        expect(states.length, greaterThanOrEqualTo(2)); // Loading → Success
-        expect(states.first, isA<MapLoading>());
-        expect(states.last, isA<MapSuccess>());
+        // refreshMapData() no longer transitions through MapLoading (prevents map unmount)
+        // Should only emit 1 notification with final state (MapSuccess)
+        expect(states.length, equals(1));
+        expect(states.first, isA<MapSuccess>());
       });
 
       test('notifies listeners on state changes', () async {
@@ -483,7 +484,9 @@ void main() {
         await controller.refreshMapData(newBounds);
 
         // Assert
-        expect(refreshNotificationCount, greaterThanOrEqualTo(2));
+        // refreshMapData() no longer transitions through MapLoading (prevents map unmount)
+        // Should only emit 1 notification with final state
+        expect(refreshNotificationCount, equals(1));
       });
 
       test(
