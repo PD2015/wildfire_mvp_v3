@@ -100,7 +100,7 @@ void main() {
 
       // Setup mock controller with MapSuccess state
       final mockIncidents = [
-        FireIncident(
+        FireIncident.test(
           id: 'test_fire_1',
           location: const LatLng(55.9533, -3.1883),
           source: DataSource.mock,
@@ -110,7 +110,7 @@ void main() {
           description: 'Test fire 1',
           areaHectares: 45.0,
         ),
-        FireIncident(
+        FireIncident.test(
           id: 'test_fire_2',
           location: const LatLng(55.8642, -4.2518),
           source: DataSource.mock,

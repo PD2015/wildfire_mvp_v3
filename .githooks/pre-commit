@@ -59,6 +59,32 @@ else
 fi
 
 echo ""
+echo "🔍 Checking documentation files for secrets..."
+
+# Extra protection for documentation files (stricter than gitleaks)
+DOC_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E "\.(md|txt|rst)$" || true)
+if [ -n "$DOC_FILES" ]; then
+  # Check for API keys in documentation (even in code blocks)
+  if echo "$DOC_FILES" | xargs grep -E "AIzaSy[0-9A-Za-z_-]{33}" 2>/dev/null | grep -v "YOUR.*KEY.*HERE\|PLACEHOLDER\|example\|XXX"; then
+    echo ""
+    echo "❌ ERROR: Real API key found in documentation!"
+    echo ""
+    echo "Documentation should NEVER contain real keys."
+    echo ""
+    echo "Found in:"
+    echo "$DOC_FILES" | xargs grep -n -E "AIzaSy[0-9A-Za-z_-]{33}" 2>/dev/null | grep -v "YOUR.*KEY.*HERE\|PLACEHOLDER\|XXX" | sed 's/^/  /'
+    echo ""
+    echo "Instead use:"
+    echo "  - Placeholders: 'AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'"
+    echo "  - References: 'See env/dev.env.json for key'"
+    echo ""
+    echo "See: docs/SECURITY_DOCUMENTATION_GUIDELINES.md"
+    exit 1
+  fi
+  echo "✅ Documentation files safe"
+fi
+
+echo ""
 echo "🔍 Checking for secrets with gitleaks..."
 
 # Check if gitleaks is installed

@@ -29,8 +29,13 @@ import 'package:wildfire_mvp_v3/services/models/fire_risk.dart' as _i6;
 // ignore_for_file: invalid_use_of_internal_member
 
 class _FakeEither_0<L, R> extends _i1.SmartFake implements _i2.Either<L, R> {
-  _FakeEither_0(Object parent, Invocation parentInvocation)
-      : super(parent, parentInvocation);
+  _FakeEither_0(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 /// A class which mocks [FireRiskService].
@@ -48,21 +53,28 @@ class MockFireRiskService extends _i1.Mock implements _i3.FireRiskService {
     Duration? deadline,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(#getCurrent, [], {
-          #lat: lat,
-          #lon: lon,
-          #deadline: deadline,
-        }),
+        Invocation.method(
+          #getCurrent,
+          [],
+          {
+            #lat: lat,
+            #lon: lon,
+            #deadline: deadline,
+          },
+        ),
         returnValue: _i4.Future<_i2.Either<_i5.ApiError, _i6.FireRisk>>.value(
-          _FakeEither_0<_i5.ApiError, _i6.FireRisk>(
-            this,
-            Invocation.method(#getCurrent, [], {
+            _FakeEither_0<_i5.ApiError, _i6.FireRisk>(
+          this,
+          Invocation.method(
+            #getCurrent,
+            [],
+            {
               #lat: lat,
               #lon: lon,
               #deadline: deadline,
-            }),
+            },
           ),
-        ),
+        )),
       ) as _i4.Future<_i2.Either<_i5.ApiError, _i6.FireRisk>>);
 }
 
@@ -75,26 +87,37 @@ class MockLocationResolver extends _i1.Mock implements _i7.LocationResolver {
   }
 
   @override
-  _i4.Future<_i2.Either<_i8.LocationError, _i8.LatLng>> getLatLon({
-    bool? allowDefault = true,
-  }) =>
+  _i4.Future<_i2.Either<_i8.LocationError, _i8.LatLng>> getLatLon(
+          {bool? allowDefault = true}) =>
       (super.noSuchMethod(
-        Invocation.method(#getLatLon, [], {#allowDefault: allowDefault}),
+        Invocation.method(
+          #getLatLon,
+          [],
+          {#allowDefault: allowDefault},
+        ),
         returnValue:
             _i4.Future<_i2.Either<_i8.LocationError, _i8.LatLng>>.value(
-          _FakeEither_0<_i8.LocationError, _i8.LatLng>(
-            this,
-            Invocation.method(#getLatLon, [], {
-              #allowDefault: allowDefault,
-            }),
+                _FakeEither_0<_i8.LocationError, _i8.LatLng>(
+          this,
+          Invocation.method(
+            #getLatLon,
+            [],
+            {#allowDefault: allowDefault},
           ),
-        ),
+        )),
       ) as _i4.Future<_i2.Either<_i8.LocationError, _i8.LatLng>>);
 
   @override
-  _i4.Future<void> saveManual(_i8.LatLng? location, {String? placeName}) =>
+  _i4.Future<void> saveManual(
+    _i8.LatLng? location, {
+    String? placeName,
+  }) =>
       (super.noSuchMethod(
-        Invocation.method(#saveManual, [location], {#placeName: placeName}),
+        Invocation.method(
+          #saveManual,
+          [location],
+          {#placeName: placeName},
+        ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
