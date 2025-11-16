@@ -343,6 +343,7 @@ class _MapScreenState extends State<MapScreen> {
         Semantics(
           label: 'Map showing ${state.incidents.length} fire incidents',
           child: GoogleMap(
+            key: const ValueKey('wildfire_map'),
             onMapCreated: _onMapCreated,
             initialCameraPosition: CameraPosition(
               target: LatLng(
