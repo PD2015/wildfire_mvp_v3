@@ -347,11 +347,8 @@ class _MapScreenState extends State<MapScreen> {
           child: GoogleMap(
             key: const ValueKey('wildfire_map'),
             onMapCreated: _onMapCreated,
-            initialCameraPosition: CameraPosition(
-              target: LatLng(
-                state.centerLocation.latitude,
-                state.centerLocation.longitude,
-              ),
+            initialCameraPosition: const CameraPosition(
+              target: LatLng(57.2, -3.8), // Scotland centroid - constant
               zoom: 8.0,
             ),
             markers: _markers,
