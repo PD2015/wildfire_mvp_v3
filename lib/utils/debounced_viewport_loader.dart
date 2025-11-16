@@ -126,9 +126,10 @@ class DebouncedViewportLoader {
     final latDelta = (baseLatDegrees * scale) / 2;
     final lonDelta = (baseLonDegrees * scale) / 2;
 
-    // Add 10% padding to ensure all visible markers are loaded
-    final paddedLatDelta = latDelta * 1.1;
-    final paddedLonDelta = lonDelta * 1.1;
+    // Add 25% padding to ensure all visible markers are loaded
+    // Increased from 10% to catch markers near viewport edges
+    final paddedLatDelta = latDelta * 1.25;
+    final paddedLonDelta = lonDelta * 1.25;
 
     return bounds.LatLngBounds(
       southwest: models.LatLng(
