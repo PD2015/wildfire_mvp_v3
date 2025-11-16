@@ -79,6 +79,11 @@ class DebouncedViewportLoader {
       return;
     }
 
+    // Cancel debounce timer to prevent double load
+    // (onCameraIdle fires before timer completes)
+    _debounceTimer?.cancel();
+    _debounceTimer = null;
+
     _isLoading = true;
 
     try {
