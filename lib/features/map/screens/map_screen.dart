@@ -63,6 +63,10 @@ class _MapScreenState extends State<MapScreen> {
 
   void _onControllerUpdate() {
     if (mounted) {
+      final state = _controller.state;
+      if (state is MapSuccess) {
+        _updateMarkers(state);
+      }
       setState(() {});
     }
   }
@@ -335,9 +339,6 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _buildMapView(MapSuccess state) {
-    // Update markers when data changes
-    _updateMarkers(state);
-
     return Stack(
       children: [
         Semantics(
