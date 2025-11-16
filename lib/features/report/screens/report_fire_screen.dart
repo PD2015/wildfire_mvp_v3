@@ -170,39 +170,39 @@ class _Banner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       label: 'Wildfire report instructions',
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: foreground, size: 28),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: foreground,
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyLarge?.copyWith(color: foreground),
-                  ),
-                ],
+      child: Card(
+        elevation: 2.0,
+        color: background,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: foreground, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: foreground,
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyLarge?.copyWith(color: foreground),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -218,80 +218,81 @@ class _TipsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header row with icon
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.lightbulb, color: cs.onSurfaceVariant),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Safety Tips',
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '• Use What3Words or GPS for your location\n'
-                      '• Never fight wildfires yourself\n'
-                      '• If smoke approaches, move uphill and upwind\n'
-                      '• Keep vehicle access clear for fire engines',
-                      style: textTheme.bodyMedium,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Expandable "More Safety Guidance" section
-          Theme(
-            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-            child: ExpansionTile(
-              tilePadding: EdgeInsets.zero,
-              childrenPadding: const EdgeInsets.only(
-                left: 16,
-                top: 8,
-                bottom: 4,
-              ),
-              title: Text(
-                'More Safety Guidance',
-                style: textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: cs.primary,
-                ),
-              ),
+    return Card(
+      elevation: 2.0,
+      color: cs.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header row with icon
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '• Move children, pets, and vulnerable people to safety\n'
-                  '• Keep a safe distance upwind of smoke\n'
-                  '• Note landmarks, terrain features (moorland, forestry, hillside)\n'
-                  '• Describe what\'s burning (gorse, heather, trees)\n'
-                  '• Mention if fire is spreading or threatening property/livestock\n'
-                  '• In immediate danger, call 999 without delay',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: cs.onSurfaceVariant.withValues(alpha: 0.8),
+                Icon(Icons.lightbulb, color: cs.onSurfaceVariant),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Safety Tips',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '• Use What3Words or GPS for your location\n'
+                        '• Never fight wildfires yourself\n'
+                        '• If smoke approaches, move uphill and upwind\n'
+                        '• Keep vehicle access clear for fire engines',
+                        style: textTheme.bodyMedium,
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+
+            const SizedBox(height: 12),
+
+            // Expandable "More Safety Guidance" section
+            Theme(
+              data:
+                  Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(
+                  left: 16,
+                  top: 8,
+                  bottom: 4,
+                ),
+                title: Text(
+                  'More Safety Guidance',
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: cs.primary,
+                  ),
+                ),
+                children: [
+                  Text(
+                    '• Move children, pets, and vulnerable people to safety\n'
+                    '• Keep a safe distance upwind of smoke\n'
+                    '• Note landmarks, terrain features (moorland, forestry, hillside)\n'
+                    '• Describe what\'s burning (gorse, heather, trees)\n'
+                    '• Mention if fire is spreading or threatening property/livestock\n'
+                    '• In immediate danger, call 999 without delay',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: cs.onSurfaceVariant.withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

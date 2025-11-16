@@ -194,6 +194,7 @@ class _MapScreenState extends State<MapScreen> {
               if (state is MapSuccess) ...[
                 Card(
                   margin: const EdgeInsets.all(16),
+                  elevation: 2,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
