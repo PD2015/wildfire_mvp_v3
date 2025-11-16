@@ -184,7 +184,8 @@ class GeohashUtils {
       throw ArgumentError('Invalid geohash: $geohash');
     }
     if (!_neighbors.containsKey(direction)) {
-      throw ArgumentError('Invalid direction: $direction (use right/left/top/bottom)');
+      throw ArgumentError(
+          'Invalid direction: $direction (use right/left/top/bottom)');
     }
 
     final lastChar = geohash[geohash.length - 1];

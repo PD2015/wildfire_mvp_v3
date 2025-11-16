@@ -116,7 +116,8 @@ class MapController extends ChangeNotifier {
           _state = MapSuccess(
             incidents: incidents,
             centerLocation: centerLocation,
-            freshness: incidents.isEmpty ? Freshness.live : incidents.first.freshness,
+            freshness:
+                incidents.isEmpty ? Freshness.live : incidents.first.freshness,
             lastUpdated: DateTime.now(),
           );
         },
@@ -158,7 +159,8 @@ class MapController extends ChangeNotifier {
           _state = MapSuccess(
             incidents: incidents,
             centerLocation: visibleBounds.center,
-            freshness: incidents.isEmpty ? Freshness.live : incidents.first.freshness,
+            freshness:
+                incidents.isEmpty ? Freshness.live : incidents.first.freshness,
             lastUpdated: DateTime.now(),
           );
         },
@@ -168,8 +170,10 @@ class MapController extends ChangeNotifier {
     } catch (e) {
       _state = MapError(
         message: 'Refresh failed: $e',
-        cachedIncidents: previousState is MapSuccess ? previousState.incidents : null,
-        lastKnownLocation: previousState is MapSuccess ? previousState.centerLocation : null,
+        cachedIncidents:
+            previousState is MapSuccess ? previousState.incidents : null,
+        lastKnownLocation:
+            previousState is MapSuccess ? previousState.centerLocation : null,
       );
       notifyListeners();
     }
@@ -195,7 +199,7 @@ class MapController extends ChangeNotifier {
   /// Show fire incident details in bottom sheet
   Future<void> showFireDetails(String fireIncidentId) async {
     debugPrint('🗒️ MapController: Showing fire details for $fireIncidentId');
-    
+
     _bottomSheetState = BottomSheetLoading(
       fireIncidentId: fireIncidentId,
       loadingMessage: 'Loading fire details...',
@@ -221,16 +225,19 @@ class MapController extends ChangeNotifier {
       // Get user location for distance calculation
       LatLng? userLocation;
       String? distanceAndDirection;
-      
+
       try {
         final locationResult = await _locationResolver.getLatLon();
         locationResult.fold(
           (error) {
-            debugPrint('🗒️ MapController: Could not get user location for distance: $error');
+            debugPrint(
+                '🗒️ MapController: Could not get user location for distance: $error');
           },
           (location) {
             userLocation = location;
-            distanceAndDirection = DistanceCalculator.formatDistanceAndDirection(location, fireIncident.location);
+            distanceAndDirection =
+                DistanceCalculator.formatDistanceAndDirection(
+                    location, fireIncident.location);
           },
         );
       } catch (e) {
@@ -243,7 +250,6 @@ class MapController extends ChangeNotifier {
         distanceAndDirection: distanceAndDirection,
       );
       notifyListeners();
-
     } catch (e) {
       debugPrint('🗒️ MapController: Error showing fire details: $e');
       _bottomSheetState = BottomSheetError(

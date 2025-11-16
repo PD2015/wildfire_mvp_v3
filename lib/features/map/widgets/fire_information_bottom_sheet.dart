@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:wildfire_mvp_v3/models/bottom_sheet_state.dart';
 
 /// Fire information bottom sheet widget
-/// 
+///
 /// Displays detailed fire incident information when user taps a map marker.
 /// Supports loading, error, and data states with comprehensive fire details.
-/// 
+///
 /// Constitutional compliance:
 /// - C3: Accessibility with semantic labels and ≥44dp touch targets
 /// - C4: Uses Material Design with clear data presentation
@@ -102,16 +102,16 @@ class FireInformationBottomSheet extends StatelessWidget {
     switch (state) {
       case BottomSheetHidden():
         return const SizedBox.shrink();
-      
+
       case BottomSheetLoading():
         return _buildLoadingContent(context, state as BottomSheetLoading);
-      
+
       case BottomSheetLoaded():
         return _buildLoadedContent(context, state as BottomSheetLoaded);
-      
+
       case BottomSheetError():
         return _buildErrorContent(context, state as BottomSheetError);
-      
+
       default:
         return const SizedBox.shrink();
     }
@@ -149,7 +149,7 @@ class FireInformationBottomSheet extends StatelessWidget {
           value: state.fireIncident.id,
         ),
         const SizedBox(height: 12),
-        
+
         // Detection time
         _buildInfoRow(
           context,
@@ -158,7 +158,7 @@ class FireInformationBottomSheet extends StatelessWidget {
           value: _formatDateTime(state.fireIncident.detectedAt),
         ),
         const SizedBox(height: 12),
-        
+
         // Data source
         _buildInfoRow(
           context,
@@ -167,7 +167,7 @@ class FireInformationBottomSheet extends StatelessWidget {
           value: state.fireIncident.source.name.toUpperCase(),
         ),
         const SizedBox(height: 12),
-        
+
         // Confidence
         if (state.fireIncident.confidence != null) ...[
           _buildInfoRow(
@@ -178,7 +178,7 @@ class FireInformationBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 12),
         ],
-        
+
         // Fire Radiative Power (FRP)
         if (state.fireIncident.frp != null) ...[
           _buildInfoRow(
@@ -189,18 +189,19 @@ class FireInformationBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 12),
         ],
-        
+
         // Area affected
         if (state.fireIncident.areaHectares != null) ...[
           _buildInfoRow(
             context,
             icon: Icons.straighten,
             label: 'Area Affected',
-            value: '${state.fireIncident.areaHectares!.toStringAsFixed(1)} hectares',
+            value:
+                '${state.fireIncident.areaHectares!.toStringAsFixed(1)} hectares',
           ),
           const SizedBox(height: 12),
         ],
-        
+
         // Intensity/Risk Level
         _buildInfoRow(
           context,
@@ -209,7 +210,7 @@ class FireInformationBottomSheet extends StatelessWidget {
           value: state.riskLevel,
         ),
         const SizedBox(height: 12),
-        
+
         // Distance and direction (if available)
         if (state.hasLocationInfo) ...[
           _buildInfoRow(
@@ -220,7 +221,7 @@ class FireInformationBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 12),
         ],
-        
+
         // Sensor source
         _buildInfoRow(
           context,
@@ -229,23 +230,27 @@ class FireInformationBottomSheet extends StatelessWidget {
           value: state.fireIncident.sensorSource,
         ),
         const SizedBox(height: 12),
-        
+
         // Location coordinates
         _buildInfoRow(
           context,
           icon: Icons.location_on,
           label: 'Coordinates',
-          value: '${state.fireIncident.location.latitude.toStringAsFixed(4)}, ${state.fireIncident.location.longitude.toStringAsFixed(4)}',
+          value:
+              '${state.fireIncident.location.latitude.toStringAsFixed(4)}, ${state.fireIncident.location.longitude.toStringAsFixed(4)}',
         ),
-        
+
         const SizedBox(height: 24),
-        
+
         // Last updated info
         if (state.fireIncident.lastUpdate != null) ...[
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              color: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest
+                  .withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -355,6 +360,6 @@ class FireInformationBottomSheet extends StatelessWidget {
   String _formatDateTime(DateTime dateTime) {
     final utcTime = dateTime.toUtc();
     return '${utcTime.year}-${utcTime.month.toString().padLeft(2, '0')}-${utcTime.day.toString().padLeft(2, '0')} '
-           '${utcTime.hour.toString().padLeft(2, '0')}:${utcTime.minute.toString().padLeft(2, '0')} UTC';
+        '${utcTime.hour.toString().padLeft(2, '0')}:${utcTime.minute.toString().padLeft(2, '0')} UTC';
   }
 }

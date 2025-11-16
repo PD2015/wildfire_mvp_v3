@@ -46,19 +46,25 @@ class TimeFilterChip extends StatelessWidget {
                   checkmarkColor: RiskPalette.blueAccent,
                   backgroundColor: RiskPalette.lightGray.withValues(alpha: 0.3),
                   labelStyle: TextStyle(
-                    color: isSelected ? RiskPalette.blueAccent : RiskPalette.darkGray,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected
+                        ? RiskPalette.blueAccent
+                        : RiskPalette.darkGray,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                     side: BorderSide(
-                      color: isSelected ? RiskPalette.blueAccent : RiskPalette.midGray,
+                      color: isSelected
+                          ? RiskPalette.blueAccent
+                          : RiskPalette.midGray,
                       width: isSelected ? 2.0 : 1.0,
                     ),
                   ),
                   materialTapTargetSize: MaterialTapTargetSize.padded,
                   visualDensity: VisualDensity.comfortable,
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0, vertical: 8.0),
                 ),
               ),
             );

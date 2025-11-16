@@ -33,7 +33,7 @@ void main() {
       final now = DateTime.now().toUtc();
       final detected = now.subtract(const Duration(hours: 2));
       final updated = now.subtract(const Duration(hours: 1));
-      
+
       final incident = FireIncident(
         id: 'test-002',
         location: const LatLng(55.9533, -3.1883),
@@ -225,7 +225,7 @@ void main() {
 
     test('accepts confidence at boundary values 0 and 100', () {
       final now = DateTime.now().toUtc();
-      
+
       final zeroConfidence = FireIncident(
         id: 'test-012',
         location: const LatLng(55.9533, -3.1883),
@@ -290,7 +290,7 @@ void main() {
       final now = DateTime.now().toUtc();
       final detected = now.subtract(const Duration(hours: 2));
       final updated = detected.subtract(const Duration(hours: 1));
-      
+
       expect(
         () => FireIncident(
           id: 'test-016',
@@ -325,7 +325,7 @@ void main() {
 
     test('accepts all valid intensity values', () {
       final now = DateTime.now().toUtc();
-      
+
       for (final intensity in ['low', 'moderate', 'high']) {
         final incident = FireIncident(
           id: 'test-intensity-$intensity',
@@ -361,7 +361,7 @@ void main() {
       final customTimestamp = DateTime(2024, 1, 15, 10, 30).toUtc();
       final customDetected = DateTime(2024, 1, 15, 8, 0).toUtc();
       final customUpdated = DateTime(2024, 1, 15, 10, 0).toUtc();
-      
+
       final incident = FireIncident.test(
         id: 'test-019',
         location: const LatLng(56.0, -4.0),
@@ -400,10 +400,22 @@ void main() {
       );
       final after = DateTime.now().toUtc();
 
-      expect(incident.timestamp.isAfter(before) || incident.timestamp.isAtSameMomentAs(before), true);
-      expect(incident.timestamp.isBefore(after) || incident.timestamp.isAtSameMomentAs(after), true);
-      expect(incident.detectedAt.isAfter(before) || incident.detectedAt.isAtSameMomentAs(before), true);
-      expect(incident.detectedAt.isBefore(after) || incident.detectedAt.isAtSameMomentAs(after), true);
+      expect(
+          incident.timestamp.isAfter(before) ||
+              incident.timestamp.isAtSameMomentAs(before),
+          true);
+      expect(
+          incident.timestamp.isBefore(after) ||
+              incident.timestamp.isAtSameMomentAs(after),
+          true);
+      expect(
+          incident.detectedAt.isAfter(before) ||
+              incident.detectedAt.isAtSameMomentAs(before),
+          true);
+      expect(
+          incident.detectedAt.isBefore(after) ||
+              incident.detectedAt.isAtSameMomentAs(after),
+          true);
     });
   });
 
@@ -412,7 +424,7 @@ void main() {
       final now = DateTime.now().toUtc();
       final detected = now.subtract(const Duration(hours: 2));
       final updated = now.subtract(const Duration(hours: 1));
-      
+
       final incident = FireIncident(
         id: 'test-021',
         location: const LatLng(55.9533, -3.1883),
@@ -498,13 +510,15 @@ void main() {
       expect(incident.freshness, Freshness.cached);
       expect(incident.timestamp, DateTime.parse('2024-01-15T10:30:00.000Z'));
       expect(incident.intensity, 'moderate');
-      expect(incident.detectedAt, DateTime.parse('2024-01-15T08:00:00.000Z').toUtc());
+      expect(incident.detectedAt,
+          DateTime.parse('2024-01-15T08:00:00.000Z').toUtc());
       expect(incident.sensorSource, 'MODIS');
       expect(incident.description, 'Cache test');
       expect(incident.areaHectares, 50.0);
       expect(incident.confidence, 75.0);
       expect(incident.frp, 100.0);
-      expect(incident.lastUpdate, DateTime.parse('2024-01-15T10:00:00.000Z').toUtc());
+      expect(incident.lastUpdate,
+          DateTime.parse('2024-01-15T10:00:00.000Z').toUtc());
     });
 
     test('fromCacheJson handles null optional fields', () {
@@ -602,16 +616,20 @@ void main() {
       expect(incident.intensity, 'moderate'); // Calculated from area_ha
       expect(incident.areaHectares, 25.5);
       expect(incident.description, 'Scotland fire');
-      expect(incident.detectedAt, DateTime.parse('2024-01-15T08:00:00.000Z').toUtc());
+      expect(incident.detectedAt,
+          DateTime.parse('2024-01-15T08:00:00.000Z').toUtc());
       expect(incident.sensorSource, 'MODIS');
       expect(incident.confidence, 88.0);
       expect(incident.frp, 175.0);
-      expect(incident.lastUpdate, DateTime.parse('2024-01-15T10:00:00.000Z').toUtc());
+      expect(incident.lastUpdate,
+          DateTime.parse('2024-01-15T10:00:00.000Z').toUtc());
     });
 
     test('calculates intensity from area_ha: low', () {
       final json = {
-        'geometry': {'coordinates': [-3.1883, 55.9533]},
+        'geometry': {
+          'coordinates': [-3.1883, 55.9533]
+        },
         'properties': {
           'fid': 'test-026',
           'area_ha': 5.0, // Low < 10
@@ -626,7 +644,9 @@ void main() {
 
     test('calculates intensity from area_ha: moderate', () {
       final json = {
-        'geometry': {'coordinates': [-3.1883, 55.9533]},
+        'geometry': {
+          'coordinates': [-3.1883, 55.9533]
+        },
         'properties': {
           'fid': 'test-027',
           'area_ha': 20.0, // Moderate 10-30
@@ -641,7 +661,9 @@ void main() {
 
     test('calculates intensity from area_ha: high', () {
       final json = {
-        'geometry': {'coordinates': [-3.1883, 55.9533]},
+        'geometry': {
+          'coordinates': [-3.1883, 55.9533]
+        },
         'properties': {
           'fid': 'test-028',
           'area_ha': 50.0, // High >= 30
@@ -656,7 +678,9 @@ void main() {
 
     test('uses explicit intensity from mock data', () {
       final json = {
-        'geometry': {'coordinates': [-3.1883, 55.9533]},
+        'geometry': {
+          'coordinates': [-3.1883, 55.9533]
+        },
         'properties': {
           'fid': 'test-029',
           'intensity': 'high', // Explicit intensity
@@ -671,7 +695,9 @@ void main() {
 
     test('defaults to moderate intensity when no area data', () {
       final json = {
-        'geometry': {'coordinates': [-3.1883, 55.9533]},
+        'geometry': {
+          'coordinates': [-3.1883, 55.9533]
+        },
         'properties': {
           'fid': 'test-030',
           'detected_at': '2024-01-15T10:00:00.000Z',
@@ -685,7 +711,9 @@ void main() {
 
     test('falls back to fid for id', () {
       final json = {
-        'geometry': {'coordinates': [-3.1883, 55.9533]},
+        'geometry': {
+          'coordinates': [-3.1883, 55.9533]
+        },
         'properties': {
           'fid': 'fallback-id',
           'detected_at': '2024-01-15T10:00:00.000Z',
@@ -698,7 +726,9 @@ void main() {
 
     test('uses MODIS as default sensor', () {
       final json = {
-        'geometry': {'coordinates': [-3.1883, 55.9533]},
+        'geometry': {
+          'coordinates': [-3.1883, 55.9533]
+        },
         'properties': {
           'fid': 'test-031',
           'detected_at': '2024-01-15T10:00:00.000Z',
@@ -711,7 +741,9 @@ void main() {
 
     test('supports sensor_source field', () {
       final json = {
-        'geometry': {'coordinates': [-3.1883, 55.9533]},
+        'geometry': {
+          'coordinates': [-3.1883, 55.9533]
+        },
         'properties': {
           'fid': 'test-032',
           'sensor_source': 'VIIRS',
@@ -725,10 +757,12 @@ void main() {
 
     test('supports multiple timestamp field names', () {
       final timestampFields = ['timestamp', 'lastupdate', 'firedate'];
-      
+
       for (final field in timestampFields) {
         final json = {
-          'geometry': {'coordinates': [-3.1883, 55.9533]},
+          'geometry': {
+            'coordinates': [-3.1883, 55.9533]
+          },
           'properties': {
             'fid': 'test-timestamp-$field',
             field: '2024-01-15T10:00:00.000Z',
@@ -743,10 +777,12 @@ void main() {
 
     test('supports multiple detected_at field names', () {
       final detectedFields = ['detected_at', 'timestamp', 'firedate'];
-      
+
       for (final field in detectedFields) {
         final json = {
-          'geometry': {'coordinates': [-3.1883, 55.9533]},
+          'geometry': {
+            'coordinates': [-3.1883, 55.9533]
+          },
           'properties': {
             'fid': 'test-detected-$field',
             field: '2024-01-15T08:00:00.000Z',
@@ -754,13 +790,16 @@ void main() {
         };
 
         final incident = FireIncident.fromJson(json);
-        expect(incident.detectedAt, DateTime.parse('2024-01-15T08:00:00.000Z').toUtc());
+        expect(incident.detectedAt,
+            DateTime.parse('2024-01-15T08:00:00.000Z').toUtc());
       }
     });
 
     test('supports both area_ha and areaHectares', () {
       final json1 = {
-        'geometry': {'coordinates': [-3.1883, 55.9533]},
+        'geometry': {
+          'coordinates': [-3.1883, 55.9533]
+        },
         'properties': {
           'fid': 'test-033',
           'area_ha': 30.0,
@@ -772,7 +811,9 @@ void main() {
       expect(incident1.areaHectares, 30.0);
 
       final json2 = {
-        'geometry': {'coordinates': [-3.1883, 55.9533]},
+        'geometry': {
+          'coordinates': [-3.1883, 55.9533]
+        },
         'properties': {
           'fid': 'test-034',
           'areaHectares': 40.0,
@@ -786,7 +827,9 @@ void main() {
 
     test('uses country as description fallback', () {
       final json = {
-        'geometry': {'coordinates': [-3.1883, 55.9533]},
+        'geometry': {
+          'coordinates': [-3.1883, 55.9533]
+        },
         'properties': {
           'fid': 'test-035',
           'country': 'United Kingdom',
@@ -878,7 +921,8 @@ void main() {
     });
 
     test('updates detectedAt', () {
-      final newDetected = DateTime.now().toUtc().subtract(const Duration(hours: 3));
+      final newDetected =
+          DateTime.now().toUtc().subtract(const Duration(hours: 3));
       final copy = original.copyWith(detectedAt: newDetected);
       expect(copy.detectedAt, newDetected);
       expect(copy.timestamp, original.timestamp);

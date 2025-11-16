@@ -7,7 +7,7 @@ import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 
 /// Base state for fire information bottom sheet
-/// 
+///
 /// Represents all possible states of the bottom sheet:
 /// - Hidden: Sheet is not displayed
 /// - Loading: Fetching fire incident details
@@ -18,13 +18,13 @@ abstract class BottomSheetState extends Equatable {
 
   /// Check if bottom sheet should be visible
   bool get isVisible => this is! BottomSheetHidden;
-  
+
   /// Check if bottom sheet is in loading state
   bool get isLoading => this is BottomSheetLoading;
-  
+
   /// Check if bottom sheet has data to display
   bool get hasData => this is BottomSheetLoaded;
-  
+
   /// Check if bottom sheet is in error state
   bool get hasError => this is BottomSheetError;
 
@@ -60,7 +60,7 @@ class BottomSheetHidden extends BottomSheetState {
 class BottomSheetLoading extends BottomSheetState {
   /// Fire incident ID being loaded
   final String fireIncidentId;
-  
+
   /// Optional message to display during loading
   final String? loadingMessage;
 
@@ -73,7 +73,8 @@ class BottomSheetLoading extends BottomSheetState {
   List<Object?> get props => [fireIncidentId, loadingMessage];
 
   @override
-  String toString() => 'BottomSheetLoading(id: $fireIncidentId, message: $loadingMessage)';
+  String toString() =>
+      'BottomSheetLoading(id: $fireIncidentId, message: $loadingMessage)';
 }
 
 /// Bottom sheet loaded with fire incident data
@@ -81,13 +82,13 @@ class BottomSheetLoaded extends BottomSheetState {
   /// Fire incident to display in bottom sheet
   @override
   final FireIncident fireIncident;
-  
+
   /// User's current location for distance calculations
   final LatLng? userLocation;
-  
+
   /// Formatted distance and direction string (e.g., "3.2 km NE")
   final String? distanceAndDirection;
-  
+
   /// Timestamp when data was loaded
   final DateTime loadedAt;
 
@@ -113,7 +114,8 @@ class BottomSheetLoaded extends BottomSheetState {
   }
 
   /// Check if location-based features are available
-  bool get hasLocationInfo => userLocation != null && distanceAndDirection != null;
+  bool get hasLocationInfo =>
+      userLocation != null && distanceAndDirection != null;
 
   /// Get fire risk level for display styling
   String get riskLevel {
@@ -162,13 +164,14 @@ class BottomSheetLoaded extends BottomSheetState {
   }
 
   @override
-  List<Object?> get props => [fireIncident, userLocation, distanceAndDirection, loadedAt];
+  List<Object?> get props =>
+      [fireIncident, userLocation, distanceAndDirection, loadedAt];
 
   @override
   String toString() {
     return 'BottomSheetLoaded(id: ${fireIncident.id}, '
-           'location: ${hasLocationInfo ? distanceAndDirection : 'no location'}, '
-           'risk: $riskLevel)';
+        'location: ${hasLocationInfo ? distanceAndDirection : 'no location'}, '
+        'risk: $riskLevel)';
   }
 }
 
@@ -176,16 +179,16 @@ class BottomSheetLoaded extends BottomSheetState {
 class BottomSheetError extends BottomSheetState {
   /// Error message to display to user
   final String message;
-  
+
   /// Fire incident ID that failed to load
   final String? fireIncidentId;
-  
+
   /// Whether retry is possible
   final bool canRetry;
-  
+
   /// Optional underlying error for debugging
   final Object? error;
-  
+
   /// Timestamp when error occurred
   final DateTime occurredAt;
 
@@ -246,12 +249,13 @@ class BottomSheetError extends BottomSheetState {
   }
 
   @override
-  List<Object?> get props => [message, fireIncidentId, canRetry, error, occurredAt];
+  List<Object?> get props =>
+      [message, fireIncidentId, canRetry, error, occurredAt];
 
   @override
   String toString() {
     return 'BottomSheetError(message: $message, '
-           'id: $fireIncidentId, canRetry: $canRetry)';
+        'id: $fireIncidentId, canRetry: $canRetry)';
   }
 }
 

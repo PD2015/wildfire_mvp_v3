@@ -9,7 +9,8 @@ import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 
 void main() {
-  debugPrint('🧪 Testing ActiveFiresResponse model with viewport bounds and metadata...\n');
+  debugPrint(
+      '🧪 Testing ActiveFiresResponse model with viewport bounds and metadata...\n');
 
   // Test data setup
   final bounds = gmaps.LatLngBounds(
@@ -26,7 +27,7 @@ void main() {
       frp: 1200.0,
     ),
     FireIncident.test(
-      id: 'fire_002', 
+      id: 'fire_002',
       location: const LatLng(55.8, -3.2), // Within bounds
       confidence: 80.0,
       frp: 500.0,
@@ -51,7 +52,8 @@ void main() {
   );
 
   debugPrint('✅ Created response:');
-  debugPrint('   Incidents: ${response.incidents.length}/${response.totalCount}');
+  debugPrint(
+      '   Incidents: ${response.incidents.length}/${response.totalCount}');
   debugPrint('   Response time: ${response.responseTimeMs}ms');
   debugPrint('   Data source: ${response.dataSource}');
   debugPrint('   Has incidents: ${response.hasIncidents}');
@@ -79,20 +81,26 @@ void main() {
 
   final deserialized = ActiveFiresResponse.fromCacheJson(json);
   debugPrint('✅ Deserialized from JSON:');
-  debugPrint('   Same incident count: ${deserialized.incidents.length == response.incidents.length}');
-  debugPrint('   Same bounds: ${deserialized.queriedBounds.toString() == response.queriedBounds.toString()}');
-  debugPrint('   Same response time: ${deserialized.responseTimeMs == response.responseTimeMs}');
-  debugPrint('   Same data source: ${deserialized.dataSource == response.dataSource}');
+  debugPrint(
+      '   Same incident count: ${deserialized.incidents.length == response.incidents.length}');
+  debugPrint(
+      '   Same bounds: ${deserialized.queriedBounds.toString() == response.queriedBounds.toString()}');
+  debugPrint(
+      '   Same response time: ${deserialized.responseTimeMs == response.responseTimeMs}');
+  debugPrint(
+      '   Same data source: ${deserialized.dataSource == response.dataSource}');
 
   // Test 4: Filtering by confidence
   debugPrint('\n🎯 Test 4: Testing confidence filtering...');
   final highConfidenceResponse = response.filterByConfidence(90.0);
   debugPrint('✅ Filtered by confidence >= 90%:');
   debugPrint('   Original incidents: ${response.incidents.length}');
-  debugPrint('   High confidence incidents: ${highConfidenceResponse.incidents.length}');
-  
+  debugPrint(
+      '   High confidence incidents: ${highConfidenceResponse.incidents.length}');
+
   if (highConfidenceResponse.hasIncidents) {
-    debugPrint('   Top confidence: ${highConfidenceResponse.incidents.first.confidence}%');
+    debugPrint(
+        '   Top confidence: ${highConfidenceResponse.incidents.first.confidence}%');
   }
 
   // Test 5: Filtering by FRP
@@ -106,11 +114,11 @@ void main() {
   debugPrint('\n📊 Test 6: Testing sorting methods...');
   final byDetection = response.incidentsByDetectionTime;
   final byConfidence = response.incidentsByConfidence;
-  
+
   debugPrint('✅ Sorting tests:');
   debugPrint('   By detection time: ${byDetection.length} incidents');
   debugPrint('   By confidence: ${byConfidence.length} incidents');
-  
+
   if (byConfidence.isNotEmpty && byConfidence.first.confidence != null) {
     debugPrint('   Highest confidence: ${byConfidence.first.confidence}%');
   }
@@ -121,12 +129,14 @@ void main() {
     responseTimeMs: 150,
     dataSource: DataSource.mock,
   );
-  
+
   debugPrint('✅ Updated via copyWith:');
   debugPrint('   New response time: ${updatedResponse.responseTimeMs}ms');
   debugPrint('   New data source: ${updatedResponse.dataSource}');
-  debugPrint('   Same incidents: ${updatedResponse.incidents.length == response.incidents.length}');
-  debugPrint('   Same bounds: ${updatedResponse.queriedBounds.toString() == response.queriedBounds.toString()}');
+  debugPrint(
+      '   Same incidents: ${updatedResponse.incidents.length == response.incidents.length}');
+  debugPrint(
+      '   Same bounds: ${updatedResponse.queriedBounds.toString() == response.queriedBounds.toString()}');
 
   // Test 8: Bounds validation
   debugPrint('\n🗺️  Test 8: Testing bounds validation...');
@@ -134,11 +144,11 @@ void main() {
     id: 'invalid',
     location: const LatLng(60.0, 10.0), // Far outside bounds
   );
-  
+
   final invalidResponse = response.copyWith(
     incidents: [...response.incidents, invalidIncident],
   );
-  
+
   debugPrint('✅ Bounds validation:');
   debugPrint('   Valid response: ${response.isValid}');
   debugPrint('   Invalid response: ${invalidResponse.isValid}');

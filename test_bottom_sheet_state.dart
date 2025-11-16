@@ -61,7 +61,7 @@ void main() {
   debugPrint('   Visible: ${state.isVisible}');
   debugPrint('   Has data: ${state.hasData}');
   debugPrint('   Fire incident: ${state.fireIncident?.id}');
-  
+
   final loadedState = state as BottomSheetLoaded;
   debugPrint('   Location info: ${loadedState.hasLocationInfo}');
   debugPrint('   Risk level: ${loadedState.riskLevel}');
@@ -134,19 +134,21 @@ void main() {
     fireIncidentId: 'fire_002',
     loadingMessage: 'Fetching details...',
   );
-  debugPrint('✅ Loading marker: ${markerCollection.getMarkerState('fire_002')}');
+  debugPrint(
+      '✅ Loading marker: ${markerCollection.getMarkerState('fire_002')}');
   debugPrint('   Loading markers: ${markerCollection.loadingMarkerIds}');
 
   // Reset to normal
   markerCollection = markerCollection.setNormal('fire_002');
-  debugPrint('\n✅ Reset marker: ${markerCollection.getMarkerState('fire_002')}');
+  debugPrint(
+      '\n✅ Reset marker: ${markerCollection.getMarkerState('fire_002')}');
 
   // Test 5: Complex State Interactions
   debugPrint('\n🔄 Test 5: Complex State Interactions...');
 
   // Simulate full user interaction flow
   debugPrint('🎬 Simulating user interaction flow:');
-  
+
   // 1. User hovers over marker
   markerCollection = markerCollection.hoverMarker(
     fireIncidentId: 'fire_002',
@@ -212,8 +214,10 @@ void main() {
   debugPrint('\n🎉 All state management tests completed!');
   debugPrint('📋 Task 6: "Create bottom sheet state management" - COMPLETE ✅');
   debugPrint('\n💡 Key Features Verified:');
-  debugPrint('   ✅ Bottom sheet state transitions (hidden → loading → loaded → error)');
-  debugPrint('   ✅ Fire marker state management (normal → hovered → selected → loading)');
+  debugPrint(
+      '   ✅ Bottom sheet state transitions (hidden → loading → loaded → error)');
+  debugPrint(
+      '   ✅ Fire marker state management (normal → hovered → selected → loading)');
   debugPrint('   ✅ Error state handling with retry capability');
   debugPrint('   ✅ State collection management for multiple markers');
   debugPrint('   ✅ User interaction flow simulation');

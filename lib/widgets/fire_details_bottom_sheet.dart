@@ -31,10 +31,10 @@ import 'package:wildfire_mvp_v3/services/active_fires_service.dart';
 class FireDetailsBottomSheet extends StatelessWidget {
   /// Fire incident to display
   final FireIncident incident;
-  
+
   /// User's current location for distance/bearing calculation
   final LatLng? userLocation;
-  
+
   /// Optional callback when close button is tapped
   final VoidCallback? onClose;
 
@@ -62,12 +62,12 @@ class FireDetailsBottomSheet extends StatelessWidget {
             children: [
               // Drag handle
               _buildDragHandle(),
-              
+
               // Header with title and close button
               _buildHeader(context),
-              
+
               const Divider(height: 1),
-              
+
               // Scrollable content
               Expanded(
                 child: SingleChildScrollView(
@@ -78,15 +78,15 @@ class FireDetailsBottomSheet extends StatelessWidget {
                     children: [
                       // Data source and demo chips
                       _buildChips(),
-                      
+
                       const SizedBox(height: 20),
-                      
+
                       // Distance and direction (if user location available)
                       if (userLocation != null) ...[
                         _buildDistanceCard(),
                         const SizedBox(height: 16),
                       ],
-                      
+
                       // Detection details
                       _buildSection(
                         title: 'Detection Details',
@@ -95,26 +95,29 @@ class FireDetailsBottomSheet extends StatelessWidget {
                             icon: Icons.access_time,
                             label: 'Detected',
                             value: _formatDateTime(incident.detectedAt),
-                            semanticLabel: 'Detected at ${_formatDateTime(incident.detectedAt)}',
+                            semanticLabel:
+                                'Detected at ${_formatDateTime(incident.detectedAt)}',
                           ),
                           _buildDetailRow(
                             icon: Icons.satellite_alt,
                             label: 'Sensor',
                             value: incident.sensorSource,
-                            semanticLabel: 'Sensor source: ${incident.sensorSource}',
+                            semanticLabel:
+                                'Sensor source: ${incident.sensorSource}',
                           ),
                           if (incident.lastUpdate != null)
                             _buildDetailRow(
                               icon: Icons.update,
                               label: 'Last Update',
                               value: _formatDateTime(incident.lastUpdate!),
-                              semanticLabel: 'Last updated at ${_formatDateTime(incident.lastUpdate!)}',
+                              semanticLabel:
+                                  'Last updated at ${_formatDateTime(incident.lastUpdate!)}',
                             ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // Fire intensity metrics
                       _buildSection(
                         title: 'Fire Intensity',
@@ -123,34 +126,40 @@ class FireDetailsBottomSheet extends StatelessWidget {
                             _buildDetailRow(
                               icon: Icons.verified,
                               label: 'Confidence',
-                              value: '${incident.confidence!.toStringAsFixed(1)}%',
-                              semanticLabel: 'Detection confidence: ${incident.confidence!.toStringAsFixed(1)} percent',
+                              value:
+                                  '${incident.confidence!.toStringAsFixed(1)}%',
+                              semanticLabel:
+                                  'Detection confidence: ${incident.confidence!.toStringAsFixed(1)} percent',
                             ),
                           if (incident.frp != null)
                             _buildDetailRow(
                               icon: Icons.local_fire_department,
                               label: 'Fire Radiative Power',
                               value: '${incident.frp!.toStringAsFixed(1)} MW',
-                              semanticLabel: 'Fire radiative power: ${incident.frp!.toStringAsFixed(1)} megawatts',
+                              semanticLabel:
+                                  'Fire radiative power: ${incident.frp!.toStringAsFixed(1)} megawatts',
                             ),
                           _buildDetailRow(
                             icon: Icons.trending_up,
                             label: 'Intensity Level',
                             value: _formatIntensity(incident.intensity),
-                            semanticLabel: 'Intensity level: ${_formatIntensity(incident.intensity)}',
+                            semanticLabel:
+                                'Intensity level: ${_formatIntensity(incident.intensity)}',
                           ),
                           if (incident.areaHectares != null)
                             _buildDetailRow(
                               icon: Icons.map,
                               label: 'Estimated Area',
-                              value: '${incident.areaHectares!.toStringAsFixed(1)} ha',
-                              semanticLabel: 'Estimated area: ${incident.areaHectares!.toStringAsFixed(1)} hectares',
+                              value:
+                                  '${incident.areaHectares!.toStringAsFixed(1)} ha',
+                              semanticLabel:
+                                  'Estimated area: ${incident.areaHectares!.toStringAsFixed(1)} hectares',
                             ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // Location details
                       _buildSection(
                         title: 'Location',
@@ -158,12 +167,14 @@ class FireDetailsBottomSheet extends StatelessWidget {
                           _buildDetailRow(
                             icon: Icons.location_on,
                             label: 'Coordinates',
-                            value: '${incident.location.latitude.toStringAsFixed(4)}, ${incident.location.longitude.toStringAsFixed(4)}',
-                            semanticLabel: 'Coordinates: ${incident.location.latitude.toStringAsFixed(4)} latitude, ${incident.location.longitude.toStringAsFixed(4)} longitude',
+                            value:
+                                '${incident.location.latitude.toStringAsFixed(4)}, ${incident.location.longitude.toStringAsFixed(4)}',
+                            semanticLabel:
+                                'Coordinates: ${incident.location.latitude.toStringAsFixed(4)} latitude, ${incident.location.longitude.toStringAsFixed(4)} longitude',
                           ),
                         ],
                       ),
-                      
+
                       if (incident.description != null) ...[
                         const SizedBox(height: 16),
                         _buildSection(
@@ -247,7 +258,7 @@ class FireDetailsBottomSheet extends StatelessWidget {
       runSpacing: 8,
       children: [
         DataSourceChip(sourceType: _mapToDataSourceType(incident.source)),
-        if (incident.source == DataSource.mock || 
+        if (incident.source == DataSource.mock ||
             incident.freshness == Freshness.mock)
           const DemoDataChip(),
       ],
@@ -269,12 +280,12 @@ class FireDetailsBottomSheet extends StatelessWidget {
 
   Widget _buildDistanceCard() {
     if (userLocation == null) return const SizedBox.shrink();
-    
+
     final distanceAndDirection = DistanceCalculator.formatDistanceAndDirection(
       userLocation!,
       incident.location,
     );
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -394,7 +405,20 @@ class FireDetailsBottomSheet extends StatelessWidget {
 
   String _formatDateTime(DateTime dateTime) {
     final local = dateTime.toLocal();
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     final month = months[local.month - 1];
     final day = local.day;
     final year = local.year;

@@ -9,19 +9,19 @@ import 'package:wildfire_mvp_v3/services/mock_active_fires_service.dart';
 import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 
 /// Factory for creating ActiveFiresService implementations
-/// 
+///
 /// Selects appropriate implementation based on MAP_LIVE_DATA environment flag:
 /// - MAP_LIVE_DATA=true: Live EFFIS API service
 /// - MAP_LIVE_DATA=false: Mock service for development/testing
 class ActiveFiresServiceFactory {
   /// Create appropriate ActiveFiresService based on environment configuration
-  /// 
+  ///
   /// [httpClient] - Optional HTTP client for live service (required if MAP_LIVE_DATA=true)
-  /// 
+  ///
   /// Returns:
   /// - MockActiveFiresService when MAP_LIVE_DATA=false (default)
   /// - ActiveFiresServiceImpl when MAP_LIVE_DATA=true
-  /// 
+  ///
   /// Example usage:
   /// ```dart
   /// final httpClient = http.Client();
@@ -47,7 +47,7 @@ class ActiveFiresServiceFactory {
 
   /// Create mock service explicitly (for testing)
   static ActiveFiresService createMock() => MockActiveFiresService();
-  
+
   /// Create live service explicitly (for testing)
   static ActiveFiresService createLive({required http.Client httpClient}) =>
       ActiveFiresServiceImpl(httpClient: httpClient);
@@ -56,6 +56,6 @@ class ActiveFiresServiceFactory {
   static bool get isLiveDataEnabled => FeatureFlags.mapLiveData;
 
   /// Get current service type description
-  static String get currentServiceType => 
+  static String get currentServiceType =>
       isLiveDataEnabled ? 'Live EFFIS Data' : 'Mock Test Data';
 }

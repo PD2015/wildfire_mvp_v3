@@ -100,8 +100,10 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 350));
 
       final bounds10 = capturedBounds.last;
-      final height10 = bounds10.northeast.latitude - bounds10.southwest.latitude;
-      final width10 = bounds10.northeast.longitude - bounds10.southwest.longitude;
+      final height10 =
+          bounds10.northeast.latitude - bounds10.southwest.latitude;
+      final width10 =
+          bounds10.northeast.longitude - bounds10.southwest.longitude;
 
       // Higher zoom should show smaller area
       expect(height10, lessThan(height0));

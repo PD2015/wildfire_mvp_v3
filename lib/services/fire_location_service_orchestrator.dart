@@ -70,20 +70,24 @@ class FireLocationServiceOrchestrator implements FireLocationService {
     LatLngBounds bounds,
   ) async {
     final gmapsBounds = gmaps.LatLngBounds(
-      southwest: gmaps.LatLng(bounds.southwest.latitude, bounds.southwest.longitude),
-      northeast: gmaps.LatLng(bounds.northeast.latitude, bounds.northeast.longitude),
+      southwest:
+          gmaps.LatLng(bounds.southwest.latitude, bounds.southwest.longitude),
+      northeast:
+          gmaps.LatLng(bounds.northeast.latitude, bounds.northeast.longitude),
     );
 
     // Privacy-compliant logging
     final center = bounds.center;
-    debugPrint('🔥 Orchestrator: Fetching fires for ${LocationUtils.logRedact(center.latitude, center.longitude)}');
+    debugPrint(
+        '🔥 Orchestrator: Fetching fires for ${LocationUtils.logRedact(center.latitude, center.longitude)}');
 
     // Tier 1: Try live service if available
     if (_liveService != null) {
       final liveResult = await _tryLiveService(gmapsBounds);
       if (liveResult != null) {
         _telemetry?.recordSuccess(source: TelemetrySource.live);
-        debugPrint('🔥 Orchestrator: Live service success (${liveResult.length} incidents)');
+        debugPrint(
+            '🔥 Orchestrator: Live service success (${liveResult.length} incidents)');
         return Right(liveResult);
       }
     }
@@ -93,7 +97,8 @@ class FireLocationServiceOrchestrator implements FireLocationService {
       final cacheResult = await _tryCache(gmapsBounds);
       if (cacheResult != null) {
         _telemetry?.recordSuccess(source: TelemetrySource.cache);
-        debugPrint('🔥 Orchestrator: Cache hit (${cacheResult.length} incidents)');
+        debugPrint(
+            '🔥 Orchestrator: Cache hit (${cacheResult.length} incidents)');
         return Right(cacheResult);
       }
     }
@@ -101,14 +106,15 @@ class FireLocationServiceOrchestrator implements FireLocationService {
     // Tier 3: Mock fallback (never fails)
     final mockResult = await _tryMockService(gmapsBounds);
     _telemetry?.recordSuccess(source: TelemetrySource.mock);
-    debugPrint('🔥 Orchestrator: Mock fallback (${mockResult.length} incidents)');
+    debugPrint(
+        '🔥 Orchestrator: Mock fallback (${mockResult.length} incidents)');
     return Right(mockResult);
   }
 
   /// Attempt live service with 8-second timeout
   Future<List<FireIncident>?> _tryLiveService(gmaps.LatLngBounds bounds) async {
     _telemetry?.recordAttempt(source: TelemetrySource.live);
-    
+
     try {
       final result = await _liveService!.getIncidentsForViewport(
         bounds: _toLatLngBounds(bounds),
@@ -146,7 +152,8 @@ class FireLocationServiceOrchestrator implements FireLocationService {
     _telemetry?.recordAttempt(source: TelemetrySource.cache);
 
     try {
-      final result = await _cache!.getIncidentsForViewport(bounds)
+      final result = await _cache!
+          .getIncidentsForViewport(bounds)
           .timeout(const Duration(milliseconds: 200));
 
       return result.fold(
@@ -156,7 +163,8 @@ class FireLocationServiceOrchestrator implements FireLocationService {
           return null;
         },
         (incidents) {
-          debugPrint('🔥 Orchestrator: Cache hit with ${incidents.length} incidents');
+          debugPrint(
+              '🔥 Orchestrator: Cache hit with ${incidents.length} incidents');
           return incidents;
         },
       );
@@ -184,14 +192,16 @@ class FireLocationServiceOrchestrator implements FireLocationService {
       return result.fold(
         (error) {
           // Mock should never fail, but handle gracefully
-          debugPrint('🔥 Orchestrator: Mock service unexpected error - ${error.message}');
+          debugPrint(
+              '🔥 Orchestrator: Mock service unexpected error - ${error.message}');
           return <FireIncident>[];
         },
         (response) => response.incidents,
       );
     } catch (e) {
       // Absolute fallback: empty list
-      debugPrint('🔥 Orchestrator: Mock service exception (returning empty) - $e');
+      debugPrint(
+          '🔥 Orchestrator: Mock service exception (returning empty) - $e');
       return <FireIncident>[];
     }
   }
@@ -213,7 +223,8 @@ class FireLocationServiceOrchestrator implements FireLocationService {
         data: incidents,
       );
 
-      debugPrint('🔥 Orchestrator: Cached ${incidents.length} incidents at ${LocationUtils.logRedact(center.lat, center.lon)}');
+      debugPrint(
+          '🔥 Orchestrator: Cached ${incidents.length} incidents at ${LocationUtils.logRedact(center.lat, center.lon)}');
     } catch (e) {
       // Cache write failures are non-critical
       debugPrint('🔥 Orchestrator: Cache write failed (non-critical) - $e');
@@ -241,7 +252,8 @@ abstract class OrchestratorTelemetry {
   void recordSuccess({required TelemetrySource source});
 
   /// Record failure retrieving data from source
-  void recordFailure({required TelemetrySource source, required ApiError error});
+  void recordFailure(
+      {required TelemetrySource source, required ApiError error});
 
   /// Record cache miss (not a failure, just no data)
   void recordMiss({required TelemetrySource source});
@@ -277,7 +289,8 @@ class SpyTelemetry implements OrchestratorTelemetry {
   }
 
   @override
-  void recordFailure({required TelemetrySource source, required ApiError error}) {
+  void recordFailure(
+      {required TelemetrySource source, required ApiError error}) {
     events.add(FailureEvent(source, error));
   }
 

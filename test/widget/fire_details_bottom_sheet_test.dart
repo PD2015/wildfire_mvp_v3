@@ -41,7 +41,8 @@ void main() {
       expect(find.byIcon(Icons.close), findsOneWidget);
     });
 
-    testWidgets('close button has minimum touch target (C3 compliance)', (tester) async {
+    testWidgets('close button has minimum touch target (C3 compliance)',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -88,7 +89,8 @@ void main() {
       expect(find.text('DEMO DATA'), findsOneWidget);
     });
 
-    testWidgets('displays distance card when user location provided', (tester) async {
+    testWidgets('displays distance card when user location provided',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -104,7 +106,8 @@ void main() {
       expect(find.byIcon(Icons.navigation), findsOneWidget);
     });
 
-    testWidgets('hides distance card when user location not provided', (tester) async {
+    testWidgets('hides distance card when user location not provided',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -188,7 +191,8 @@ void main() {
       );
 
       expect(find.text('Description'), findsOneWidget);
-      expect(find.text('Active wildfire detected in forest area'), findsOneWidget);
+      expect(
+          find.text('Active wildfire detected in forest area'), findsOneWidget);
     });
 
     testWidgets('hides optional fields when not available', (tester) async {
@@ -237,21 +241,22 @@ void main() {
       );
 
       // Find the drag handle container
-      final dragHandle = tester.widgetList<Container>(find.byType(Container)).firstWhere(
+      final dragHandle =
+          tester.widgetList<Container>(find.byType(Container)).firstWhere(
         (container) {
           final decoration = container.decoration as BoxDecoration?;
-          return decoration != null && 
-                 decoration.color == RiskPalette.midGray &&
-                 container.constraints?.maxWidth == 40;
+          return decoration != null &&
+              decoration.color == RiskPalette.midGray &&
+              container.constraints?.maxWidth == 40;
         },
       );
-      
+
       expect(dragHandle, isNotNull);
     });
 
     testWidgets('close button calls onClose callback', (tester) async {
       var closeCalled = false;
-      
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -269,7 +274,8 @@ void main() {
       expect(closeCalled, isTrue);
     });
 
-    testWidgets('has proper semantic labels for screen readers (C3 compliance)', (tester) async {
+    testWidgets('has proper semantic labels for screen readers (C3 compliance)',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -282,17 +288,23 @@ void main() {
       );
 
       // Check for semantic labels
-      final semanticsLabels = tester.widgetList<Semantics>(find.byType(Semantics))
-          .where((s) => s.properties.label != null && s.properties.label!.isNotEmpty)
+      final semanticsLabels = tester
+          .widgetList<Semantics>(find.byType(Semantics))
+          .where((s) =>
+              s.properties.label != null && s.properties.label!.isNotEmpty)
           .map((s) => s.properties.label)
           .toList();
 
-      expect(semanticsLabels, isNotEmpty, reason: 'Should have semantic labels for accessibility');
-      
+      expect(semanticsLabels, isNotEmpty,
+          reason: 'Should have semantic labels for accessibility');
+
       // Verify specific important labels
-      expect(semanticsLabels.any((label) => label!.contains('Fire incident')), isTrue);
+      expect(semanticsLabels.any((label) => label!.contains('Fire incident')),
+          isTrue);
       expect(semanticsLabels.any((label) => label!.contains('Close')), isTrue);
-      expect(semanticsLabels.any((label) => label!.contains('from your location')), isTrue);
+      expect(
+          semanticsLabels.any((label) => label!.contains('from your location')),
+          isTrue);
     });
 
     testWidgets('formats date and time correctly', (tester) async {
@@ -327,15 +339,17 @@ void main() {
       );
 
       final container = tester.widget<Container>(
-        find.descendant(
-          of: find.byType(DraggableScrollableSheet),
-          matching: find.byType(Container),
-        ).first,
+        find
+            .descendant(
+              of: find.byType(DraggableScrollableSheet),
+              matching: find.byType(Container),
+            )
+            .first,
       );
 
       final decoration = container.decoration as BoxDecoration;
       final borderRadius = decoration.borderRadius as BorderRadius;
-      
+
       expect(borderRadius.topLeft.x, equals(20));
       expect(borderRadius.topRight.x, equals(20));
     });

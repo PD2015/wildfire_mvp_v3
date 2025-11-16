@@ -9,25 +9,25 @@ import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 
 /// Response wrapper for fire incident queries with viewport bounds
-/// 
+///
 /// Designed for EFFIS API responses and viewport-based filtering.
 /// Includes metadata for caching and performance tracking.
 class ActiveFiresResponse extends Equatable {
   /// List of fire incidents within the queried bounds
   final List<FireIncident> incidents;
-  
+
   /// Geographic bounds that were queried for this response
   final gmaps.LatLngBounds queriedBounds;
-  
+
   /// API response time in milliseconds for performance monitoring
   final int responseTimeMs;
-  
+
   /// Data source for this response (EFFIS, mock, etc.)
   final DataSource dataSource;
-  
+
   /// Total number of incidents found (may exceed incidents.length due to filtering)
   final int totalCount;
-  
+
   /// Timestamp when this response was created
   final DateTime timestamp;
 
@@ -64,7 +64,7 @@ class ActiveFiresResponse extends Equatable {
     required DataSource dataSource,
   }) {
     final features = json['features'] as List? ?? [];
-    
+
     final incidents = features
         .cast<Map<String, dynamic>>()
         .map((feature) => FireIncident.fromJson(feature))
@@ -84,7 +84,8 @@ class ActiveFiresResponse extends Equatable {
   /// Factory for caching/deserialization from stored JSON
   factory ActiveFiresResponse.fromCacheJson(Map<String, dynamic> json) {
     final incidents = (json['incidents'] as List)
-        .map((incident) => FireIncident.fromCacheJson(incident as Map<String, dynamic>))
+        .map((incident) =>
+            FireIncident.fromCacheJson(incident as Map<String, dynamic>))
         .toList();
 
     final boundsJson = json['queriedBounds'] as Map<String, dynamic>;
@@ -161,7 +162,9 @@ class ActiveFiresResponse extends Equatable {
   /// Filter incidents by minimum confidence threshold
   ActiveFiresResponse filterByConfidence(double minConfidence) {
     final filtered = incidents
-        .where((incident) => incident.confidence != null && incident.confidence! >= minConfidence)
+        .where((incident) =>
+            incident.confidence != null &&
+            incident.confidence! >= minConfidence)
         .toList();
 
     return copyWith(
@@ -185,9 +188,9 @@ class ActiveFiresResponse extends Equatable {
   /// Validate that all incidents fall within the queried bounds
   bool get isValid {
     if (incidents.isEmpty) return true;
-    
-    return incidents.every((incident) => 
-      _isWithinBounds(incident.location, queriedBounds));
+
+    return incidents
+        .every((incident) => _isWithinBounds(incident.location, queriedBounds));
   }
 
   /// Get incidents sorted by detection time (most recent first)
@@ -199,9 +202,8 @@ class ActiveFiresResponse extends Equatable {
 
   /// Get incidents sorted by confidence (highest first)
   List<FireIncident> get incidentsByConfidence {
-    final withConfidence = incidents
-        .where((incident) => incident.confidence != null)
-        .toList();
+    final withConfidence =
+        incidents.where((incident) => incident.confidence != null).toList();
     withConfidence.sort((a, b) => b.confidence!.compareTo(a.confidence!));
     return withConfidence;
   }
@@ -209,11 +211,11 @@ class ActiveFiresResponse extends Equatable {
   /// Check if location is within bounds (with small tolerance for edge cases)
   static bool _isWithinBounds(LatLng location, gmaps.LatLngBounds bounds) {
     const tolerance = 0.0001; // ~11 meters tolerance
-    
+
     return location.latitude >= (bounds.southwest.latitude - tolerance) &&
-           location.latitude <= (bounds.northeast.latitude + tolerance) &&
-           location.longitude >= (bounds.southwest.longitude - tolerance) &&
-           location.longitude <= (bounds.northeast.longitude + tolerance);
+        location.latitude <= (bounds.northeast.latitude + tolerance) &&
+        location.longitude >= (bounds.southwest.longitude - tolerance) &&
+        location.longitude <= (bounds.northeast.longitude + tolerance);
   }
 
   @override
@@ -229,7 +231,7 @@ class ActiveFiresResponse extends Equatable {
   @override
   String toString() {
     return 'ActiveFiresResponse(incidents: ${incidents.length}/$totalCount, '
-           'bounds: ${queriedBounds.southwest} to ${queriedBounds.northeast}, '
-           'source: $dataSource, response: ${responseTimeMs}ms)';
+        'bounds: ${queriedBounds.southwest} to ${queriedBounds.northeast}, '
+        'source: $dataSource, response: ${responseTimeMs}ms)';
   }
 }

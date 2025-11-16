@@ -16,7 +16,7 @@ void main() {
 
       // Verify default label
       expect(find.text('DEMO DATA'), findsOneWidget);
-      
+
       // Verify warning icon
       expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
     });
@@ -33,7 +33,7 @@ void main() {
       // Verify custom label
       expect(find.text('TEST REGION'), findsOneWidget);
       expect(find.text('DEMO DATA'), findsNothing);
-      
+
       // Icon should still be present
       expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
     });
@@ -50,15 +50,15 @@ void main() {
       // Find the Container widget
       final container = tester.widget<Container>(find.byType(Container));
       final decoration = container.decoration as BoxDecoration;
-      
+
       // Verify high contrast colors
-      expect(decoration.color, equals(RiskPalette.extreme), 
+      expect(decoration.color, equals(RiskPalette.extreme),
           reason: 'Background should be red for high visibility');
       expect(decoration.border?.top.color, equals(RiskPalette.white),
           reason: 'White border provides high contrast against red');
       expect(decoration.border?.top.width, equals(2),
           reason: 'Bold border for visibility');
-      
+
       // Verify text color
       final text = tester.widget<Text>(find.text('DEMO DATA'));
       expect(text.style?.color, equals(RiskPalette.white),
@@ -76,13 +76,14 @@ void main() {
 
       // Find the Semantics widget with our specific label
       final semanticsFinder = find.byWidgetPredicate(
-        (widget) => widget is Semantics && 
-                    widget.properties.label != null &&
-                    widget.properties.label!.contains('Warning') &&
-                    widget.properties.label!.contains('DEMO DATA'),
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.label != null &&
+            widget.properties.label!.contains('Warning') &&
+            widget.properties.label!.contains('DEMO DATA'),
       );
       expect(semanticsFinder, findsOneWidget);
-      
+
       final semantics = tester.widget<Semantics>(semanticsFinder);
       expect(semantics.properties.label, contains('test data'),
           reason: 'Should explain what demo data means');
@@ -98,9 +99,10 @@ void main() {
       );
 
       final semanticsFinder = find.byWidgetPredicate(
-        (widget) => widget is Semantics && 
-                    widget.properties.label != null &&
-                    widget.properties.label!.contains('TEST REGION'),
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.label != null &&
+            widget.properties.label!.contains('TEST REGION'),
       );
       expect(semanticsFinder, findsOneWidget,
           reason: 'Custom label should be reflected in semantic label');
@@ -117,7 +119,7 @@ void main() {
 
       final container = tester.widget<Container>(find.byType(Container));
       final decoration = container.decoration as BoxDecoration;
-      
+
       expect(decoration.boxShadow, isNotNull,
           reason: 'Shadow helps chip stand out');
       expect(decoration.boxShadow!.length, greaterThan(0),
@@ -136,7 +138,7 @@ void main() {
       final container = tester.widget<Container>(find.byType(Container));
       final decoration = container.decoration as BoxDecoration;
       final borderRadius = decoration.borderRadius as BorderRadius;
-      
+
       expect(borderRadius.topLeft.x, equals(16),
           reason: 'Rounded corners improve visual appeal');
     });
@@ -154,15 +156,16 @@ void main() {
       final row = tester.widget<Row>(find.byType(Row));
       expect(row.mainAxisSize, equals(MainAxisSize.min),
           reason: 'Chip should only take up needed space');
-      
+
       // Verify SizedBox spacing exists between icon and text
       // The Icon widget creates its own SizedBox, so we find the custom spacing SizedBox
-      final sizedBoxes = tester.widgetList<SizedBox>(find.byType(SizedBox)).toList();
+      final sizedBoxes =
+          tester.widgetList<SizedBox>(find.byType(SizedBox)).toList();
       final spacingSizedBox = sizedBoxes.firstWhere(
         (box) => box.width == 6 && box.height == null,
         orElse: () => throw Exception('Spacing SizedBox not found'),
       );
-      
+
       expect(spacingSizedBox.width, equals(6),
           reason: 'Icon and text should have 6px spacing');
     });
@@ -193,9 +196,9 @@ void main() {
           ),
         ),
       );
-      
+
       expect(find.byType(DemoDataChip), findsOneWidget);
-      
+
       // Test against dark background
       await tester.pumpWidget(
         const MaterialApp(
@@ -205,12 +208,14 @@ void main() {
           ),
         ),
       );
-      
+
       expect(find.byType(DemoDataChip), findsOneWidget,
-          reason: 'Chip with white border and shadow should be visible on dark background');
+          reason:
+              'Chip with white border and shadow should be visible on dark background');
     });
 
-    testWidgets('maintains consistent size with different labels', (tester) async {
+    testWidgets('maintains consistent size with different labels',
+        (tester) async {
       // Short label
       await tester.pumpWidget(
         const MaterialApp(
@@ -219,9 +224,9 @@ void main() {
           ),
         ),
       );
-      
+
       final shortSize = tester.getSize(find.byType(Container));
-      
+
       // Long label
       await tester.pumpWidget(
         const MaterialApp(
@@ -230,13 +235,13 @@ void main() {
           ),
         ),
       );
-      
+
       final longSize = tester.getSize(find.byType(Container));
-      
+
       // Height should remain consistent
       expect(longSize.height, equals(shortSize.height),
           reason: 'Chip height should be consistent regardless of text length');
-      
+
       // Width should expand to accommodate text
       expect(longSize.width, greaterThan(shortSize.width),
           reason: 'Chip should expand horizontally for longer text');

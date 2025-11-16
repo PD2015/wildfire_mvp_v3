@@ -3,13 +3,13 @@ import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/theme/risk_palette.dart';
 
 /// Custom marker widget for displaying fire incidents on map.
-/// 
+///
 /// Visual properties:
 /// - Size: based on confidence/FRP (small <50%, medium 50-80%, large >80%)
 /// - Color: based on incident age (fresh <6h red, recent 6-24h orange, old >24h gray)
 /// - Selection: highlighted border when selected
 /// - Accessibility: semantic labels describe fire details
-/// 
+///
 /// C3 Compliance: Semantic labels for screen readers
 /// C4 Compliance: Visual transparency of fire data freshness via color coding
 class FireMarker extends StatelessWidget {
@@ -25,12 +25,12 @@ class FireMarker extends StatelessWidget {
   });
 
   /// Calculate marker size based on confidence and FRP values.
-  /// 
+  ///
   /// Size tiers:
   /// - Small (30dp): confidence <50% OR frp <5 MW
   /// - Medium (44dp): confidence 50-80% OR frp 5-15 MW
   /// - Large (56dp): confidence >80% OR frp >15 MW
-  /// 
+  ///
   /// C3 Compliance: Medium/Large markers meet ≥44dp touch target requirement
   double get _markerSize {
     final confidence = incident.confidence ?? 0.0;
@@ -51,7 +51,7 @@ class FireMarker extends StatelessWidget {
   }
 
   /// Get marker color based on incident age.
-  /// 
+  ///
   /// Color coding for temporal awareness:
   /// - Fresh (<6h): Red (RiskPalette.veryHigh) - immediate attention
   /// - Recent (6-24h): Orange (RiskPalette.moderate) - ongoing monitoring
@@ -69,7 +69,7 @@ class FireMarker extends StatelessWidget {
   }
 
   /// Build semantic label for screen readers (C3 compliance).
-  /// 
+  ///
   /// Includes: age description, confidence level, fire intensity
   String get _semanticLabel {
     final age = DateTime.now().toUtc().difference(incident.detectedAt);

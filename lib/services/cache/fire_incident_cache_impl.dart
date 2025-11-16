@@ -387,7 +387,7 @@ class FireIncidentCacheImpl implements FireIncidentCache {
             // Deduplicate and filter to exact bounds
             for (final incident in incidents) {
               if (seenIds.contains(incident.id)) continue;
-              
+
               // Check if incident falls within exact viewport bounds
               if (_isWithinBounds(incident, bounds)) {
                 allIncidents.add(incident);

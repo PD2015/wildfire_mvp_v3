@@ -43,17 +43,20 @@ void main() {
         );
 
         final container = tester.widget<Container>(
-          find.descendant(
-            of: find.byType(FireMarker),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .descendant(
+                of: find.byType(FireMarker),
+                matching: find.byType(Container),
+              )
+              .first,
         );
 
         expect(container.constraints?.maxWidth, equals(30.0));
         expect(container.constraints?.maxHeight, equals(30.0));
       });
 
-      testWidgets('medium marker for moderate confidence (50-80%)', (tester) async {
+      testWidgets('medium marker for moderate confidence (50-80%)',
+          (tester) async {
         final incident = baseIncident.copyWith(confidence: 65.0, frp: 8.0);
 
         await tester.pumpWidget(
@@ -65,10 +68,12 @@ void main() {
         );
 
         final container = tester.widget<Container>(
-          find.descendant(
-            of: find.byType(FireMarker),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .descendant(
+                of: find.byType(FireMarker),
+                matching: find.byType(Container),
+              )
+              .first,
         );
 
         expect(container.constraints?.maxWidth, equals(44.0));
@@ -87,10 +92,12 @@ void main() {
         );
 
         final container = tester.widget<Container>(
-          find.descendant(
-            of: find.byType(FireMarker),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .descendant(
+                of: find.byType(FireMarker),
+                matching: find.byType(Container),
+              )
+              .first,
         );
 
         expect(container.constraints?.maxWidth, equals(56.0));
@@ -109,17 +116,20 @@ void main() {
         );
 
         final container = tester.widget<Container>(
-          find.descendant(
-            of: find.byType(FireMarker),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .descendant(
+                of: find.byType(FireMarker),
+                matching: find.byType(Container),
+              )
+              .first,
         );
 
         expect(container.constraints?.maxWidth, equals(56.0));
         expect(container.constraints?.maxHeight, equals(56.0));
       });
 
-      testWidgets('medium marker meets C3 touch target requirement (≥44dp)', (tester) async {
+      testWidgets('medium marker meets C3 touch target requirement (≥44dp)',
+          (tester) async {
         final incident = baseIncident.copyWith(confidence: 60.0);
 
         await tester.pumpWidget(
@@ -131,10 +141,12 @@ void main() {
         );
 
         final container = tester.widget<Container>(
-          find.descendant(
-            of: find.byType(FireMarker),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .descendant(
+                of: find.byType(FireMarker),
+                matching: find.byType(Container),
+              )
+              .first,
         );
 
         expect(container.constraints?.maxWidth, greaterThanOrEqualTo(44.0));
@@ -157,10 +169,12 @@ void main() {
         );
 
         final container = tester.widget<Container>(
-          find.descendant(
-            of: find.byType(FireMarker),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .descendant(
+                of: find.byType(FireMarker),
+                matching: find.byType(Container),
+              )
+              .first,
         );
 
         final decoration = container.decoration as BoxDecoration;
@@ -169,7 +183,8 @@ void main() {
 
       testWidgets('recent fire (6-24h) displays orange', (tester) async {
         final incident = baseIncident.copyWith(
-          detectedAt: DateTime.now().toUtc().subtract(const Duration(hours: 12)),
+          detectedAt:
+              DateTime.now().toUtc().subtract(const Duration(hours: 12)),
         );
 
         await tester.pumpWidget(
@@ -181,10 +196,12 @@ void main() {
         );
 
         final container = tester.widget<Container>(
-          find.descendant(
-            of: find.byType(FireMarker),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .descendant(
+                of: find.byType(FireMarker),
+                matching: find.byType(Container),
+              )
+              .first,
         );
 
         final decoration = container.decoration as BoxDecoration;
@@ -205,10 +222,12 @@ void main() {
         );
 
         final container = tester.widget<Container>(
-          find.descendant(
-            of: find.byType(FireMarker),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .descendant(
+                of: find.byType(FireMarker),
+                matching: find.byType(Container),
+              )
+              .first,
         );
 
         final decoration = container.decoration as BoxDecoration;
@@ -229,10 +248,12 @@ void main() {
         );
 
         final container = tester.widget<Container>(
-          find.descendant(
-            of: find.byType(FireMarker),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .descendant(
+                of: find.byType(FireMarker),
+                matching: find.byType(Container),
+              )
+              .first,
         );
 
         final decoration = container.decoration as BoxDecoration;
@@ -241,7 +262,8 @@ void main() {
 
       testWidgets('edge case: 24h fire is gray (not orange)', (tester) async {
         final incident = baseIncident.copyWith(
-          detectedAt: DateTime.now().toUtc().subtract(const Duration(hours: 24)),
+          detectedAt:
+              DateTime.now().toUtc().subtract(const Duration(hours: 24)),
         );
 
         await tester.pumpWidget(
@@ -253,10 +275,12 @@ void main() {
         );
 
         final container = tester.widget<Container>(
-          find.descendant(
-            of: find.byType(FireMarker),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .descendant(
+                of: find.byType(FireMarker),
+                matching: find.byType(Container),
+              )
+              .first,
         );
 
         final decoration = container.decoration as BoxDecoration;
@@ -275,10 +299,12 @@ void main() {
         );
 
         final container = tester.widget<Container>(
-          find.descendant(
-            of: find.byType(FireMarker),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .descendant(
+                of: find.byType(FireMarker),
+                matching: find.byType(Container),
+              )
+              .first,
         );
 
         final decoration = container.decoration as BoxDecoration;
@@ -295,10 +321,12 @@ void main() {
         );
 
         final container = tester.widget<Container>(
-          find.descendant(
-            of: find.byType(FireMarker),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .descendant(
+                of: find.byType(FireMarker),
+                matching: find.byType(Container),
+              )
+              .first,
         );
 
         final decoration = container.decoration as BoxDecoration;
@@ -311,7 +339,8 @@ void main() {
     });
 
     group('Accessibility (C3 Compliance)', () {
-      testWidgets('has semantic label describing fire incident', (tester) async {
+      testWidgets('has semantic label describing fire incident',
+          (tester) async {
         final incident = baseIncident.copyWith(
           confidence: 85.0,
           intensity: 'high',
@@ -328,14 +357,18 @@ void main() {
 
         // Check semantic label exists and contains key information
         expect(
-          find.bySemanticsLabel(RegExp(r'Fire incident.*hours ago.*high confidence.*high level', caseSensitive: false)),
+          find.bySemanticsLabel(RegExp(
+              r'Fire incident.*hours ago.*high confidence.*high level',
+              caseSensitive: false)),
           findsOneWidget,
         );
       });
 
-      testWidgets('semantic label formats age in minutes (<1h)', (tester) async {
+      testWidgets('semantic label formats age in minutes (<1h)',
+          (tester) async {
         final incident = baseIncident.copyWith(
-          detectedAt: DateTime.now().toUtc().subtract(const Duration(minutes: 30)),
+          detectedAt:
+              DateTime.now().toUtc().subtract(const Duration(minutes: 30)),
         );
 
         await tester.pumpWidget(
@@ -433,10 +466,12 @@ void main() {
         );
 
         final container = tester.widget<Container>(
-          find.descendant(
-            of: find.byType(FireMarker),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .descendant(
+                of: find.byType(FireMarker),
+                matching: find.byType(Container),
+              )
+              .first,
         );
 
         final decoration = container.decoration as BoxDecoration;
@@ -453,10 +488,12 @@ void main() {
         );
 
         final container = tester.widget<Container>(
-          find.descendant(
-            of: find.byType(FireMarker),
-            matching: find.byType(Container),
-          ).first,
+          find
+              .descendant(
+                of: find.byType(FireMarker),
+                matching: find.byType(Container),
+              )
+              .first,
         );
 
         final decoration = container.decoration as BoxDecoration;
@@ -473,7 +510,8 @@ void main() {
           ),
         );
 
-        final icon = tester.widget<Icon>(find.byIcon(Icons.local_fire_department));
+        final icon =
+            tester.widget<Icon>(find.byIcon(Icons.local_fire_department));
         expect(icon.color, equals(Colors.white));
       });
     });

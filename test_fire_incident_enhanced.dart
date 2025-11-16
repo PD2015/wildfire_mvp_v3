@@ -8,12 +8,13 @@ import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 
 void main() {
-  debugPrint('🧪 Testing enhanced FireIncident model with satellite sensor fields...\n');
+  debugPrint(
+      '🧪 Testing enhanced FireIncident model with satellite sensor fields...\n');
 
   // Test 1: Create incident with all new fields
   final now = DateTime.now().toUtc();
   final detectedAt = now.subtract(const Duration(hours: 2));
-  
+
   final incident = FireIncident(
     id: 'test_fire_001',
     location: const LatLng(55.9533, -3.1883), // Edinburgh
@@ -47,8 +48,10 @@ void main() {
   final deserialized = FireIncident.fromCacheJson(json);
   debugPrint('✅ Deserialized from JSON');
   debugPrint('   Same ID: ${deserialized.id == incident.id}');
-  debugPrint('   Same detection time: ${deserialized.detectedAt == incident.detectedAt}');
-  debugPrint('   Same sensor: ${deserialized.sensorSource == incident.sensorSource}');
+  debugPrint(
+      '   Same detection time: ${deserialized.detectedAt == incident.detectedAt}');
+  debugPrint(
+      '   Same sensor: ${deserialized.sensorSource == incident.sensorSource}');
 
   // Test 3: Test factory
   debugPrint('\n🏭 Testing factory method...');

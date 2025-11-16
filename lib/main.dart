@@ -126,7 +126,8 @@ Future<ServiceContainer> _initializeServices() async {
 
   // Initialize fire location service using orchestrator (Task 9)
   // This implements the 3-tier fallback chain: Live API → Cache → Mock
-  final FireLocationService fireLocationService = await _initializeFireLocationOrchestrator(httpClient);
+  final FireLocationService fireLocationService =
+      await _initializeFireLocationOrchestrator(httpClient);
 
   return ServiceContainer(
     locationResolver: locationResolver,
@@ -136,7 +137,7 @@ Future<ServiceContainer> _initializeServices() async {
 }
 
 /// Initialize FireLocationServiceOrchestrator with fallback chain
-/// 
+///
 /// Creates orchestrator with:
 /// - Live service (if MAP_LIVE_DATA=true): ActiveFiresServiceImpl
 /// - Cache service: FireIncidentCacheImpl with SharedPreferences
@@ -165,7 +166,8 @@ Future<FireLocationService> _initializeFireLocationOrchestrator(
   );
 
   debugPrint('🔥 FireLocationServiceOrchestrator initialized:');
-  debugPrint('  - Live service: ${liveService != null ? "ENABLED (${liveService.metadata.description})" : "DISABLED"}');
+  debugPrint(
+      '  - Live service: ${liveService != null ? "ENABLED (${liveService.metadata.description})" : "DISABLED"}');
   debugPrint('  - Cache service: ENABLED');
   debugPrint('  - Mock service: ENABLED (fallback)');
   debugPrint('  - MAP_LIVE_DATA: ${FeatureFlags.mapLiveData}');

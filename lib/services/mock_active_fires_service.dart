@@ -15,10 +15,10 @@ import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/utils/location_utils.dart';
 
 /// Mock implementation providing realistic test data for development
-/// 
+///
 /// Generates deterministic fire incidents based on seed locations within
 /// Scotland, with realistic confidence levels, FRP values, and detection times.
-/// 
+///
 /// Used when MAP_LIVE_DATA environment variable is set to "false"
 class MockActiveFiresService implements ActiveFiresService {
   /// Pre-generated fire incidents for consistent testing
@@ -26,16 +26,16 @@ class MockActiveFiresService implements ActiveFiresService {
 
   @override
   ServiceMetadata get metadata => ServiceMetadata(
-    sourceType: DataSourceType.mock,
-    description: 'Mock fire incident data for testing and development',
-    lastUpdate: DateTime.now().subtract(const Duration(minutes: 15)),
-    coverage: const LatLngBounds(
-      southwest: LatLng(54.5, -8.5), // Scotland approximate bounds
-      northeast: LatLng(60.9, 0.5),
-    ),
-    supportsRealTime: false,
-    maxIncidentsPerRequest: 500,
-  );
+        sourceType: DataSourceType.mock,
+        description: 'Mock fire incident data for testing and development',
+        lastUpdate: DateTime.now().subtract(const Duration(minutes: 15)),
+        coverage: const LatLngBounds(
+          southwest: LatLng(54.5, -8.5), // Scotland approximate bounds
+          northeast: LatLng(60.9, 0.5),
+        ),
+        supportsRealTime: false,
+        maxIncidentsPerRequest: 500,
+      );
 
   @override
   Future<Either<ApiError, ActiveFiresResponse>> getIncidentsForViewport({
@@ -46,8 +46,9 @@ class MockActiveFiresService implements ActiveFiresService {
   }) async {
     try {
       // Simulate realistic network delay
-      await Future.delayed(const Duration(milliseconds: 150 + 100)); // 250ms total
-      
+      await Future.delayed(
+          const Duration(milliseconds: 150 + 100)); // 250ms total
+
       // Validate input bounds
       if (!bounds.southwest.isValid || !bounds.northeast.isValid) {
         return Left(ApiError(
@@ -65,8 +66,10 @@ class MockActiveFiresService implements ActiveFiresService {
 
       // Convert our LatLngBounds to Google Maps bounds for response
       final gmapsBounds = gmaps.LatLngBounds(
-        southwest: gmaps.LatLng(bounds.southwest.latitude, bounds.southwest.longitude),
-        northeast: gmaps.LatLng(bounds.northeast.latitude, bounds.northeast.longitude),
+        southwest:
+            gmaps.LatLng(bounds.southwest.latitude, bounds.southwest.longitude),
+        northeast:
+            gmaps.LatLng(bounds.northeast.latitude, bounds.northeast.longitude),
       );
 
       // Create response with filtering metadata
@@ -139,7 +142,7 @@ class MockActiveFiresService implements ActiveFiresService {
       ),
       _MockFireLocation(
         LatLng(56.8, -5.1), // Glen Coe area
-        'Mountain Grassland Fire', 
+        'Mountain Grassland Fire',
         intensity: 'moderate',
         baseConfidence: 75.0,
         baseFrp: 800.0,
@@ -188,11 +191,11 @@ class MockActiveFiresService implements ActiveFiresService {
     // Generate incidents from risk locations
     for (int i = 0; i < riskLocations.length; i++) {
       final location = riskLocations[i];
-      
+
       // Add some random variation to coordinates (within ~500m)
       final latVariation = (random.nextDouble() - 0.5) * 0.01; // ±0.005°
       final lonVariation = (random.nextDouble() - 0.5) * 0.01;
-      
+
       final adjustedLocation = LatLng(
         location.coordinates.latitude + latVariation,
         location.coordinates.longitude + lonVariation,
@@ -207,8 +210,8 @@ class MockActiveFiresService implements ActiveFiresService {
 
       // Add confidence variation (±10%)
       final confidenceVariation = (random.nextDouble() - 0.5) * 20; // ±10%
-      final confidence = (location.baseConfidence + confidenceVariation)
-          .clamp(50.0, 100.0);
+      final confidence =
+          (location.baseConfidence + confidenceVariation).clamp(50.0, 100.0);
 
       // Add FRP variation (±30%)
       final frpVariation = (random.nextDouble() - 0.5) * 0.6; // ±30%
@@ -225,7 +228,8 @@ class MockActiveFiresService implements ActiveFiresService {
         confidence: confidence,
         frp: frp,
         sensorSource: 'MODIS', // Realistic sensor
-        description: '${location.description} - ${LocationUtils.logRedact(adjustedLocation.latitude, adjustedLocation.longitude)}',
+        description:
+            '${location.description} - ${LocationUtils.logRedact(adjustedLocation.latitude, adjustedLocation.longitude)}',
         lastUpdate: detectedAt.add(Duration(minutes: random.nextInt(30))),
       );
 

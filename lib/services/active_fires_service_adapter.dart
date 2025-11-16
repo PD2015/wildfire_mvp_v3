@@ -10,17 +10,17 @@ import 'package:wildfire_mvp_v3/services/active_fires_service.dart';
 import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 
 /// Adapter that implements FireLocationService using ActiveFiresService
-/// 
+///
 /// **DEPRECATED**: This adapter is no longer needed. Use `FireLocationServiceOrchestrator`
 /// directly in your composition root instead. The orchestrator provides the same
 /// functionality with better error handling, caching, and telemetry support.
-/// 
+///
 /// **Migration Guide**:
 /// ```dart
 /// // Old approach (deprecated):
 /// final activeFiresService = ActiveFiresServiceFactory.create();
 /// final fireLocationService = ActiveFiresServiceAdapter(activeFiresService);
-/// 
+///
 /// // New approach (recommended):
 /// final prefs = await SharedPreferences.getInstance();
 /// final cache = FireIncidentCacheImpl(prefs);
@@ -34,13 +34,13 @@ import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 ///   mockService: mockService,
 /// );
 /// ```
-/// 
+///
 /// **Why migrate?**
 /// - 3-tier fallback chain (Live → Cache → Mock) with timeout enforcement
 /// - Automatic cache population for offline support
 /// - Telemetry events for monitoring service health
 /// - Better error messages and debugging information
-/// 
+///
 /// **See**: `lib/services/fire_location_service_orchestrator.dart` for implementation
 /// **See**: `lib/main.dart` for example composition root setup
 @Deprecated('Use FireLocationServiceOrchestrator instead. '
@@ -61,7 +61,8 @@ class ActiveFiresServiceAdapter implements FireLocationService {
         bounds: bounds,
         confidenceThreshold: 50.0, // Default confidence threshold
         minFrp: 0.0, // No minimum FRP filter
-        deadline: const Duration(seconds: 8), // Match FireLocationService timeout
+        deadline:
+            const Duration(seconds: 8), // Match FireLocationService timeout
       );
 
       return result.fold(
@@ -82,6 +83,6 @@ class ActiveFiresServiceAdapter implements FireLocationService {
   ServiceMetadata get metadata => _activeFiresService.metadata;
 
   /// Check service health
-  Future<Either<ApiError, bool>> checkHealth() => 
+  Future<Either<ApiError, bool>> checkHealth() =>
       _activeFiresService.checkHealth();
 }

@@ -198,7 +198,8 @@ void main() {
     });
 
     group('Accessibility (C3 Compliance)', () {
-      testWidgets('has semantic label describing current filter', (tester) async {
+      testWidgets('has semantic label describing current filter',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -250,7 +251,8 @@ void main() {
           find.byKey(const Key('time_filter_last24Hours')),
         );
 
-        expect(chip.materialTapTargetSize, equals(MaterialTapTargetSize.padded));
+        expect(
+            chip.materialTapTargetSize, equals(MaterialTapTargetSize.padded));
         expect(chip.visualDensity, equals(VisualDensity.comfortable));
       });
     });
@@ -300,15 +302,15 @@ void main() {
 
     test('includes handles edge cases correctly', () {
       final now = DateTime.now().toUtc();
-      
+
       // Exactly at cutoff boundary (should be excluded)
       final exactCutoff = TimeRange.last24Hours.cutoffTime;
       expect(TimeRange.last24Hours.includes(exactCutoff), isFalse);
-      
+
       // Just after cutoff (should be included)
       final justAfter = exactCutoff.add(const Duration(seconds: 1));
       expect(TimeRange.last24Hours.includes(justAfter), isTrue);
-      
+
       // Current time (should be included)
       expect(TimeRange.last24Hours.includes(now), isTrue);
     });

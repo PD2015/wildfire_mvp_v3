@@ -2,24 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:wildfire_mvp_v3/theme/risk_palette.dart';
 
 /// Warning chip displayed when viewing demo or test data
-/// 
+///
 /// Shows a prominent "DEMO DATA" warning with high contrast colors to
 /// ensure users are aware they're viewing non-production data. This appears
 /// when using mock service or test region data.
-/// 
+///
 /// Example usage:
 /// ```dart
 /// DemoDataChip() // Default "DEMO DATA" label
 /// DemoDataChip(label: 'TEST REGION') // Custom label
 /// ```
-/// 
+///
 /// Constitutional compliance:
 /// - C3: Accessibility - High contrast meets WCAG AAA, clear semantic labels
 /// - C4: Transparency - Prominent warning about data source
 class DemoDataChip extends StatelessWidget {
   /// Optional custom warning text (defaults to "DEMO DATA")
   final String? label;
-  
+
   const DemoDataChip({
     super.key,
     this.label,
@@ -28,9 +28,10 @@ class DemoDataChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final displayLabel = label ?? 'DEMO DATA';
-    
+
     return Semantics(
-      label: 'Warning: $displayLabel - This is test data, not real fire information',
+      label:
+          'Warning: $displayLabel - This is test data, not real fire information',
       button: false,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

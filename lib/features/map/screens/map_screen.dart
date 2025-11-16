@@ -47,14 +47,14 @@ class _MapScreenState extends State<MapScreen> {
     }
     _controller = widget.controller!;
     _controller.addListener(_onControllerUpdate);
-    
+
     // Initialize debounced viewport loader
     _viewportLoader = DebouncedViewportLoader(
       onViewportChanged: (bounds) async {
         await _controller.refreshMapData(bounds);
       },
     );
-    
+
     // Initialize map data on mount
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.initialize();

@@ -6,7 +6,7 @@ import 'package:equatable/equatable.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 
 /// State for individual fire markers on the map
-/// 
+///
 /// Manages visual states for fire incident markers:
 /// - Normal: Default marker appearance
 /// - Selected: Marker is selected (bottom sheet showing)
@@ -20,13 +20,13 @@ abstract class FireMarkerState extends Equatable {
 
   /// Check if marker is in selected state
   bool get isSelected => this is FireMarkerSelected;
-  
+
   /// Check if marker is in hovered state
   bool get isHovered => this is FireMarkerHovered;
-  
+
   /// Check if marker is in loading state
   bool get isLoading => this is FireMarkerLoading;
-  
+
   /// Check if marker is in normal state
   bool get isNormal => this is FireMarkerNormal;
 
@@ -46,7 +46,7 @@ class FireMarkerNormal extends FireMarkerState {
 class FireMarkerSelected extends FireMarkerState {
   /// Fire incident data associated with this marker
   final FireIncident fireIncident;
-  
+
   /// Timestamp when marker was selected
   final DateTime selectedAt;
 
@@ -60,14 +60,15 @@ class FireMarkerSelected extends FireMarkerState {
   List<Object?> get props => [fireIncidentId, fireIncident, selectedAt];
 
   @override
-  String toString() => 'FireMarkerSelected(id: $fireIncidentId, selectedAt: $selectedAt)';
+  String toString() =>
+      'FireMarkerSelected(id: $fireIncidentId, selectedAt: $selectedAt)';
 }
 
 /// Hovered marker state (user is hovering over marker)
 class FireMarkerHovered extends FireMarkerState {
   /// Optional preview data to show in tooltip
   final String? previewText;
-  
+
   /// Timestamp when hover started
   final DateTime hoveredAt;
 
@@ -81,14 +82,15 @@ class FireMarkerHovered extends FireMarkerState {
   List<Object?> get props => [fireIncidentId, previewText, hoveredAt];
 
   @override
-  String toString() => 'FireMarkerHovered(id: $fireIncidentId, preview: $previewText)';
+  String toString() =>
+      'FireMarkerHovered(id: $fireIncidentId, preview: $previewText)';
 }
 
 /// Loading marker state (fetching detailed data)
 class FireMarkerLoading extends FireMarkerState {
   /// Optional loading message
   final String? loadingMessage;
-  
+
   /// Timestamp when loading started
   final DateTime loadingStarted;
 
@@ -102,17 +104,18 @@ class FireMarkerLoading extends FireMarkerState {
   List<Object?> get props => [fireIncidentId, loadingMessage, loadingStarted];
 
   @override
-  String toString() => 'FireMarkerLoading(id: $fireIncidentId, message: $loadingMessage)';
+  String toString() =>
+      'FireMarkerLoading(id: $fireIncidentId, message: $loadingMessage)';
 }
 
 /// Collection state for managing multiple fire markers
 class FireMarkerCollectionState extends Equatable {
   /// Map of marker states by fire incident ID
   final Map<String, FireMarkerState> markerStates;
-  
+
   /// Currently selected marker ID (if any)
   final String? selectedMarkerId;
-  
+
   /// Currently hovered marker ID (if any)
   final String? hoveredMarkerId;
 
@@ -220,8 +223,10 @@ class FireMarkerCollectionState extends Equatable {
 
     return copyWith(
       markerStates: newMarkerStates,
-      selectedMarkerId: selectedMarkerId == fireIncidentId ? null : selectedMarkerId,
-      hoveredMarkerId: hoveredMarkerId == fireIncidentId ? null : hoveredMarkerId,
+      selectedMarkerId:
+          selectedMarkerId == fireIncidentId ? null : selectedMarkerId,
+      hoveredMarkerId:
+          hoveredMarkerId == fireIncidentId ? null : hoveredMarkerId,
     );
   }
 
@@ -318,8 +323,8 @@ class FireMarkerCollectionState extends Equatable {
   @override
   String toString() {
     return 'FireMarkerCollectionState('
-           'markers: ${markerStates.length}, '
-           'selected: $selectedMarkerId, '
-           'hovered: $hoveredMarkerId)';
+        'markers: ${markerStates.length}, '
+        'selected: $selectedMarkerId, '
+        'hovered: $hoveredMarkerId)';
   }
 }

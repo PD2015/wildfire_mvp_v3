@@ -3,28 +3,28 @@ import 'package:wildfire_mvp_v3/services/active_fires_service.dart';
 import 'package:wildfire_mvp_v3/theme/risk_palette.dart';
 
 /// Chip widget displaying the data source type with color-coded styling
-/// 
+///
 /// Shows badges for Live/Cached/Mock data sources with appropriate colors
 /// from the Scottish color palette. Provides accessibility labels for
 /// screen readers.
-/// 
+///
 /// Example usage:
 /// ```dart
 /// DataSourceChip(sourceType: DataSourceType.live)
 /// DataSourceChip(sourceType: DataSourceType.cached)
 /// DataSourceChip(sourceType: DataSourceType.mock)
 /// ```
-/// 
+///
 /// Constitutional compliance:
 /// - C3: Accessibility - Semantic labels for screen readers
 /// - C4: Transparency - Clear visual distinction between data sources
 class DataSourceChip extends StatelessWidget {
   /// Type of data source to display
   final DataSourceType sourceType;
-  
+
   /// Optional custom label text (defaults to source type description)
   final String? label;
-  
+
   const DataSourceChip({
     super.key,
     required this.sourceType,
@@ -34,7 +34,7 @@ class DataSourceChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chipData = _getChipData();
-    
+
     return Semantics(
       label: chipData.semanticLabel,
       button: false,
@@ -64,7 +64,7 @@ class DataSourceChip extends StatelessWidget {
       ),
     );
   }
-  
+
   /// Get styling data for the current source type
   _ChipData _getChipData() {
     switch (sourceType) {
@@ -78,7 +78,7 @@ class DataSourceChip extends StatelessWidget {
           backgroundColor: RiskPalette.low, // Green for live/fresh data
           borderColor: RiskPalette.low,
         );
-        
+
       case DataSourceType.cached:
         return const _ChipData(
           displayLabel: 'CACHED',
@@ -89,7 +89,7 @@ class DataSourceChip extends StatelessWidget {
           backgroundColor: RiskPalette.lightGray,
           borderColor: RiskPalette.midGray,
         );
-        
+
       case DataSourceType.mock:
         return const _ChipData(
           displayLabel: 'MOCK',
@@ -113,7 +113,7 @@ class _ChipData {
   final Color textColor;
   final Color backgroundColor;
   final Color borderColor;
-  
+
   const _ChipData({
     required this.displayLabel,
     required this.semanticLabel,

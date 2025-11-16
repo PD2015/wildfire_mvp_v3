@@ -39,8 +39,6 @@ class LatLng extends Equatable {
   String toString() => 'LatLng($latitude, $longitude)';
 }
 
-
-
 /// Location resolution error types
 enum LocationError {
   /// GPS permission denied by user

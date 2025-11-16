@@ -17,7 +17,7 @@ class FireIncident extends Equatable {
   final String intensity; // "low" | "moderate" | "high"
   final String? description;
   final double? areaHectares;
-  
+
   // New satellite sensor fields for fire information sheet
   final DateTime detectedAt; // When fire was first detected
   final String sensorSource; // Satellite sensor: VIIRS, MODIS, etc
@@ -169,12 +169,12 @@ class FireIncident extends Equatable {
             properties['firedate']?.toString() ??
             DateTime.now().toIso8601String(),
       ).toUtc(),
-      sensorSource: properties['sensor']?.toString() ?? 
-          properties['sensor_source']?.toString() ?? 
+      sensorSource: properties['sensor']?.toString() ??
+          properties['sensor_source']?.toString() ??
           'MODIS', // Default fallback
       confidence: (properties['confidence'] as num?)?.toDouble(),
       frp: (properties['frp'] as num?)?.toDouble(),
-      lastUpdate: properties['last_update'] != null 
+      lastUpdate: properties['last_update'] != null
           ? DateTime.parse(properties['last_update'].toString()).toUtc()
           : null,
     );
@@ -227,7 +227,7 @@ class FireIncident extends Equatable {
       sensorSource: json['sensorSource'] as String,
       confidence: json['confidence'] as double?,
       frp: json['frp'] as double?,
-      lastUpdate: json['lastUpdate'] != null 
+      lastUpdate: json['lastUpdate'] != null
           ? DateTime.parse(json['lastUpdate'] as String).toUtc()
           : null,
     );

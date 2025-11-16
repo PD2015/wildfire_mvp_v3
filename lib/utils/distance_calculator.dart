@@ -1,5 +1,5 @@
 // Distance calculation utilities for fire information sheet
-// Implements Task 3 of 018-map-fire-information specification  
+// Implements Task 3 of 018-map-fire-information specification
 // Calculates distance and bearing between user location and fire incidents
 
 import 'dart:math' as math;
@@ -9,7 +9,7 @@ import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/services/utils/geo_utils.dart';
 
 /// Utility class for calculating distances and bearings between geographic points
-/// 
+///
 /// Designed for fire information sheet to show user-friendly distance/direction
 /// like "3.2 km NE" for each fire incident relative to user location.
 class DistanceCalculator {
@@ -17,7 +17,7 @@ class DistanceCalculator {
   static const double _earthRadiusMeters = 6371000.0;
 
   /// Calculate great circle distance between two points in meters
-  /// 
+  ///
   /// Uses the haversine formula for accurate distance calculation.
   /// Returns distance in meters with precision suitable for fire incidents.
   static double distanceInMeters(LatLng from, LatLng to) {
@@ -41,7 +41,7 @@ class DistanceCalculator {
   }
 
   /// Calculate distance using geolocator for high accuracy
-  /// 
+  ///
   /// Falls back to our implementation if geolocator fails.
   /// Useful for validation against geolocator's implementation.
   static double distanceInMetersGeolocator(LatLng from, LatLng to) {
@@ -59,7 +59,7 @@ class DistanceCalculator {
   }
 
   /// Calculate bearing from one point to another in degrees (0-360)
-  /// 
+  ///
   /// Returns bearing as degrees where:
   /// - 0° = North, 90° = East, 180° = South, 270° = West
   static double bearingInDegrees(LatLng from, LatLng to) {
@@ -81,19 +81,19 @@ class DistanceCalculator {
   }
 
   /// Convert bearing to cardinal direction (N, NE, E, SE, etc.)
-  /// 
+  ///
   /// Returns user-friendly cardinal directions with 8-point precision.
   /// Perfect for fire information sheet display.
   static String bearingToCardinal(double bearingDegrees) {
     const directions = [
-      'N',   // 0°
-      'NE',  // 45°
-      'E',   // 90°
-      'SE',  // 135°
-      'S',   // 180°
-      'SW',  // 225°
-      'W',   // 270°
-      'NW',  // 315°
+      'N', // 0°
+      'NE', // 45°
+      'E', // 90°
+      'SE', // 135°
+      'S', // 180°
+      'SW', // 225°
+      'W', // 270°
+      'NW', // 315°
     ];
 
     // Each cardinal direction covers 45 degrees (360/8)
@@ -102,7 +102,7 @@ class DistanceCalculator {
   }
 
   /// Get combined distance and direction string for display
-  /// 
+  ///
   /// Returns formatted string like "3.2 km NE" or "450 m SW".
   /// Perfect for fire information sheet incident cards.
   static String formatDistanceAndDirection(LatLng from, LatLng to) {
@@ -121,37 +121,42 @@ class DistanceCalculator {
   }
 
   /// Privacy-compliant distance calculation with logging
-  /// 
+  ///
   /// Uses GeographicUtils.logRedact for coordinate logging compliance.
   /// Suitable for service layer usage with privacy requirements.
-  static String calculateDistanceWithLogging(LatLng userLocation, LatLng fireLocation) {
-    final userLocationLog = GeographicUtils.logRedact(userLocation.latitude, userLocation.longitude);
-    final fireLocationLog = GeographicUtils.logRedact(fireLocation.latitude, fireLocation.longitude);
-    
+  static String calculateDistanceWithLogging(
+      LatLng userLocation, LatLng fireLocation) {
+    final userLocationLog = GeographicUtils.logRedact(
+        userLocation.latitude, userLocation.longitude);
+    final fireLocationLog = GeographicUtils.logRedact(
+        fireLocation.latitude, fireLocation.longitude);
+
     final result = formatDistanceAndDirection(userLocation, fireLocation);
-    
+
     // Privacy-compliant logging
-    debugPrint('Distance calculation: User at $userLocationLog to fire at $fireLocationLog = $result');
-    
+    debugPrint(
+        'Distance calculation: User at $userLocationLog to fire at $fireLocationLog = $result');
+
     return result;
   }
 
   /// Validate that coordinates are within reasonable bounds
-  /// 
+  ///
   /// Helps catch edge cases and invalid coordinates before calculation.
   static bool areValidCoordinates(LatLng coord1, LatLng coord2) {
     return coord1.isValid && coord2.isValid;
   }
 
   /// Calculate distance with validation and error handling
-  /// 
+  ///
   /// Returns null if coordinates are invalid or calculation fails.
   /// Suitable for production use with proper error handling.
-  static String? calculateDistanceSafe(LatLng? userLocation, LatLng? fireLocation) {
+  static String? calculateDistanceSafe(
+      LatLng? userLocation, LatLng? fireLocation) {
     if (userLocation == null || fireLocation == null) return null;
-    
+
     if (!areValidCoordinates(userLocation, fireLocation)) return null;
-    
+
     try {
       return formatDistanceAndDirection(userLocation, fireLocation);
     } catch (e) {
@@ -166,7 +171,7 @@ class DistanceCalculator {
   static double _radiansToDegrees(double radians) => radians * (180 / math.pi);
 
   /// Test method to verify calculations against known distances
-  /// 
+  ///
   /// Useful for unit testing and validation. Returns true if calculation
   /// is within acceptable tolerance of expected value.
   static bool verifyKnownDistance({
@@ -178,7 +183,7 @@ class DistanceCalculator {
     final calculated = distanceInMeters(point1, point2);
     final difference = (calculated - expectedMeters).abs();
     final tolerance = expectedMeters * tolerancePercent / 100;
-    
+
     return difference <= tolerance;
   }
 }

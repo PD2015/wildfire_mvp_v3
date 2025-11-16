@@ -17,19 +17,20 @@ void main() {
 
       // Verify label
       expect(find.text('LIVE'), findsOneWidget);
-      
+
       // Verify icon
       expect(find.byIcon(Icons.cloud_outlined), findsOneWidget);
-      
+
       // Verify chip exists
       final chip = tester.widget<Chip>(find.byType(Chip));
       expect(chip.backgroundColor, equals(RiskPalette.low)); // Green for live
-      
+
       // Verify semantic label exists in the widget tree
       final semanticsFinder = find.byWidgetPredicate(
-        (widget) => widget is Semantics && 
-                    widget.properties.label != null &&
-                    widget.properties.label!.contains('Live data from EFFIS'),
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.label != null &&
+            widget.properties.label!.contains('Live data from EFFIS'),
       );
       expect(semanticsFinder, findsOneWidget);
     });
@@ -45,19 +46,21 @@ void main() {
 
       // Verify label
       expect(find.text('CACHED'), findsOneWidget);
-      
+
       // Verify icon
       expect(find.byIcon(Icons.storage_outlined), findsOneWidget);
-      
+
       // Verify chip exists
       final chip = tester.widget<Chip>(find.byType(Chip));
-      expect(chip.backgroundColor, equals(RiskPalette.lightGray)); // Gray for cached
-      
+      expect(chip.backgroundColor,
+          equals(RiskPalette.lightGray)); // Gray for cached
+
       // Verify semantic label exists in the widget tree
       final semanticsFinder = find.byWidgetPredicate(
-        (widget) => widget is Semantics && 
-                    widget.properties.label != null &&
-                    widget.properties.label!.contains('Cached data'),
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.label != null &&
+            widget.properties.label!.contains('Cached data'),
       );
       expect(semanticsFinder, findsOneWidget);
     });
@@ -73,19 +76,21 @@ void main() {
 
       // Verify label
       expect(find.text('MOCK'), findsOneWidget);
-      
+
       // Verify icon
       expect(find.byIcon(Icons.science_outlined), findsOneWidget);
-      
+
       // Verify chip exists
       final chip = tester.widget<Chip>(find.byType(Chip));
-      expect(chip.backgroundColor, equals(RiskPalette.blueAccent)); // Blue for test
-      
+      expect(chip.backgroundColor,
+          equals(RiskPalette.blueAccent)); // Blue for test
+
       // Verify semantic label exists in the widget tree
       final semanticsFinder = find.byWidgetPredicate(
-        (widget) => widget is Semantics && 
-                    widget.properties.label != null &&
-                    widget.properties.label!.contains('Mock test data'),
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.label != null &&
+            widget.properties.label!.contains('Mock test data'),
       );
       expect(semanticsFinder, findsOneWidget);
     });
@@ -117,12 +122,15 @@ void main() {
       );
 
       final chip = tester.widget<Chip>(find.byType(Chip));
-      expect(chip.materialTapTargetSize, equals(MaterialTapTargetSize.shrinkWrap));
+      expect(
+          chip.materialTapTargetSize, equals(MaterialTapTargetSize.shrinkWrap));
       expect(chip.visualDensity, equals(VisualDensity.compact));
-      expect(chip.padding, equals(const EdgeInsets.symmetric(horizontal: 8, vertical: 4)));
+      expect(chip.padding,
+          equals(const EdgeInsets.symmetric(horizontal: 8, vertical: 4)));
     });
 
-    testWidgets('all chip types have distinct colors (C4 compliance)', (tester) async {
+    testWidgets('all chip types have distinct colors (C4 compliance)',
+        (tester) async {
       const sourceTypes = [
         DataSourceType.live,
         DataSourceType.cached,
@@ -130,7 +138,7 @@ void main() {
       ];
 
       final Set<Color> backgroundColors = {};
-      
+
       for (final sourceType in sourceTypes) {
         await tester.pumpWidget(
           MaterialApp(
@@ -139,17 +147,18 @@ void main() {
             ),
           ),
         );
-        
+
         final chip = tester.widget<Chip>(find.byType(Chip));
         backgroundColors.add(chip.backgroundColor!);
       }
-      
+
       // Verify all three source types have distinct background colors
       expect(backgroundColors.length, equals(3),
           reason: 'Each data source type must have a visually distinct color');
     });
 
-    testWidgets('semantic labels are accessible (C3 compliance)', (tester) async {
+    testWidgets('semantic labels are accessible (C3 compliance)',
+        (tester) async {
       const sourceTypes = [
         DataSourceType.live,
         DataSourceType.cached,
@@ -164,12 +173,13 @@ void main() {
             ),
           ),
         );
-        
+
         // Find the Semantics widget with a non-empty label
         final semanticsFinder = find.byWidgetPredicate(
-          (widget) => widget is Semantics && 
-                      widget.properties.label != null &&
-                      widget.properties.label!.isNotEmpty,
+          (widget) =>
+              widget is Semantics &&
+              widget.properties.label != null &&
+              widget.properties.label!.isNotEmpty,
         );
         expect(semanticsFinder, findsWidgets,
             reason: 'Each chip must have semantic labeling');
@@ -191,7 +201,7 @@ void main() {
             ),
           ),
         );
-        
+
         final chip = tester.widget<Chip>(find.byType(Chip));
         expect(chip.side, isNotNull, reason: 'Chip must have border');
         expect(chip.side!.width, equals(1.5),
