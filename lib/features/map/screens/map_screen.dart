@@ -144,9 +144,7 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Fire Map'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        elevation: 1,
+        centerTitle: true,
       ),
       body: switch (state) {
         MapLoading() => Center(
@@ -169,9 +167,7 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Fire Map'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        elevation: 1,
+        centerTitle: true,
       ),
       body: Center(
         child: Padding(
@@ -179,7 +175,9 @@ class _MapScreenState extends State<MapScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.map_outlined, size: 64.0, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              Icon(Icons.map_outlined,
+                  size: 64.0,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
               const SizedBox(height: 16.0),
               Text(
                 'Map Not Available',
@@ -223,10 +221,16 @@ class _MapScreenState extends State<MapScreen> {
                                       Icon(
                                         Icons.local_fire_department,
                                         color: incident.intensity == 'high'
-                                            ? Theme.of(context).colorScheme.error
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .error
                                             : incident.intensity == 'moderate'
-                                                ? Theme.of(context).colorScheme.tertiary
-                                                : Theme.of(context).colorScheme.primary,
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .tertiary
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
                                         size: 20,
                                       ),
                                       const SizedBox(width: 8),
@@ -348,7 +352,9 @@ class _MapScreenState extends State<MapScreen> {
                       'Data source: ${state.freshness.name.toUpperCase()}',
                       style: Theme.of(
                         context,
-                      ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      ).textTheme.bodySmall?.copyWith(
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant),
                       textAlign: TextAlign.center,
                     ),
                   ],

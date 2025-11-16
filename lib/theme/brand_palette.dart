@@ -54,44 +54,62 @@ class BrandPalette {
   // Forest gradient (primary tones)
   static const Color forest900 =
       Color(0xFF0D4F48); // Darkest - WCAG AA verified
-  static const Color forest800 = Color(0xFF176259);
-  static const Color forest700 = Color(0xFF1F7066);
-  static const Color forest600 = Color(0xFF247C71); // Primary - 5.1:1 on white
-  static const Color forest500 = Color(0xFF2C8A7E);
+  static const Color forest800 =
+      Color(0xFF0F5A52); // Updated to match screenshot
+  static const Color forest700 =
+      Color(0xFF17645B); // Updated to match screenshot
+  static const Color forest600 =
+      Color(0xFF1B6B61); // Primary - Updated to match screenshot
+  static const Color forest500 =
+      Color(0xFF246F65); // Updated to match screenshot
   static const Color forest400 = Color(0xFF2E786E); // Dark mode primary
+  static const Color outline = Color(0xFF3E8277); // UI component outlines
 
   // Accent colors
   static const Color mint400 = Color(0xFF64C8BB); // Secondary - 4.8:1 on black
+  static const Color mint300 = Color(0xFF7ED5CA); // Lighter mint accent
   static const Color amber500 = Color(0xFFF5A623); // Tertiary - 6.2:1 on black
+  static const Color amber600 = Color(0xFFE59414); // Darker amber
 
   // Surface colors
-  static const Color offWhite = Color(0xFFF9F9F9); // Light mode surface
+  static const Color offWhite =
+      Color(0xFFF4F4F4); // Light mode surface - Updated to match screenshot
   static const Color neutralGrey100 = Color(0xFFE0E0E0);
   static const Color neutralGrey200 =
       Color(0xFF757575); // ≥3:1 contrast on offWhite (WCAG AA UI)
 
-  // On-colors (text on colored backgrounds)
+  // On-colors (text on colored backgrounds) - solid colors for better consistency
   static const Color onDarkHigh = Color(0xFFFFFFFF); // White - high emphasis
   static const Color onDarkMedium =
-      Color(0xB3FFFFFF); // 70% white - medium emphasis
+      Color(0xFFDCEFEB); // Teal-tinted white - medium emphasis (solid color)
+  static const Color onDarkLow =
+      Color(0xFFB8D8D2); // Low emphasis on dark backgrounds
   static const Color onLightHigh =
       Color(0xFF111111); // Near-black - high emphasis
   static const Color onLightMedium =
-      Color(0x99000000); // 60% black - medium emphasis
+      Color(0xFF333333); // Dark grey - medium emphasis (solid color)
 
   /// Get appropriate on-color for given background
   ///
   /// Uses luminance threshold 0.5 (WCAG recommendation):
-  /// - Dark backgrounds (luminance < 0.5) → white text
-  /// - Light backgrounds (luminance >= 0.5) → black text
+  /// - Dark backgrounds (luminance < 0.5) → white text (high) or teal-tinted (medium/low)
+  /// - Light backgrounds (luminance >= 0.5) → black text (high) or dark grey (medium)
   static Color onColorFor(Color background, {bool highEmphasis = true}) {
     final luminance = background.computeLuminance();
     if (luminance < 0.5) {
-      // Dark background → white text
-      return highEmphasis ? onDarkHigh : onDarkMedium;
+      // Dark background → white or tinted text (solid colors)
+      if (highEmphasis) {
+        return onDarkHigh;
+      } else {
+        return onDarkMedium; // Solid teal-tinted white
+      }
     } else {
-      // Light background → black text
-      return highEmphasis ? onLightHigh : onLightMedium;
+      // Light background → black or grey text (solid colors)
+      if (highEmphasis) {
+        return onLightHigh;
+      } else {
+        return onLightMedium; // Solid dark grey
+      }
     }
   }
 }

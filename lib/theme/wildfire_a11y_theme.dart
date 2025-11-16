@@ -40,7 +40,7 @@ import 'package:wildfire_mvp_v3/theme/brand_palette.dart';
 ///   @override
 ///   Widget build(BuildContext context) {
 ///     final colorScheme = Theme.of(context).colorScheme;
-///     
+///
 ///     return ElevatedButton(
 ///       // Automatically uses theme's primary color (forest600 in light mode)
 ///       onPressed: () {},
@@ -92,7 +92,7 @@ class WildfireA11yTheme {
   WildfireA11yTheme._(); // Prevent instantiation
 
   /// Light theme with forest600 primary and offWhite surface
-  /// 
+  ///
   /// **Contrast ratios verified**:
   /// - forest600 on white: 5.2:1 ✅
   /// - mint400 on black: 4.8:1 ✅
@@ -101,22 +101,31 @@ class WildfireA11yTheme {
     final colorScheme = ColorScheme.light(
       primary: BrandPalette.forest600,
       onPrimary: BrandPalette.onDarkHigh,
-      secondary: BrandPalette.mint400,
-      onSecondary: BrandPalette.onLightHigh,
-      tertiary: BrandPalette.amber500,
-      onTertiary: BrandPalette.onLightHigh,
-      surface: BrandPalette.offWhite,
+      secondary: BrandPalette.forest700,
+      onSecondary: BrandPalette.onDarkHigh,
+      tertiary: BrandPalette.mint400,
+      onTertiary: BrandPalette.onDarkHigh,
+      surface: Colors.white,
       onSurface: BrandPalette.onLightHigh,
+      surfaceVariant: const Color(0xFFE7F1EF),
+      onSurfaceVariant: BrandPalette.onLightMedium,
       error: Colors.red.shade700,
       onError: BrandPalette.onDarkHigh,
-      outline: BrandPalette.neutralGrey200,
+      outline: const Color(0xFFB9C6BE),
       outlineVariant: BrandPalette.neutralGrey100,
+      shadow: Colors.black,
+      scrim: Colors.black54,
+      inversePrimary: BrandPalette.mint300,
+      inverseSurface: const Color(0xFFF3FBFA),
+      onInverseSurface: Colors.black,
+      surfaceTint: BrandPalette.forest600,
     );
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
       brightness: Brightness.light,
+      scaffoldBackgroundColor: BrandPalette.offWhite,
 
       // ElevatedButton: ≥44dp height (C3)
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -187,8 +196,8 @@ class WildfireA11yTheme {
       appBarTheme: AppBarTheme(
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
-        elevation: 0,
-        centerTitle: false,
+        elevation: 2,
+        centerTitle: true,
         titleTextStyle: TextStyle(
           color: colorScheme.onPrimary,
           fontSize: 20,
@@ -196,10 +205,41 @@ class WildfireA11yTheme {
         ),
       ),
 
+      // NavigationBarTheme: bottom navigation with accessible colors
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: colorScheme.surface,
+        indicatorColor: colorScheme.tertiary.withValues(alpha: 0.20),
+        elevation: 8,
+        shadowColor: Colors.black.withValues(alpha: 0.25),
+        labelTextStyle: WidgetStateProperty.all(
+          const TextStyle(
+            color: BrandPalette.onLightMedium,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+
+      // FloatingActionButtonTheme: mint tertiary accent
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: colorScheme.tertiary,
+        foregroundColor: colorScheme.onTertiary,
+      ),
+
+      // DividerTheme: subtle separation
+      dividerTheme: DividerThemeData(
+        color: colorScheme.outline,
+        thickness: 1,
+      ),
+
+      // IconTheme: default icon color
+      iconTheme: IconThemeData(
+        color: colorScheme.onSurfaceVariant,
+      ),
+
       // CardTheme: elevated surface with outline
       cardTheme: CardThemeData(
         color: colorScheme.surface,
-        elevation: 1,
+        elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(color: colorScheme.outlineVariant),
@@ -212,24 +252,33 @@ class WildfireA11yTheme {
   /// Contrast ratios: forest400+white = 7.8:1, surface+onSurface = 14.2:1
   static ThemeData get dark {
     final colorScheme = ColorScheme.dark(
-      primary: BrandPalette.forest400,
+      primary: BrandPalette.forest600,
       onPrimary: BrandPalette.onDarkHigh,
-      secondary: BrandPalette.mint400,
-      onSecondary: BrandPalette.onLightHigh,
-      tertiary: BrandPalette.amber500,
-      onTertiary: BrandPalette.onLightHigh,
-      surface: BrandPalette.forest900,
+      secondary: BrandPalette.forest700,
+      onSecondary: BrandPalette.onDarkHigh,
+      tertiary: BrandPalette.mint400,
+      onTertiary: BrandPalette.onDarkHigh,
+      surface: BrandPalette.forest500,
       onSurface: BrandPalette.onDarkHigh,
-      error: Colors.red.shade400,
-      onError: BrandPalette.onLightHigh,
-      outline: BrandPalette.mint400, // ≥3:1 on forest900 surface (WCAG AA UI)
+      surfaceVariant: BrandPalette.forest400,
+      onSurfaceVariant: BrandPalette.onDarkMedium,
+      error: BrandPalette.amber500,
+      onError: BrandPalette.onDarkHigh,
+      outline: BrandPalette.outline,
       outlineVariant: BrandPalette.forest700,
+      shadow: Colors.black,
+      scrim: Colors.black54,
+      inversePrimary: BrandPalette.mint300,
+      inverseSurface: const Color(0xFF1A2B26),
+      onInverseSurface: Colors.white,
+      surfaceTint: BrandPalette.forest600,
     );
 
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
       brightness: Brightness.dark,
+      scaffoldBackgroundColor: BrandPalette.forest900,
 
       // ElevatedButton: ≥44dp height (C3)
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -288,34 +337,67 @@ class WildfireA11yTheme {
       ),
 
       // SnackBarTheme: accessible colors and spacing
-      snackBarTheme: const SnackBarThemeData(
-        backgroundColor: BrandPalette.forest400,
-        contentTextStyle:
-            TextStyle(color: BrandPalette.onDarkHigh, fontSize: 16),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: colorScheme.error,
+        contentTextStyle: TextStyle(
+          color: colorScheme.onError,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
         behavior: SnackBarBehavior.floating,
         actionTextColor: BrandPalette.mint400,
       ),
 
       // AppBarTheme: darker surface with high contrast text
       appBarTheme: AppBarTheme(
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
+        backgroundColor: BrandPalette.forest900,
+        foregroundColor: BrandPalette.onDarkMedium,
         elevation: 0,
-        centerTitle: false,
+        centerTitle: true,
         titleTextStyle: TextStyle(
-          color: colorScheme.onSurface,
+          color: BrandPalette.onDarkMedium,
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
       ),
 
+      // NavigationBarTheme: bottom navigation with accessible colors
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: colorScheme.surface,
+        indicatorColor: colorScheme.tertiary.withValues(alpha: 0.25),
+        elevation: 8,
+        shadowColor: Colors.black.withValues(alpha: 0.35),
+        labelTextStyle: WidgetStateProperty.all(
+          const TextStyle(
+            color: BrandPalette.onDarkMedium,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+
+      // FloatingActionButtonTheme: mint tertiary accent
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: colorScheme.tertiary,
+        foregroundColor: colorScheme.onTertiary,
+      ),
+
+      // DividerTheme: subtle separation
+      dividerTheme: DividerThemeData(
+        color: colorScheme.outline,
+        thickness: 1,
+      ),
+
+      // IconTheme: default icon color
+      iconTheme: IconThemeData(
+        color: colorScheme.onSurfaceVariant,
+      ),
+
       // CardTheme: elevated surface with outline
       cardTheme: CardThemeData(
         color: BrandPalette.forest800,
-        elevation: 2,
+        elevation: 1,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: colorScheme.outlineVariant),
         ),
       ),
     );
