@@ -53,3 +53,6 @@ specs/012-a11-ci-cd/contracts/build-script-contract.sh:generic-api-key:199
 # RiskBanner specification - False positive on Flutter constant naming (kBannerPadding=16.0)
 cd2452759d5423fc6e0370099fa5602ebc69f1e1:specs/016-016-a14-riskbanner/PROGRESS_REPORT.md:generic-api-key:12
 
+# Git hooks setup guide - Reference to test fixture path in gitleaks ignore section (documentation only)
+docs/guides/setup/git-hooks.md:generic-api-key:263
+
