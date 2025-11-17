@@ -229,7 +229,8 @@ class WildfireA11yTheme {
             return const IconThemeData(
                 color: BrandPalette.onDarkHigh, size: 24);
           }
-          return IconThemeData(color: BrandPalette.onLightMedium, size: 24);
+          return const IconThemeData(
+              color: BrandPalette.onLightMedium, size: 24);
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
@@ -277,7 +278,7 @@ class WildfireA11yTheme {
   /// Dark theme with forest400 primary and forest900 surface
   /// Contrast ratios: forest400+white = 7.8:1, surface+onSurface = 14.2:1
   static ThemeData get dark {
-    final colorScheme = ColorScheme.dark(
+    const colorScheme = ColorScheme.dark(
       primary: BrandPalette.forest600,
       onPrimary: BrandPalette.onDarkHigh,
       secondary: BrandPalette.forest700,
@@ -295,7 +296,7 @@ class WildfireA11yTheme {
       shadow: Colors.black,
       scrim: Colors.black54,
       inversePrimary: BrandPalette.mint300,
-      inverseSurface: const Color(0xFF1A2B26),
+      inverseSurface: Color(0xFF1A2B26),
       onInverseSurface: Colors.white,
       surfaceTint: BrandPalette.forest600,
     );
@@ -383,7 +384,7 @@ class WildfireA11yTheme {
       ),
 
       // AppBarTheme: darker surface with high contrast text
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         backgroundColor: BrandPalette.forest900,
         foregroundColor: BrandPalette.onDarkMedium,
         elevation: 0,
@@ -408,7 +409,8 @@ class WildfireA11yTheme {
           if (states.contains(WidgetState.selected)) {
             return const IconThemeData(color: BrandPalette.forest900, size: 24);
           }
-          return IconThemeData(color: BrandPalette.onDarkMedium, size: 24);
+          return const IconThemeData(
+              color: BrandPalette.onDarkMedium, size: 24);
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
