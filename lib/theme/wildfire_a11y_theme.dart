@@ -115,7 +115,8 @@ class WildfireA11yTheme {
       onSurfaceVariant: BrandPalette.onLightMedium,
       error: Colors.red.shade700,
       onError: BrandPalette.onDarkHigh,
-      outline: const Color(0xFFB9C6BE),
+      outline: const Color(
+          0xFF6B8A82), // Darker for 3:1 contrast on white (web-compatible)
       outlineVariant: BrandPalette.neutralGrey100,
       shadow: Colors.black,
       scrim: Colors.black54,
@@ -298,7 +299,8 @@ class WildfireA11yTheme {
       onSurfaceVariant: BrandPalette.onDarkMedium,
       error: BrandPalette.amber500,
       onError: BrandPalette.onDarkHigh,
-      outline: BrandPalette.outline,
+      outline: Color(
+          0xFF8BC6B6), // Lighter for 3:1 contrast on forest500 (web-compatible)
       outlineVariant: BrandPalette.forest700,
       shadow: Colors.black,
       scrim: Colors.black54,
