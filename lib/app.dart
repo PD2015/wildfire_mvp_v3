@@ -8,7 +8,7 @@ import 'features/report/screens/report_fire_screen.dart';
 import 'services/location_resolver.dart';
 import 'services/fire_location_service.dart';
 import 'services/fire_risk_service.dart';
-import 'theme/wildfire_theme.dart';
+import 'theme/wildfire_a11y_theme.dart';
 import 'widgets/bottom_nav.dart';
 
 /// WildFire application root widget
@@ -85,9 +85,10 @@ class WildFireApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'WildFire Risk Assessment',
 
-      // Theme configuration with official Scottish colors
-      theme: WildfireTheme.light,
-      darkTheme: WildfireTheme.dark,
+      // WCAG 2.1 AA compliant theme (C3 constitutional gate)
+      // Uses BrandPalette for app chrome, RiskPalette for risk widgets (C4)
+      theme: WildfireA11yTheme.light,
+      darkTheme: WildfireA11yTheme.dark,
       themeMode: ThemeMode.system,
 
       // Accessibility and localization

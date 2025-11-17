@@ -22,7 +22,7 @@ void main() {
       await tester.drag(find.byType(ListView), const Offset(0, -200));
       await tester.pumpAndSettle();
 
-      expect(find.text('Call 0800 555 111 — Crimestoppers'), findsOneWidget);
+      expect(find.text('Call Crimestoppers'), findsOneWidget);
     });
 
     testWidgets('should have AppBar with correct title', (tester) async {
@@ -153,11 +153,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Assert - Verify themed elements exist
+      // Assert - Verify themed elements exist (Card widgets for Material 3)
       expect(
-        find.byType(Container),
-        findsAtLeastNWidgets(1),
-      ); // At least banner container visible
+        find.byType(Card),
+        findsAtLeastNWidgets(2),
+      ); // Banner card + emergency actions card + tips card
       expect(
         find.text('Call 999 — Fire Service'),
         findsOneWidget,

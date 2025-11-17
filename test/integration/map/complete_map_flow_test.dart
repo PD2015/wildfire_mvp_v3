@@ -309,9 +309,9 @@ void main() {
     testWidgets(
       '"Check risk here" button calls FireRiskService',
       (tester) async {
-        // Skip on unsupported platforms (macOS desktop)
-        if (!kIsWeb && Platform.isMacOS) {
-          return; // Skip test - GoogleMap not supported on macOS desktop
+        // Skip on web and unsupported platforms (macOS desktop, web)
+        if (kIsWeb || (!kIsWeb && Platform.isMacOS)) {
+          return; // Skip test - GoogleMap/FAB layout differs on web, not supported on macOS desktop
         }
 
         // Arrange

@@ -34,60 +34,76 @@ class ReportFireScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Step 1 — Emergency (999)
-          Text(
-            '1) If the fire is spreading or unsafe:',
-            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Call 999 and ask for the Fire Service.\n'
-            'Give your location, what\'s burning, and a safe access point.',
-            style: textTheme.bodyLarge,
-          ),
-          const SizedBox(height: 12),
-          EmergencyButton(
-            contact: EmergencyContact.fireService,
-            onPressed: () =>
-                _handleEmergencyCall(context, EmergencyContact.fireService),
+          // Emergency Actions Card - Groups all three contact options
+          Card(
+            elevation: 2.0,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Step 1 — Emergency (999)
+                  Text(
+                    '1) If the fire is spreading or unsafe:',
+                    style: textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Call 999 and ask for the Fire Service.\n'
+                    'Give your location, what\'s burning, and a safe access point.',
+                    style: textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 12),
+                  EmergencyButton(
+                    contact: EmergencyContact.fireService,
+                    onPressed: () => _handleEmergencyCall(
+                        context, EmergencyContact.fireService),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Step 2 — Police Scotland (101)
+                  Text(
+                    '2) If someone is lighting a fire irresponsibly:',
+                    style: textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Text('Call Police Scotland on 101.',
+                      style: textTheme.bodyLarge),
+                  const SizedBox(height: 12),
+                  EmergencyButton(
+                    contact: EmergencyContact.policeScotland,
+                    onPressed: () => _handleEmergencyCall(
+                        context, EmergencyContact.policeScotland),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Step 3 — Crimestoppers (0800 555 111)
+                  Text(
+                    '3) Want to report anonymously?',
+                    style: textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Call Crimestoppers on 0800 555 111.',
+                    style: textTheme.bodyLarge,
+                  ),
+                  const SizedBox(height: 12),
+                  EmergencyButton(
+                    contact: EmergencyContact.crimestoppers,
+                    onPressed: () => _handleEmergencyCall(
+                        context, EmergencyContact.crimestoppers),
+                  ),
+                ],
+              ),
+            ),
           ),
 
-          const SizedBox(height: 24),
-
-          // Step 2 — Police Scotland (101)
-          Text(
-            '2) If someone is lighting a fire irresponsibly:',
-            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          Text('Call Police Scotland on 101.', style: textTheme.bodyLarge),
-          const SizedBox(height: 12),
-          EmergencyButton(
-            contact: EmergencyContact.policeScotland,
-            onPressed: () =>
-                _handleEmergencyCall(context, EmergencyContact.policeScotland),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Step 3 — Crimestoppers (0800 555 111)
-          Text(
-            '3) Want to report anonymously?',
-            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Call Crimestoppers on 0800 555 111.',
-            style: textTheme.bodyLarge,
-          ),
-          const SizedBox(height: 12),
-          EmergencyButton(
-            contact: EmergencyContact.crimestoppers,
-            onPressed: () =>
-                _handleEmergencyCall(context, EmergencyContact.crimestoppers),
-          ),
-
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           // Tips card
           _TipsCard(cs: cs, textTheme: textTheme),
@@ -170,39 +186,39 @@ class _Banner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       label: 'Wildfire report instructions',
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: foreground, size: 28),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: foreground,
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyLarge?.copyWith(color: foreground),
-                  ),
-                ],
+      child: Card(
+        elevation: 2.0,
+        color: background,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: foreground, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: foreground,
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyLarge?.copyWith(color: foreground),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -218,80 +234,90 @@ class _TipsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header row with icon
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.lightbulb, color: cs.onSurfaceVariant),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Safety Tips',
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '• Use What3Words or GPS for your location\n'
-                      '• Never fight wildfires yourself\n'
-                      '• If smoke approaches, move uphill and upwind\n'
-                      '• Keep vehicle access clear for fire engines',
-                      style: textTheme.bodyMedium,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Expandable "More Safety Guidance" section
-          Theme(
-            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-            child: ExpansionTile(
-              tilePadding: EdgeInsets.zero,
-              childrenPadding: const EdgeInsets.only(
-                left: 16,
-                top: 8,
-                bottom: 4,
-              ),
-              title: Text(
-                'More Safety Guidance',
-                style: textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: cs.primary,
-                ),
-              ),
+    return Card(
+      elevation: 2.0,
+      color: cs.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header row with icon
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '• Move children, pets, and vulnerable people to safety\n'
-                  '• Keep a safe distance upwind of smoke\n'
-                  '• Note landmarks, terrain features (moorland, forestry, hillside)\n'
-                  '• Describe what\'s burning (gorse, heather, trees)\n'
-                  '• Mention if fire is spreading or threatening property/livestock\n'
-                  '• In immediate danger, call 999 without delay',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: cs.onSurfaceVariant.withValues(alpha: 0.8),
+                Icon(Icons.lightbulb, color: cs.onSurfaceVariant),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Safety Tips',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? cs.onSurface
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '• Use What3Words or GPS for your location\n'
+                        '• Never fight wildfires yourself\n'
+                        '• If smoke approaches, move uphill and upwind\n'
+                        '• Keep vehicle access clear for fire engines',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: cs
+                              .onSurface, // T-V6: Ensure visibility in dark mode
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+
+            const SizedBox(height: 12),
+
+            // Expandable "More Safety Guidance" section
+            Theme(
+              data:
+                  Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(
+                  left: 16,
+                  top: 8,
+                  bottom: 4,
+                ),
+                title: Text(
+                  'More Safety Guidance',
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? cs.onSurface
+                        : cs.primary,
+                  ),
+                ),
+                children: [
+                  Text(
+                    '• Move children, pets, and vulnerable people to safety\n'
+                    '• Keep a safe distance upwind of smoke\n'
+                    '• Note landmarks, terrain features (moorland, forestry, hillside)\n'
+                    '• Describe what\'s burning (gorse, heather, trees)\n'
+                    '• Mention if fire is spreading or threatening property/livestock\n'
+                    '• In immediate danger, call 999 without delay',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color:
+                          cs.onSurface, // T-V6: Ensure visibility in dark mode
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

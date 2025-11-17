@@ -33,7 +33,16 @@ class RiskCheckButton extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (context) => const AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Checking fire risk...'),
+          ],
+        ),
+      ),
     );
 
     // Check risk
@@ -56,6 +65,7 @@ class RiskCheckButton extends StatelessWidget {
       (fireRisk) {
         showModalBottomSheet(
           context: context,
+          showDragHandle: true,
           builder: (context) => Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(

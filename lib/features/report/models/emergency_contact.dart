@@ -99,7 +99,13 @@ class EmergencyContact extends Equatable {
   String get telUri => 'tel:${phoneNumber.replaceAll(RegExp(r'[^\d]'), '')}';
 
   /// Returns display text for UI buttons
-  String get displayText => 'Call $phoneNumber — $name';
+  String get displayText {
+    // T-V4: Crimestoppers button shows just "Call Crimestoppers" (phone in description)
+    if (this == crimestoppers) {
+      return 'Call $name';
+    }
+    return 'Call $phoneNumber — $name';
+  }
 
   /// Returns whether this is an urgent emergency contact
   bool get isUrgent => priority == EmergencyPriority.urgent;

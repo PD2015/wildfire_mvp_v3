@@ -69,7 +69,7 @@ void main() {
       );
 
       // Assert
-      expect(find.text('Call 0800 555 111 — Crimestoppers'), findsOneWidget);
+      expect(find.text('Call Crimestoppers'), findsOneWidget);
       expect(find.byType(EmergencyButton), findsOneWidget);
     });
 
@@ -180,7 +180,7 @@ void main() {
       );
 
       // Assert
-      expect(find.text('Call 0800 555 111 — Crimestoppers'), findsOneWidget);
+      expect(find.text('Call Crimestoppers'), findsOneWidget);
     });
   });
 }

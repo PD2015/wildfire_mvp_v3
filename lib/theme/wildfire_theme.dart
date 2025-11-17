@@ -1,3 +1,12 @@
+// DEPRECATED: Use WildfireA11yTheme from wildfire_a11y_theme.dart instead
+// This file preserved for backwards compatibility during migration
+// See specs/017-a11y-theme-overhaul/ for migration details
+//
+// Migration path:
+// - Replace WildfireTheme.light with WildfireA11yTheme.light
+// - Replace WildfireTheme.dark with WildfireA11yTheme.dark
+// - Update any direct RiskPalette references to use BrandPalette or ColorScheme
+
 import 'package:flutter/material.dart';
 import '../theme/risk_palette.dart';
 
