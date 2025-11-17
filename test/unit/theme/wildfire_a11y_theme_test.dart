@@ -22,9 +22,11 @@ void main() {
     test('colorScheme uses BrandPalette colors', () {
       expect(theme.colorScheme.primary, equals(BrandPalette.forest600));
       expect(theme.colorScheme.onPrimary, equals(BrandPalette.onDarkHigh));
-      expect(theme.colorScheme.secondary, equals(BrandPalette.mint400));
-      expect(theme.colorScheme.tertiary, equals(BrandPalette.amber500));
-      expect(theme.colorScheme.surface, equals(BrandPalette.offWhite));
+      expect(theme.colorScheme.secondary, equals(BrandPalette.forest700));
+      expect(theme.colorScheme.onSecondary, equals(BrandPalette.onDarkHigh));
+      expect(theme.colorScheme.tertiary, equals(BrandPalette.mint400));
+      expect(theme.colorScheme.onTertiary, equals(BrandPalette.onDarkHigh));
+      expect(theme.colorScheme.surface, equals(Colors.white));
     });
 
     test('ElevatedButton has >= 44dp minimum size (C3)', () {
@@ -74,8 +76,9 @@ void main() {
     });
 
     test('colorScheme uses lighter BrandPalette colors for dark mode', () {
-      expect(theme.colorScheme.primary, equals(BrandPalette.forest400));
-      expect(theme.colorScheme.surface, equals(BrandPalette.forest900));
+      expect(theme.colorScheme.primary, equals(BrandPalette.forest600));
+      expect(theme.colorScheme.secondary, equals(BrandPalette.forest700));
+      expect(theme.colorScheme.surface, equals(BrandPalette.forest500));
       expect(theme.colorScheme.onSurface, equals(BrandPalette.onDarkHigh));
     });
 
