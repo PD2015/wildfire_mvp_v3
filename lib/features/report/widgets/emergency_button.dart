@@ -51,11 +51,26 @@ class EmergencyButton extends StatelessWidget {
         // Material 3 design: 52dp height for comfortable touch
         height: 52.0,
         width: double.infinity,
-        child: ElevatedButton.icon(
+        child: ElevatedButton(
           onPressed: onPressed,
           style: _getButtonStyle(colorScheme),
-          icon: const Icon(Icons.call),
-          label: Text(buttonText, style: _getTextStyle(theme)),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.call),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  buttonText,
+                  style: _getTextStyle(theme),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(width: 32), // Balance icon on right side
+            ],
+          ),
         ),
       ),
     );
