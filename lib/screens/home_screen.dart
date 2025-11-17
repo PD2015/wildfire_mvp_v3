@@ -192,17 +192,19 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: 12.0),
         ],
 
-        // Manual location button
+        // Manual location button (T-V3: ElevatedButton for better visibility in dark mode)
         Expanded(
           child: Semantics(
             label: 'Set manual location for fire risk assessment',
             button: true,
             enabled: !isLoading,
-            child: OutlinedButton.icon(
+            child: ElevatedButton.icon(
               onPressed: isLoading ? null : _showManualLocationDialog,
               icon: const Icon(Icons.location_on),
               label: const Text('Set Location'),
-              style: OutlinedButton.styleFrom(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 minimumSize: const Size(0, 44.0), // C3: ≥44dp touch target
               ),
             ),

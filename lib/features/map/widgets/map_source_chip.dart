@@ -78,25 +78,29 @@ class MapSourceChip extends StatelessWidget {
         !FeatureFlags.mapLiveData && source == Freshness.mock;
 
     if (isDemoMode) {
-      final colorScheme = Theme.of(context).colorScheme;
+      // High-contrast amber chip for visibility against map (T-V1)
+      // Same styling for both light and dark themes
       return Semantics(
         label: 'Demo Data - For testing purposes only',
         child: Chip(
-          avatar: Icon(
+          avatar: const Icon(
             Icons.science_outlined,
             size: 20,
-            color: colorScheme.onTertiaryContainer,
+            color: Color(0xFF111111), // BrandPalette.onLightHigh
           ),
           label: Text(
             'DEMO DATA',
             style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: colorScheme.onTertiaryContainer,
+                  color: const Color(0xFF111111), // BrandPalette.onLightHigh
                   letterSpacing: 1.2,
                 ),
           ),
-          backgroundColor: colorScheme.tertiaryContainer,
-          side: BorderSide(color: colorScheme.tertiary, width: 2),
+          backgroundColor: const Color(0xFFF5A623), // BrandPalette.amber500
+          side: const BorderSide(
+            color: Color(0xFFE59414), // BrandPalette.amber600 (darker border)
+            width: 2,
+          ),
           elevation: 6,
           shadowColor:
               Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),

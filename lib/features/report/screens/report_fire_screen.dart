@@ -256,6 +256,9 @@ class _TipsCard extends StatelessWidget {
                         'Safety Tips',
                         style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? cs.onSurface
+                              : null,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -264,7 +267,10 @@ class _TipsCard extends StatelessWidget {
                         '• Never fight wildfires yourself\n'
                         '• If smoke approaches, move uphill and upwind\n'
                         '• Keep vehicle access clear for fire engines',
-                        style: textTheme.bodyMedium,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: cs
+                              .onSurface, // T-V6: Ensure visibility in dark mode
+                        ),
                       ),
                     ],
                   ),
@@ -289,7 +295,9 @@ class _TipsCard extends StatelessWidget {
                   'More Safety Guidance',
                   style: textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: cs.primary,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? cs.onSurface
+                        : cs.primary,
                   ),
                 ),
                 children: [
@@ -301,7 +309,8 @@ class _TipsCard extends StatelessWidget {
                     '• Mention if fire is spreading or threatening property/livestock\n'
                     '• In immediate danger, call 999 without delay',
                     style: textTheme.bodyMedium?.copyWith(
-                      color: cs.onSurfaceVariant.withValues(alpha: 0.8),
+                      color:
+                          cs.onSurface, // T-V6: Ensure visibility in dark mode
                     ),
                   ),
                 ],

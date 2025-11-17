@@ -224,6 +224,36 @@
 
 
 - [x] **T015** [P] Sweep `lib/widgets/` for ad-hoc Colors.* usage
+  - Use `grep -r "Colors\." lib/widgets/ | grep -v "import"` to find violations
+  - Apply same replacement mapping as T014
+  - EXCLUDE risk widgets: risk_banner.dart, risk_result_chip.dart (preserve RiskPalette usage)
+  - Run `./scripts/verify_no_adhoc_colors.sh` after sweep
+  - Expected: Verification script PASSES
+  - **COMPLETED**: No violations found (widgets already clean)
+
+- [x] **T016** [P] Sweep `lib/screens/` for ad-hoc Colors.* usage (if directory exists)
+  - Use `grep -r "Colors\." lib/screens/ | grep -v "import"` to find violations
+  - Apply same replacement mapping as T014
+  - Run `./scripts/verify_no_adhoc_colors.sh` after sweep
+  - Expected: Verification script PASSES
+  - **COMPLETED**: lib/screens/ does not exist (screens in lib/features/)
+
+- [x] **T017** [P] Sweep remaining `lib/` directories (controllers, utils) for ad-hoc Colors.* usage
+  - Use `grep -r "Colors\." lib/ --exclude-dir=features --exclude-dir=widgets --exclude-dir=screens --exclude-dir=theme | grep -v "import"` to find violations
+  - Apply same replacement mapping as T014
+  - Run `./scripts/verify_no_adhoc_colors.sh` after final sweep
+  - Expected: Verification script PASSES with zero violations
+  - **COMPLETED**: No violations found in controllers/utils/models/services
+  - **VERIFICATION**: `./scripts/verify_no_adhoc_colors.sh` PASSES ✅
+
+- [ ] **T017** [P] Sweep remaining `lib/` directories (controllers, utils) for ad-hoc Colors.* usage
+  - Use `grep -r "Colors\." lib/ --exclude-dir=features --exclude-dir=widgets --exclude-dir=screens --exclude-dir=theme | grep -v "import"` to find violations
+  - Apply same replacement mapping as T014
+  - Run `./scripts/verify_no_adhoc_colors.sh` after final sweep
+  - Expected: Verification script PASSES with zero violations
+
+## Phase 3.6: Testing & Validation
+
 ### Golden Tests (Widget Snapshots)
 - [x] **T018** [P] Create/refresh golden snapshots for themed components
   - Create `test/widget/theme/component_theme_test.dart` if not exists

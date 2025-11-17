@@ -101,10 +101,14 @@ class WildfireA11yTheme {
     final colorScheme = ColorScheme.light(
       primary: BrandPalette.forest600,
       onPrimary: BrandPalette.onDarkHigh,
-      secondary: BrandPalette.forest700,
+      secondary: BrandPalette.mint400,
       onSecondary: BrandPalette.onDarkHigh,
-      tertiary: BrandPalette.mint400,
-      onTertiary: BrandPalette.onDarkHigh,
+      tertiary: BrandPalette.amber500,
+      onTertiary: BrandPalette.onLightHigh,
+      // Explicit container token so UI surfaces (banners, cards) use
+      // a lighter/darker amber appropriate for light theme surfaces.
+      tertiaryContainer: BrandPalette.amber600,
+      onTertiaryContainer: BrandPalette.onLightHigh,
       surface: Colors.white,
       onSurface: BrandPalette.onLightHigh,
       surfaceContainerHighest: const Color(0xFFE7F1EF),
@@ -281,10 +285,13 @@ class WildfireA11yTheme {
     const colorScheme = ColorScheme.dark(
       primary: BrandPalette.forest600,
       onPrimary: BrandPalette.onDarkHigh,
-      secondary: BrandPalette.forest700,
+      secondary: BrandPalette.mint400,
       onSecondary: BrandPalette.onDarkHigh,
-      tertiary: BrandPalette.mint400,
-      onTertiary: BrandPalette.onDarkHigh,
+      tertiary: BrandPalette.amber500,
+      onTertiary: BrandPalette.onLightHigh,
+      // Dark theme container for tertiary (keeps same amber family)
+      tertiaryContainer: BrandPalette.amber600,
+      onTertiaryContainer: BrandPalette.onLightHigh,
       surface: BrandPalette.forest500,
       onSurface: BrandPalette.onDarkHigh,
       surfaceContainerHighest: BrandPalette.forest400,

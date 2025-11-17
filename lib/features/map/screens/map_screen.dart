@@ -5,7 +5,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/fire_information_bottom_sheet.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
-import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
+// T-V2: RiskCheckButton temporarily disabled
+// import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
 import 'package:wildfire_mvp_v3/utils/debounced_viewport_loader.dart';
@@ -233,8 +234,9 @@ class _MapScreenState extends State<MapScreen> {
             ),
         ],
       ),
-      floatingActionButton: RiskCheckButton(controller: _controller),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+      // T-V2: FAB temporarily disabled - may be confusing/unnecessary feature
+      // floatingActionButton: RiskCheckButton(controller: _controller),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }
 
