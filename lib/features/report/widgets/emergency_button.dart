@@ -51,11 +51,26 @@ class EmergencyButton extends StatelessWidget {
         // Material 3 design: 52dp height for comfortable touch
         height: 52.0,
         width: double.infinity,
-        child: ElevatedButton.icon(
+        child: ElevatedButton(
           onPressed: onPressed,
           style: _getButtonStyle(colorScheme),
-          icon: const Icon(Icons.call),
-          label: Text(buttonText, style: _getTextStyle(theme)),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.call),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  buttonText,
+                  style: _getTextStyle(theme),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(width: 32), // Balance icon on right side
+            ],
+          ),
         ),
       ),
     );
@@ -65,10 +80,10 @@ class EmergencyButton extends StatelessWidget {
   ButtonStyle _getButtonStyle(ColorScheme colorScheme) {
     switch (priority) {
       case EmergencyPriority.urgent:
-        // 999 - High contrast error colors for urgency
+        // 999 - Amber (tertiary) colors for fire-related urgency (brand consistency)
         return ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.error,
-          foregroundColor: colorScheme.onError,
+          backgroundColor: colorScheme.tertiary,
+          foregroundColor: colorScheme.onTertiary,
           elevation: 2.0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
@@ -95,11 +110,13 @@ class EmergencyButton extends StatelessWidget {
         );
 
       case EmergencyPriority.anonymous:
-        // Crimestoppers - surfaceContainerHighest colors for neutral reporting
+        // Crimestoppers - match Police styling (primary) so buttons are
+        // consistent in light theme per design request. Use primary + onPrimary
+        // which adapts correctly for dark mode as well.
         return ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.surfaceContainerHighest,
-          foregroundColor: colorScheme.onSurface,
-          elevation: 1.0,
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+          elevation: 2.0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
               14.0,

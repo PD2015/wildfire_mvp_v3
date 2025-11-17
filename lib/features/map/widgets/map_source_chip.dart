@@ -34,13 +34,14 @@ class MapSourceChip extends StatelessWidget {
   }
 
   Color _getSourceColor(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     switch (source) {
       case Freshness.live:
-        return Colors.green;
+        return colorScheme.primary;
       case Freshness.cached:
-        return Colors.orange;
+        return colorScheme.tertiary;
       case Freshness.mock:
-        return Colors.blue;
+        return colorScheme.secondary;
     }
   }
 
@@ -77,70 +78,72 @@ class MapSourceChip extends StatelessWidget {
         !FeatureFlags.mapLiveData && source == Freshness.mock;
 
     if (isDemoMode) {
+      // High-contrast amber chip for visibility against map (T-V1)
+      // Same styling for both light and dark themes
       return Semantics(
         label: 'Demo Data - For testing purposes only',
-        child: Card(
+        child: Chip(
+          avatar: const Icon(
+            Icons.science_outlined,
+            size: 20,
+            color: Color(0xFF111111), // BrandPalette.onLightHigh
+          ),
+          label: Text(
+            'DEMO DATA',
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF111111), // BrandPalette.onLightHigh
+                  letterSpacing: 1.2,
+                ),
+          ),
+          backgroundColor: const Color(0xFFF5A623), // BrandPalette.amber500
+          side: const BorderSide(
+            color: Color(0xFFE59414), // BrandPalette.amber600 (darker border)
+            width: 2,
+          ),
           elevation: 6,
-          color: Colors.amber.shade50,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Colors.amber.shade700, width: 2),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.science_outlined,
-                  size: 20,
-                  color: Colors.amber.shade900,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'DEMO DATA',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.amber.shade900,
-                        letterSpacing: 1.2,
-                      ),
-                ),
-              ],
-            ),
-          ),
+          shadowColor:
+              Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),
         ),
       );
     }
 
     // Standard source chip for live/cached data
+    final sourceColor = _getSourceColor(context);
     return Semantics(
       label: 'Data source: ${_getSourceLabel()}, updated ${_formatTimestamp()}',
-      child: Card(
-        elevation: 4,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(_getSourceIcon(), size: 16, color: _getSourceColor(context)),
-              const SizedBox(width: 8),
-              Text(
-                _getSourceLabel(),
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: _getSourceColor(context),
-                    ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                _formatTimestamp(),
-                style: Theme.of(
-                  context,
-                ).textTheme.labelSmall?.copyWith(color: Colors.grey[600]),
-              ),
-            ],
-          ),
+      child: Chip(
+        avatar: Icon(
+          _getSourceIcon(),
+          size: 16,
+          color: sourceColor,
         ),
+        label: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _getSourceLabel(),
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: sourceColor,
+                  ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              _formatTimestamp(),
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
+        ),
+        backgroundColor: sourceColor.withValues(alpha: 0.1),
+        side: BorderSide(color: sourceColor, width: 1),
+        elevation: 4,
+        shadowColor:
+            Theme.of(context).colorScheme.shadow.withValues(alpha: 0.2),
       ),
     );
   }

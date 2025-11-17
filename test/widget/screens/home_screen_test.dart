@@ -176,17 +176,17 @@ void main() {
           findsAtLeastNWidgets(1),
         ); // May appear in RiskBanner and timestamp
         expect(
-          find.text('EFFIS'),
+          find.textContaining('Data Source: EFFIS'),
           findsAtLeastNWidgets(1),
-        ); // Source chip in multiple places
+        ); // Source label in RiskBanner
       });
 
       testWidgets('displays correct source chips', (tester) async {
         final testCases = [
-          (DataSource.effis, 'EFFIS'),
-          (DataSource.sepa, 'SEPA'),
-          (DataSource.cache, 'Cache'),
-          (DataSource.mock, 'Mock'),
+          (DataSource.effis, 'Data Source: EFFIS'),
+          (DataSource.sepa, 'Data Source: SEPA'),
+          (DataSource.cache, 'Data Source: Cache'),
+          (DataSource.mock, 'Data Source: Mock'),
         ];
 
         for (final (source, expectedText) in testCases) {
@@ -204,9 +204,9 @@ void main() {
           await tester.pumpWidget(buildHomeScreen());
           await tester.pump(); // Allow state change to settle
 
-          // Assert - Should find at least one source chip
+          // Assert - Should find source label in RiskBanner
           expect(
-            find.text(expectedText),
+            find.textContaining(expectedText),
             findsAtLeastNWidgets(1),
             reason: 'Should display $expectedText for source $source',
           );
@@ -421,7 +421,7 @@ void main() {
 
         // Act & Assert
         final timestampSemantics = find.bySemanticsLabel(
-          RegExp(r'Data updated .* from EFFIS'),
+          RegExp(r'Current wildfire risk .*, .*, data from EFFIS'),
         );
         expect(timestampSemantics, findsOneWidget);
       });
@@ -476,10 +476,10 @@ void main() {
         // Assert
         expect(find.textContaining('Updated'), findsAtLeastNWidgets(1));
         expect(
-          find.text('SEPA'),
+          find.textContaining('Data Source: SEPA'),
           findsAtLeastNWidgets(1),
-        ); // May appear in RiskBanner and timestamp
-        expect(find.byIcon(Icons.access_time), findsOneWidget);
+        ); // Source label in RiskBanner
+        // Icon assertions removed - RiskBanner displays location_on, not access_time
       });
 
       testWidgets('cached error state shows cached badge', (tester) async {

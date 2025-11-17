@@ -19,7 +19,7 @@ void main() {
         final buttonTexts = [
           'Call 999 — Fire Service',
           'Call 101 — Police Scotland',
-          'Call 0800 555 111 — Crimestoppers',
+          'Call Crimestoppers',
         ];
 
         for (int i = 0; i < buttonTexts.length; i++) {
@@ -104,7 +104,7 @@ void main() {
           find.widgetWithText(EmergencyButton, 'Call 101 — Police Scotland'),
           find.widgetWithText(
             EmergencyButton,
-            'Call 0800 555 111 — Crimestoppers',
+            'Call Crimestoppers',
           ),
         ];
 
@@ -144,7 +144,7 @@ void main() {
         // Test button text visibility
         expect(find.text('Call 999 — Fire Service'), findsOneWidget);
         expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
-        expect(find.text('Call 0800 555 111 — Crimestoppers'), findsOneWidget);
+        expect(find.text('Call Crimestoppers'), findsOneWidget);
 
         // Verify buttons exist and are tappable
         final fireServiceButton = find.widgetWithText(
@@ -161,7 +161,7 @@ void main() {
 
         final crimestoppersButton = find.widgetWithText(
           EmergencyButton,
-          'Call 0800 555 111 — Crimestoppers',
+          'Call Crimestoppers',
         );
         expect(crimestoppersButton, findsOneWidget);
       });
@@ -294,7 +294,7 @@ void main() {
           find.widgetWithText(EmergencyButton, 'Call 101 — Police Scotland'),
           find.widgetWithText(
             EmergencyButton,
-            'Call 0800 555 111 — Crimestoppers',
+            'Call Crimestoppers',
           ),
         ];
 
@@ -332,7 +332,7 @@ void main() {
           find.widgetWithText(EmergencyButton, 'Call 101 — Police Scotland'),
           find.widgetWithText(
             EmergencyButton,
-            'Call 0800 555 111 — Crimestoppers',
+            'Call Crimestoppers',
           ),
         ];
 
@@ -385,7 +385,7 @@ void main() {
         await tester.drag(find.byType(ListView), const Offset(0, -300));
         await tester.pumpAndSettle();
 
-        expect(find.text('Call 0800 555 111 — Crimestoppers'), findsOneWidget);
+        expect(find.text('Call Crimestoppers'), findsOneWidget);
       });
     });
 

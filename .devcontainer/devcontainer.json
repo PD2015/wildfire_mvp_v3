@@ -1,19 +1,16 @@
 {
-  "name": "WildFire Agent B (Map)",
+  "name": "WildFire Agent D (Style/System UI)",
   "build": {
     "dockerfile": "Dockerfile",
     "context": ".."
   },
-  "forwardPorts": [
-    8082,
-    5174
-  ],
+  "forwardPorts": [8084, 5176],
   "portsAttributes": {
-    "8082": {
+    "8084": {
       "label": "Flutter Web App",
       "onAutoForward": "notify"
     },
-    "5174": {
+    "5176": {
       "label": "Dev Server",
       "onAutoForward": "silent"
     }
@@ -27,9 +24,7 @@
       "settings": {
         "dart.flutterSdkPath": "/home/vscode/flutter",
         "editor.formatOnSave": true,
-        "editor.rulers": [
-          120
-        ],
+        "editor.rulers": [120],
         "dart.lineLength": 120,
         "files.trimTrailingWhitespace": true
       }

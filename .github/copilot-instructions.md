@@ -17,6 +17,8 @@ Auto-generated from all feature plans. Last updated: 2025-10-19
 - No new storage requirements - UI/routing changes only (015-rename-home-fire)
 - Dart 3.9.2, Flutter 3.35.5 stable + Flutter SDK, Material Design, existing RiskPalette, CachedBadge widge (016-016-a14-riskbanner)
 - N/A (UI-only changes, no data persistence) (016-016-a14-riskbanner)
+- Dart 3.9.2, Flutter 3.35.5 stable + Flutter SDK, Material 3 (useMaterial3: true) (017-a11y-theme-overhaul)
+- N/A (theme configuration only, no persistence) (017-a11y-theme-overhaul)
 - Dart 3.9.2, Flutter 3.35.5 stable + google_maps_flutter ^2.5.0, http (EFFIS API), dartz (error handling), equatable (models), geolocator (distance calculation) (018-map-fire-information)
 - SharedPreferences for caching fire incidents, existing cache infrastructure (018-map-fire-information)
 
@@ -198,6 +200,7 @@ replaces:
 
 ## Recent Changes
 - 018-map-fire-information: Added Dart 3.9.2, Flutter 3.35.5 stable + google_maps_flutter ^2.5.0, http (EFFIS API), dartz (error handling), equatable (models), geolocator (distance calculation)
+- 017-a11y-theme-overhaul: Added Dart 3.9.2, Flutter 3.35.5 stable + Flutter SDK, Material 3 (useMaterial3: true)
 - 016-016-a14-riskbanner: Added Dart 3.9.2, Flutter 3.35.5 stable + Flutter SDK, Material Design, existing RiskPalette, CachedBadge widge
 - 015-rename-home-fire: Added Dart 3.9.2, Flutter 3.35.5 stable + Flutter SDK, go_router (navigation/routing), Material Design Icons (Icons.warning_amber)
 

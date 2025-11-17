@@ -5,7 +5,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/fire_information_bottom_sheet.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
-import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
+// T-V2: RiskCheckButton temporarily disabled
+// import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
 import 'package:wildfire_mvp_v3/utils/debounced_viewport_loader.dart';
@@ -177,9 +178,7 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Fire Map'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        elevation: 1,
+        centerTitle: true,
       ),
       body: Stack(
         children: [
@@ -214,7 +213,10 @@ class _MapScreenState extends State<MapScreen> {
                   });
                 },
                 child: Container(
-                  color: Colors.black.withValues(alpha: 0.5),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .scrim
+                      .withValues(alpha: 0.5),
                   child: GestureDetector(
                     onTap: () {}, // Prevent tap from closing when tapping sheet
                     child: FireDetailsBottomSheet(
@@ -232,8 +234,9 @@ class _MapScreenState extends State<MapScreen> {
             ),
         ],
       ),
-      floatingActionButton: RiskCheckButton(controller: _controller),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+      // T-V2: FAB temporarily disabled - may be confusing/unnecessary feature
+      // floatingActionButton: RiskCheckButton(controller: _controller),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }
 
@@ -243,17 +246,17 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Fire Map'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        elevation: 1,
+        centerTitle: true,
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.map_outlined, size: 64.0, color: Colors.grey),
+              Icon(Icons.map_outlined,
+                  size: 64.0,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant),
               const SizedBox(height: 16.0),
               Text(
                 'Map Not Available',
@@ -270,6 +273,7 @@ class _MapScreenState extends State<MapScreen> {
               if (state is MapSuccess) ...[
                 Card(
                   margin: const EdgeInsets.all(16),
+                  elevation: 2,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -297,10 +301,16 @@ class _MapScreenState extends State<MapScreen> {
                                       Icon(
                                         Icons.local_fire_department,
                                         color: incident.intensity == 'high'
-                                            ? Colors.red
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .error
                                             : incident.intensity == 'moderate'
-                                                ? Colors.orange
-                                                : Colors.cyan,
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .tertiary
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
                                         size: 20,
                                       ),
                                       const SizedBox(width: 8),
@@ -400,7 +410,7 @@ class _MapScreenState extends State<MapScreen> {
                     Icon(
                       Icons.check_circle_outline,
                       size: 48,
-                      color: Colors.green[700],
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(height: 12),
                     Text(
@@ -421,7 +431,9 @@ class _MapScreenState extends State<MapScreen> {
                       'Data source: ${state.freshness.name.toUpperCase()}',
                       style: Theme.of(
                         context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                      ).textTheme.bodySmall?.copyWith(
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -440,7 +452,11 @@ class _MapScreenState extends State<MapScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64.0, color: Colors.red),
+            Icon(
+              Icons.error_outline,
+              size: 64.0,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 16.0),
             Text(
               'Failed to load map',

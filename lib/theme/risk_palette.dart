@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 /// Do not hardcode hex values elsewhere. Gate C4 checks against these constants.
 class RiskPalette {
   // Risk levels (Very Low → Extreme)
-  static const veryLow = Color(0xFF00B3FF); // Very Low
-  static const low = Color(0xFF2ECC71); // Low
-  static const moderate = Color(0xFFF1C40F); // Moderate
-  static const high = Color(0xFFE67E22); // High
-  static const veryHigh = Color(0xFFE74C3C); // Very High
-  static const extreme = Color(0xFFC0392B); // Extreme
+  static const veryLow = Color(0xFF4CAF50); // Very Low
+  static const low = Color(0xFF8BC34A); // Low
+  static const moderate = Color(0xFFFFEB3B); // Moderate
+  static const high = Color(0xFFFF9800); // High
+  static const veryHigh = Color(0xFFF44336); // Very High
+  static const extreme = Color(0xFFB71C1C); // Extreme
 
   // Brand accent
   static const brandForest = Color(0xFF0B3D2E);
