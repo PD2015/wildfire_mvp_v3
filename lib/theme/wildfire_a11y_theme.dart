@@ -102,7 +102,7 @@ class WildfireA11yTheme {
       primary: BrandPalette.forest600,
       onPrimary: BrandPalette.onDarkHigh,
       secondary: BrandPalette.mint400,
-      onSecondary: BrandPalette.onDarkHigh,
+      onSecondary: BrandPalette.onLightHigh, // Dark text on light mint400
       tertiary: BrandPalette.amber500,
       onTertiary: BrandPalette.onLightHigh,
       // Explicit container token so UI surfaces (banners, cards) use
