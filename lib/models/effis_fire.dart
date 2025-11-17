@@ -95,11 +95,6 @@ class EffisFire extends Equatable {
       intensity: intensity,
       description: country != null ? 'Fire in $country' : 'Active fire',
       areaHectares: areaHectares,
-      detectedAt: fireDate, // Use firedate as detection time
-      sensorSource: 'MODIS', // EFFIS primarily uses MODIS data
-      confidence: null, // Not provided in EFFIS API
-      frp: null, // Not provided in current EFFIS response
-      lastUpdate: null, // Not tracked in this conversion
     );
   }
 
