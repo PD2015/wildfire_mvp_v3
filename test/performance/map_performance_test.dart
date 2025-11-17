@@ -155,7 +155,7 @@ class MockLocationResolver implements LocationResolver {
 
 class MockFireLocationService implements FireLocationService {
   List<FireIncident> _incidents = [
-    FireIncident.test(
+    FireIncident(
       id: 'mock_fire_001',
       location: const LatLng(55.9533, -3.1883),
       source: DataSource.mock,
@@ -163,7 +163,7 @@ class MockFireLocationService implements FireLocationService {
       timestamp: DateTime.now(),
       intensity: 'moderate',
     ),
-    FireIncident.test(
+    FireIncident(
       id: 'mock_fire_002',
       location: const LatLng(55.8642, -4.2518),
       source: DataSource.mock,
@@ -171,7 +171,7 @@ class MockFireLocationService implements FireLocationService {
       timestamp: DateTime.now(),
       intensity: 'high',
     ),
-    FireIncident.test(
+    FireIncident(
       id: 'mock_fire_003',
       location: const LatLng(57.1497, -2.0943),
       source: DataSource.mock,

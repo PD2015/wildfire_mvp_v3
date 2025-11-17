@@ -1,5 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'cache_service.dart';
 import '../models/fire_incident.dart';
 import '../utils/geohash_utils.dart';
@@ -14,12 +13,9 @@ import '../utils/geohash_utils.dart';
 /// - **TTL**: 6 hours for fire incident data freshness
 /// - **Capacity**: 100 entries with LRU eviction
 /// - **Freshness Marking**: Cached incidents marked with Freshness.cached
-/// - **Viewport Queries**: Geohash-based spatial indexing for efficient bounds queries
 ///
-/// ## Task 8 Enhancements
-/// - Added `getIncidentsForViewport()` for efficient viewport-based queries
-/// - Geohash spatial indexing enables fast lookups across multiple cache entries
-/// - Aggregates incidents from all overlapping cache entries within bounds
+/// Note: MVP uses bbox center for cache keys. May over-reuse cache across
+/// large map pans. Consider viewport-corners hashing in A11+ if needed.
 abstract class FireIncidentCache extends CacheService<List<FireIncident>> {
   /// Get cached fire incident data for specific coordinates
   ///
@@ -40,30 +36,4 @@ abstract class FireIncidentCache extends CacheService<List<FireIncident>> {
     final geohash = GeohashUtils.encode(lat, lon, precision: 5);
     return await get(geohash);
   }
-
-  /// Get all cached fire incidents within viewport bounds (Task 8)
-  ///
-  /// Performs geohash-based spatial query to find all cache entries that
-  /// overlap with the requested viewport. Aggregates incidents from all
-  /// matching cache entries and filters to ensure they fall within bounds.
-  ///
-  /// Strategy:
-  /// 1. Calculate geohash neighbors for viewport coverage
-  /// 2. Query cache entries for all overlapping geohashes
-  /// 3. Aggregate and deduplicate incidents across entries
-  /// 4. Filter incidents to ensure they fall within exact bounds
-  /// 5. Mark all incidents with Freshness.cached
-  ///
-  /// Parameters:
-  /// - [bounds]: Map viewport bounds to query
-  ///
-  /// Returns:
-  /// - Some(List<FireIncident>) with all cached incidents within bounds
-  /// - None() if no valid cached data overlaps the viewport
-  ///
-  /// Performance: <200ms target even with multiple cache entries
-  /// Privacy: Uses geohash spatial keys, no raw coordinates in lookups
-  Future<Option<List<FireIncident>>> getIncidentsForViewport(
-    gmaps.LatLngBounds bounds,
-  );
 }

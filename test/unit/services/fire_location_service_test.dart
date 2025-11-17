@@ -43,7 +43,7 @@ void main() {
     // Use timestamps in the past to avoid validation errors
     final testTimestamp = DateTime(2024, 10, 20, 12, 0);
 
-    final mockIncident = FireIncident.test(
+    final mockIncident = FireIncident(
       id: 'mock_001',
       location: const LatLng(55.5, -3.5),
       source: DataSource.mock,
@@ -102,7 +102,7 @@ void main() {
         // Arrange: Mock service returns multiple incidents
         final mockIncidents = [
           mockIncident,
-          FireIncident.test(
+          FireIncident(
             id: 'mock_002',
             location: const LatLng(55.6, -3.6),
             source: DataSource.mock,
@@ -298,7 +298,7 @@ void main() {
         'converts EffisFire properties correctly',
         () async {
           // This test documents the conversion happening at line 76:
-          // final incidents = effisFires.map((fire) => fire.toFireIncident.test()).toList();
+          // final incidents = effisFires.map((fire) => fire.toFireIncident()).toList();
 
           // Expected conversion:
           // - id: effis_001
