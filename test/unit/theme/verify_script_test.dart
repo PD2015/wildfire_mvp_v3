@@ -1,10 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// Test for scripts/verify_no_adhoc_colors.sh
 ///
 /// Verifies script detects ad-hoc Colors.* usage while excluding
 /// risk widget files (RiskPalette is allowed per C4 gate).
+///
+/// Note: Skipped on web platform (no file system access)
 void main() {
   test('verify_no_adhoc_colors.sh executable exists', () {
     final script = File('scripts/verify_no_adhoc_colors.sh');
@@ -16,7 +19,7 @@ void main() {
     final isExecutable = (stat.mode & 0x49) != 0; // Check user execute bit
     expect(isExecutable, isTrue,
         reason: 'Script must be executable (chmod +x)');
-  });
+  }, skip: kIsWeb ? 'File I/O not available on web platform' : null);
 
   test('verify_no_adhoc_colors.sh detects Colors.* usage', () async {
     // This test will FAIL initially when Colors.* exists in app chrome
@@ -45,5 +48,5 @@ void main() {
         reason: 'Must exclude risk_banner.dart per C4 gate');
     expect(content, contains('risk_result_chip.dart'),
         reason: 'Must exclude risk_result_chip.dart per C4 gate');
-  });
+  }, skip: kIsWeb ? 'File I/O not available on web platform' : null);
 }
