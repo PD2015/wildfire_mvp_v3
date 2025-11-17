@@ -248,7 +248,7 @@ class _MapScreenState extends State<MapScreen> {
         title: const Text('Fire Map'),
         centerTitle: true,
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
