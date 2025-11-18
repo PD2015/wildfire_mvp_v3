@@ -47,6 +47,9 @@ class FireDetailsBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return DraggableScrollableSheet(
       initialChildSize: 0.6,
       minChildSize: 0.4,
@@ -54,9 +57,9 @@ class FireDetailsBottomSheet extends StatelessWidget {
       expand: false,
       builder: (context, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Column(
             children: [
@@ -183,7 +186,14 @@ class FireDetailsBottomSheet extends StatelessWidget {
                           children: [
                             Text(
                               incident.description!,
-                              style: const TextStyle(fontSize: 14, height: 1.5),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                    height: 1.5,
+                                  ),
                             ),
                           ],
                         ),
@@ -212,23 +222,26 @@ class FireDetailsBottomSheet extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.local_fire_department,
-            color: RiskPalette.high,
+            color: colorScheme.error,
             size: 24,
             semanticLabel: 'Fire incident',
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Text(
               'Fire Incident Details',
-              style: TextStyle(
-                fontSize: 20,
+              style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
               ),
             ),
           ),
@@ -236,7 +249,7 @@ class FireDetailsBottomSheet extends StatelessWidget {
             button: true,
             label: 'Close fire details',
             child: IconButton(
-              icon: const Icon(Icons.close),
+              icon: Icon(Icons.close, color: colorScheme.onSurfaceVariant),
               onPressed: () {
                 if (onClose != null) {
                   onClose!();
