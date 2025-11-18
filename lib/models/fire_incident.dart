@@ -7,16 +7,25 @@ import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 /// Represents active fire or burnt area incident from EFFIS WFS,
 /// SEPA, Cache, or Mock sources.
 ///
-/// Implementation: TBD in T009
+/// Enhanced with satellite sensor data for comprehensive fire information sheet
 class FireIncident extends Equatable {
   final String id;
   final LatLng location;
   final DataSource source;
   final Freshness freshness;
-  final DateTime timestamp;
+  final DateTime timestamp; // Kept for backward compatibility
   final String intensity; // "low" | "moderate" | "high"
   final String? description;
   final double? areaHectares;
+
+  // New satellite sensor fields for fire information sheet
+  final DateTime?
+      detectedAt; // When fire was first detected (defaults to timestamp)
+  final String?
+      sensorSource; // Satellite sensor: VIIRS, MODIS, etc (defaults to 'UNKNOWN')
+  final double? confidence; // Detection confidence percentage 0-100
+  final double? frp; // Fire Radiative Power in MW
+  final DateTime? lastUpdate; // Most recent data update
 
   FireIncident({
     required this.id,
@@ -25,10 +34,50 @@ class FireIncident extends Equatable {
     required this.freshness,
     required this.timestamp,
     required this.intensity,
+    DateTime? detectedAt,
+    String? sensorSource,
     this.description,
     this.areaHectares,
-  }) {
+    this.confidence,
+    this.frp,
+    this.lastUpdate,
+  })  : detectedAt = detectedAt ?? timestamp,
+        sensorSource = sensorSource ?? 'UNKNOWN' {
     _validate();
+  }
+
+  /// Factory for test data with reasonable defaults
+  factory FireIncident.test({
+    required String id,
+    required LatLng location,
+    DataSource source = DataSource.mock,
+    Freshness freshness = Freshness.live,
+    DateTime? timestamp,
+    String intensity = 'moderate',
+    DateTime? detectedAt,
+    String sensorSource = 'VIIRS',
+    String? description,
+    double? areaHectares,
+    double? confidence,
+    double? frp,
+    DateTime? lastUpdate,
+  }) {
+    final now = DateTime.now().toUtc();
+    return FireIncident(
+      id: id,
+      location: location,
+      source: source,
+      freshness: freshness,
+      timestamp: timestamp ?? now,
+      intensity: intensity,
+      detectedAt: detectedAt ?? now,
+      sensorSource: sensorSource,
+      description: description,
+      areaHectares: areaHectares,
+      confidence: confidence,
+      frp: frp,
+      lastUpdate: lastUpdate,
+    );
   }
 
   /// Validation rules per data-model.md
@@ -42,6 +91,9 @@ class FireIncident extends Equatable {
     if (timestamp.isAfter(DateTime.now())) {
       throw ArgumentError('FireIncident timestamp must not be in the future');
     }
+    if (detectedAt != null && detectedAt!.isAfter(DateTime.now())) {
+      throw ArgumentError('FireIncident detectedAt must not be in the future');
+    }
     if (!['low', 'moderate', 'high'].contains(intensity)) {
       throw ArgumentError(
         'FireIncident intensity must be "low", "moderate", or "high"',
@@ -49,6 +101,20 @@ class FireIncident extends Equatable {
     }
     if (areaHectares != null && areaHectares! <= 0) {
       throw ArgumentError('FireIncident areaHectares must be > 0');
+    }
+    if (sensorSource != null && sensorSource!.isEmpty) {
+      throw ArgumentError('FireIncident sensorSource must be non-empty');
+    }
+    if (confidence != null && (confidence! < 0 || confidence! > 100)) {
+      throw ArgumentError('FireIncident confidence must be between 0-100%');
+    }
+    if (frp != null && frp! < 0) {
+      throw ArgumentError('FireIncident frp must be non-negative');
+    }
+    if (lastUpdate != null &&
+        detectedAt != null &&
+        lastUpdate!.isBefore(detectedAt!)) {
+      throw ArgumentError('FireIncident lastUpdate must be >= detectedAt');
     }
   }
 
@@ -102,6 +168,20 @@ class FireIncident extends Equatable {
       description: properties['description']?.toString() ??
           properties['country']?.toString(),
       areaHectares: areaHa?.toDouble(),
+      detectedAt: DateTime.parse(
+        properties['detected_at']?.toString() ??
+            properties['timestamp']?.toString() ??
+            properties['firedate']?.toString() ??
+            DateTime.now().toIso8601String(),
+      ).toUtc(),
+      sensorSource: properties['sensor']?.toString() ??
+          properties['sensor_source']?.toString() ??
+          'MODIS', // Default fallback
+      confidence: (properties['confidence'] as num?)?.toDouble(),
+      frp: (properties['frp'] as num?)?.toDouble(),
+      lastUpdate: properties['last_update'] != null
+          ? DateTime.parse(properties['last_update'].toString()).toUtc()
+          : null,
     );
   }
 
@@ -119,6 +199,11 @@ class FireIncident extends Equatable {
       'intensity': intensity,
       'description': description,
       'areaHectares': areaHectares,
+      'detectedAt': detectedAt?.toIso8601String(),
+      'sensorSource': sensorSource,
+      'confidence': confidence,
+      'frp': frp,
+      'lastUpdate': lastUpdate?.toIso8601String(),
     };
   }
 
@@ -143,6 +228,13 @@ class FireIncident extends Equatable {
       intensity: json['intensity'] as String,
       description: json['description'] as String?,
       areaHectares: json['areaHectares'] as double?,
+      detectedAt: DateTime.parse(json['detectedAt'] as String).toUtc(),
+      sensorSource: json['sensorSource'] as String,
+      confidence: json['confidence'] as double?,
+      frp: json['frp'] as double?,
+      lastUpdate: json['lastUpdate'] != null
+          ? DateTime.parse(json['lastUpdate'] as String).toUtc()
+          : null,
     );
   }
 
@@ -156,6 +248,11 @@ class FireIncident extends Equatable {
     String? intensity,
     String? description,
     double? areaHectares,
+    DateTime? detectedAt,
+    String? sensorSource,
+    double? confidence,
+    double? frp,
+    DateTime? lastUpdate,
   }) {
     return FireIncident(
       id: id ?? this.id,
@@ -166,6 +263,11 @@ class FireIncident extends Equatable {
       intensity: intensity ?? this.intensity,
       description: description ?? this.description,
       areaHectares: areaHectares ?? this.areaHectares,
+      detectedAt: detectedAt ?? this.detectedAt,
+      sensorSource: sensorSource ?? this.sensorSource,
+      confidence: confidence ?? this.confidence,
+      frp: frp ?? this.frp,
+      lastUpdate: lastUpdate ?? this.lastUpdate,
     );
   }
 
@@ -179,5 +281,10 @@ class FireIncident extends Equatable {
         intensity,
         description,
         areaHectares,
+        detectedAt,
+        sensorSource,
+        confidence,
+        frp,
+        lastUpdate,
       ];
 }
