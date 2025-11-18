@@ -428,7 +428,7 @@ void main() {
         expect(errorState.lastKnownLocation, TestData.edinburgh);
       });
 
-      test('transitions through MapLoading during refresh', () async {
+      test('refreshes without MapLoading to avoid widget unmount', () async {
         // Arrange
         mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
         mockFireLocationService.mockGetActiveFires(
@@ -436,12 +436,13 @@ void main() {
         );
         await controller.initialize();
 
+        // Add listener to verify only success state emitted (no loading during refresh)
         final states = <MapState>[];
         controller.addListener(() {
           states.add(controller.state);
         });
 
-        // Arrange: Mock new data
+        // Arrange: Mock new data for refresh
         mockFireLocationService.reset();
         mockFireLocationService.mockGetActiveFires(
           Right([TestData.createFireIncident(id: 'refreshed_fire')]),
@@ -452,9 +453,12 @@ void main() {
         // Act
         await controller.refreshMapData(newBounds);
 
-        // Assert
-        expect(states.length, greaterThanOrEqualTo(2)); // Loading → Success
-        expect(states.first, isA<MapLoading>());
+        // Assert - Should only emit success, NOT loading (to prevent widget unmount)
+        expect(states.length, greaterThanOrEqualTo(1)); // At least success
+        // Verify NO loading state during refresh (prevents map widget unmount)
+        final hasLoadingState = states.any((state) => state is MapLoading);
+        expect(hasLoadingState, isFalse,
+            reason: 'Should NOT transition through MapLoading during refresh');
         expect(states.last, isA<MapSuccess>());
       });
 
@@ -482,8 +486,8 @@ void main() {
         // Act
         await controller.refreshMapData(newBounds);
 
-        // Assert
-        expect(refreshNotificationCount, greaterThanOrEqualTo(2));
+        // Assert - Should emit at least 1 notification (success state, no loading during refresh)
+        expect(refreshNotificationCount, greaterThanOrEqualTo(1));
       });
 
       test(
