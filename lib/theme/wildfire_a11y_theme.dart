@@ -103,6 +103,8 @@ class WildfireA11yTheme {
       onPrimary: BrandPalette.onDarkHigh,
       secondary: BrandPalette.mint400,
       onSecondary: BrandPalette.onLightHigh, // Dark text on light mint400
+      secondaryContainer: BrandPalette.mint300,
+      onSecondaryContainer: BrandPalette.onLightHigh,
       tertiary: BrandPalette.amber500,
       onTertiary: BrandPalette.onLightHigh,
       // Explicit container token so UI surfaces (banners, cards) use
@@ -135,6 +137,15 @@ class WildfireA11yTheme {
       // ElevatedButton: ≥44dp height (C3)
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
+          minimumSize: const Size(64, 44),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+      ),
+
+      // FilledButton: M3 primary CTA (≥44dp height)
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
           minimumSize: const Size(64, 44),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
@@ -288,6 +299,8 @@ class WildfireA11yTheme {
       onPrimary: BrandPalette.onDarkHigh,
       secondary: BrandPalette.mint400,
       onSecondary: BrandPalette.onDarkHigh,
+      secondaryContainer: BrandPalette.mint400,
+      onSecondaryContainer: BrandPalette.onDarkHigh,
       tertiary: BrandPalette.amber500,
       onTertiary: BrandPalette.onLightHigh,
       // Dark theme container for tertiary (keeps same amber family)
@@ -297,7 +310,7 @@ class WildfireA11yTheme {
       onSurface: BrandPalette.onDarkHigh,
       surfaceContainerHighest: BrandPalette.forest400,
       onSurfaceVariant: BrandPalette.onDarkMedium,
-      error: BrandPalette.amber500,
+      error: Color(0xFFFF5252), // Red accent for error (M3 proper semantic)
       onError: BrandPalette.onDarkHigh,
       outline: Color(
           0xFF8BC6B6), // Lighter for 3:1 contrast on forest500 (web-compatible)
@@ -319,6 +332,15 @@ class WildfireA11yTheme {
       // ElevatedButton: ≥44dp height (C3)
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
+          minimumSize: const Size(64, 44),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+      ),
+
+      // FilledButton: M3 primary CTA (≥44dp height)
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
           minimumSize: const Size(64, 44),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
