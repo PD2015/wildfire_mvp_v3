@@ -298,9 +298,9 @@ class WildfireA11yTheme {
       primary: BrandPalette.forest600,
       onPrimary: BrandPalette.onDarkHigh,
       secondary: BrandPalette.mint400,
-      onSecondary: BrandPalette.onDarkHigh,
-      secondaryContainer: BrandPalette.mint400,
-      onSecondaryContainer: BrandPalette.onDarkHigh,
+      onSecondary: BrandPalette.forest900, // dark forest text/icon
+      secondaryContainer: BrandPalette.mint300, // slightly lighter mint pill
+      onSecondaryContainer: BrandPalette.forest900, // dark forest text
       tertiary: BrandPalette.amber500,
       onTertiary: BrandPalette.onLightHigh,
       // Dark theme container for tertiary (keeps same amber family)

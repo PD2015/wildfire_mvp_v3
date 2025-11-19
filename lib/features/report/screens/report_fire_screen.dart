@@ -45,8 +45,10 @@ class ReportFireScreen extends StatelessWidget {
                   // Step 1 — Emergency (999)
                   Text(
                     '1) If the fire is spreading or unsafe:',
-                    style: textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: cs.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -58,34 +60,56 @@ class ReportFireScreen extends StatelessWidget {
                   EmergencyButton(
                     contact: EmergencyContact.fireService,
                     onPressed: () => _handleEmergencyCall(
-                        context, EmergencyContact.fireService),
+                      context,
+                      EmergencyContact.fireService,
+                    ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+                  Divider(
+                    height: 32,
+                    thickness: 1,
+                    color: cs.outlineVariant,
+                  ),
+                  const SizedBox(height: 16),
 
                   // Step 2 — Police Scotland (101)
                   Text(
                     '2) If someone is lighting a fire irresponsibly:',
-                    style: textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: cs.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  Text('Call Police Scotland on 101.',
-                      style: textTheme.bodyLarge),
+                  Text(
+                    'Call Police Scotland on 101.',
+                    style: textTheme.bodyLarge,
+                  ),
                   const SizedBox(height: 12),
                   EmergencyButton(
                     contact: EmergencyContact.policeScotland,
                     onPressed: () => _handleEmergencyCall(
-                        context, EmergencyContact.policeScotland),
+                      context,
+                      EmergencyContact.policeScotland,
+                    ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+                  Divider(
+                    height: 32,
+                    thickness: 1,
+                    color: cs.outlineVariant,
+                  ),
+                  const SizedBox(height: 16),
 
                   // Step 3 — Crimestoppers (0800 555 111)
                   Text(
                     '3) Want to report anonymously?',
-                    style: textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: cs.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -96,7 +120,9 @@ class ReportFireScreen extends StatelessWidget {
                   EmergencyButton(
                     contact: EmergencyContact.crimestoppers,
                     onPressed: () => _handleEmergencyCall(
-                        context, EmergencyContact.crimestoppers),
+                      context,
+                      EmergencyContact.crimestoppers,
+                    ),
                   ),
                 ],
               ),
@@ -194,7 +220,7 @@ class _Banner extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, color: foreground, size: 28),
+              Icon(icon, color: foreground, size: 32), // bumped from 28 → 32
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -210,9 +236,10 @@ class _Banner extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyLarge?.copyWith(color: foreground),
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyLarge
+                          ?.copyWith(color: foreground),
                     ),
                   ],
                 ),
