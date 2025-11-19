@@ -162,11 +162,20 @@ class RiskBanner extends StatelessWidget {
             children: [
               // Main risk level title
               Text(
-                'Wildfire Risk: ${levelName.toUpperCase()}',
+                'WILDFIRE RISK',
                 style: TextStyle(
                   color: textColor,
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 13.0,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Text(
+                levelName.toUpperCase(), // The actual risk level
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 24.0, // Larger for emphasis
+                  fontWeight: FontWeight.w900,
                 ),
               ),
               const SizedBox(height: 8.0),
@@ -177,6 +186,14 @@ class RiskBanner extends StatelessWidget {
                   children: [
                     Icon(Icons.location_on, color: textColor, size: 16.0),
                     const SizedBox(width: 4.0),
+                    Text(
+                      "Location: ", // Note the space after colon
+                      style: TextStyle(
+                        color: textColor.withValues(alpha: 0.8),
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     Expanded(
                       child: Text(
                         locationLabel!,
@@ -190,23 +207,12 @@ class RiskBanner extends StatelessWidget {
                 const SizedBox(height: 8.0),
               ],
 
-              // Timestamp
+              // Combined timestamp and data source
               Text(
-                timeText,
+                '$timeText · From $sourceName', // "Updated just now · From EFFIS"
                 style: TextStyle(
                   color: textColor.withValues(alpha: 0.8),
-                  fontSize: 14.0,
-                ),
-              ),
-
-              const SizedBox(height: 4.0),
-
-              // Data Source as plain text
-              Text(
-                'Data Source: $sourceName',
-                style: TextStyle(
-                  color: textColor.withValues(alpha: 0.8),
-                  fontSize: 14.0,
+                  fontSize: 12.0,
                 ),
               ),
 
@@ -334,22 +340,47 @@ class RiskBanner extends StatelessWidget {
 
               // Cached risk level
               Text(
-                'Wildfire Risk: ${levelName.toUpperCase()}',
+                'WILDFIRE RISK',
                 style: TextStyle(
                   color: textColor,
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 13.0,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
                 ),
               ),
-
+              Text(
+                levelName.toUpperCase(), // The actual risk level
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 24.0, // Larger for emphasis
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
               const SizedBox(height: 8.0),
 
-              // Location row (if locationLabel is provided)
+              // Location (if locationLabel is provided)
               if (locationLabel != null) ...[
+                Text(
+                  "LOCATION:",
+                  style: TextStyle(
+                    color: textColor.withValues(alpha: 0.8),
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4.0),
                 Row(
                   children: [
                     Icon(Icons.location_on, color: textColor, size: 16.0),
                     const SizedBox(width: 4.0),
+                    Text(
+                      "Location: ", // Note the space after colon
+                      style: TextStyle(
+                        color: textColor.withValues(alpha: 0.8),
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     Expanded(
                       child: Text(
                         locationLabel!,
@@ -363,27 +394,14 @@ class RiskBanner extends StatelessWidget {
                 const SizedBox(height: 8.0),
               ],
 
-              // Timestamp
+// Timestamp and data source
               Text(
-                timeText,
+                '$timeText · From $sourceName', // Combined with middot separator
                 style: TextStyle(
                   color: textColor.withValues(alpha: 0.8),
                   fontSize: 14.0,
                 ),
               ),
-
-              const SizedBox(height: 4.0),
-
-              // Data Source as plain text
-              Text(
-                'Data Source: $sourceName',
-                style: TextStyle(
-                  color: textColor.withValues(alpha: 0.8),
-                  fontSize: 14.0,
-                ),
-              ),
-
-              const SizedBox(height: 8.0),
 
               // Cached badge
               const CachedBadge(),
