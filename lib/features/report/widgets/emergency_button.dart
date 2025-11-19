@@ -80,10 +80,10 @@ class EmergencyButton extends StatelessWidget {
   ButtonStyle _getButtonStyle(ColorScheme colorScheme) {
     switch (priority) {
       case EmergencyPriority.urgent:
-        // 999 - Amber (tertiary) colors for fire-related urgency (brand consistency)
+        // 999 - Error colors for critical emergency (Material 3 semantic color)
         return ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.tertiary,
-          foregroundColor: colorScheme.onTertiary,
+          backgroundColor: colorScheme.error,
+          foregroundColor: colorScheme.onError,
           elevation: 2.0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
