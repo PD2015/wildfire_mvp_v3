@@ -10,7 +10,6 @@ import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
 import 'package:wildfire_mvp_v3/utils/debounced_viewport_loader.dart';
-import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet.dart';
 
 /// Map screen with Google Maps integration showing active fire incidents
 ///
@@ -193,16 +192,7 @@ class _MapScreenState extends State<MapScreen> {
             MapSuccess() => _buildMapView(state),
             MapError() => _buildErrorView(state),
           },
-          // Legacy bottom sheet overlay (keep for existing features)
-          if (_controller.bottomSheetState.isVisible)
-            Positioned.fill(
-              child: FireInformationBottomSheet(
-                state: _controller.bottomSheetState,
-                onClose: _controller.hideBottomSheet,
-                onRetry: _controller.retryLoadFireDetails,
-              ),
-            ),
-          // New fire details bottom sheet (Task 12 integration)
+          // Fire details bottom sheet overlay
           if (_isBottomSheetVisible && _selectedIncident != null)
             Positioned.fill(
               child: GestureDetector(
@@ -219,8 +209,11 @@ class _MapScreenState extends State<MapScreen> {
                       .withValues(alpha: 0.5),
                   child: GestureDetector(
                     onTap: () {}, // Prevent tap from closing when tapping sheet
-                    child: FireDetailsBottomSheet(
+                    child: FireInformationBottomSheet(
                       incident: _selectedIncident!,
+                      userLocation: _controller.state is MapSuccess
+                          ? (_controller.state as MapSuccess).centerLocation
+                          : null,
                       onClose: () {
                         setState(() {
                           _isBottomSheetVisible = false;
