@@ -425,14 +425,10 @@ class RiskBanner extends StatelessWidget {
               if (onRetry != null)
                 SizedBox(
                   height: 44.0, // A11y minimum touch target
-                  child: ElevatedButton.icon(
+                  child: FilledButton.icon(
                     onPressed: onRetry,
                     icon: const Icon(Icons.refresh, size: 18.0),
                     label: const Text('Retry'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: RiskPalette.blueAccent,
-                      foregroundColor: RiskPalette.white,
-                    ),
                   ),
                 ),
             ],
@@ -495,14 +491,10 @@ class RiskBanner extends StatelessWidget {
               if (onRetry != null)
                 SizedBox(
                   height: 44.0, // A11y minimum touch target
-                  child: ElevatedButton.icon(
+                  child: FilledButton.icon(
                     onPressed: onRetry,
                     icon: const Icon(Icons.refresh, size: 18.0),
                     label: const Text('Retry'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: RiskPalette.blueAccent,
-                      foregroundColor: RiskPalette.white,
-                    ),
                   ),
                 ),
             ],

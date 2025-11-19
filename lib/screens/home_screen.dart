@@ -173,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   : 'Retry loading fire risk data',
               button: true,
               enabled: !isLoading,
-              child: ElevatedButton.icon(
+              child: FilledButton.icon(
                 onPressed: isLoading ? null : () => _controller.retry(),
                 icon: isLoading
                     ? const SizedBox(
@@ -183,7 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       )
                     : const Icon(Icons.refresh),
                 label: Text(isLoading ? 'Loading...' : 'Retry'),
-                style: ElevatedButton.styleFrom(
+                style: FilledButton.styleFrom(
                   minimumSize: const Size(0, 44.0), // C3: ≥44dp touch target
                 ),
               ),
@@ -192,19 +192,21 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: 12.0),
         ],
 
-        // Manual location button (T-V3: ElevatedButton for better visibility in dark mode)
+        // Manual location button (M3: FilledButton.tonal for secondary action)
         Expanded(
           child: Semantics(
             label: 'Set manual location for fire risk assessment',
             button: true,
             enabled: !isLoading,
-            child: ElevatedButton.icon(
+            child: FilledButton.icon(
               onPressed: isLoading ? null : _showManualLocationDialog,
               icon: const Icon(Icons.location_on),
               label: const Text('Set Location'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              style: FilledButton.styleFrom(
+                backgroundColor:
+                    Theme.of(context).colorScheme.secondaryContainer,
+                foregroundColor:
+                    Theme.of(context).colorScheme.onSecondaryContainer,
                 minimumSize: const Size(0, 44.0), // C3: ≥44dp touch target
               ),
             ),
