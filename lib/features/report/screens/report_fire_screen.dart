@@ -236,7 +236,8 @@ class _TipsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 2.0,
-      color: cs.surfaceContainerHighest,
+      color: cs
+          .secondaryContainer, // Material 3: secondaryContainer for informational cards
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -246,7 +247,7 @@ class _TipsCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.lightbulb, color: cs.onSurfaceVariant),
+                Icon(Icons.lightbulb, color: cs.onSecondaryContainer),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -256,9 +257,7 @@ class _TipsCard extends StatelessWidget {
                         'Safety Tips',
                         style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? cs.onSurface
-                              : null,
+                          color: cs.onSecondaryContainer,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -268,8 +267,7 @@ class _TipsCard extends StatelessWidget {
                         '• If smoke approaches, move uphill and upwind\n'
                         '• Keep vehicle access clear for fire engines',
                         style: textTheme.bodyMedium?.copyWith(
-                          color: cs
-                              .onSurface, // T-V6: Ensure visibility in dark mode
+                          color: cs.onSecondaryContainer,
                         ),
                       ),
                     ],
@@ -295,9 +293,7 @@ class _TipsCard extends StatelessWidget {
                   'More Safety Guidance',
                   style: textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? cs.onSurface
-                        : cs.primary,
+                    color: cs.onSecondaryContainer,
                   ),
                 ),
                 children: [
@@ -309,8 +305,7 @@ class _TipsCard extends StatelessWidget {
                     '• Mention if fire is spreading or threatening property/livestock\n'
                     '• In immediate danger, call 999 without delay',
                     style: textTheme.bodyMedium?.copyWith(
-                      color:
-                          cs.onSurface, // T-V6: Ensure visibility in dark mode
+                      color: cs.onSecondaryContainer,
                     ),
                   ),
                 ],
