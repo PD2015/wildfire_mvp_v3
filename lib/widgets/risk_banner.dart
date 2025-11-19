@@ -5,6 +5,7 @@ import '../models/risk_level.dart';
 import '../theme/risk_palette.dart';
 import '../utils/time_format.dart';
 import 'badges/cached_badge.dart';
+import 'risk_scale.dart';
 
 // Visual tokens for consistent banner styling
 const double kBannerRadius = 16.0;
@@ -222,6 +223,12 @@ class RiskBanner extends StatelessWidget {
                 const CachedBadge(),
               ],
 
+              // Risk scale
+              RiskScale(
+                currentLevel: data.level,
+                textColor: textColor,
+              ),
+
               // Weather panel (if enabled)
               if (config.showWeatherPanel) ...[
                 const SizedBox(height: 12.0),
@@ -394,7 +401,7 @@ class RiskBanner extends StatelessWidget {
                 const SizedBox(height: 8.0),
               ],
 
-// Timestamp and data source
+              // Timestamp and data source
               Text(
                 '$timeText · From $sourceName', // Combined with middot separator
                 style: TextStyle(
@@ -405,6 +412,12 @@ class RiskBanner extends StatelessWidget {
 
               // Cached badge
               const CachedBadge(),
+
+              // Risk scale
+              RiskScale(
+                currentLevel: cached.level,
+                textColor: textColor,
+              ),
 
               const SizedBox(height: 12.0),
 
