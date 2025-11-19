@@ -75,7 +75,7 @@ class FireInformationBottomSheet extends StatelessWidget {
                       children: [
                         Icon(
                           Icons.local_fire_department,
-                          color: cs.primary,
+                          color: cs.onSurface,
                         ),
                         const SizedBox(width: 8),
                         Text(

@@ -379,11 +379,10 @@ class _MapScreenState extends State<MapScreen> {
             onCameraIdle: _viewportLoader.onCameraIdle,
           ),
         ),
-        // Source chip positioned at top
+        // Source chip positioned at top-left
         Positioned(
           top: 16,
           left: 16,
-          right: 16,
           child: MapSourceChip(
             source: state.freshness,
             lastUpdated: state.lastUpdated,
