@@ -130,11 +130,15 @@ class EmergencyButton extends StatelessWidget {
 
   /// Gets text style with appropriate sizing and weight
   TextStyle _getTextStyle(ThemeData theme) {
-    final textTheme = theme.textTheme;
+    // Create TextStyle with NO color property at all
+    // This ensures button's foregroundColor is used (not overridden by theme)
+    final baseFontSize = theme.textTheme.labelLarge?.fontSize ?? 14.0;
 
-    // Material 3 consistent text style for all buttons
-    return textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600) ??
-        const TextStyle(fontWeight: FontWeight.w600);
+    return TextStyle(
+      fontSize: baseFontSize,
+      fontWeight: FontWeight.w600,
+      // CRITICAL: No color property - allows button foregroundColor to apply
+    );
   }
 
   /// Creates semantic label for screen readers (C4 compliance)
