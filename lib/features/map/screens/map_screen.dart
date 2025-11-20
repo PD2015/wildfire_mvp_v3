@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/fire_information_bottom_sheet.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/incidents_timestamp_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 // T-V2: RiskCheckButton temporarily disabled
 // import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
@@ -369,9 +370,10 @@ class _MapScreenState extends State<MapScreen> {
             tiltGesturesEnabled: true,
             rotateGesturesEnabled: true,
             mapToolbarEnabled: false,
-            // Add padding to prevent FAB from overlapping GPS button
+            // Add padding to prevent controls from overlapping chips
             padding: const EdgeInsets.only(
               bottom: 80.0, // Room for FAB
+              left: 16.0, // Room for timestamp chip
               right: 16.0,
             ),
             // Debounced viewport loading (Task 17-18)
@@ -385,6 +387,14 @@ class _MapScreenState extends State<MapScreen> {
           left: 16,
           child: MapSourceChip(
             source: state.freshness,
+            lastUpdated: state.lastUpdated,
+          ),
+        ),
+        // Timestamp chip positioned at bottom-left
+        Positioned(
+          bottom: 16,
+          left: 16,
+          child: IncidentsTimestampChip(
             lastUpdated: state.lastUpdated,
           ),
         ),
