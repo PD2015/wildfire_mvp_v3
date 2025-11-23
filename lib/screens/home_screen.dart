@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../controllers/home_controller.dart';
 import '../models/home_state.dart';
 import '../widgets/risk_banner.dart';
+import '../widgets/risk_guidance_card.dart';
 import '../widgets/manual_location_dialog.dart';
 import '../services/models/fire_risk.dart';
 import '../utils/location_utils.dart';
@@ -69,6 +70,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     // Action buttons
                     _buildActionButtons(),
+
+                    const SizedBox(height: 16.0),
+
+                    // Risk guidance card
+                    _buildRiskGuidance(),
 
                     const SizedBox(height: 16.0),
 
@@ -214,6 +220,31 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ],
     );
+  }
+
+  /// Builds risk guidance card based on current risk level
+  ///
+  /// Shows Scotland-specific wildfire safety advice for the current risk level.
+  /// Falls back to generic guidance when risk level is unavailable.
+  /// Hides completely during loading state for cleaner UX.
+  Widget _buildRiskGuidance() {
+    final homeState = _controller.state;
+
+    return switch (homeState) {
+      // Success state: Show guidance for current risk level
+      HomeStateSuccess(:final riskData) =>
+        RiskGuidanceCard(level: riskData.level),
+
+      // Error state with cached data: Show guidance for cached risk level
+      HomeStateError(:final cachedData) when cachedData != null =>
+        RiskGuidanceCard(level: cachedData.level),
+
+      // Error state without cache: Show generic guidance
+      HomeStateError() => const RiskGuidanceCard(level: null),
+
+      // Loading state: Hide card completely
+      HomeStateLoading() => const SizedBox.shrink(),
+    };
   }
 
   /// Builds additional state-specific information

@@ -8,6 +8,7 @@ import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
 import 'package:wildfire_mvp_v3/widgets/manual_location_dialog.dart';
+import 'package:wildfire_mvp_v3/widgets/risk_guidance_card.dart';
 
 /// Mock HomeController for testing UI interactions
 class MockHomeController extends ChangeNotifier implements HomeController {
@@ -548,6 +549,164 @@ void main() {
           find.text('Set Location'),
           findsOneWidget,
         ); // Should still show this
+      });
+    });
+
+    group('RiskGuidanceCard Integration', () {
+      testWidgets('shows guidance card with correct level in success state', (
+        tester,
+      ) async {
+        // Arrange
+        mockController.setState(
+          HomeStateSuccess(
+            riskData: TestData.createFireRisk(level: RiskLevel.high),
+            location: TestData.edinburgh,
+            lastUpdated: DateTime.now(),
+          ),
+        );
+
+        await tester.pumpWidget(buildHomeScreen());
+
+        // Assert - RiskGuidanceCard should be present
+        expect(find.byType(RiskGuidanceCard), findsOneWidget);
+
+        // Verify it's using the correct risk level (check for guidance text)
+        final card = tester.widget<RiskGuidanceCard>(
+          find.byType(RiskGuidanceCard),
+        );
+        expect(card.level, equals(RiskLevel.high));
+      });
+
+      testWidgets('shows guidance card with cached level in error state', (
+        tester,
+      ) async {
+        // Arrange
+        mockController.setState(
+          HomeStateError(
+            errorMessage: 'Network error',
+            canRetry: true,
+            cachedData: TestData.createFireRisk(
+              level: RiskLevel.veryHigh,
+              freshness: Freshness.cached,
+            ),
+            cachedLocation: TestData.glasgow,
+          ),
+        );
+
+        await tester.pumpWidget(buildHomeScreen());
+
+        // Assert
+        expect(find.byType(RiskGuidanceCard), findsOneWidget);
+
+        final card = tester.widget<RiskGuidanceCard>(
+          find.byType(RiskGuidanceCard),
+        );
+        expect(card.level, equals(RiskLevel.veryHigh));
+      });
+
+      testWidgets('shows generic guidance in error state without cache', (
+        tester,
+      ) async {
+        // Arrange
+        mockController.setState(
+          const HomeStateError(
+            errorMessage: 'Failed to load data',
+            canRetry: true,
+          ),
+        );
+
+        await tester.pumpWidget(buildHomeScreen());
+
+        // Assert
+        expect(find.byType(RiskGuidanceCard), findsOneWidget);
+
+        final card = tester.widget<RiskGuidanceCard>(
+          find.byType(RiskGuidanceCard),
+        );
+        expect(card.level, isNull); // Should use generic guidance
+      });
+
+      testWidgets('hides guidance card during loading state', (tester) async {
+        // Arrange
+        mockController.setState(
+          HomeStateLoading(startTime: DateTime.now()),
+          loading: true,
+        );
+
+        await tester.pumpWidget(buildHomeScreen());
+
+        // Assert - Card should be hidden (replaced by SizedBox.shrink)
+        expect(find.byType(RiskGuidanceCard), findsNothing);
+      });
+
+      testWidgets('guidance card appears after action buttons', (
+        tester,
+      ) async {
+        // Arrange
+        mockController.setState(
+          HomeStateSuccess(
+            riskData: TestData.createFireRisk(level: RiskLevel.moderate),
+            location: TestData.edinburgh,
+            lastUpdated: DateTime.now(),
+          ),
+        );
+
+        await tester.pumpWidget(buildHomeScreen());
+
+        // Find the Set Location button and the guidance card
+        final setLocationButton = find.text('Set Location');
+        final guidanceCard = find.byType(RiskGuidanceCard);
+
+        expect(setLocationButton, findsOneWidget);
+        expect(guidanceCard, findsOneWidget);
+
+        // Verify guidance card is below the action buttons
+        // (comparing Y positions in the render tree)
+        final buttonY = tester.getTopLeft(setLocationButton).dy;
+        final cardY = tester.getTopLeft(guidanceCard).dy;
+
+        expect(
+          cardY,
+          greaterThan(buttonY),
+          reason: 'Guidance card should appear below action buttons',
+        );
+      });
+
+      testWidgets('guidance card updates when risk level changes', (
+        tester,
+      ) async {
+        // Arrange - Initial state with low risk
+        mockController.setState(
+          HomeStateSuccess(
+            riskData: TestData.createFireRisk(level: RiskLevel.low),
+            location: TestData.edinburgh,
+            lastUpdated: DateTime.now(),
+          ),
+        );
+
+        await tester.pumpWidget(buildHomeScreen());
+
+        // Verify initial level
+        RiskGuidanceCard card = tester.widget<RiskGuidanceCard>(
+          find.byType(RiskGuidanceCard),
+        );
+        expect(card.level, equals(RiskLevel.low));
+
+        // Act - Update to extreme risk
+        mockController.setState(
+          HomeStateSuccess(
+            riskData: TestData.createFireRisk(level: RiskLevel.extreme),
+            location: TestData.edinburgh,
+            lastUpdated: DateTime.now(),
+          ),
+        );
+        await tester.pump();
+
+        // Assert - Card should update
+        card = tester.widget<RiskGuidanceCard>(
+          find.byType(RiskGuidanceCard),
+        );
+        expect(card.level, equals(RiskLevel.extreme));
       });
     });
   });

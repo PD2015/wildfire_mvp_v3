@@ -140,7 +140,7 @@ class RiskBanner extends StatelessWidget {
   /// Builds the success state with risk level display
   Widget _buildSuccessState(FireRisk data) {
     final levelName = _getRiskLevelName(data.level);
-    final backgroundColor = _getRiskLevelColor(data.level);
+    final backgroundColor = data.level.color;
     final textColor = _getTextColor(backgroundColor);
     final sourceName = _getSourceName(data.source);
 
@@ -298,9 +298,7 @@ class RiskBanner extends StatelessWidget {
   /// Builds error state when cached data is available
   Widget _buildErrorWithCachedData(String message, FireRisk cached) {
     final levelName = _getRiskLevelName(cached.level);
-    final backgroundColor = _getRiskLevelColor(
-      cached.level,
-    ).withValues(alpha: 0.6);
+    final backgroundColor = cached.level.color.withValues(alpha: 0.6);
     final textColor = _getTextColor(backgroundColor);
     final sourceName = _getSourceName(cached.source);
     final timeText =
@@ -513,18 +511,6 @@ class RiskBanner extends StatelessWidget {
       RiskLevel.high => 'High',
       RiskLevel.veryHigh => 'Very High',
       RiskLevel.extreme => 'Extreme',
-    };
-  }
-
-  /// Gets the background color for a risk level using RiskPalette
-  Color _getRiskLevelColor(RiskLevel level) {
-    return switch (level) {
-      RiskLevel.veryLow => RiskPalette.veryLow,
-      RiskLevel.low => RiskPalette.low,
-      RiskLevel.moderate => RiskPalette.moderate,
-      RiskLevel.high => RiskPalette.high,
-      RiskLevel.veryHigh => RiskPalette.veryHigh,
-      RiskLevel.extreme => RiskPalette.extreme,
     };
   }
 

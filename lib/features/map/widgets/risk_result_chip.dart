@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
-import 'package:wildfire_mvp_v3/theme/risk_palette.dart';
 
 /// RiskResultChip displays fire risk assessment result
 ///
@@ -17,14 +16,7 @@ class RiskResultChip extends StatelessWidget {
   const RiskResultChip({super.key, required this.fireRisk});
 
   Color _getRiskColor() {
-    return switch (fireRisk.level) {
-      RiskLevel.veryLow => RiskPalette.veryLow,
-      RiskLevel.low => RiskPalette.low,
-      RiskLevel.moderate => RiskPalette.moderate,
-      RiskLevel.high => RiskPalette.high,
-      RiskLevel.veryHigh => RiskPalette.veryHigh,
-      RiskLevel.extreme => RiskPalette.extreme,
-    };
+    return fireRisk.level.color;
   }
 
   String _getRiskLabel() {

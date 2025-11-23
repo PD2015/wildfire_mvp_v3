@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/risk_level.dart';
-import '../theme/risk_palette.dart';
 
 /// Visual risk scale showing all six risk levels with current level highlighted
 ///
@@ -35,18 +34,6 @@ class RiskScale extends StatelessWidget {
     this.barSpacing = 4.0,
     this.showLabels = true,
   });
-
-  /// Get color for a specific risk level from RiskPalette
-  Color _getColorForLevel(RiskLevel level) {
-    return switch (level) {
-      RiskLevel.veryLow => RiskPalette.veryLow,
-      RiskLevel.low => RiskPalette.low,
-      RiskLevel.moderate => RiskPalette.moderate,
-      RiskLevel.high => RiskPalette.high,
-      RiskLevel.veryHigh => RiskPalette.veryHigh,
-      RiskLevel.extreme => RiskPalette.extreme,
-    };
-  }
 
   /// Get display name for a risk level
   String _getLevelName(RiskLevel level) {
@@ -86,7 +73,7 @@ class RiskScale extends StatelessWidget {
             Row(
               children: RiskLevel.values.map((level) {
                 final isCurrentLevel = level == currentLevel;
-                final color = _getColorForLevel(level);
+                final color = level.color;
                 final levelName = _getLevelName(level);
 
                 return Expanded(
