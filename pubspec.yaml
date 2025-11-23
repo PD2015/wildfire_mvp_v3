@@ -48,6 +48,7 @@ flutter_launcher_icons:
   macos:
     generate: true
   image_path: "assets/icons/app_icon.png"
+  image_path_ios: "assets/icons/app_icon_ios.png"  # Separate icon for iOS
   adaptive_icon_background: "#1B6B61"
   adaptive_icon_foreground: "assets/icons/app_icon.png"
 
@@ -64,7 +65,7 @@ flutter_native_splash:
     color: "#1B6B61"
     # Use 512x512 splash icon for proper scaling
     image: assets/icons/splash_icon.png
-    # Icon background color for Android 12+ (same as background for consistency)
+    # Icon background color matches main background (circle blends in)
     icon_background_color: "#1B6B61"
   
   # Web splash screen configuration

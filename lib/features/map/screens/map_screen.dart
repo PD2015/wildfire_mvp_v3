@@ -177,7 +177,7 @@ class _MapScreenState extends State<MapScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Fire Map'),
+        title: const Text('Live Wildfire Fire Map'),
         centerTitle: true,
       ),
       body: Stack(
