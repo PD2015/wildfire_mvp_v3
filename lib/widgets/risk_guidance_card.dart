@@ -30,7 +30,17 @@ class RiskGuidanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final guidance = ScotlandRiskGuidance.getGuidance(level);
-    final borderColor = level?.color ?? Colors.grey;
+    // final borderColor = level?.color ?? Colors.grey;
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final cardBackground =
+        isDark ? scheme.surfaceContainerHigh : scheme.surfaceContainerHighest;
+    final cardBorderColor = isDark
+        ? level?.color ?? scheme.outline
+        : level?.color ?? scheme.outlineVariant;
+    // Bullet colour (mint accent)
+    // final bulletColor = scheme.secondary; //?????
 
     return Semantics(
       label: level != null
@@ -38,11 +48,11 @@ class RiskGuidanceCard extends StatelessWidget {
           : 'General wildfire safety guidance',
       child: Card(
         margin: EdgeInsets.zero,
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        color: cardBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: borderColor,
+            color: cardBorderColor,
             width: 2,
           ),
         ),

@@ -132,7 +132,7 @@ class WildfireA11yTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       brightness: Brightness.light,
-      scaffoldBackgroundColor: BrandPalette.offWhite,
+      scaffoldBackgroundColor: colorScheme.surface,
 
       // ElevatedButton: ≥44dp height (C3)
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -218,14 +218,14 @@ class WildfireA11yTheme {
 
       // AppBarTheme: forest600 background with white text
       appBarTheme: AppBarTheme(
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
+        backgroundColor: colorScheme.surfaceContainerHigh,
+        surfaceTintColor: colorScheme.surfaceTint,
+        foregroundColor: colorScheme.onSurface,
         elevation: 0,
         scrolledUnderElevation: 3,
-        surfaceTintColor: colorScheme.surfaceTint,
         centerTitle: true,
         titleTextStyle: TextStyle(
-          color: colorScheme.onPrimary,
+          color: colorScheme.onSurface,
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
@@ -236,27 +236,25 @@ class WildfireA11yTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: colorScheme.surface,
         // Solid forest600 indicator for strong visual presence
-        indicatorColor: BrandPalette.forest600,
+        indicatorColor: colorScheme.primary,
         elevation: 8,
         shadowColor: Colors.black.withValues(alpha: 0.25),
         // White icons on dark forest600 indicator (high contrast)
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(
-                color: BrandPalette.onDarkHigh, size: 24);
+            return IconThemeData(color: colorScheme.onPrimary, size: 24);
           }
-          return const IconThemeData(
-              color: BrandPalette.onLightMedium, size: 24);
+          return IconThemeData(color: colorScheme.onSurfaceVariant, size: 24);
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const TextStyle(
-              color: BrandPalette.forest600,
+            return TextStyle(
+              color: colorScheme.onSurface,
               fontWeight: FontWeight.w600,
             );
           }
-          return const TextStyle(
-            color: BrandPalette.onLightMedium,
+          return TextStyle(
+            color: colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w600,
           );
         }),
@@ -306,10 +304,19 @@ class WildfireA11yTheme {
       // Dark theme container for tertiary (keeps same amber family)
       tertiaryContainer: BrandPalette.amber600,
       onTertiaryContainer: BrandPalette.onLightHigh,
-      surface: BrandPalette.forest500,
+
+      // surface: BrandPalette.forest500,
       onSurface: BrandPalette.onDarkHigh,
+
       surfaceContainerHighest: BrandPalette.forest400,
       onSurfaceVariant: BrandPalette.onDarkMedium,
+
+      surface: BrandPalette.forest700,
+
+      surfaceContainerLowest: BrandPalette.forest900,
+      surfaceContainerLow: BrandPalette.forest800,
+      surfaceContainerHigh: BrandPalette.forest600,
+
       error: Color(0xFFFF5252), // Red accent for error (M3 proper semantic)
       onError: BrandPalette.onDarkHigh,
       outline: Color(
@@ -327,7 +334,7 @@ class WildfireA11yTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: BrandPalette.forest900,
+      scaffoldBackgroundColor: colorScheme.surfaceContainerLowest,
 
       // ElevatedButton: ≥44dp height (C3)
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -415,13 +422,14 @@ class WildfireA11yTheme {
       ),
 
       // AppBarTheme: darker surface with high contrast text
-      appBarTheme: const AppBarTheme(
-        backgroundColor: BrandPalette.forest900,
-        foregroundColor: BrandPalette.onDarkMedium,
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.surfaceContainerHigh,
+        foregroundColor: colorScheme.onSurface,
         elevation: 0,
         centerTitle: true,
+        scrolledUnderElevation: 3,
         titleTextStyle: TextStyle(
-          color: BrandPalette.onDarkMedium,
+          color: colorScheme.onSurface,
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
@@ -476,7 +484,7 @@ class WildfireA11yTheme {
 
       // CardTheme: elevated surface with outline
       cardTheme: CardThemeData(
-        color: BrandPalette.forest800,
+        color: colorScheme.surfaceContainerLow,
         elevation: 1,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
