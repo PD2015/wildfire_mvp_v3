@@ -18,7 +18,7 @@ class ScotlandRiskGuidance {
     RiskLevel.veryLow: RiskGuidance(
       title: 'What this risk level means',
       summary:
-          'Very low risk – conditions are generally cool or damp. Wildfires are unlikely but still possible.',
+          'VERY LOW risk – conditions are generally cool or damp. Wildfires are unlikely but still possible.',
       bulletPoints: [
         'Use stoves or BBQs only in provided areas or on hard surfaces.',
         'Keep any flame off peat, heather and dry grass.',
@@ -28,7 +28,7 @@ class ScotlandRiskGuidance {
     RiskLevel.low: RiskGuidance(
       title: 'What this risk level means',
       summary:
-          'Low risk – vegetation will burn if exposed to a flame, but large wildfires are unlikely.',
+          'LOW risk – vegetation will burn if exposed to a flame, but large wildfires are unlikely.',
       bulletPoints: [
         'Prefer gas stoves or fixed BBQ points; avoid fire pits on open moorland.',
         'Keep vehicles and hot exhausts off dry grass and heather.',
@@ -38,7 +38,7 @@ class ScotlandRiskGuidance {
     RiskLevel.moderate: RiskGuidance(
       title: 'What this risk level means',
       summary:
-          'Moderate risk – heather, grass and woodland edges are drying. Fires can start and spread on sunny, breezy days.',
+          'MODERATE risk – heather, grass and woodland edges are drying. Fires can start and spread on sunny, breezy days.',
       bulletPoints: [
         'Avoid campfires and disposable BBQs away from formal sites.',
         'Be extra careful with cigarettes, vapes and matches.',
@@ -48,7 +48,7 @@ class ScotlandRiskGuidance {
     RiskLevel.high: RiskGuidance(
       title: 'What this risk level means',
       summary:
-          'High risk – fires will start easily and spread quickly in dry vegetation, especially on moorland and forest edges.',
+          'HIGH risk – fires will start easily and spread quickly in dry vegetation, especially on moorland and forest edges.',
       bulletPoints: [
         'Do not light campfires or use disposable BBQs in the countryside.',
         'Follow local fire restrictions from land managers and National Parks.',
@@ -58,7 +58,7 @@ class ScotlandRiskGuidance {
     RiskLevel.veryHigh: RiskGuidance(
       title: 'What this risk level means',
       summary:
-          'Very high risk – conditions are very dry. Any spark could start a fast-moving wildfire.',
+          'VERY HIGH risk – conditions are very dry. Any spark could start a fast-moving wildfire.',
       bulletPoints: [
         'Avoid lighting any fires or BBQs outdoors.',
         'Keep to paths and watch for smoke on hillsides and in woodland.',
@@ -68,7 +68,7 @@ class ScotlandRiskGuidance {
     RiskLevel.extreme: RiskGuidance(
       title: 'What this risk level means',
       summary:
-          'Extreme risk – wildfires can start very easily, spread rapidly and be very difficult to control.',
+          'EXTREME risk – wildfires can start very easily, spread rapidly and be very difficult to control.',
       bulletPoints: [
         'Do not use outdoor fires, BBQs or stoves in the countryside.',
         'Follow local closures and ranger advice – bans may be in force.',

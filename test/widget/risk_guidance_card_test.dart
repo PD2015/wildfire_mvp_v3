@@ -204,7 +204,7 @@ void main() {
       final card = tester.widget<Card>(find.byType(Card));
       final shape = card.shape as RoundedRectangleBorder;
 
-      expect(shape.borderRadius, equals(BorderRadius.circular(24)));
+      expect(shape.borderRadius, equals(BorderRadius.circular(12)));
     });
 
     testWidgets('displays border with risk level color', (tester) async {
@@ -220,7 +220,7 @@ void main() {
       final shape = card.shape as RoundedRectangleBorder;
 
       expect(shape.side.color, equals(RiskLevel.high.color));
-      expect(shape.side.width, equals(4));
+      expect(shape.side.width, equals(2));
     });
 
     testWidgets('displays border with grey when level is null', (tester) async {
@@ -236,13 +236,16 @@ void main() {
       final shape = card.shape as RoundedRectangleBorder;
 
       expect(shape.side.color, equals(Colors.grey));
-      expect(shape.side.width, equals(4));
+      expect(shape.side.width, equals(2));
     });
 
-    testWidgets('displays circle bullets with risk color', (tester) async {
+    testWidgets('displays circle bullets with theme color', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
+        MaterialApp(
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          ),
+          home: const Scaffold(
             body: RiskGuidanceCard(level: RiskLevel.veryHigh),
           ),
         ),
@@ -259,10 +262,11 @@ void main() {
       // Should have 3+ bullets (one per bullet point)
       expect(bulletContainers, findsAtLeastNWidgets(3));
 
-      // Verify first bullet has correct color
+      // Verify first bullet uses theme's onSurfaceVariant color (not risk color)
       final firstBullet = tester.widget<Container>(bulletContainers.first);
       final decoration = firstBullet.decoration as BoxDecoration;
-      expect(decoration.color, equals(RiskLevel.veryHigh.color));
+      final theme = Theme.of(tester.element(find.byType(RiskGuidanceCard)));
+      expect(decoration.color, equals(theme.colorScheme.onSurfaceVariant));
     });
 
     testWidgets('emergency footer has error container background',

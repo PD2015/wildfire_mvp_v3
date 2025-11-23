@@ -38,11 +38,12 @@ class RiskGuidanceCard extends StatelessWidget {
           : 'General wildfire safety guidance',
       child: Card(
         margin: EdgeInsets.zero,
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(12),
           side: BorderSide(
             color: borderColor,
-            width: 4,
+            width: 2,
           ),
         ),
         child: Padding(
@@ -73,14 +74,15 @@ class RiskGuidanceCard extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Circle bullet with ≥44dp touch target for C3
+                      // Circle bullet - uses theme color for subtlety
                       Padding(
                         padding: const EdgeInsets.only(top: 6, right: 12),
                         child: Container(
                           width: 8,
                           height: 8,
                           decoration: BoxDecoration(
-                            color: borderColor,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -102,25 +104,25 @@ class RiskGuidanceCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.errorContainer,
-                  borderRadius: BorderRadius.circular(8),
+                  color: Theme.of(context).colorScheme.tertiaryContainer,
+                  borderRadius: BorderRadius.circular(18),
                 ),
                 child: Row(
                   children: [
                     Icon(
                       Icons.phone,
-                      color: Theme.of(context).colorScheme.onErrorContainer,
-                      size: 20,
+                      color: Theme.of(context).colorScheme.onTertiaryContainer,
+                      size: 24,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         ScotlandRiskGuidance.emergencyFooter,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Theme.of(context)
                                   .colorScheme
-                                  .onErrorContainer,
-                              fontWeight: FontWeight.w500,
+                                  .onTertiaryContainer,
+                              fontWeight: FontWeight.w600,
                             ),
                       ),
                     ),
