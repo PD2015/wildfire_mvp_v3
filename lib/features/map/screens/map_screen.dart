@@ -9,6 +9,7 @@ import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 // import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
+import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/utils/debounced_viewport_loader.dart';
 import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet.dart';
 
@@ -96,11 +97,8 @@ class _MapScreenState extends State<MapScreen> {
         '🎯 Creating marker: id=${incident.id}, intensity="${incident.intensity}", desc=${incident.description}',
       );
 
-      // Ensure title is never null
-      final title = incident.description?.isNotEmpty == true
-          ? incident.description!
-          : 'Fire Incident #${incident.id}';
-
+      final title = _buildInfoTitle(incident);
+      final snippet = _buildInfoSnippet(incident);
       final isSelected = _selectedIncident?.id == incident.id;
 
       return Marker(
@@ -113,9 +111,7 @@ class _MapScreenState extends State<MapScreen> {
         alpha: isSelected ? 1.0 : 0.8, // Highlight selected marker
         infoWindow: InfoWindow(
           title: title,
-          snippet:
-              '${incident.intensity.toUpperCase()} - ${incident.areaHectares?.toStringAsFixed(1) ?? "?"} ha',
-          // Remove anchor to prevent screen shift - let Google Maps handle it
+          snippet: snippet,
         ),
         onTap: () {
           debugPrint('🎯 Marker tapped: $title (${incident.intensity})');
@@ -126,6 +122,82 @@ class _MapScreenState extends State<MapScreen> {
         },
       );
     }).toSet();
+  }
+
+  /// Build user-friendly title for info window
+  /// Priority: description > shortened ID > full ID
+  String _buildInfoTitle(FireIncident incident) {
+    // Prefer descriptive location if available
+    if (incident.description?.isNotEmpty == true) {
+      return incident.description!;
+    }
+
+    // Fallback: Use shortened fire ID for readability
+    // e.g., "mock_fire_001" → "Fire #ire_001" (last 7 chars)
+    final shortId = incident.id.length > 7
+        ? incident.id.substring(incident.id.length - 7)
+        : incident.id;
+    return 'Fire #$shortId';
+  }
+
+  /// Build user-friendly snippet with risk, area, source, and freshness
+  /// Format: "Risk: Moderate • Burnt area: 12.5 ha\nSource: MOCK • 2h ago"
+  String _buildInfoSnippet(FireIncident incident) {
+    final intensityLabel = _formatIntensity(incident.intensity);
+    final areaText = incident.areaHectares != null
+        ? '${incident.areaHectares!.toStringAsFixed(1)} ha'
+        : 'Unknown';
+
+    final sourceLabel = _formatDataSource(incident.source);
+    final freshnessText = _formatFreshness(incident.timestamp);
+
+    // Line 1: Risk and burnt area
+    // Line 2: Source and freshness
+    return 'Risk: $intensityLabel • Burnt area: $areaText\n'
+        'Source: $sourceLabel • $freshnessText';
+  }
+
+  /// Format intensity for user-friendly display
+  String _formatIntensity(String raw) {
+    switch (raw.toLowerCase()) {
+      case 'high':
+        return 'High';
+      case 'moderate':
+        return 'Moderate';
+      case 'low':
+        return 'Low';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  /// Format data source for user-friendly display
+  String _formatDataSource(DataSource source) {
+    switch (source) {
+      case DataSource.effis:
+        return 'EFFIS';
+      case DataSource.sepa:
+        return 'SEPA';
+      case DataSource.cache:
+        return 'Cached';
+      case DataSource.mock:
+        return 'MOCK';
+    }
+  }
+
+  /// Format timestamp as relative time (e.g., "2h ago", "3d ago")
+  String _formatFreshness(DateTime timestamp) {
+    final age = DateTime.now().difference(timestamp);
+
+    if (age.inMinutes < 1) {
+      return 'Just now';
+    } else if (age.inMinutes < 60) {
+      return '${age.inMinutes}m ago';
+    } else if (age.inHours < 24) {
+      return '${age.inHours}h ago';
+    } else {
+      return '${age.inDays}d ago';
+    }
   }
 
   BitmapDescriptor _getMarkerIcon(String intensity) {
