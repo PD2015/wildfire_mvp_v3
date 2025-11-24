@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:wildfire_mvp_v3/models/location_models.dart';
 
 class LocationCard extends StatelessWidget {
   final String? coordinatesLabel; // e.g. "57.20, -3.83"
   final String subtitle; // e.g. "Current location (GPS)"
   final bool isLoading;
   final VoidCallback? onChangeLocation;
+  final LocationSource? locationSource; // Optional source for icon display
 
   const LocationCard({
     super.key,
@@ -12,15 +14,62 @@ class LocationCard extends StatelessWidget {
     required this.subtitle,
     this.isLoading = false,
     this.onChangeLocation,
+    this.locationSource,
   });
+
+  /// Returns appropriate icon based on location source for trust building
+  ///
+  /// Icons help users understand where their location data comes from:
+  /// - GPS: gps_fixed (live, accurate)
+  /// - Manual: location_pin (user-set, verified)
+  /// - Cached: cached (moderate confidence)
+  /// - Default: public (low confidence, fallback)
+  IconData _getLocationSourceIcon() {
+    if (locationSource == null) {
+      return Icons.my_location; // Default fallback
+    }
+
+    return switch (locationSource!) {
+      LocationSource.gps => Icons.gps_fixed,
+      LocationSource.manual => Icons.location_pin,
+      LocationSource.cached => Icons.cached,
+      LocationSource.defaultFallback => Icons.public,
+    };
+  }
+
+  /// Validates that coordinatesLabel has valid format and parseable values
+  ///
+  /// Returns true if:
+  /// - coordinatesLabel is not null and not empty
+  /// - Format is "XX.XX, YY.YY" (comma-separated)
+  /// - Both parts parse to valid doubles
+  ///
+  /// This prevents display of malformed coordinates from corrupted cache
+  /// or invalid manual entry.
+  bool get _hasValidLocation {
+    if (coordinatesLabel == null || coordinatesLabel!.isEmpty) {
+      return false;
+    }
+
+    // Validate format: "XX.XX, YY.YY"
+    final parts = coordinatesLabel!.split(',');
+    if (parts.length != 2) {
+      return false;
+    }
+
+    // Validate both parts parse to doubles
+    final lat = double.tryParse(parts[0].trim());
+    final lon = double.tryParse(parts[1].trim());
+
+    return lat != null && lon != null;
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
 
-    final hasLocation =
-        coordinatesLabel != null && coordinatesLabel!.isNotEmpty;
+    final hasLocation = _hasValidLocation;
 
     return Semantics(
       container: true,
@@ -52,7 +101,7 @@ class LocationCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(
-                  Icons.my_location,
+                  _getLocationSourceIcon(),
                   color: scheme.onSecondaryContainer,
                   size: 20,
                 ),

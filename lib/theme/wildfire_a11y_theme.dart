@@ -111,9 +111,10 @@ class WildfireA11yTheme {
       // a lighter/darker amber appropriate for light theme surfaces.
       tertiaryContainer: BrandPalette.amber600,
       onTertiaryContainer: BrandPalette.onLightHigh,
-      surface: Colors.white,
+      surface: BrandPalette.offWhite,
       onSurface: BrandPalette.onLightHigh,
       surfaceContainerHighest: const Color(0xFFE7F1EF),
+      surfaceContainerLowest: Colors.white,
       onSurfaceVariant: BrandPalette.onLightMedium,
       error: Colors.red.shade700,
       onError: BrandPalette.onDarkHigh,
@@ -234,7 +235,7 @@ class WildfireA11yTheme {
       // NavigationBarTheme: bottom navigation with accessible colors
       // Material 3 pattern: solid indicator with high-contrast icon colors
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: colorScheme.surface,
+        backgroundColor: colorScheme.surfaceContainerLowest,
         // Solid forest600 indicator for strong visual presence
         indicatorColor: colorScheme.primary,
         elevation: 8,

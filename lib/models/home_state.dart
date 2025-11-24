@@ -32,18 +32,40 @@ class HomeStateLoading extends HomeState {
   /// Used to display location context to user during loading
   final LatLng? lastKnownLocation;
 
+  /// Timestamp when lastKnownLocation was captured
+  /// Used to determine if location is stale (>1 hour old)
+  final DateTime? lastKnownLocationTimestamp;
+
   const HomeStateLoading({
     this.isRetry = false,
     required this.startTime,
     this.lastKnownLocation,
+    this.lastKnownLocationTimestamp,
   });
 
+  /// Whether the last known location is stale (>1 hour old)
+  ///
+  /// Returns false if no timestamp is available.
+  /// Used to show "may be outdated" warning in UI.
+  bool get isLocationStale {
+    if (lastKnownLocationTimestamp == null) {
+      return false;
+    }
+    return DateTime.now().difference(lastKnownLocationTimestamp!) >
+        const Duration(hours: 1);
+  }
+
   @override
-  List<Object?> get props => [isRetry, startTime, lastKnownLocation];
+  List<Object?> get props => [
+        isRetry,
+        startTime,
+        lastKnownLocation,
+        lastKnownLocationTimestamp,
+      ];
 
   @override
   String toString() =>
-      'HomeStateLoading(isRetry: $isRetry, startTime: $startTime, lastKnownLocation: $lastKnownLocation)';
+      'HomeStateLoading(isRetry: $isRetry, startTime: $startTime, lastKnownLocation: $lastKnownLocation, lastKnownLocationTimestamp: $lastKnownLocationTimestamp, isStale: $isLocationStale)';
 }
 
 /// Successfully loaded state with all required display data
@@ -61,18 +83,34 @@ class HomeStateSuccess extends HomeState {
   /// When this risk data was last fetched (for "Updated X ago" display)
   final DateTime lastUpdated;
 
+  /// Source of the location data (GPS, manual, cached, or default)
+  /// Used for UI display and trust-building messaging
+  final LocationSource locationSource;
+
+  /// Optional human-readable place name (e.g., "Edinburgh City Centre")
+  /// Only populated for manual locations where user provided a name
+  final String? placeName;
+
   const HomeStateSuccess({
     required this.riskData,
     required this.location,
     required this.lastUpdated,
+    required this.locationSource,
+    this.placeName,
   });
 
   @override
-  List<Object?> get props => [riskData, location, lastUpdated];
+  List<Object?> get props => [
+        riskData,
+        location,
+        lastUpdated,
+        locationSource,
+        placeName,
+      ];
 
   @override
   String toString() =>
-      'HomeStateSuccess(riskData: $riskData, location: $location, lastUpdated: $lastUpdated)';
+      'HomeStateSuccess(riskData: $riskData, location: $location, lastUpdated: $lastUpdated, source: $locationSource, placeName: $placeName)';
 }
 
 /// Error state with optional cached data for graceful degradation

@@ -3,6 +3,7 @@ import 'package:wildfire_mvp_v3/widgets/location_card.dart';
 
 import '../controllers/home_controller.dart';
 import '../models/home_state.dart';
+import '../models/location_models.dart';
 import '../widgets/risk_banner.dart';
 import '../widgets/risk_guidance_card.dart';
 import '../widgets/manual_location_dialog.dart';
@@ -344,7 +345,20 @@ class _HomeScreenState extends State<HomeScreen> {
     final state = _controller.state;
 
     switch (state) {
-      case HomeStateLoading(:final lastKnownLocation):
+      case HomeStateLoading(
+          :final lastKnownLocation,
+          :final isLocationStale,
+        ):
+        // Determine subtitle based on staleness
+        String subtitle;
+        if (lastKnownLocation != null) {
+          subtitle = isLocationStale
+              ? 'Using last known location (may be outdated)...'
+              : 'Using last known location while we fetch an update...';
+        } else {
+          subtitle = 'Determining your location…';
+        }
+
         return LocationCard(
           coordinatesLabel: lastKnownLocation != null
               ? LocationUtils.logRedact(
@@ -352,21 +366,37 @@ class _HomeScreenState extends State<HomeScreen> {
                   lastKnownLocation.longitude,
                 )
               : null,
-          subtitle: lastKnownLocation != null
-              ? 'Using last known location while we fetch an update...'
-              : 'Determining your location…',
+          subtitle: subtitle,
           isLoading: true,
           onChangeLocation: _showManualLocationDialog,
+          locationSource: lastKnownLocation != null
+              ? LocationSource.cached
+              : null, // No source for "Determining..."
         );
 
-      case HomeStateSuccess(:final location):
+      case HomeStateSuccess(
+          :final location,
+          :final locationSource,
+          :final placeName,
+        ):
+        // Build trust-building subtitle with combination approach
+        final String subtitle = switch (locationSource) {
+          LocationSource.gps => 'Current location (GPS)',
+          LocationSource.manual when placeName != null =>
+            '$placeName (set by you)',
+          LocationSource.manual => 'Your chosen location',
+          LocationSource.cached => 'Last known location',
+          LocationSource.defaultFallback => 'Default location (Scotland)',
+        };
+
         return LocationCard(
           coordinatesLabel: LocationUtils.logRedact(
             location.latitude,
             location.longitude,
           ),
-          subtitle: 'Current location (GPS)',
+          subtitle: subtitle,
           onChangeLocation: _showManualLocationDialog,
+          locationSource: locationSource,
         );
 
       case HomeStateError(:final cachedLocation) when cachedLocation != null:
@@ -377,6 +407,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           subtitle: 'Using last known location (offline)',
           onChangeLocation: _showManualLocationDialog,
+          locationSource: LocationSource.cached,
         );
 
       case HomeStateError():
@@ -384,6 +415,7 @@ class _HomeScreenState extends State<HomeScreen> {
           coordinatesLabel: null,
           subtitle: 'Location not available. Set a manual location.',
           onChangeLocation: _showManualLocationDialog,
+          locationSource: null,
         );
     }
   }
