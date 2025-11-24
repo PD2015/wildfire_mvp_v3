@@ -15,7 +15,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: Builder(
-              builder: (context) => ElevatedButton(
+              builder: (context) => FilledButton(
                 onPressed: () => ManualLocationDialog.show(context),
                 child: const Text('Show Dialog'),
               ),
@@ -43,7 +43,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: Builder(
-              builder: (context) => ElevatedButton(
+              builder: (context) => FilledButton(
                 onPressed: () => ManualLocationDialog.show(context),
                 child: const Text('Show Dialog'),
               ),
@@ -67,7 +67,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assert - Save button should be enabled
-      final saveButton = tester.widget<ElevatedButton>(
+      final saveButton = tester.widget<FilledButton>(
         find.byKey(const Key('save_button')),
       );
       expect(
@@ -88,7 +88,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: Builder(
-              builder: (context) => ElevatedButton(
+              builder: (context) => FilledButton(
                 onPressed: () => ManualLocationDialog.show(context),
                 child: const Text('Show Dialog'),
               ),
@@ -112,7 +112,7 @@ void main() {
       );
 
       // Save button should be disabled
-      final saveButton = tester.widget<ElevatedButton>(
+      final saveButton = tester.widget<FilledButton>(
         find.byKey(const Key('save_button')),
       );
       expect(
@@ -128,7 +128,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: Builder(
-              builder: (context) => ElevatedButton(
+              builder: (context) => FilledButton(
                 onPressed: () => ManualLocationDialog.show(context),
                 child: const Text('Show Dialog'),
               ),
@@ -171,7 +171,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: Builder(
-              builder: (context) => ElevatedButton(
+              builder: (context) => FilledButton(
                 onPressed: () => ManualLocationDialog.show(context),
                 child: const Text('Show Dialog'),
               ),
@@ -211,7 +211,7 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: Builder(
-              builder: (context) => ElevatedButton(
+              builder: (context) => FilledButton(
                 onPressed: () => ManualLocationDialog.show(context),
                 child: const Text('Show Dialog'),
               ),
@@ -250,7 +250,7 @@ void main() {
           MaterialApp(
             home: Scaffold(
               body: Builder(
-                builder: (context) => ElevatedButton(
+                builder: (context) => FilledButton(
                   onPressed: () => ManualLocationDialog.show(context),
                   child: const Text('Show Dialog'),
                 ),
@@ -312,7 +312,7 @@ void main() {
           MaterialApp(
             home: Scaffold(
               body: Builder(
-                builder: (context) => ElevatedButton(
+                builder: (context) => FilledButton(
                   onPressed: () => ManualLocationDialog.show(context),
                   child: const Text('Show Dialog'),
                 ),
@@ -376,7 +376,7 @@ void main() {
           MaterialApp(
             home: Scaffold(
               body: Builder(
-                builder: (context) => ElevatedButton(
+                builder: (context) => FilledButton(
                   onPressed: () => ManualLocationDialog.show(context),
                   child: const Text('Show Dialog'),
                 ),
@@ -413,7 +413,7 @@ void main() {
           MaterialApp(
             home: Scaffold(
               body: Builder(
-                builder: (context) => ElevatedButton(
+                builder: (context) => FilledButton(
                   onPressed: () async {
                     result = await ManualLocationDialog.show(context);
                   },
@@ -449,7 +449,7 @@ void main() {
             MaterialApp(
               home: Scaffold(
                 body: Builder(
-                  builder: (context) => ElevatedButton(
+                  builder: (context) => FilledButton(
                     onPressed: () async {
                       result = await ManualLocationDialog.show(context);
                     },
@@ -497,7 +497,7 @@ void main() {
           MaterialApp(
             home: Scaffold(
               body: Builder(
-                builder: (context) => ElevatedButton(
+                builder: (context) => FilledButton(
                   onPressed: () => ManualLocationDialog.show(context),
                   child: const Text('Show Dialog'),
                 ),
@@ -514,7 +514,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        final saveButton = tester.widget<ElevatedButton>(
+        final saveButton = tester.widget<FilledButton>(
           find.byKey(const Key('save_button')),
         );
         expect(
@@ -534,7 +534,7 @@ void main() {
           MaterialApp(
             home: Scaffold(
               body: Builder(
-                builder: (context) => ElevatedButton(
+                builder: (context) => FilledButton(
                   onPressed: () => ManualLocationDialog.show(context),
                   child: const Text('Show Dialog'),
                 ),
@@ -569,7 +569,7 @@ void main() {
           findsOneWidget,
         );
 
-        final saveButton = tester.widget<ElevatedButton>(
+        final saveButton = tester.widget<FilledButton>(
           find.byKey(const Key('save_button')),
         );
         expect(
@@ -585,7 +585,7 @@ void main() {
           MaterialApp(
             home: Scaffold(
               body: Builder(
-                builder: (context) => ElevatedButton(
+                builder: (context) => FilledButton(
                   onPressed: () => ManualLocationDialog.show(context),
                   child: const Text('Show Dialog'),
                 ),
@@ -621,7 +621,7 @@ void main() {
         // Assert - Error should be cleared
         expect(find.textContaining('must be between'), findsNothing);
 
-        final saveButton = tester.widget<ElevatedButton>(
+        final saveButton = tester.widget<FilledButton>(
           find.byKey(const Key('save_button')),
         );
         expect(
@@ -641,7 +641,7 @@ void main() {
           MaterialApp(
             home: Scaffold(
               body: Builder(
-                builder: (context) => ElevatedButton(
+                builder: (context) => FilledButton(
                   onPressed: () => ManualLocationDialog.show(context),
                   child: const Text('Show Dialog'),
                 ),
@@ -664,7 +664,7 @@ void main() {
         // Assert - Should be valid
         expect(find.textContaining('must be between'), findsNothing);
 
-        final saveButton = tester.widget<ElevatedButton>(
+        final saveButton = tester.widget<FilledButton>(
           find.byKey(const Key('save_button')),
         );
         expect(
@@ -680,7 +680,7 @@ void main() {
           MaterialApp(
             home: Scaffold(
               body: Builder(
-                builder: (context) => ElevatedButton(
+                builder: (context) => FilledButton(
                   onPressed: () => ManualLocationDialog.show(context),
                   child: const Text('Show Dialog'),
                 ),
@@ -706,7 +706,7 @@ void main() {
         // Assert - Should be valid
         expect(find.textContaining('must be between'), findsNothing);
 
-        final saveButton = tester.widget<ElevatedButton>(
+        final saveButton = tester.widget<FilledButton>(
           find.byKey(const Key('save_button')),
         );
         expect(
@@ -722,7 +722,7 @@ void main() {
           MaterialApp(
             home: Scaffold(
               body: Builder(
-                builder: (context) => ElevatedButton(
+                builder: (context) => FilledButton(
                   onPressed: () => ManualLocationDialog.show(context),
                   child: const Text('Show Dialog'),
                 ),
@@ -737,7 +737,7 @@ void main() {
         // Assert - Empty fields should not show error but save should be disabled
         expect(find.textContaining('must be between'), findsNothing);
 
-        final saveButton = tester.widget<ElevatedButton>(
+        final saveButton = tester.widget<FilledButton>(
           find.byKey(const Key('save_button')),
         );
         expect(
