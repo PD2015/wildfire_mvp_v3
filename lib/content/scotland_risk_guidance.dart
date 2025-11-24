@@ -91,7 +91,8 @@ class ScotlandRiskGuidance {
 
   /// Emergency response footer (same for all levels)
   static const String emergencyFooter =
-      'If you see a wildfire, call 999 and ask for the Fire Service.';
+      // 'If you see a wildfire, call 999 and ask for the Fire Service.';
+      'If you see a wildfire, report it. Provide as much information as possible about the location and size of the fire.';
 
   /// Gets guidance for a specific risk level, or generic guidance if null
   static RiskGuidance getGuidance(RiskLevel? level) {

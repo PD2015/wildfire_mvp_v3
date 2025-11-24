@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../content/scotland_risk_guidance.dart';
 import '../models/risk_level.dart';
 
@@ -110,29 +111,31 @@ class RiskGuidanceCard extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Emergency footer
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.tertiaryContainer,
-                  borderRadius: BorderRadius.circular(18),
+              // Emergency footer - navigates to report screen
+              FilledButton.tonal(
+                onPressed: () => context.go('/report'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: scheme.tertiaryContainer,
+                  foregroundColor: scheme.onTertiaryContainer,
+                  padding: const EdgeInsets.all(16),
+                  minimumSize: const Size(double.infinity, 56),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.phone,
-                      color: Theme.of(context).colorScheme.onTertiaryContainer,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 8),
+                    const Icon(Icons.phone, size: 24),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         ScotlandRiskGuidance.emergencyFooter,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
                               color: Theme.of(context)
                                   .colorScheme
                                   .onTertiaryContainer,
-                              fontWeight: FontWeight.w600,
                             ),
                       ),
                     ),
