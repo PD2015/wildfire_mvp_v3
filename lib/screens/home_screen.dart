@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wildfire_mvp_v3/widgets/location_card.dart';
 
 import '../controllers/home_controller.dart';
 import '../models/home_state.dart';
@@ -63,6 +64,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Location display GPS/manual
+                    _buildLocationCard(),
+                    const SizedBox(height: 16.0),
                     // Main risk banner display
                     _buildRiskBanner(),
 
@@ -332,6 +336,55 @@ class _HomeScreenState extends State<HomeScreen> {
       case HomeStateSuccess():
         // No additional info needed for success state
         return const SizedBox.shrink();
+    }
+  }
+
+  /// Builds the location card based on current HomeState
+  Widget _buildLocationCard() {
+    final state = _controller.state;
+
+    switch (state) {
+      case HomeStateLoading(:final lastKnownLocation):
+        return LocationCard(
+          coordinatesLabel: lastKnownLocation != null
+              ? LocationUtils.logRedact(
+                  lastKnownLocation.latitude,
+                  lastKnownLocation.longitude,
+                )
+              : null,
+          subtitle: lastKnownLocation != null
+              ? 'Using last known location while we fetch an update...'
+              : 'Determining your location…',
+          isLoading: true,
+          onChangeLocation: _showManualLocationDialog,
+        );
+
+      case HomeStateSuccess(:final location):
+        return LocationCard(
+          coordinatesLabel: LocationUtils.logRedact(
+            location.latitude,
+            location.longitude,
+          ),
+          subtitle: 'Current location (GPS)',
+          onChangeLocation: _showManualLocationDialog,
+        );
+
+      case HomeStateError(:final cachedLocation) when cachedLocation != null:
+        return LocationCard(
+          coordinatesLabel: LocationUtils.logRedact(
+            cachedLocation.latitude,
+            cachedLocation.longitude,
+          ),
+          subtitle: 'Using last known location (offline)',
+          onChangeLocation: _showManualLocationDialog,
+        );
+
+      case HomeStateError():
+        return LocationCard(
+          coordinatesLabel: null,
+          subtitle: 'Location not available. Set a manual location.',
+          onChangeLocation: _showManualLocationDialog,
+        );
     }
   }
 

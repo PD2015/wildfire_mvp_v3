@@ -28,14 +28,22 @@ class HomeStateLoading extends HomeState {
   /// Timestamp when loading operation started
   final DateTime startTime;
 
-  const HomeStateLoading({this.isRetry = false, required this.startTime});
+  /// Last known location (from previous success or cached state)
+  /// Used to display location context to user during loading
+  final LatLng? lastKnownLocation;
+
+  const HomeStateLoading({
+    this.isRetry = false,
+    required this.startTime,
+    this.lastKnownLocation,
+  });
 
   @override
-  List<Object?> get props => [isRetry, startTime];
+  List<Object?> get props => [isRetry, startTime, lastKnownLocation];
 
   @override
   String toString() =>
-      'HomeStateLoading(isRetry: $isRetry, startTime: $startTime)';
+      'HomeStateLoading(isRetry: $isRetry, startTime: $startTime, lastKnownLocation: $lastKnownLocation)';
 }
 
 /// Successfully loaded state with all required display data

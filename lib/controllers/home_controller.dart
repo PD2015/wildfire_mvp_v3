@@ -167,7 +167,20 @@ class HomeController extends ChangeNotifier {
   /// Core data loading implementation with timeout and error handling
   Future<void> _performLoad({required bool isRetry}) async {
     _isLoading = true;
-    _updateState(HomeStateLoading(isRetry: isRetry, startTime: DateTime.now()));
+
+    // Capture last known location from current state if available
+    final LatLng? lastKnownLocation = switch (_state) {
+      HomeStateSuccess(:final location) => location,
+      HomeStateError(:final cachedLocation) when cachedLocation != null =>
+        cachedLocation,
+      _ => null,
+    };
+
+    _updateState(HomeStateLoading(
+      isRetry: isRetry,
+      startTime: DateTime.now(),
+      lastKnownLocation: lastKnownLocation,
+    ));
 
     // Set up global timeout
     _timeoutTimer?.cancel();
