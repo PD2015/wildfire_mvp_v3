@@ -65,7 +65,7 @@ void main() {
           tester,
         ) async {
           final fireRisk = _fakeFireRisk(level: level);
-          final expectedText = 'WILDFIRE RISK';
+          const expectedText = 'WILDFIRE RISK';
 
           await tester.pumpWidget(
             MaterialApp(
