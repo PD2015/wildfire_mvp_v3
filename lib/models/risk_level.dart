@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import '../theme/risk_palette.dart';
+
 /// Risk level classification based on Fire Weather Index (FWI) values
 ///
 /// Maps FWI numerical values to categorical risk levels per docs/DATA-SOURCES.md:
@@ -43,6 +46,35 @@ enum RiskLevel {
       return RiskLevel.veryHigh;
     } else {
       return RiskLevel.extreme;
+    }
+  }
+}
+
+/// Extension providing RiskPalette color mapping for RiskLevel enum
+///
+/// Eliminates duplicate color mapping code across widgets by providing
+/// a single source of truth for RiskLevel → Color conversion.
+///
+/// Usage: `riskLevel.color` instead of switch statements or helper methods.
+///
+/// Constitutional compliance:
+/// - C4: Single source of truth for risk level colors
+extension RiskLevelColor on RiskLevel {
+  /// Gets the corresponding RiskPalette color for this risk level
+  Color get color {
+    switch (this) {
+      case RiskLevel.veryLow:
+        return RiskPalette.veryLow;
+      case RiskLevel.low:
+        return RiskPalette.low;
+      case RiskLevel.moderate:
+        return RiskPalette.moderate;
+      case RiskLevel.high:
+        return RiskPalette.high;
+      case RiskLevel.veryHigh:
+        return RiskPalette.veryHigh;
+      case RiskLevel.extreme:
+        return RiskPalette.extreme;
     }
   }
 }

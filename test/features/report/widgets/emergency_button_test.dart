@@ -25,11 +25,11 @@ void main() {
       );
 
       // Assert
-      expect(find.text('Call 999 — Fire Service'), findsOneWidget);
+      expect(find.text('999 Fire Service'), findsOneWidget);
       expect(find.byType(EmergencyButton), findsOneWidget);
 
       // Test button tap
-      await tester.tap(find.text('Call 999 — Fire Service'));
+      await tester.tap(find.text('999 Fire Service'));
       expect(wasPressed, true);
     });
 
@@ -49,7 +49,7 @@ void main() {
       );
 
       // Assert
-      expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
+      expect(find.text('101 Police'), findsOneWidget);
       expect(find.byType(EmergencyButton), findsOneWidget);
     });
 
@@ -69,7 +69,7 @@ void main() {
       );
 
       // Assert
-      expect(find.text('Call Crimestoppers'), findsOneWidget);
+      expect(find.text('Crimestoppers'), findsOneWidget);
       expect(find.byType(EmergencyButton), findsOneWidget);
     });
 
@@ -114,8 +114,8 @@ void main() {
 
       // Assert - Check semantic labeling
       final semantics = tester.getSemantics(find.byType(EmergencyButton));
-      expect(semantics.label, contains('Call 999'));
-      expect(semantics.label, contains('Fire Service'));
+      expect(semantics.label, contains('999 Fire Service'));
+      expect(semantics.label, contains('Emergency contact'));
     });
 
     testWidgets('should apply correct color scheme based on priority', (
@@ -152,7 +152,7 @@ void main() {
       );
 
       // Assert
-      expect(find.text('Call 999 — Fire Service'), findsOneWidget);
+      expect(find.text('999 Fire Service'), findsOneWidget);
     });
 
     testWidgets('PoliceScotlandButton should create correct button', (
@@ -166,7 +166,7 @@ void main() {
       );
 
       // Assert
-      expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
+      expect(find.text('101 Police'), findsOneWidget);
     });
 
     testWidgets('CrimestoppersButton should create correct button', (
@@ -180,7 +180,7 @@ void main() {
       );
 
       // Assert
-      expect(find.text('Call Crimestoppers'), findsOneWidget);
+      expect(find.text('Crimestoppers'), findsOneWidget);
     });
   });
 }

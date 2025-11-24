@@ -195,6 +195,13 @@ replaces:
 **Full strategy**: See `docs/DOCUMENTATION_STRATEGY.md`
 
 ## Recent Changes
+- **Location Tracking Enhancements** (commits 71547bf, b8daaed, 0a24c37):
+  - Added LocationSource enum (gps, manual, cached, defaultFallback) for UI attribution
+  - Implemented timestamp tracking with 1-hour staleness threshold (HomeStateLoading.isLocationStale)
+  - Added dual-layer validation: widget format checks + utility range/NaN/Infinity checks
+  - Implemented trust-building UX: combination approach with icons, place names, positive framing
+  - Comprehensive test coverage: 101 tests (21 LocationCard, 26 HomeState, 24 HomeController, 30 LocationUtils)
+  - See "Location Tracking and Validation Patterns" section for implementation details
 - 016-016-a14-riskbanner: Added Dart 3.9.2, Flutter 3.35.5 stable + Flutter SDK, Material Design, existing RiskPalette, CachedBadge widge
 - 015-rename-home-fire: Added Dart 3.9.2, Flutter 3.35.5 stable + Flutter SDK, go_router (navigation/routing), Material Design Icons (Icons.warning_amber)
 - 012-a11-ci-cd: Added Dart 3.9.2, Flutter 3.35.5 stable + Firebase Hosting (deployment infrastructure), GitHub Actions (CI/CD orchestration), google_maps_flutter ^2.5.0 (mapping component), firebase-tools CLI (deployment tool)
@@ -551,6 +558,345 @@ _logger.info('Location resolved: ${LocationUtils.logRedact(coords.latitude, coor
 
 // WRONG: Full precision exposes PII
 _logger.info('Location: $lat,$lon'); // Violates C2 constitutional gate
+```
+
+## Location Tracking and Validation Patterns
+
+### LocationSource Enum for UI Attribution
+Track location provenance through the stack for transparent UX:
+
+```dart
+// lib/models/location_models.dart
+enum LocationSource {
+  gps,              // Obtained via device GPS
+  manual,           // Set by user (lat/lon or place search)
+  cached,           // Loaded from cache/SharedPreferences
+  defaultFallback,  // Scotland centroid fallback
+}
+
+// Usage in HomeController
+Future<void> _performLoad() async {
+  final locationResult = await _locationResolver.getLatLon();
+  
+  late final LocationSource locationSource;
+  switch (locationResult) {
+    case Right(:final value):
+      if (_isManualLocation) {
+        locationSource = LocationSource.manual;
+      } else {
+        locationSource = LocationSource.gps;  // GPS or cached from resolver
+      }
+  }
+  
+  // Create success state with source attribution
+  _updateState(HomeStateSuccess(
+    riskData: riskData,
+    location: location,
+    lastUpdated: DateTime.now(),
+    locationSource: locationSource,      // Pass through for UI
+    placeName: _isManualLocation ? _manualPlaceName : null,
+  ));
+}
+
+// Usage in UI
+Widget _buildLocationCard(HomeStateSuccess state) {
+  // Dynamic icons based on source
+  final icon = switch (state.locationSource) {
+    LocationSource.gps => Icons.gps_fixed,
+    LocationSource.manual => Icons.location_pin,
+    LocationSource.cached => Icons.cached,
+    LocationSource.defaultFallback => Icons.public,
+  };
+  
+  // Contextual subtitles
+  final subtitle = switch (state.locationSource) {
+    LocationSource.gps => 'Current location (GPS)',
+    LocationSource.manual when state.placeName != null => '${state.placeName} (set by you)',
+    LocationSource.manual => 'Your chosen location',
+    LocationSource.cached => 'Cached location',
+    LocationSource.defaultFallback => 'Default location',
+  };
+}
+```
+
+### Timestamp Tracking for Staleness Detection
+Implement 1-hour staleness threshold with visible warnings:
+
+```dart
+// lib/models/home_state.dart
+sealed class HomeStateLoading {
+  final DateTime? lastKnownLocationTimestamp;
+  
+  /// Staleness threshold: >1 hour
+  bool get isLocationStale {
+    if (lastKnownLocationTimestamp == null) return false;
+    return DateTime.now().difference(lastKnownLocationTimestamp!) > 
+        const Duration(hours: 1);
+  }
+}
+
+// lib/controllers/home_controller.dart
+Future<void> _performLoad({required bool isRetry}) async {
+  // Capture timestamp from previous success state
+  final DateTime? lastKnownLocationTimestamp;
+  switch (_state) {
+    case HomeStateSuccess(:final location, :final lastUpdated):
+      lastKnownLocation = location;
+      lastKnownLocationTimestamp = lastUpdated;  // Exact timestamp capture
+    case HomeStateError(:final cachedLocation):
+      lastKnownLocation = cachedLocation;
+      lastKnownLocationTimestamp = null;  // No reliable timestamp
+    default:
+      lastKnownLocation = null;
+      lastKnownLocationTimestamp = null;  // First load
+  }
+  
+  // Update loading state with captured values
+  _updateState(HomeStateLoading(
+    isRetry: isRetry,
+    startTime: DateTime.now(),
+    lastKnownLocation: lastKnownLocation,
+    lastKnownLocationTimestamp: lastKnownLocationTimestamp,
+  ));
+}
+
+// UI staleness warning
+Widget _buildLocationCard(HomeStateLoading state) {
+  final subtitle = state.isLocationStale
+    ? 'Location may be outdated (${_formatAge(state.lastKnownLocationTimestamp)})'
+    : 'Last updated: ${_formatTimestamp(state.lastKnownLocationTimestamp)}';
+}
+```
+
+### Dual-Layer Input Validation
+Validate at both widget (format) and utility (ranges) layers:
+
+```dart
+// lib/widgets/location_card.dart (Widget layer)
+class LocationCard extends StatelessWidget {
+  bool _hasValidLocation() {
+    if (locationCoordinates == null || locationCoordinates!.isEmpty) {
+      return false;
+    }
+    
+    // Format validation: "XX.XX, YY.YY"
+    if (!locationCoordinates!.contains(',')) {
+      return false;
+    }
+    
+    final parts = locationCoordinates!.split(',');
+    if (parts.length != 2) return false;
+    
+    // Double parsing check
+    final lat = double.tryParse(parts[0].trim());
+    final lon = double.tryParse(parts[1].trim());
+    
+    return lat != null && lon != null;
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    final buttonText = _hasValidLocation() ? 'Change' : 'Set';
+    final displayText = _hasValidLocation() 
+      ? locationCoordinates 
+      : 'Location not set';
+  }
+}
+
+// lib/utils/location_utils.dart (Utility layer)
+class LocationUtils {
+  static String logRedact(double lat, double lon) {
+    try {
+      // Validate NaN/Infinity
+      if (lat.isNaN || lat.isInfinite || lon.isNaN || lon.isInfinite) {
+        return 'Invalid location';
+      }
+      
+      // Validate ranges: [-90, 90] x [-180, 180]
+      if (!isValidCoordinate(lat, lon)) {
+        return 'Invalid location';
+      }
+      
+      // C2-compliant 2-decimal redaction
+      return '${lat.toStringAsFixed(2)},${lon.toStringAsFixed(2)}';
+    } catch (e) {
+      return 'Invalid location';  // Catch unexpected errors
+    }
+  }
+  
+  static bool isValidCoordinate(double lat, double lon) {
+    return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+  }
+}
+```
+
+### Trust-Building UX Patterns
+Combination approach: icons + place names + positive framing
+
+```dart
+// lib/screens/home_screen.dart
+Widget _buildLocationCard(HomeStateSuccess state) {
+  return LocationCard(
+    locationCoordinates: LocationUtils.logRedact(
+      state.location.latitude,
+      state.location.longitude,
+    ),
+    locationSource: state.locationSource,  // Dynamic icon
+    subtitle: _buildSubtitle(state),       // Contextual messaging
+    onChangeLocation: () => _handleManualLocationEntry(),
+  );
+}
+
+String _buildSubtitle(HomeStateSuccess state) {
+  // Positive framing for manual locations
+  if (state.locationSource == LocationSource.manual) {
+    if (state.placeName != null) {
+      return '${state.placeName} (set by you)';  // Place name + attribution
+    }
+    return 'Your chosen location';  // Positive framing (not "manual entry")
+  }
+  
+  // GPS: Clear attribution
+  if (state.locationSource == LocationSource.gps) {
+    return 'Current location (GPS)';
+  }
+  
+  // Cache: Transparency
+  if (state.locationSource == LocationSource.cached) {
+    return 'Cached location';
+  }
+  
+  // Default: Clarity
+  return 'Default location';
+}
+
+// Staleness warning (append to subtitle when needed)
+Widget _buildLocationCard(HomeStateLoading state) {
+  if (state.isLocationStale) {
+    final baseSubtitle = _buildSubtitle(state);
+    return '$baseSubtitle (may be outdated)';  // Non-alarming warning
+  }
+}
+```
+
+### Testing Location Tracking Patterns
+Comprehensive test coverage for validation, timestamps, and source tracking:
+
+```dart
+// test/widget/location_card_test.dart
+group('LocationCard validation', () {
+  testWidgets('shows "Set" button when coordinates malformed', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: LocationCard(
+            locationCoordinates: '55.9533',  // Missing comma
+            onChangeLocation: () {},
+          ),
+        ),
+      ),
+    );
+    
+    expect(find.text('Set'), findsOneWidget);
+    expect(find.text('Change'), findsNothing);
+  });
+  
+  testWidgets('shows correct icon per LocationSource', (tester) async {
+    for (final source in LocationSource.values) {
+      await tester.pumpWidget(MaterialApp(
+        home: LocationCard(
+          locationCoordinates: '55.95, -3.19',
+          locationSource: source,
+        ),
+      ));
+      
+      switch (source) {
+        case LocationSource.gps:
+          expect(find.byIcon(Icons.gps_fixed), findsOneWidget);
+        case LocationSource.manual:
+          expect(find.byIcon(Icons.location_pin), findsOneWidget);
+        case LocationSource.cached:
+          expect(find.byIcon(Icons.cached), findsOneWidget);
+        case LocationSource.defaultFallback:
+          expect(find.byIcon(Icons.public), findsOneWidget);
+      }
+    }
+  });
+});
+
+// test/unit/models/home_state_test.dart
+test('isLocationStale returns true when >1 hour old', () {
+  final twoHoursAgo = DateTime.now().subtract(const Duration(hours: 2));
+  final state = HomeStateLoading(
+    startTime: DateTime.now(),
+    lastKnownLocationTimestamp: twoHoursAgo,
+  );
+  
+  expect(state.isLocationStale, isTrue);
+});
+
+test('timestamp is captured exactly from lastUpdated', () async {
+  // First load succeeds
+  await controller.load();
+  final successState = controller.state as HomeStateSuccess;
+  final exactTimestamp = successState.lastUpdated;
+  
+  // Trigger second load
+  final loadFuture = controller.load();
+  await Future.delayed(const Duration(milliseconds: 10));
+  
+  // Loading state has exact timestamp
+  final loadingState = controller.state as HomeStateLoading;
+  expect(loadingState.lastKnownLocationTimestamp, equals(exactTimestamp));
+});
+
+// test/unit/utils/location_utils_test.dart
+test('handles NaN latitude gracefully', () {
+  final result = LocationUtils.logRedact(double.nan, -3.1883);
+  expect(result, equals('Invalid location'));
+});
+
+test('handles out-of-range latitude (>90)', () {
+  final result = LocationUtils.logRedact(91.0, -3.1883);
+  expect(result, equals('Invalid location'));
+});
+```
+
+### Location Tracking Anti-Patterns (Avoid)
+```dart
+// ❌ WRONG: No source attribution
+HomeStateSuccess(
+  riskData: risk,
+  location: location,
+  lastUpdated: DateTime.now(),
+  // Missing locationSource and placeName
+);
+
+// ❌ WRONG: Raw coordinates in logs
+_logger.info('Manual location: $lat, $lon');  // Violates C2
+
+// ❌ WRONG: No timestamp tracking
+HomeStateLoading(
+  startTime: DateTime.now(),
+  // Missing lastKnownLocationTimestamp for staleness detection
+);
+
+// ❌ WRONG: Widget validation only
+if (coordinates.contains(',')) {  // Format check only
+  display(coordinates);  // Doesn't validate NaN, Infinity, ranges
+}
+
+// ❌ WRONG: Utility validation only
+final redacted = LocationUtils.logRedact(lat, lon);  // Range check
+widget.display(redacted);  // Doesn't validate string format "XX.XX,YY.YY"
+
+// ✅ CORRECT: Dual-layer validation
+// Widget layer validates format
+if (_hasValidLocation()) {
+  // Utility layer validates ranges/NaN/Infinity
+  final redacted = LocationUtils.logRedact(lat, lon);
+  widget.display(redacted);
+}
 ```
 
 ## CacheService Implementation Patterns

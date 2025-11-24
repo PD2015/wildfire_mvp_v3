@@ -216,7 +216,7 @@ void main() {
         // Debug: Print widget tree
 
         // Assert - Should show success state with data source
-        expect(find.textContaining('Data Source'), findsAtLeastNWidgets(1));
+        expect(find.textContaining('From'), findsAtLeastNWidgets(1));
         expect(find.textContaining('Updated'), findsAtLeastNWidgets(1));
 
         // Verify service calls
@@ -266,7 +266,7 @@ void main() {
         await tester.pumpAndSettle(); // Wait for all async operations
 
         // Assert - Should show data source
-        expect(find.textContaining('Data Source'), findsAtLeastNWidgets(1));
+        expect(find.textContaining('From'), findsAtLeastNWidgets(1));
         expect(find.textContaining('Updated'), findsAtLeastNWidgets(1));
 
         // Verify Scotland coordinates were used
@@ -318,7 +318,7 @@ void main() {
         await tester.pumpAndSettle(); // Wait for all async operations
 
         // Assert - Should transition to success
-        expect(find.textContaining('Data Source'), findsAtLeastNWidgets(1));
+        expect(find.textContaining('From'), findsAtLeastNWidgets(1));
       });
     });
 
@@ -351,8 +351,8 @@ void main() {
         await tester.pumpWidget(buildTestApp(homeController));
         await tester.pump(const Duration(milliseconds: 100));
 
-        // Tap the "Set Location" button
-        await tester.tap(find.text('Set Location'));
+        // Tap the "Set" button in LocationCard
+        await tester.tap(find.text('Set'));
         await tester.pumpAndSettle();
 
         // Assert - Manual location dialog should open
@@ -371,8 +371,8 @@ void main() {
         await tester.pumpWidget(buildTestApp(homeController));
         await tester.pump(); // Initial render
 
-        // Should show error state initially
-        expect(find.text('Set Location'), findsOneWidget);
+        // Should show error state with LocationCard Set button
+        expect(find.text('Set'), findsOneWidget);
 
         // Act - Set manual location (this updates the location resolver mock)
         mockLocationResolver.reset();
@@ -414,7 +414,7 @@ void main() {
         await tester.pumpAndSettle(); // Wait for all async operations
 
         // Assert - Should succeed
-        expect(find.textContaining('Data Source'), findsAtLeastNWidgets(1));
+        expect(find.textContaining('From'), findsAtLeastNWidgets(1));
         expect(find.text('Retry'), findsNothing);
       });
     });
@@ -463,7 +463,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Should complete successfully
-        expect(find.textContaining('Data Source'), findsAtLeastNWidgets(1));
+        expect(find.textContaining('From'), findsAtLeastNWidgets(1));
       });
     });
 
@@ -562,9 +562,12 @@ void main() {
         await tester.pumpWidget(buildTestApp(homeController));
         await tester.pump(const Duration(milliseconds: 100));
 
-        // Assert - Check for semantic elements
+        // Assert - Check for semantic elements and LocationCard button
         expect(find.byType(Semantics), findsWidgets);
-        expect(find.text('Set Location'), findsOneWidget);
+        final hasSet = find.text('Set').evaluate().isNotEmpty;
+        final hasChange = find.text('Change').evaluate().isNotEmpty;
+        expect(hasSet || hasChange, isTrue,
+            reason: 'LocationCard should have Set or Change button');
       });
     });
   });

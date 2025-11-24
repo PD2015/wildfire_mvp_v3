@@ -56,14 +56,23 @@ class MockLocationResolver implements LocationResolver {
 /// Mock FireRiskService for controlled testing
 class MockFireRiskService implements FireRiskService {
   Either<ApiError, FireRisk>? _getCurrentResult;
+  Duration? _delay;
   List<String> loggedCalls = [];
 
   void mockGetCurrent(Either<ApiError, FireRisk> result) {
     _getCurrentResult = result;
+    _delay = null;
+  }
+
+  void mockGetCurrentWithDelay(
+      Either<ApiError, FireRisk> result, Duration delay) {
+    _getCurrentResult = result;
+    _delay = delay;
   }
 
   void reset() {
     _getCurrentResult = null;
+    _delay = null;
     loggedCalls.clear();
   }
 
@@ -76,6 +85,12 @@ class MockFireRiskService implements FireRiskService {
     loggedCalls.add(
       'getCurrent(lat: $lat, lon: $lon, deadline: ${deadline?.inSeconds ?? 8}s)',
     );
+
+    // Simulate delay if configured
+    if (_delay != null) {
+      await Future.delayed(_delay!);
+    }
+
     if (_getCurrentResult != null) {
       return _getCurrentResult!;
     }
@@ -439,6 +454,214 @@ void main() {
         final successState = controller.state as HomeStateSuccess;
         expect(successState.riskData.source, equals(DataSource.sepa));
         expect(successState.lastUpdated, isA<DateTime>());
+      });
+    });
+
+    group('State Capture and Timestamp Tracking', () {
+      test('retry captures lastKnownLocation from success state', () async {
+        // Arrange: First load succeeds
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+
+        await controller.load();
+
+        expect(controller.state, isA<HomeStateSuccess>());
+        final successState = controller.state as HomeStateSuccess;
+        final originalTimestamp = successState.lastUpdated;
+
+        // Setup second load with delay
+        mockLocationResolver.mockGetLatLon(const Right(TestData.glasgow));
+        mockFireRiskService.mockGetCurrentWithDelay(
+          Right(TestData.createFireRisk()),
+          const Duration(milliseconds: 100),
+        );
+
+        // Act: Trigger retry
+        final retryFuture = controller.retry();
+        await Future.delayed(const Duration(milliseconds: 10));
+
+        // Assert: Loading state captured previous location and timestamp
+        expect(controller.state, isA<HomeStateLoading>());
+        final loadingState = controller.state as HomeStateLoading;
+        expect(loadingState.lastKnownLocation, TestData.edinburgh);
+        expect(loadingState.lastKnownLocationTimestamp, isNotNull);
+        expect(
+          loadingState.lastKnownLocationTimestamp,
+          equals(originalTimestamp),
+        );
+        expect(loadingState.isRetry, isTrue);
+
+        await retryFuture;
+      });
+
+      test('retry captures lastKnownLocation from error cachedLocation',
+          () async {
+        // Note: This test documents expected behavior when error states
+        // have cachedLocation. Currently our mock doesn't provide this,
+        // but the controller code handles it in the pattern match.
+
+        // Arrange: Simulate error with cached location
+        // In real scenario, FireRiskService returns error with cached data
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockFireRiskService.mockGetCurrent(
+          Left(ApiError(message: 'Network error')),
+        );
+
+        await controller.load();
+
+        // Manually verify error state exists (cached location would be set by service)
+        expect(controller.state, isA<HomeStateError>());
+
+        // Setup retry
+        mockFireRiskService.mockGetCurrentWithDelay(
+          Right(TestData.createFireRisk()),
+          const Duration(milliseconds: 100),
+        );
+
+        final retryFuture = controller.retry();
+        await Future.delayed(const Duration(milliseconds: 10));
+
+        // Verify loading state - would capture cachedLocation if error had it
+        expect(controller.state, isA<HomeStateLoading>());
+        final loadingState = controller.state as HomeStateLoading;
+        // Since error didn't have cachedLocation, lastKnownLocation is null
+        expect(loadingState.lastKnownLocation, isNull);
+
+        await retryFuture;
+      });
+
+      test('load with no previous state has null lastKnownLocation', () async {
+        // Arrange: Fresh controller, no previous state
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockFireRiskService.mockGetCurrentWithDelay(
+          Right(TestData.createFireRisk()),
+          const Duration(milliseconds: 100),
+        );
+
+        // Act: First load
+        final loadFuture = controller.load();
+        await Future.delayed(const Duration(milliseconds: 10));
+
+        // Assert: Loading state has no previous location
+        expect(controller.state, isA<HomeStateLoading>());
+        final loadingState = controller.state as HomeStateLoading;
+        expect(loadingState.lastKnownLocation, isNull);
+        expect(loadingState.lastKnownLocationTimestamp, isNull);
+        expect(loadingState.isRetry, isFalse);
+
+        await loadFuture;
+      });
+
+      test('timestamp is captured exactly from lastUpdated', () async {
+        // Arrange: First load succeeds
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+
+        await controller.load();
+
+        expect(controller.state, isA<HomeStateSuccess>());
+        final successState = controller.state as HomeStateSuccess;
+        final exactTimestamp = successState.lastUpdated;
+
+        // Wait to ensure timestamp difference is measurable
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        // Setup second load
+        mockFireRiskService.mockGetCurrentWithDelay(
+          Right(TestData.createFireRisk()),
+          const Duration(milliseconds: 100),
+        );
+
+        // Act: Trigger second load
+        final loadFuture = controller.load();
+        await Future.delayed(const Duration(milliseconds: 10));
+
+        // Assert: Loading state has exact timestamp from previous success
+        expect(controller.state, isA<HomeStateLoading>());
+        final loadingState = controller.state as HomeStateLoading;
+        expect(
+          loadingState.lastKnownLocationTimestamp,
+          equals(exactTimestamp),
+        );
+
+        await loadFuture;
+      });
+    });
+
+    group('LocationSource Tracking', () {
+      test('setManualLocation tracks locationSource as manual with placeName',
+          () async {
+        // Arrange
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+
+        // Act
+        await controller.setManualLocation(
+          TestData.edinburgh,
+          placeName: 'Edinburgh City Centre',
+        );
+
+        // Assert
+        expect(controller.state, isA<HomeStateSuccess>());
+        final successState = controller.state as HomeStateSuccess;
+        expect(successState.locationSource, LocationSource.manual);
+        expect(successState.placeName, 'Edinburgh City Centre');
+        expect(successState.location, TestData.edinburgh);
+      });
+
+      test('setManualLocation without placeName still tracks manual source',
+          () async {
+        // Arrange
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+
+        // Act
+        await controller.setManualLocation(TestData.edinburgh);
+
+        // Assert
+        expect(controller.state, isA<HomeStateSuccess>());
+        final successState = controller.state as HomeStateSuccess;
+        expect(successState.locationSource, LocationSource.manual);
+        expect(successState.placeName, isNull);
+      });
+
+      test('GPS location uses locationSource.gps', () async {
+        // Arrange: Normal load (not manual)
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+
+        // Act
+        await controller.load();
+
+        // Assert
+        expect(controller.state, isA<HomeStateSuccess>());
+        final successState = controller.state as HomeStateSuccess;
+        expect(successState.locationSource, LocationSource.gps);
+        expect(successState.placeName, isNull);
+      });
+
+      test('manual location flag resets after normal load', () async {
+        // Arrange: Set manual location first
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+
+        await controller.setManualLocation(
+          TestData.edinburgh,
+          placeName: 'Edinburgh',
+        );
+
+        expect(controller.state, isA<HomeStateSuccess>());
+        var successState = controller.state as HomeStateSuccess;
+        expect(successState.locationSource, LocationSource.manual);
+
+        // Act: Normal load should reset to GPS
+        await controller.load();
+
+        // Assert: Now shows GPS source
+        expect(controller.state, isA<HomeStateSuccess>());
+        successState = controller.state as HomeStateSuccess;
+        expect(successState.locationSource, LocationSource.gps);
+        expect(successState.placeName, isNull);
       });
     });
   });

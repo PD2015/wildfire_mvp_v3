@@ -15,8 +15,8 @@ void main() {
 
       test('formats negative coordinates correctly', () {
         expect(
-          LocationUtils.logRedact(-90.123456, -180.987654),
-          equals('-90.12,-180.99'),
+          LocationUtils.logRedact(-89.123456, -179.987654),
+          equals('-89.12,-179.99'),
         );
         expect(LocationUtils.logRedact(-55.9, 3.1), equals('-55.90,3.10'));
         expect(LocationUtils.logRedact(55.9, -3.1), equals('55.90,-3.10'));
@@ -128,20 +128,114 @@ void main() {
         expect(LocationUtils.isValidCoordinate(0.0000001, 0.0000001), isTrue);
         expect(LocationUtils.isValidCoordinate(-0.0000001, -0.0000001), isTrue);
       });
+
+      test('returns false for NaN coordinates', () {
+        expect(LocationUtils.isValidCoordinate(double.nan, 0.0), isFalse);
+        expect(LocationUtils.isValidCoordinate(0.0, double.nan), isFalse);
+        expect(
+            LocationUtils.isValidCoordinate(double.nan, double.nan), isFalse);
+      });
+
+      test('returns false for Infinity coordinates', () {
+        expect(LocationUtils.isValidCoordinate(double.infinity, 0.0), isFalse);
+        expect(LocationUtils.isValidCoordinate(double.negativeInfinity, 0.0),
+            isFalse);
+        expect(LocationUtils.isValidCoordinate(0.0, double.infinity), isFalse);
+        expect(LocationUtils.isValidCoordinate(0.0, double.negativeInfinity),
+            isFalse);
+        expect(
+            LocationUtils.isValidCoordinate(double.infinity, double.infinity),
+            isFalse);
+      });
+    });
+
+    group('logRedact error handling', () {
+      test('handles NaN latitude gracefully', () {
+        final result = LocationUtils.logRedact(double.nan, -3.1883);
+        expect(result, equals('Invalid location'));
+      });
+
+      test('handles NaN longitude gracefully', () {
+        final result = LocationUtils.logRedact(55.9533, double.nan);
+        expect(result, equals('Invalid location'));
+      });
+
+      test('handles both NaN coordinates gracefully', () {
+        final result = LocationUtils.logRedact(double.nan, double.nan);
+        expect(result, equals('Invalid location'));
+      });
+
+      test('handles Infinity latitude gracefully', () {
+        final result = LocationUtils.logRedact(double.infinity, -3.1883);
+        expect(result, equals('Invalid location'));
+      });
+
+      test('handles negative Infinity latitude gracefully', () {
+        final result =
+            LocationUtils.logRedact(double.negativeInfinity, -3.1883);
+        expect(result, equals('Invalid location'));
+      });
+
+      test('handles Infinity longitude gracefully', () {
+        final result = LocationUtils.logRedact(55.9533, double.infinity);
+        expect(result, equals('Invalid location'));
+      });
+
+      test('handles negative Infinity longitude gracefully', () {
+        final result =
+            LocationUtils.logRedact(55.9533, double.negativeInfinity);
+        expect(result, equals('Invalid location'));
+      });
+
+      test('handles both Infinity coordinates gracefully', () {
+        final result =
+            LocationUtils.logRedact(double.infinity, double.infinity);
+        expect(result, equals('Invalid location'));
+      });
+
+      test('handles out-of-range latitude (>90)', () {
+        final result = LocationUtils.logRedact(91.0, -3.1883);
+        expect(result, equals('Invalid location'));
+      });
+
+      test('handles out-of-range latitude (<-90)', () {
+        final result = LocationUtils.logRedact(-91.0, -3.1883);
+        expect(result, equals('Invalid location'));
+      });
+
+      test('handles out-of-range longitude (>180)', () {
+        final result = LocationUtils.logRedact(55.9533, 181.0);
+        expect(result, equals('Invalid location'));
+      });
+
+      test('handles out-of-range longitude (<-180)', () {
+        final result = LocationUtils.logRedact(55.9533, -181.0);
+        expect(result, equals('Invalid location'));
+      });
+
+      test('handles extreme out-of-range coordinates', () {
+        final result = LocationUtils.logRedact(999.0, 999.0);
+        expect(result, equals('Invalid location'));
+      });
     });
 
     group('Gate C2 compliance verification', () {
       test('logRedact never exposes more than 2 decimal places', () {
-        // Test a variety of high-precision inputs
+        // Test a variety of high-precision inputs (all within valid ranges)
         final testCases = [
           [55.953312345678, -3.188312345678],
-          [90.123456789012, 180.987654321098],
+          [89.123456789012, 179.987654321098],
           [-89.111111111111, -179.222222222222],
           [0.999999999999, 0.111111111111],
         ];
 
         for (final testCase in testCases) {
           final result = LocationUtils.logRedact(testCase[0], testCase[1]);
+
+          // Result should not be an error
+          expect(result, isNot(equals('Invalid location')),
+              reason:
+                  'Coordinate ${testCase[0]}, ${testCase[1]} should be valid');
 
           // Split by comma to check each coordinate
           final parts = result.split(',');

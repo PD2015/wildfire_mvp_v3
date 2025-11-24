@@ -37,6 +37,10 @@ class HomeController extends ChangeNotifier {
   bool _isLoading = false;
   Timer? _timeoutTimer;
 
+  // Track manual location details for source attribution
+  String? _manualPlaceName;
+  bool _isManualLocation = false;
+
   /// Current state of the home screen
   HomeState get state => _state;
 
@@ -132,6 +136,11 @@ class HomeController extends ChangeNotifier {
     try {
       // Save the manual location via LocationResolver
       await _locationResolver.saveManual(location, placeName: placeName);
+
+      // Track that this is a manual location
+      _isManualLocation = true;
+      _manualPlaceName = placeName;
+
       developer.log(
         'Manual location set: ${LocationUtils.logRedact(location.latitude, location.longitude)}${placeName != null ? ' ($placeName)' : ''}',
         name: 'HomeController',
@@ -167,7 +176,31 @@ class HomeController extends ChangeNotifier {
   /// Core data loading implementation with timeout and error handling
   Future<void> _performLoad({required bool isRetry}) async {
     _isLoading = true;
-    _updateState(HomeStateLoading(isRetry: isRetry, startTime: DateTime.now()));
+
+    // Capture last known location and timestamp from current state if available
+    final LatLng? lastKnownLocation;
+    final DateTime? lastKnownLocationTimestamp;
+
+    switch (_state) {
+      case HomeStateSuccess(:final location, :final lastUpdated):
+        lastKnownLocation = location;
+        lastKnownLocationTimestamp = lastUpdated;
+      case HomeStateError(:final cachedLocation) when cachedLocation != null:
+        lastKnownLocation = cachedLocation;
+        // For error states, we don't have a reliable timestamp, so use null
+        // This will cause isLocationStale to return false (no warning shown)
+        lastKnownLocationTimestamp = null;
+      default:
+        lastKnownLocation = null;
+        lastKnownLocationTimestamp = null;
+    }
+
+    _updateState(HomeStateLoading(
+      isRetry: isRetry,
+      startTime: DateTime.now(),
+      lastKnownLocation: lastKnownLocation,
+      lastKnownLocationTimestamp: lastKnownLocationTimestamp,
+    ));
 
     // Set up global timeout
     _timeoutTimer?.cancel();
@@ -188,11 +221,20 @@ class HomeController extends ChangeNotifier {
       );
 
       late final LatLng location;
+      late final LocationSource locationSource;
+
       switch (locationResult) {
         case Right(:final value):
           location = value;
+          // Determine location source based on whether it was manually set
+          if (_isManualLocation) {
+            locationSource = LocationSource.manual;
+          } else {
+            // GPS or cached from LocationResolver
+            locationSource = LocationSource.gps;
+          }
           developer.log(
-            'Location resolved: ${LocationUtils.logRedact(location.latitude, location.longitude)}',
+            'Location resolved: ${LocationUtils.logRedact(location.latitude, location.longitude)} (source: $locationSource)',
             name: 'HomeController',
           );
         case Left(:final value):
@@ -200,6 +242,7 @@ class HomeController extends ChangeNotifier {
           // Otherwise, treat as error
           if (FeatureFlags.testRegion != 'scotland') {
             location = _getTestRegionCenter();
+            locationSource = LocationSource.defaultFallback;
             developer.log(
               'Using test region: ${FeatureFlags.testRegion} at ${LocationUtils.logRedact(location.latitude, location.longitude)}',
               name: 'HomeController',
@@ -244,8 +287,14 @@ class HomeController extends ChangeNotifier {
               riskData: value,
               location: location,
               lastUpdated: DateTime.now(),
+              locationSource: locationSource,
+              placeName: _isManualLocation ? _manualPlaceName : null,
             ),
           );
+
+          // Reset manual location flag after successful load
+          // (but keep place name for next retry if needed)
+          _isManualLocation = false;
         case Left(:final value):
           developer.log(
             'Fire risk service failed: ${value.message}',

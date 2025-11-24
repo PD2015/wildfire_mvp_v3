@@ -5,6 +5,7 @@ import '../models/risk_level.dart';
 import '../theme/risk_palette.dart';
 import '../utils/time_format.dart';
 import 'badges/cached_badge.dart';
+import 'risk_scale.dart';
 
 // Visual tokens for consistent banner styling
 const double kBannerRadius = 16.0;
@@ -139,7 +140,7 @@ class RiskBanner extends StatelessWidget {
   /// Builds the success state with risk level display
   Widget _buildSuccessState(FireRisk data) {
     final levelName = _getRiskLevelName(data.level);
-    final backgroundColor = _getRiskLevelColor(data.level);
+    final backgroundColor = data.level.color;
     final textColor = _getTextColor(backgroundColor);
     final sourceName = _getSourceName(data.source);
 
@@ -162,11 +163,20 @@ class RiskBanner extends StatelessWidget {
             children: [
               // Main risk level title
               Text(
-                'Wildfire Risk: ${levelName.toUpperCase()}',
+                'WILDFIRE RISK',
                 style: TextStyle(
                   color: textColor,
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 13.0,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Text(
+                levelName.toUpperCase(), // The actual risk level
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 24.0, // Larger for emphasis
+                  fontWeight: FontWeight.w900,
                 ),
               ),
               const SizedBox(height: 8.0),
@@ -177,6 +187,14 @@ class RiskBanner extends StatelessWidget {
                   children: [
                     Icon(Icons.location_on, color: textColor, size: 16.0),
                     const SizedBox(width: 4.0),
+                    Text(
+                      "Location: ", // Note the space after colon
+                      style: TextStyle(
+                        color: textColor.withValues(alpha: 0.8),
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     Expanded(
                       child: Text(
                         locationLabel!,
@@ -190,23 +208,12 @@ class RiskBanner extends StatelessWidget {
                 const SizedBox(height: 8.0),
               ],
 
-              // Timestamp
+              // Combined timestamp and data source
               Text(
-                timeText,
+                '$timeText · From $sourceName', // "Updated just now · From EFFIS"
                 style: TextStyle(
                   color: textColor.withValues(alpha: 0.8),
-                  fontSize: 14.0,
-                ),
-              ),
-
-              const SizedBox(height: 4.0),
-
-              // Data Source as plain text
-              Text(
-                'Data Source: $sourceName',
-                style: TextStyle(
-                  color: textColor.withValues(alpha: 0.8),
-                  fontSize: 14.0,
+                  fontSize: 12.0,
                 ),
               ),
 
@@ -215,6 +222,12 @@ class RiskBanner extends StatelessWidget {
                 const SizedBox(height: 8.0),
                 const CachedBadge(),
               ],
+
+              // Risk scale
+              RiskScale(
+                currentLevel: data.level,
+                textColor: textColor,
+              ),
 
               // Weather panel (if enabled)
               if (config.showWeatherPanel) ...[
@@ -285,9 +298,7 @@ class RiskBanner extends StatelessWidget {
   /// Builds error state when cached data is available
   Widget _buildErrorWithCachedData(String message, FireRisk cached) {
     final levelName = _getRiskLevelName(cached.level);
-    final backgroundColor = _getRiskLevelColor(
-      cached.level,
-    ).withValues(alpha: 0.6);
+    final backgroundColor = cached.level.color.withValues(alpha: 0.6);
     final textColor = _getTextColor(backgroundColor);
     final sourceName = _getSourceName(cached.source);
     final timeText =
@@ -334,22 +345,47 @@ class RiskBanner extends StatelessWidget {
 
               // Cached risk level
               Text(
-                'Wildfire Risk: ${levelName.toUpperCase()}',
+                'WILDFIRE RISK',
                 style: TextStyle(
                   color: textColor,
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 13.0,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.5,
                 ),
               ),
-
+              Text(
+                levelName.toUpperCase(), // The actual risk level
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 24.0, // Larger for emphasis
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
               const SizedBox(height: 8.0),
 
-              // Location row (if locationLabel is provided)
+              // Location (if locationLabel is provided)
               if (locationLabel != null) ...[
+                Text(
+                  "LOCATION:",
+                  style: TextStyle(
+                    color: textColor.withValues(alpha: 0.8),
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4.0),
                 Row(
                   children: [
                     Icon(Icons.location_on, color: textColor, size: 16.0),
                     const SizedBox(width: 4.0),
+                    Text(
+                      "Location: ", // Note the space after colon
+                      style: TextStyle(
+                        color: textColor.withValues(alpha: 0.8),
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     Expanded(
                       child: Text(
                         locationLabel!,
@@ -363,30 +399,23 @@ class RiskBanner extends StatelessWidget {
                 const SizedBox(height: 8.0),
               ],
 
-              // Timestamp
+              // Timestamp and data source
               Text(
-                timeText,
+                '$timeText · From $sourceName', // Combined with middot separator
                 style: TextStyle(
                   color: textColor.withValues(alpha: 0.8),
                   fontSize: 14.0,
                 ),
               ),
-
-              const SizedBox(height: 4.0),
-
-              // Data Source as plain text
-              Text(
-                'Data Source: $sourceName',
-                style: TextStyle(
-                  color: textColor.withValues(alpha: 0.8),
-                  fontSize: 14.0,
-                ),
-              ),
-
-              const SizedBox(height: 8.0),
 
               // Cached badge
               const CachedBadge(),
+
+              // Risk scale
+              RiskScale(
+                currentLevel: cached.level,
+                textColor: textColor,
+              ),
 
               const SizedBox(height: 12.0),
 
@@ -394,14 +423,10 @@ class RiskBanner extends StatelessWidget {
               if (onRetry != null)
                 SizedBox(
                   height: 44.0, // A11y minimum touch target
-                  child: ElevatedButton.icon(
+                  child: FilledButton.icon(
                     onPressed: onRetry,
                     icon: const Icon(Icons.refresh, size: 18.0),
                     label: const Text('Retry'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: RiskPalette.blueAccent,
-                      foregroundColor: RiskPalette.white,
-                    ),
                   ),
                 ),
             ],
@@ -464,14 +489,10 @@ class RiskBanner extends StatelessWidget {
               if (onRetry != null)
                 SizedBox(
                   height: 44.0, // A11y minimum touch target
-                  child: ElevatedButton.icon(
+                  child: FilledButton.icon(
                     onPressed: onRetry,
                     icon: const Icon(Icons.refresh, size: 18.0),
                     label: const Text('Retry'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: RiskPalette.blueAccent,
-                      foregroundColor: RiskPalette.white,
-                    ),
                   ),
                 ),
             ],
@@ -490,18 +511,6 @@ class RiskBanner extends StatelessWidget {
       RiskLevel.high => 'High',
       RiskLevel.veryHigh => 'Very High',
       RiskLevel.extreme => 'Extreme',
-    };
-  }
-
-  /// Gets the background color for a risk level using RiskPalette
-  Color _getRiskLevelColor(RiskLevel level) {
-    return switch (level) {
-      RiskLevel.veryLow => RiskPalette.veryLow,
-      RiskLevel.low => RiskPalette.low,
-      RiskLevel.moderate => RiskPalette.moderate,
-      RiskLevel.high => RiskPalette.high,
-      RiskLevel.veryHigh => RiskPalette.veryHigh,
-      RiskLevel.extreme => RiskPalette.extreme,
     };
   }
 

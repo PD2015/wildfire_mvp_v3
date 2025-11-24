@@ -66,7 +66,7 @@ void main() {
           priority: EmergencyPriority.urgent,
         );
 
-        expect(contact.displayText, 'Call 999 — Fire Service');
+        expect(contact.displayText, '999 Fire Service');
       });
 
       test('isUrgent property works correctly', () {
