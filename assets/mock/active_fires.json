@@ -13,9 +13,14 @@
         "source": "mock",
         "freshness": "mock",
         "timestamp": "2025-10-19T14:30:00Z",
+        "detected_at": "2025-10-19T14:00:00Z",
+        "last_update": "2025-10-19T14:30:00Z",
         "intensity": "moderate",
         "description": "Edinburgh - Holyrood Park",
-        "areaHectares": 12.5
+        "areaHectares": 12.5,
+        "sensor_source": "VIIRS",
+        "confidence": 87.5,
+        "frp": 142.3
       }
     },
     {
@@ -30,9 +35,14 @@
         "source": "mock",
         "freshness": "mock",
         "timestamp": "2025-10-19T10:15:00Z",
+        "detected_at": "2025-10-19T09:45:00Z",
+        "last_update": "2025-10-19T10:15:00Z",
         "intensity": "high",
         "description": "Glasgow - Campsie Fells",
-        "areaHectares": 28.3
+        "areaHectares": 28.3,
+        "sensor_source": "MODIS",
+        "confidence": 92.8,
+        "frp": 287.6
       }
     },
     {
@@ -47,9 +57,14 @@
         "source": "mock",
         "freshness": "mock",
         "timestamp": "2025-10-19T08:00:00Z",
+        "detected_at": "2025-10-19T07:30:00Z",
+        "last_update": "2025-10-19T08:00:00Z",
         "intensity": "low",
         "description": "Aviemore - Cairngorms",
-        "areaHectares": 5.7
+        "areaHectares": 5.7,
+        "sensor_source": "VIIRS",
+        "confidence": 68.4,
+        "frp": 95.2
       }
     }
   ]
