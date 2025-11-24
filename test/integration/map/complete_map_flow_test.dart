@@ -247,7 +247,8 @@ void main() {
         expect(find.byType(gmaps.GoogleMap), findsOneWidget);
 
         // Assert: AppBar with correct title
-        expect(find.widgetWithText(AppBar, 'Fire Map'), findsOneWidget);
+        expect(find.widgetWithText(AppBar, 'Live Wildfire Fire Map'),
+            findsOneWidget);
 
         // Assert: Location resolver was called
         expect(mockLocationResolver.callCount, greaterThan(0));
