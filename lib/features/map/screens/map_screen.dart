@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
-import 'package:wildfire_mvp_v3/features/map/widgets/fire_information_bottom_sheet.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 // T-V2: RiskCheckButton temporarily disabled
 // import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
@@ -265,16 +264,7 @@ class _MapScreenState extends State<MapScreen> {
             MapSuccess() => _buildMapView(state),
             MapError() => _buildErrorView(state),
           },
-          // Legacy bottom sheet overlay (keep for existing features)
-          if (_controller.bottomSheetState.isVisible)
-            Positioned.fill(
-              child: FireInformationBottomSheet(
-                state: _controller.bottomSheetState,
-                onClose: _controller.hideBottomSheet,
-                onRetry: _controller.retryLoadFireDetails,
-              ),
-            ),
-          // New fire details bottom sheet (Task 12 integration)
+          // Fire details bottom sheet
           if (_isBottomSheetVisible && _selectedIncident != null)
             Positioned.fill(
               child: GestureDetector(

@@ -16,21 +16,33 @@ import 'package:wildfire_mvp_v3/services/active_fires_service.dart';
 ///
 /// Example usage:
 /// ```dart
-/// showModalBottomSheet(
-///   context: context,
-///   builder: (context) => FireDetailsBottomSheet(
-///     incident: fireIncident,
-///     userLocation: currentLocation,
-///   ),
-/// );
+/// // Simple usage with incident data
+/// FireDetailsBottomSheet(
+///   incident: fireIncident,
+///   userLocation: currentLocation,
+///   onClose: () {},
+/// )
+///
+/// // With loading state
+/// FireDetailsBottomSheet(
+///   isLoading: true,
+///   onClose: () {},
+/// )
+///
+/// // With error state
+/// FireDetailsBottomSheet(
+///   errorMessage: 'Failed to load fire details',
+///   onClose: () {},
+///   onRetry: () {},
+/// )
 /// ```
 ///
 /// Constitutional compliance:
 /// - C3 (Accessibility): ≥44dp touch targets, semantic labels, high contrast
 /// - C4 (Transparency): Shows data source, freshness, all detection metadata
 class FireDetailsBottomSheet extends StatelessWidget {
-  /// Fire incident to display
-  final FireIncident incident;
+  /// Fire incident to display (nullable for loading/error states)
+  final FireIncident? incident;
 
   /// User's current location for distance/bearing calculation
   final LatLng? userLocation;
@@ -38,11 +50,23 @@ class FireDetailsBottomSheet extends StatelessWidget {
   /// Optional callback when close button is tapped
   final VoidCallback? onClose;
 
+  /// Optional callback when retry button is tapped (error state only)
+  final VoidCallback? onRetry;
+
+  /// Whether to show loading state instead of incident data
+  final bool isLoading;
+
+  /// Error message to display (shows error state when non-null)
+  final String? errorMessage;
+
   const FireDetailsBottomSheet({
     super.key,
-    required this.incident,
+    this.incident,
     this.userLocation,
     this.onClose,
+    this.onRetry,
+    this.isLoading = false,
+    this.errorMessage,
   });
 
   @override
@@ -71,141 +95,218 @@ class FireDetailsBottomSheet extends StatelessWidget {
 
               const Divider(height: 1),
 
-              // Scrollable content
+              // Scrollable content based on state
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
                   padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Data source and demo chips
-                      _buildChips(),
-
-                      const SizedBox(height: 20),
-
-                      // Distance and direction (if user location available)
-                      if (userLocation != null) ...[
-                        _buildDistanceCard(),
-                        const SizedBox(height: 16),
-                      ],
-
-                      // Detection details
-                      _buildSection(
-                        title: 'Detection Details',
-                        children: [
-                          _buildDetailRow(
-                            icon: Icons.access_time,
-                            label: 'Detected',
-                            value: _formatDateTime(
-                                incident.detectedAt ?? incident.timestamp),
-                            semanticLabel:
-                                'Detected at ${_formatDateTime(incident.detectedAt ?? incident.timestamp)}',
-                          ),
-                          _buildDetailRow(
-                            icon: Icons.satellite_alt,
-                            label: 'Sensor',
-                            value: incident.sensorSource ?? 'UNKNOWN',
-                            semanticLabel:
-                                'Sensor source: ${incident.sensorSource ?? 'UNKNOWN'}',
-                          ),
-                          if (incident.lastUpdate != null)
-                            _buildDetailRow(
-                              icon: Icons.update,
-                              label: 'Last Update',
-                              value: _formatDateTime(incident.lastUpdate!),
-                              semanticLabel:
-                                  'Last updated at ${_formatDateTime(incident.lastUpdate!)}',
-                            ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Fire intensity metrics
-                      _buildSection(
-                        title: 'Fire Intensity',
-                        children: [
-                          if (incident.confidence != null)
-                            _buildDetailRow(
-                              icon: Icons.verified,
-                              label: 'Confidence',
-                              value:
-                                  '${incident.confidence!.toStringAsFixed(1)}%',
-                              semanticLabel:
-                                  'Detection confidence: ${incident.confidence!.toStringAsFixed(1)} percent',
-                            ),
-                          if (incident.frp != null)
-                            _buildDetailRow(
-                              icon: Icons.local_fire_department,
-                              label: 'Fire Radiative Power',
-                              value: '${incident.frp!.toStringAsFixed(1)} MW',
-                              semanticLabel:
-                                  'Fire radiative power: ${incident.frp!.toStringAsFixed(1)} megawatts',
-                            ),
-                          _buildDetailRow(
-                            icon: Icons.trending_up,
-                            label: 'Intensity Level',
-                            value: _formatIntensity(incident.intensity),
-                            semanticLabel:
-                                'Intensity level: ${_formatIntensity(incident.intensity)}',
-                          ),
-                          if (incident.areaHectares != null)
-                            _buildDetailRow(
-                              icon: Icons.map,
-                              label: 'Estimated Area',
-                              value:
-                                  '${incident.areaHectares!.toStringAsFixed(1)} ha',
-                              semanticLabel:
-                                  'Estimated area: ${incident.areaHectares!.toStringAsFixed(1)} hectares',
-                            ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Location details
-                      _buildSection(
-                        title: 'Location',
-                        children: [
-                          _buildDetailRow(
-                            icon: Icons.location_on,
-                            label: 'Coordinates',
-                            value:
-                                '${incident.location.latitude.toStringAsFixed(4)}, ${incident.location.longitude.toStringAsFixed(4)}',
-                            semanticLabel:
-                                'Coordinates: ${incident.location.latitude.toStringAsFixed(4)} latitude, ${incident.location.longitude.toStringAsFixed(4)} longitude',
-                          ),
-                        ],
-                      ),
-
-                      if (incident.description != null) ...[
-                        const SizedBox(height: 16),
-                        _buildSection(
-                          title: 'Description',
-                          children: [
-                            Text(
-                              incident.description!,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
-                                    height: 1.5,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
+                  child: _buildContent(context),
                 ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    // Loading state
+    if (isLoading) {
+      return _buildLoadingState(context);
+    }
+
+    // Error state
+    if (errorMessage != null) {
+      return _buildErrorState(context);
+    }
+
+    // Incident must be provided for loaded state
+    if (incident == null) {
+      return const SizedBox.shrink();
+    }
+
+    // Loaded state with incident data
+    return _buildLoadedState(context);
+  }
+
+  Widget _buildLoadingState(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const SizedBox(height: 32),
+        Semantics(
+          label: 'Loading fire incident details',
+          child: const CircularProgressIndicator(),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Loading fire details...',
+          style: Theme.of(context).textTheme.bodyMedium,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 32),
+      ],
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const SizedBox(height: 32),
+        Icon(
+          Icons.error_outline,
+          size: 48,
+          color: Theme.of(context).colorScheme.error,
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Failed to Load Fire Details',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.error,
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          errorMessage ?? 'An error occurred',
+          style: Theme.of(context).textTheme.bodyMedium,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
+        if (onRetry != null)
+          ElevatedButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Retry'),
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size(120, 48), // C3: ≥44dp touch targets
+            ),
+          ),
+        const SizedBox(height: 32),
+      ],
+    );
+  }
+
+  Widget _buildLoadedState(BuildContext context) {
+    final inc = incident!; // Safe to unwrap, checked in _buildContent
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Data source and demo chips
+        _buildChips(inc),
+
+        const SizedBox(height: 20),
+
+        // Distance and direction (if user location available)
+        if (userLocation != null) ...[
+          _buildDistanceCard(inc),
+          const SizedBox(height: 16),
+        ],
+
+        // Detection details
+        _buildSection(
+          title: 'Detection Details',
+          children: [
+            _buildDetailRow(
+              icon: Icons.access_time,
+              label: 'Detected',
+              value: _formatDateTime(inc.detectedAt ?? inc.timestamp),
+              semanticLabel:
+                  'Detected at ${_formatDateTime(inc.detectedAt ?? inc.timestamp)}',
+            ),
+            _buildDetailRow(
+              icon: Icons.satellite_alt,
+              label: 'Sensor',
+              value: inc.sensorSource ?? 'UNKNOWN',
+              semanticLabel: 'Sensor source: ${inc.sensorSource ?? 'UNKNOWN'}',
+            ),
+            if (inc.lastUpdate != null)
+              _buildDetailRow(
+                icon: Icons.update,
+                label: 'Last Update',
+                value: _formatDateTime(inc.lastUpdate!),
+                semanticLabel:
+                    'Last updated at ${_formatDateTime(inc.lastUpdate!)}',
+              ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // Fire intensity metrics
+        _buildSection(
+          title: 'Fire Intensity',
+          children: [
+            if (inc.confidence != null)
+              _buildDetailRow(
+                icon: Icons.verified,
+                label: 'Confidence',
+                value: '${inc.confidence!.toStringAsFixed(1)}%',
+                semanticLabel:
+                    'Detection confidence: ${inc.confidence!.toStringAsFixed(1)} percent',
+              ),
+            if (inc.frp != null)
+              _buildDetailRow(
+                icon: Icons.local_fire_department,
+                label: 'Fire Radiative Power',
+                value: '${inc.frp!.toStringAsFixed(1)} MW',
+                semanticLabel:
+                    'Fire radiative power: ${inc.frp!.toStringAsFixed(1)} megawatts',
+              ),
+            _buildDetailRow(
+              icon: Icons.trending_up,
+              label: 'Intensity Level',
+              value: _formatIntensity(inc.intensity),
+              semanticLabel:
+                  'Intensity level: ${_formatIntensity(inc.intensity)}',
+            ),
+            if (inc.areaHectares != null)
+              _buildDetailRow(
+                icon: Icons.map,
+                label: 'Estimated Area',
+                value: '${inc.areaHectares!.toStringAsFixed(1)} ha',
+                semanticLabel:
+                    'Estimated area: ${inc.areaHectares!.toStringAsFixed(1)} hectares',
+              ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // Location details
+        _buildSection(
+          title: 'Location',
+          children: [
+            _buildDetailRow(
+              icon: Icons.location_on,
+              label: 'Coordinates',
+              value:
+                  '${inc.location.latitude.toStringAsFixed(4)}, ${inc.location.longitude.toStringAsFixed(4)}',
+              semanticLabel:
+                  'Coordinates: ${inc.location.latitude.toStringAsFixed(4)} latitude, ${inc.location.longitude.toStringAsFixed(4)} longitude',
+            ),
+          ],
+        ),
+
+        if (inc.description != null) ...[
+          const SizedBox(height: 16),
+          _buildSection(
+            title: 'Description',
+            children: [
+              Text(
+                inc.description!,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      height: 1.5,
+                    ),
+              ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 
@@ -266,14 +367,13 @@ class FireDetailsBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildChips() {
+  Widget _buildChips(FireIncident inc) {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
-        DataSourceChip(sourceType: _mapToDataSourceType(incident.source)),
-        if (incident.source == DataSource.mock ||
-            incident.freshness == Freshness.mock)
+        DataSourceChip(sourceType: _mapToDataSourceType(inc.source)),
+        if (inc.source == DataSource.mock || inc.freshness == Freshness.mock)
           const DemoDataChip(),
       ],
     );
@@ -292,12 +392,12 @@ class FireDetailsBottomSheet extends StatelessWidget {
     }
   }
 
-  Widget _buildDistanceCard() {
+  Widget _buildDistanceCard(FireIncident inc) {
     if (userLocation == null) return const SizedBox.shrink();
 
     final distanceAndDirection = DistanceCalculator.formatDistanceAndDirection(
       userLocation!,
-      incident.location,
+      inc.location,
     );
 
     return Container(

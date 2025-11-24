@@ -1,30 +1,25 @@
 import 'package:flutter/foundation.dart';
 import 'package:dartz/dartz.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
-import 'package:wildfire_mvp_v3/models/bottom_sheet_state.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart' as bounds;
 import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
-import 'package:wildfire_mvp_v3/utils/distance_calculator.dart';
 import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 
 /// MapController manages state for MapScreen
 ///
-/// Orchestrates location resolution, fire data fetching, risk assessment,
-/// and bottom sheet state for fire incident details.
+/// Orchestrates location resolution, fire data fetching, and risk assessment.
 class MapController extends ChangeNotifier {
   final LocationResolver _locationResolver;
   final FireLocationService _fireLocationService;
   final FireRiskService _fireRiskService;
 
   MapState _state = const MapLoading();
-  BottomSheetState _bottomSheetState = const BottomSheetHidden();
 
   MapState get state => _state;
-  BottomSheetState get bottomSheetState => _bottomSheetState;
 
   MapController({
     required LocationResolver locationResolver,
@@ -193,86 +188,6 @@ class MapController extends ChangeNotifier {
       );
     } catch (e) {
       return Left('Risk check error: $e');
-    }
-  }
-
-  /// Show fire incident details in bottom sheet
-  Future<void> showFireDetails(String fireIncidentId) async {
-    debugPrint('🗒️ MapController: Showing fire details for $fireIncidentId');
-
-    _bottomSheetState = BottomSheetLoading(
-      fireIncidentId: fireIncidentId,
-      loadingMessage: 'Loading fire details...',
-    );
-    notifyListeners();
-
-    try {
-      // Find the fire incident in current state
-      if (_state is! MapSuccess) {
-        _bottomSheetState = BottomSheetError(
-          message: 'Map data not available. Please wait for map to load.',
-        );
-        notifyListeners();
-        return;
-      }
-
-      final mapState = _state as MapSuccess;
-      final fireIncident = mapState.incidents.firstWhere(
-        (incident) => incident.id == fireIncidentId,
-        orElse: () => throw Exception('Fire incident not found'),
-      );
-
-      // Get user location for distance calculation
-      LatLng? userLocation;
-      String? distanceAndDirection;
-
-      try {
-        final locationResult = await _locationResolver.getLatLon();
-        locationResult.fold(
-          (error) {
-            debugPrint(
-                '🗒️ MapController: Could not get user location for distance: $error');
-          },
-          (location) {
-            userLocation = location;
-            distanceAndDirection =
-                DistanceCalculator.formatDistanceAndDirection(
-                    location, fireIncident.location);
-          },
-        );
-      } catch (e) {
-        debugPrint('🗒️ MapController: Error calculating distance: $e');
-      }
-
-      _bottomSheetState = BottomSheetLoaded(
-        fireIncident: fireIncident,
-        userLocation: userLocation,
-        distanceAndDirection: distanceAndDirection,
-      );
-      notifyListeners();
-    } catch (e) {
-      debugPrint('🗒️ MapController: Error showing fire details: $e');
-      _bottomSheetState = BottomSheetError(
-        message: 'Failed to load fire details: $e',
-      );
-      notifyListeners();
-    }
-  }
-
-  /// Hide bottom sheet
-  void hideBottomSheet() {
-    debugPrint('🗒️ MapController: Hiding bottom sheet');
-    _bottomSheetState = const BottomSheetHidden();
-    notifyListeners();
-  }
-
-  /// Retry loading fire details (for error state)
-  Future<void> retryLoadFireDetails() async {
-    if (_bottomSheetState is BottomSheetError) {
-      final errorState = _bottomSheetState as BottomSheetError;
-      if (errorState.fireIncidentId != null) {
-        await showFireDetails(errorState.fireIncidentId!);
-      }
     }
   }
 
