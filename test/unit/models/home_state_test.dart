@@ -369,7 +369,7 @@ void main() {
     });
 
     test('hasCachedData returns false when data missing', () {
-      final state = HomeStateError(
+      const state = HomeStateError(
         errorMessage: 'Error',
         cachedData: null,
         cachedLocation: testLocation,
@@ -379,7 +379,7 @@ void main() {
     });
 
     test('hasCachedData returns false when both missing', () {
-      final state = HomeStateError(
+      const state = HomeStateError(
         errorMessage: 'Error',
         cachedData: null,
         cachedLocation: null,
@@ -398,7 +398,7 @@ void main() {
       final strWithCache = stateWithCache.toString();
       expect(strWithCache, contains('hasCachedData: true'));
 
-      final stateWithoutCache = HomeStateError(
+      const stateWithoutCache = HomeStateError(
         errorMessage: 'Network error',
       );
 
