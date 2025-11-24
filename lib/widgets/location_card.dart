@@ -162,21 +162,27 @@ class LocationCard extends StatelessWidget {
 
               // Change location button
               if (onChangeLocation != null)
-                FilledButton.tonal(
-                  onPressed: onChangeLocation,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                Semantics(
+                  label: hasLocation
+                      ? 'Change location'
+                      : 'Set manual location for fire risk assessment',
+                  button: true,
+                  child: FilledButton.tonal(
+                    onPressed: onChangeLocation,
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      minimumSize: const Size(
+                          0, 36), // still ≥ 44dp tap area with padding
                     ),
-                    minimumSize:
-                        const Size(0, 36), // still ≥ 44dp tap area with padding
-                  ),
-                  child: Text(
-                    hasLocation ? 'Change' : 'Set',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: scheme.onSecondaryContainer,
-                      fontWeight: FontWeight.w600,
+                    child: Text(
+                      hasLocation ? 'Change' : 'Set',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: scheme.onSecondaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),

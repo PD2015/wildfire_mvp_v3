@@ -71,12 +71,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     // Main risk banner display
                     _buildRiskBanner(),
 
-                    const SizedBox(height: 24.0),
-
-                    // Action buttons
-                    _buildActionButtons(),
-
-                    const SizedBox(height: 16.0),
+                    // Conditionally include action buttons section
+                    // Only add spacing when retry button is actually shown
+                    if (_controller.state is HomeStateError &&
+                        (_controller.state as HomeStateError).canRetry) ...[
+                      const SizedBox(height: 16.0),
+                      _buildActionButtons(),
+                      const SizedBox(height: 16.0),
+                    ] else
+                      const SizedBox(height: 16.0),
 
                     // Risk guidance card
                     _buildRiskGuidance(),
@@ -167,63 +170,44 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Builds action buttons for retry and manual location entry
+  /// Builds action button for retry when in error state
+  ///
+  /// Returns empty widget when retry is not available.
+  /// Location entry is now handled exclusively via LocationCard button.
   Widget _buildActionButtons() {
     final isLoading = _controller.isLoading;
     final homeState = _controller.state;
     final canRetry = homeState is HomeStateError && homeState.canRetry;
 
-    return Row(
-      children: [
-        // Retry button - only shown in error states
-        if (canRetry) ...[
-          Expanded(
-            child: Semantics(
-              label: isLoading
-                  ? 'Retry disabled while loading'
-                  : 'Retry loading fire risk data',
-              button: true,
-              enabled: !isLoading,
-              child: FilledButton.icon(
-                onPressed: isLoading ? null : () => _controller.retry(),
-                icon: isLoading
-                    ? const SizedBox(
-                        width: 16.0,
-                        height: 16.0,
-                        child: CircularProgressIndicator(strokeWidth: 2.0),
-                      )
-                    : const Icon(Icons.refresh),
-                label: Text(isLoading ? 'Loading...' : 'Retry'),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size(0, 44.0), // C3: ≥44dp touch target
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12.0),
-        ],
+    // Hide action buttons when retry is not available
+    if (!canRetry) {
+      return const SizedBox.shrink();
+    }
 
-        // Manual location button (M3: FilledButton.tonal for secondary action)
-        Expanded(
-          child: Semantics(
-            label: 'Set manual location for fire risk assessment',
-            button: true,
-            enabled: !isLoading,
-            child: FilledButton.icon(
-              onPressed: isLoading ? null : _showManualLocationDialog,
-              icon: const Icon(Icons.location_on),
-              label: const Text('Set Location'),
-              style: FilledButton.styleFrom(
-                backgroundColor:
-                    Theme.of(context).colorScheme.secondaryContainer,
-                foregroundColor:
-                    Theme.of(context).colorScheme.onSecondaryContainer,
-                minimumSize: const Size(0, 44.0), // C3: ≥44dp touch target
-              ),
-            ),
+    // Show full-width retry button
+    return Semantics(
+      label: isLoading
+          ? 'Retry disabled while loading'
+          : 'Retry loading fire risk data',
+      button: true,
+      enabled: !isLoading,
+      child: SizedBox(
+        width: double.infinity,
+        child: FilledButton.icon(
+          onPressed: isLoading ? null : () => _controller.retry(),
+          icon: isLoading
+              ? const SizedBox(
+                  width: 16.0,
+                  height: 16.0,
+                  child: CircularProgressIndicator(strokeWidth: 2.0),
+                )
+              : const Icon(Icons.refresh),
+          label: Text(isLoading ? 'Loading...' : 'Retry'),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(0, 44.0), // C3: ≥44dp touch target
           ),
         ),
-      ],
+      ),
     );
   }
 
