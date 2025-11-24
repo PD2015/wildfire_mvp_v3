@@ -54,13 +54,15 @@ class EmergencyButton extends StatelessWidget {
         child: ElevatedButton(
           onPressed: onPressed,
           style: _getButtonStyle(colorScheme),
-          child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.call),
-                const SizedBox(width: 8),
-                Flexible(
+                const Icon(Icons.call, size: 18),
+                const SizedBox(width: 4),
+                Expanded(
                   child: Text(
                     buttonText,
                     style: _getTextStyle(theme),
