@@ -223,7 +223,8 @@ void main() {
       expect(shape.side.width, equals(2));
     });
 
-    testWidgets('displays border with grey when level is null', (tester) async {
+    testWidgets('displays border with theme outline color when level is null',
+        (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -232,10 +233,14 @@ void main() {
         ),
       );
 
+      final context = tester.element(find.byType(RiskGuidanceCard));
+      final theme = Theme.of(context);
+      final expectedColor = theme.colorScheme.outlineVariant;
+
       final card = tester.widget<Card>(find.byType(Card));
       final shape = card.shape as RoundedRectangleBorder;
 
-      expect(shape.side.color, equals(Colors.grey));
+      expect(shape.side.color, equals(expectedColor));
       expect(shape.side.width, equals(2));
     });
 
@@ -269,7 +274,8 @@ void main() {
       expect(decoration.color, equals(theme.colorScheme.onSurfaceVariant));
     });
 
-    testWidgets('emergency footer has error container background',
+    testWidgets(
+        'emergency footer is a FilledButton with tertiary container background',
         (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -282,15 +288,17 @@ void main() {
         ),
       );
 
-      // Find the emergency footer Container
-      final footerContainer = find.byWidgetPredicate(
-        (widget) =>
-            widget is Container &&
-            widget.padding == const EdgeInsets.all(12) &&
-            widget.decoration is BoxDecoration,
-      );
+      // Find the emergency footer FilledButton
+      final footerButton = find.byType(FilledButton);
+      expect(footerButton, findsOneWidget);
 
-      expect(footerContainer, findsOneWidget);
+      // Verify it has the correct icon
+      expect(
+          find.descendant(
+            of: footerButton,
+            matching: find.byIcon(Icons.phone),
+          ),
+          findsOneWidget);
     });
 
     testWidgets('all text is readable and not empty', (tester) async {
