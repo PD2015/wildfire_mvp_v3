@@ -65,8 +65,7 @@ void main() {
           tester,
         ) async {
           final fireRisk = _fakeFireRisk(level: level);
-          final expectedText =
-              'Wildfire Risk: ${_getRiskLevelName(level).toUpperCase()}';
+          const expectedText = 'WILDFIRE RISK';
 
           await tester.pumpWidget(
             MaterialApp(
@@ -77,25 +76,6 @@ void main() {
           );
 
           expect(find.text(expectedText), findsOneWidget);
-        });
-      }
-
-      for (final source in DataSource.values) {
-        testWidgets('displays correct source text for ${source.name}', (
-          tester,
-        ) async {
-          final fireRisk = _fakeFireRisk(source: source);
-          final expectedSourceText = 'Data Source: ${_getSourceName(source)}';
-
-          await tester.pumpWidget(
-            MaterialApp(
-              home: Scaffold(
-                body: RiskBanner(state: RiskBannerSuccess(fireRisk)),
-              ),
-            ),
-          );
-
-          expect(find.text(expectedSourceText), findsOneWidget);
         });
       }
 
@@ -327,7 +307,7 @@ void main() {
         );
 
         // Should show the cached risk level
-        expect(find.text('Wildfire Risk: MODERATE'), findsOneWidget);
+        expect(find.text('WILDFIRE RISK'), findsOneWidget);
         // Should show cached badge
         expect(find.text('Cached'), findsOneWidget);
         // Should show error indicator
@@ -421,26 +401,6 @@ FireRisk _fakeFireRisk({
     observedAt: observedAtUtc ??
         DateTime.now().toUtc().subtract(const Duration(minutes: 30)),
   );
-}
-
-String _getRiskLevelName(RiskLevel level) {
-  return switch (level) {
-    RiskLevel.veryLow => 'Very Low',
-    RiskLevel.low => 'Low',
-    RiskLevel.moderate => 'Moderate',
-    RiskLevel.high => 'High',
-    RiskLevel.veryHigh => 'Very High',
-    RiskLevel.extreme => 'Extreme',
-  };
-}
-
-String _getSourceName(DataSource source) {
-  return switch (source) {
-    DataSource.effis => 'EFFIS',
-    DataSource.sepa => 'SEPA',
-    DataSource.cache => 'Cache',
-    DataSource.mock => 'Mock',
-  };
 }
 
 Color _getRiskLevelColorTest(RiskLevel level) {

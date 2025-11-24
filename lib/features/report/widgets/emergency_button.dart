@@ -54,22 +54,25 @@ class EmergencyButton extends StatelessWidget {
         child: ElevatedButton(
           onPressed: onPressed,
           style: _getButtonStyle(colorScheme),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.call),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  buttonText,
-                  style: _getTextStyle(theme),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  textAlign: TextAlign.center,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.call, size: 18),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    buttonText,
+                    style: _getTextStyle(theme),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 32), // Balance icon on right side
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -80,47 +83,39 @@ class EmergencyButton extends StatelessWidget {
   ButtonStyle _getButtonStyle(ColorScheme colorScheme) {
     switch (priority) {
       case EmergencyPriority.urgent:
-        // 999 - Amber (tertiary) colors for fire-related urgency (brand consistency)
+        // 999 - Emergency: use tertiaryContainer (amber) for strong warning
         return ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.tertiary,
-          foregroundColor: colorScheme.onTertiary,
+          backgroundColor: colorScheme.tertiaryContainer,
+          foregroundColor: colorScheme.onTertiaryContainer,
           elevation: 2.0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              14.0,
-            ), // Material 3: 14dp rounded
+            borderRadius: BorderRadius.circular(14.0),
           ),
           minimumSize: const Size(double.infinity, 52.0),
           tapTargetSize: MaterialTapTargetSize.padded,
         );
 
       case EmergencyPriority.nonEmergency:
-        // 101 - Primary colors for important but non-urgent
+        // 101 - Medium priority: use secondaryContainer tonal style
         return ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
+          backgroundColor: colorScheme.secondaryContainer,
+          foregroundColor: colorScheme.onSecondaryContainer,
           elevation: 2.0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              14.0,
-            ), // Material 3: 14dp rounded
+            borderRadius: BorderRadius.circular(14.0),
           ),
           minimumSize: const Size(double.infinity, 52.0),
           tapTargetSize: MaterialTapTargetSize.padded,
         );
 
       case EmergencyPriority.anonymous:
-        // Crimestoppers - match Police styling (primary) so buttons are
-        // consistent in light theme per design request. Use primary + onPrimary
-        // which adapts correctly for dark mode as well.
+        // Crimestoppers - match Police styling (secondary tonal)
         return ElevatedButton.styleFrom(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
+          backgroundColor: colorScheme.secondaryContainer,
+          foregroundColor: colorScheme.onSecondaryContainer,
           elevation: 2.0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              14.0,
-            ), // Material 3: 14dp rounded
+            borderRadius: BorderRadius.circular(14.0),
           ),
           minimumSize: const Size(double.infinity, 52.0),
           tapTargetSize: MaterialTapTargetSize.padded,

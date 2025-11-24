@@ -6,8 +6,31 @@ class LocationUtils {
   /// Prevents PII exposure in logs per Gate C2 requirements
   ///
   /// Example: logRedact(55.9533, -3.1883) → "55.95,-3.19"
+  ///
+  /// Returns "Invalid location" if coordinates are invalid (NaN, Infinity,
+  /// or out of valid GPS range).
+  ///
+  /// Validation rules:
+  /// - Latitude must be in range [-90.0, 90.0]
+  /// - Longitude must be in range [-180.0, 180.0]
+  /// - No NaN or Infinity values allowed
   static String logRedact(double lat, double lon) {
-    return '${lat.toStringAsFixed(2)},${lon.toStringAsFixed(2)}';
+    try {
+      // Validate for NaN and Infinity
+      if (lat.isNaN || lat.isInfinite || lon.isNaN || lon.isInfinite) {
+        return 'Invalid location';
+      }
+
+      // Validate coordinate ranges
+      if (!isValidCoordinate(lat, lon)) {
+        return 'Invalid location';
+      }
+
+      return '${lat.toStringAsFixed(2)},${lon.toStringAsFixed(2)}';
+    } catch (e) {
+      // Catch any unexpected errors (e.g., null values passed as doubles)
+      return 'Invalid location';
+    }
   }
 
   /// Validate coordinate ranges

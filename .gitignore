@@ -87,3 +87,6 @@ Thumbs.db
 # Documentation drafts (uncomment if you want to ignore WIP docs)
 # docs/drafts/
 # docs/WIP_*
+
+# Golden test failures (test artifacts, not source code)
+test/widget/golden/failures/

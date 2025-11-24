@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/fire_information_bottom_sheet.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/incidents_timestamp_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 // T-V2: RiskCheckButton temporarily disabled
 // import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
 import 'package:wildfire_mvp_v3/utils/debounced_viewport_loader.dart';
-import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet.dart';
 
 /// Map screen with Google Maps integration showing active fire incidents
 ///
@@ -177,7 +177,7 @@ class _MapScreenState extends State<MapScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Fire Map'),
+        title: const Text('Live Wildfire Fire Map'),
         centerTitle: true,
       ),
       body: Stack(
@@ -193,16 +193,7 @@ class _MapScreenState extends State<MapScreen> {
             MapSuccess() => _buildMapView(state),
             MapError() => _buildErrorView(state),
           },
-          // Legacy bottom sheet overlay (keep for existing features)
-          if (_controller.bottomSheetState.isVisible)
-            Positioned.fill(
-              child: FireInformationBottomSheet(
-                state: _controller.bottomSheetState,
-                onClose: _controller.hideBottomSheet,
-                onRetry: _controller.retryLoadFireDetails,
-              ),
-            ),
-          // New fire details bottom sheet (Task 12 integration)
+          // Fire details bottom sheet overlay
           if (_isBottomSheetVisible && _selectedIncident != null)
             Positioned.fill(
               child: GestureDetector(
@@ -219,8 +210,11 @@ class _MapScreenState extends State<MapScreen> {
                       .withValues(alpha: 0.5),
                   child: GestureDetector(
                     onTap: () {}, // Prevent tap from closing when tapping sheet
-                    child: FireDetailsBottomSheet(
+                    child: FireInformationBottomSheet(
                       incident: _selectedIncident!,
+                      userLocation: _controller.state is MapSuccess
+                          ? (_controller.state as MapSuccess).centerLocation
+                          : null,
                       onClose: () {
                         setState(() {
                           _isBottomSheetVisible = false;
@@ -376,9 +370,10 @@ class _MapScreenState extends State<MapScreen> {
             tiltGesturesEnabled: true,
             rotateGesturesEnabled: true,
             mapToolbarEnabled: false,
-            // Add padding to prevent FAB from overlapping GPS button
+            // Add padding to prevent controls from overlapping chips
             padding: const EdgeInsets.only(
               bottom: 80.0, // Room for FAB
+              left: 16.0, // Room for timestamp chip
               right: 16.0,
             ),
             // Debounced viewport loading (Task 17-18)
@@ -386,13 +381,20 @@ class _MapScreenState extends State<MapScreen> {
             onCameraIdle: _viewportLoader.onCameraIdle,
           ),
         ),
-        // Source chip positioned at top
+        // Source chip positioned at top-left
         Positioned(
           top: 16,
           left: 16,
-          right: 16,
           child: MapSourceChip(
             source: state.freshness,
+            lastUpdated: state.lastUpdated,
+          ),
+        ),
+        // Timestamp chip positioned at bottom-left
+        Positioned(
+          bottom: 16,
+          left: 16,
+          child: IncidentsTimestampChip(
             lastUpdated: state.lastUpdated,
           ),
         ),

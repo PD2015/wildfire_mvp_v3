@@ -35,70 +35,124 @@ class ReportFireScreen extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Emergency Actions Card - Groups all three contact options
-          Card(
-            elevation: 2.0,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Step 1 — Emergency (999)
-                  Text(
-                    '1) If the fire is spreading or unsafe:',
-                    style: textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Call 999 and ask for the Fire Service.\n'
-                    'Give your location, what\'s burning, and a safe access point.',
-                    style: textTheme.bodyLarge,
-                  ),
-                  const SizedBox(height: 12),
-                  EmergencyButton(
-                    contact: EmergencyContact.fireService,
-                    onPressed: () => _handleEmergencyCall(
-                        context, EmergencyContact.fireService),
-                  ),
+          Semantics(
+            container: true,
+            label: 'Emergency contact options',
+            child: Card(
+              margin: EdgeInsets.zero,
+              elevation: 2.0,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Step 1 — Emergency (999)
+                    Semantics(
+                      header: true,
+                      label: 'Step 1: If the fire is spreading or unsafe',
+                      child: Text(
+                        '1) If the fire is spreading or unsafe:',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: cs.onSurface,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Semantics(
+                      label:
+                          'Instructions: Call 999 and ask for the Fire Service. Give your location, what is burning, and a safe access point.',
+                      child: Text(
+                        'Call 999 and ask for the Fire Service.\n'
+                        'Give your location, what\'s burning, and a safe access point.',
+                        style: textTheme.bodyMedium,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    EmergencyButton(
+                      contact: EmergencyContact.fireService,
+                      onPressed: () => _handleEmergencyCall(
+                        context,
+                        EmergencyContact.fireService,
+                      ),
+                    ),
 
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+                    Divider(
+                      height: 32,
+                      thickness: 1.25,
+                      color: cs.outlineVariant,
+                    ),
+                    const SizedBox(height: 16),
 
-                  // Step 2 — Police Scotland (101)
-                  Text(
-                    '2) If someone is lighting a fire irresponsibly:',
-                    style: textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  Text('Call Police Scotland on 101.',
-                      style: textTheme.bodyLarge),
-                  const SizedBox(height: 12),
-                  EmergencyButton(
-                    contact: EmergencyContact.policeScotland,
-                    onPressed: () => _handleEmergencyCall(
-                        context, EmergencyContact.policeScotland),
-                  ),
+                    // Step 2 — Police Scotland (101)
+                    Semantics(
+                      header: true,
+                      label:
+                          'Step 2: If someone is lighting a fire irresponsibly',
+                      child: Text(
+                        '2) If someone is lighting a fire irresponsibly:',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: cs.onSurface,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Semantics(
+                      label: 'Instructions: Call Police Scotland on 101',
+                      child: Text(
+                        'Call Police Scotland on 101.',
+                        style: textTheme.bodyMedium,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    EmergencyButton(
+                      contact: EmergencyContact.policeScotland,
+                      onPressed: () => _handleEmergencyCall(
+                        context,
+                        EmergencyContact.policeScotland,
+                      ),
+                    ),
 
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+                    Divider(
+                      height: 32,
+                      thickness: 1.25,
+                      color: cs.outlineVariant,
+                    ),
+                    const SizedBox(height: 16),
 
-                  // Step 3 — Crimestoppers (0800 555 111)
-                  Text(
-                    '3) Want to report anonymously?',
-                    style: textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Call Crimestoppers on 0800 555 111.',
-                    style: textTheme.bodyLarge,
-                  ),
-                  const SizedBox(height: 12),
-                  EmergencyButton(
-                    contact: EmergencyContact.crimestoppers,
-                    onPressed: () => _handleEmergencyCall(
-                        context, EmergencyContact.crimestoppers),
-                  ),
-                ],
+                    // Step 3 — Crimestoppers (0800 555 111)
+                    Semantics(
+                      header: true,
+                      label: 'Step 3: Want to report anonymously?',
+                      child: Text(
+                        '3) Want to report anonymously?',
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: cs.onSurface,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Semantics(
+                      label: 'Instructions: Call Crimestoppers on 0800 555 111',
+                      child: Text(
+                        'Call Crimestoppers on 0800 555 111.',
+                        style: textTheme.bodyMedium,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    EmergencyButton(
+                      contact: EmergencyContact.crimestoppers,
+                      onPressed: () => _handleEmergencyCall(
+                        context,
+                        EmergencyContact.crimestoppers,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -185,12 +239,14 @@ class _Banner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Wildfire report instructions',
+      liveRegion: true,
+      container: true,
+      label: '$title. $subtitle',
       child: Card(
-        elevation: 2.0,
+        elevation: 1.0,
         color: background,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -202,17 +258,17 @@ class _Banner extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: foreground,
-                            fontWeight: FontWeight.w700,
-                          ),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: foreground,
+                          fontWeight: FontWeight.w700,
+                          height: 1.1),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodyLarge?.copyWith(color: foreground),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: foreground.withValues(alpha: 0.92),
+                          height: 1.3),
                     ),
                   ],
                 ),
@@ -289,6 +345,8 @@ class _TipsCard extends StatelessWidget {
                   top: 8,
                   bottom: 4,
                 ),
+                iconColor: cs.onSecondaryContainer,
+                collapsedIconColor: cs.onSecondaryContainer,
                 title: Text(
                   'More Safety Guidance',
                   style: textTheme.bodyMedium?.copyWith(

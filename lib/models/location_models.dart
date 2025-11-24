@@ -68,3 +68,21 @@ enum LocationMethod {
   /// Default fallback location (Scotland centroid)
   defaultLocation,
 }
+
+/// Location source for UI display and user trust building
+///
+/// Simplified classification for user-facing display, derived from LocationMethod.
+/// Used to show appropriate icons, labels, and trust-building messaging.
+enum LocationSource {
+  /// Live GPS location from device
+  gps,
+
+  /// User-entered manual coordinates
+  manual,
+
+  /// Previously saved location (shown during offline/error states)
+  cached,
+
+  /// System default location (Scotland/test region)
+  defaultFallback,
+}

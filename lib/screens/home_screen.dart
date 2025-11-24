@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:wildfire_mvp_v3/widgets/location_card.dart';
 
 import '../controllers/home_controller.dart';
 import '../models/home_state.dart';
+import '../models/location_models.dart';
 import '../widgets/risk_banner.dart';
+import '../widgets/risk_guidance_card.dart';
 import '../widgets/manual_location_dialog.dart';
 import '../services/models/fire_risk.dart';
 import '../utils/location_utils.dart';
@@ -62,13 +65,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Location display GPS/manual
+                    _buildLocationCard(),
+                    const SizedBox(height: 16.0),
                     // Main risk banner display
                     _buildRiskBanner(),
 
-                    const SizedBox(height: 24.0),
+                    // Conditionally include action buttons section
+                    // Only add spacing when retry button is actually shown
+                    if (_controller.state is HomeStateError &&
+                        (_controller.state as HomeStateError).canRetry) ...[
+                      const SizedBox(height: 16.0),
+                      _buildActionButtons(),
+                      const SizedBox(height: 16.0),
+                    ] else
+                      const SizedBox(height: 16.0),
 
-                    // Action buttons
-                    _buildActionButtons(),
+                    // Risk guidance card
+                    _buildRiskGuidance(),
 
                     const SizedBox(height: 16.0),
 
@@ -156,62 +170,70 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Builds action buttons for retry and manual location entry
+  /// Builds action button for retry when in error state
+  ///
+  /// Returns empty widget when retry is not available.
+  /// Location entry is now handled exclusively via LocationCard button.
   Widget _buildActionButtons() {
     final isLoading = _controller.isLoading;
     final homeState = _controller.state;
     final canRetry = homeState is HomeStateError && homeState.canRetry;
 
-    return Row(
-      children: [
-        // Retry button - only shown in error states
-        if (canRetry) ...[
-          Expanded(
-            child: Semantics(
-              label: isLoading
-                  ? 'Retry disabled while loading'
-                  : 'Retry loading fire risk data',
-              button: true,
-              enabled: !isLoading,
-              child: ElevatedButton.icon(
-                onPressed: isLoading ? null : () => _controller.retry(),
-                icon: isLoading
-                    ? const SizedBox(
-                        width: 16.0,
-                        height: 16.0,
-                        child: CircularProgressIndicator(strokeWidth: 2.0),
-                      )
-                    : const Icon(Icons.refresh),
-                label: Text(isLoading ? 'Loading...' : 'Retry'),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(0, 44.0), // C3: ≥44dp touch target
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12.0),
-        ],
+    // Hide action buttons when retry is not available
+    if (!canRetry) {
+      return const SizedBox.shrink();
+    }
 
-        // Manual location button (T-V3: ElevatedButton for better visibility in dark mode)
-        Expanded(
-          child: Semantics(
-            label: 'Set manual location for fire risk assessment',
-            button: true,
-            enabled: !isLoading,
-            child: ElevatedButton.icon(
-              onPressed: isLoading ? null : _showManualLocationDialog,
-              icon: const Icon(Icons.location_on),
-              label: const Text('Set Location'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                minimumSize: const Size(0, 44.0), // C3: ≥44dp touch target
-              ),
-            ),
+    // Show full-width retry button
+    return Semantics(
+      label: isLoading
+          ? 'Retry disabled while loading'
+          : 'Retry loading fire risk data',
+      button: true,
+      enabled: !isLoading,
+      child: SizedBox(
+        width: double.infinity,
+        child: FilledButton.icon(
+          onPressed: isLoading ? null : () => _controller.retry(),
+          icon: isLoading
+              ? const SizedBox(
+                  width: 16.0,
+                  height: 16.0,
+                  child: CircularProgressIndicator(strokeWidth: 2.0),
+                )
+              : const Icon(Icons.refresh),
+          label: Text(isLoading ? 'Loading...' : 'Retry'),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(0, 44.0), // C3: ≥44dp touch target
           ),
         ),
-      ],
+      ),
     );
+  }
+
+  /// Builds risk guidance card based on current risk level
+  ///
+  /// Shows Scotland-specific wildfire safety advice for the current risk level.
+  /// Falls back to generic guidance when risk level is unavailable.
+  /// Hides completely during loading state for cleaner UX.
+  Widget _buildRiskGuidance() {
+    final homeState = _controller.state;
+
+    return switch (homeState) {
+      // Success state: Show guidance for current risk level
+      HomeStateSuccess(:final riskData) =>
+        RiskGuidanceCard(level: riskData.level),
+
+      // Error state with cached data: Show guidance for cached risk level
+      HomeStateError(:final cachedData) when cachedData != null =>
+        RiskGuidanceCard(level: cachedData.level),
+
+      // Error state without cache: Show generic guidance
+      HomeStateError() => const RiskGuidanceCard(level: null),
+
+      // Loading state: Hide card completely
+      HomeStateLoading() => const SizedBox.shrink(),
+    };
   }
 
   /// Builds additional state-specific information
@@ -299,6 +321,86 @@ class _HomeScreenState extends State<HomeScreen> {
       case HomeStateSuccess():
         // No additional info needed for success state
         return const SizedBox.shrink();
+    }
+  }
+
+  /// Builds the location card based on current HomeState
+  Widget _buildLocationCard() {
+    final state = _controller.state;
+
+    switch (state) {
+      case HomeStateLoading(
+          :final lastKnownLocation,
+          :final isLocationStale,
+        ):
+        // Determine subtitle based on staleness
+        String subtitle;
+        if (lastKnownLocation != null) {
+          subtitle = isLocationStale
+              ? 'Using last known location (may be outdated)...'
+              : 'Using last known location while we fetch an update...';
+        } else {
+          subtitle = 'Determining your location…';
+        }
+
+        return LocationCard(
+          coordinatesLabel: lastKnownLocation != null
+              ? LocationUtils.logRedact(
+                  lastKnownLocation.latitude,
+                  lastKnownLocation.longitude,
+                )
+              : null,
+          subtitle: subtitle,
+          isLoading: true,
+          onChangeLocation: _showManualLocationDialog,
+          locationSource: lastKnownLocation != null
+              ? LocationSource.cached
+              : null, // No source for "Determining..."
+        );
+
+      case HomeStateSuccess(
+          :final location,
+          :final locationSource,
+          :final placeName,
+        ):
+        // Build trust-building subtitle with combination approach
+        final String subtitle = switch (locationSource) {
+          LocationSource.gps => 'Current location (GPS)',
+          LocationSource.manual when placeName != null =>
+            '$placeName (set by you)',
+          LocationSource.manual => 'Your chosen location',
+          LocationSource.cached => 'Last known location',
+          LocationSource.defaultFallback => 'Default location (Scotland)',
+        };
+
+        return LocationCard(
+          coordinatesLabel: LocationUtils.logRedact(
+            location.latitude,
+            location.longitude,
+          ),
+          subtitle: subtitle,
+          onChangeLocation: _showManualLocationDialog,
+          locationSource: locationSource,
+        );
+
+      case HomeStateError(:final cachedLocation) when cachedLocation != null:
+        return LocationCard(
+          coordinatesLabel: LocationUtils.logRedact(
+            cachedLocation.latitude,
+            cachedLocation.longitude,
+          ),
+          subtitle: 'Using last known location (offline)',
+          onChangeLocation: _showManualLocationDialog,
+          locationSource: LocationSource.cached,
+        );
+
+      case HomeStateError():
+        return LocationCard(
+          coordinatesLabel: null,
+          subtitle: 'Location not available. Set a manual location.',
+          onChangeLocation: _showManualLocationDialog,
+          locationSource: null,
+        );
     }
   }
 
