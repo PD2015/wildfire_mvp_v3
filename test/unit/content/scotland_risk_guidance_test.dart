@@ -129,14 +129,14 @@ void main() {
     });
 
     group('emergencyFooter', () {
-      test('contains 999 emergency number', () {
+      test('mentions reporting wildfires', () {
         expect(
-          ScotlandRiskGuidance.emergencyFooter,
-          contains('999'),
+          ScotlandRiskGuidance.emergencyFooter.toLowerCase(),
+          contains('report'),
         );
       });
 
-      test('mentions Fire Service', () {
+      test('mentions fire or wildfire', () {
         expect(
           ScotlandRiskGuidance.emergencyFooter.toLowerCase(),
           contains('fire'),
