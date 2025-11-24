@@ -217,45 +217,45 @@ class WildfireA11yTheme {
         actionTextColor: BrandPalette.mint400,
       ),
 
-      // AppBarTheme: forest600 background with white text
-      appBarTheme: AppBarTheme(
-        backgroundColor: colorScheme.surfaceContainerHigh,
-        surfaceTintColor: colorScheme.surfaceTint,
-        foregroundColor: colorScheme.onSurface,
+      // AppBarTheme: forest600 background with white text (matches dark theme)
+      appBarTheme: const AppBarTheme(
+        backgroundColor: BrandPalette.forest600,
+        foregroundColor: BrandPalette.onDarkHigh,
         elevation: 0,
         scrolledUnderElevation: 3,
         centerTitle: true,
         titleTextStyle: TextStyle(
-          color: colorScheme.onSurface,
+          color: BrandPalette.onDarkHigh,
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
       ),
 
       // NavigationBarTheme: bottom navigation with accessible colors
-      // Material 3 pattern: solid indicator with high-contrast icon colors
+      // Light mode: forest700 background with mint400 indicator (mirrors dark theme approach)
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: colorScheme.surfaceContainerLowest,
-        // Solid forest600 indicator for strong visual presence
-        indicatorColor: colorScheme.primary,
+        backgroundColor: BrandPalette.forest700,
+        // Mint400 indicator for visual interest on dark forest background
+        indicatorColor: BrandPalette.mint400,
         elevation: 8,
         shadowColor: Colors.black.withValues(alpha: 0.25),
-        // White icons on dark forest600 indicator (high contrast)
+        // Dark icons on light mint indicator (high contrast)
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return IconThemeData(color: colorScheme.onPrimary, size: 24);
+            return const IconThemeData(color: BrandPalette.forest900, size: 24);
           }
-          return IconThemeData(color: colorScheme.onSurfaceVariant, size: 24);
+          return const IconThemeData(
+              color: BrandPalette.onDarkMedium, size: 24);
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return TextStyle(
-              color: colorScheme.onSurface,
+            return const TextStyle(
+              color: BrandPalette.mint400,
               fontWeight: FontWeight.w600,
             );
           }
-          return TextStyle(
-            color: colorScheme.onSurfaceVariant,
+          return const TextStyle(
+            color: BrandPalette.onDarkMedium,
             fontWeight: FontWeight.w600,
           );
         }),
