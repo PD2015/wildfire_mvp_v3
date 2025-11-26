@@ -1,14 +1,16 @@
 {
-    "name": "wildfire_mvp_v3",
-    "short_name": "wildfire_mvp_v3",
-    "version": "1.0.0",
+    "name": "WildFire Scotland - Fire Risk Assessment",
+    "short_name": "WildFire",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#1B6B61",
     "theme_color": "#1B6B61",
-    "description": "Scottish wildfire risk assessment mobile app with EFFIS integration",
+    "description": "Real-time wildfire risk assessment for Scotland powered by EFFIS satellite data",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
+    "categories": ["utilities", "weather", "productivity"],
+    "lang": "en-GB",
+    "dir": "ltr",
     "icons": [
         {
             "src": "icons/Icon-192.png",
