@@ -29,6 +29,30 @@
 
   <title>WildFire MVP - Scottish Fire Risk Assessment</title>
   <link rel="manifest" href="manifest.json">
+  
+  <!-- PWA Resource Hints for Performance -->
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+  <link rel="dns-prefetch" href="https://maps.googleapis.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Material Icons for PWA offline support -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" rel="stylesheet">
+  
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://wildfire-app-e11f8.web.app/">
+  <meta property="og:title" content="WildFire Scotland - Fire Risk Assessment">
+  <meta property="og:description" content="Real-time wildfire risk data for Scotland powered by EFFIS">
+  <meta property="og:image" content="https://wildfire-app-e11f8.web.app/icons/Icon-512.png">
+  
+  <!-- Twitter Card -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://wildfire-app-e11f8.web.app/">
+  <meta property="twitter:title" content="WildFire Scotland">
+  <meta property="twitter:description" content="Real-time wildfire risk assessment for Scotland">
+  <meta property="twitter:image" content="https://wildfire-app-e11f8.web.app/icons/Icon-512.png">
 
   <!-- Google Maps JavaScript API (required for google_maps_flutter_web) -->
   <!-- Web platform implementation uses Maps JavaScript API (not native SDKs) -->
@@ -46,6 +70,36 @@
   
   
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+  
+  <!-- PWA Material Icons Offline Support -->
+  <style>
+    /* Ensure Material Icons display properly in PWA offline mode */
+    @font-face {
+      font-family: 'Material Icons';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url(https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
+    }
+    
+    .material-icons {
+      font-family: 'Material Icons';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      -moz-osx-font-smoothing: grayscale;
+      font-feature-settings: 'liga';
+    }
+  </style>
   
   
   
