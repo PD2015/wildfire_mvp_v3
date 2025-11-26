@@ -11,8 +11,8 @@ related:
 
 # Map Fire Risk Marker & Tooltip Data Display Review
 
-**Reviewed Date**: November 23, 2025  
-**Branch**: `018-map-fire-information`  
+**Reviewed Date**: November 23, 2025
+**Branch**: `018-map-fire-information`
 **Review Scope**: How fire incident data is displayed when users tap map markers
 
 ---
@@ -252,7 +252,7 @@ String _buildInfoWindowSnippet(FireIncident incident) {
   final area = incident.areaHectares?.toStringAsFixed(1) ?? "Area unknown";
   final source = incident.source.name.toUpperCase();
   final freshness = _formatFreshness(incident.timestamp);
-  
+
   return '$intensity - $area ha • $source • $freshness';
 }
 

@@ -104,7 +104,7 @@ String _buildInfoTitle(FireIncident incident) {
   if (incident.description?.isNotEmpty == true) {
     return incident.description!;
   }
-  final shortId = incident.id.length > 7 
+  final shortId = incident.id.length > 7
       ? incident.id.substring(incident.id.length - 7)
       : incident.id;
   return 'Fire #$shortId';
@@ -118,7 +118,7 @@ String _buildInfoSnippet(FireIncident incident) {
       : 'Unknown';
   final sourceLabel = _formatDataSource(incident.source);
   final freshnessText = _formatFreshness(incident.timestamp);
-  
+
   return 'Risk: $intensityLabel • Burnt area: $areaText\n'
          'Source: $sourceLabel • $freshnessText';
 }
@@ -165,7 +165,7 @@ When testing on device/simulator:
 
 ---
 
-**Last Updated**: November 24, 2025  
-**Status**: Active  
-**Feature**: Map InfoWindow Tooltips  
+**Last Updated**: November 24, 2025
+**Status**: Active
+**Feature**: Map InfoWindow Tooltips
 **Constitutional Compliance**: ✅ C4 (Transparency)

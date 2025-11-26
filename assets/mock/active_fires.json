@@ -6,7 +6,10 @@
       "id": "mock_fire_001",
       "geometry": {
         "type": "Point",
-        "coordinates": [-3.1883, 55.9533]
+        "coordinates": [
+          -3.1883,
+          55.9533
+        ]
       },
       "properties": {
         "id": "mock_fire_001",
@@ -28,7 +31,10 @@
       "id": "mock_fire_002",
       "geometry": {
         "type": "Point",
-        "coordinates": [-4.2518, 55.8642]
+        "coordinates": [
+          -4.2518,
+          55.8642
+        ]
       },
       "properties": {
         "id": "mock_fire_002",
@@ -50,7 +56,10 @@
       "id": "mock_fire_003",
       "geometry": {
         "type": "Point",
-        "coordinates": [-3.8, 57.2]
+        "coordinates": [
+          -3.8,
+          57.2
+        ]
       },
       "properties": {
         "id": "mock_fire_003",
