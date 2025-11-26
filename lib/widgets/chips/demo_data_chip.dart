@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:wildfire_mvp_v3/theme/risk_palette.dart';
 
 /// Warning chip displayed when viewing demo or test data
 ///
-/// Shows a prominent "DEMO DATA" warning with high contrast colors to
+/// Shows a prominent "DEMO DATA" warning with amber/warning colors to
 /// ensure users are aware they're viewing non-production data. This appears
 /// when using mock service or test region data.
+///
+/// Matches the styling of demo data chips shown on the map for visual
+/// consistency across the application.
 ///
 /// Example usage:
 /// ```dart
@@ -28,6 +30,12 @@ class DemoDataChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final displayLabel = label ?? 'DEMO DATA';
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    // Amber color for warning (Material 3 warning color)
+    const amberBackground = Color(0xFFFF6F00); // Amber 900
+    const amberBorder = Color(0xFFFFB300); // Amber 600
 
     return Semantics(
       label:
@@ -36,16 +44,15 @@ class DemoDataChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: RiskPalette.extreme, // Red background for high visibility
+          color: amberBackground,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: RiskPalette.white,
+            color: amberBorder,
             width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color:
-                  Theme.of(context).colorScheme.shadow.withValues(alpha: 0.2),
+              color: colorScheme.shadow.withValues(alpha: 0.2),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -54,17 +61,17 @@ class DemoDataChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.warning_amber_rounded,
-              color: RiskPalette.white,
+              color: colorScheme.onPrimary,
               size: 18,
               semanticLabel: '', // Meaning conveyed by container semantic label
             ),
             const SizedBox(width: 6),
             Text(
               displayLabel,
-              style: const TextStyle(
-                color: RiskPalette.white,
+              style: TextStyle(
+                color: colorScheme.onPrimary,
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.5,

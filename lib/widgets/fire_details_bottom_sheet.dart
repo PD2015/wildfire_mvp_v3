@@ -3,9 +3,7 @@ import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/utils/distance_calculator.dart';
-import 'package:wildfire_mvp_v3/widgets/chips/data_source_chip.dart';
-import 'package:wildfire_mvp_v3/widgets/chips/demo_data_chip.dart';
-import 'package:wildfire_mvp_v3/services/active_fires_service.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 
 /// Bottom sheet widget displaying comprehensive fire incident details
 ///
@@ -375,17 +373,31 @@ class FireDetailsBottomSheet extends StatelessWidget {
   Widget _buildHeader(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final textColor =
+        theme.textTheme.titleLarge?.color ?? colorScheme.onSurface;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'Fire Incident Details',
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.local_fire_department,
+                size: 24,
+                color: textColor,
+                semanticLabel: '',
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Fire Incident Details',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
           Semantics(
             button: true,
@@ -409,28 +421,10 @@ class FireDetailsBottomSheet extends StatelessWidget {
   }
 
   Widget _buildChips(FireIncident inc) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        DataSourceChip(sourceType: _mapToDataSourceType(inc.source)),
-        if (inc.source == DataSource.mock || inc.freshness == Freshness.mock)
-          const DemoDataChip(),
-      ],
+    return MapSourceChip(
+      source: inc.freshness,
+      lastUpdated: inc.timestamp,
     );
-  }
-
-  DataSourceType _mapToDataSourceType(DataSource source) {
-    switch (source) {
-      case DataSource.effis:
-        return DataSourceType.live;
-      case DataSource.sepa:
-        return DataSourceType.live;
-      case DataSource.cache:
-        return DataSourceType.cached;
-      case DataSource.mock:
-        return DataSourceType.mock;
-    }
   }
 
   Widget _buildDetailRow({
