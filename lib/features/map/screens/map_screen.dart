@@ -284,9 +284,8 @@ class _MapScreenState extends State<MapScreen> {
                     onTap: () {}, // Prevent tap from closing when tapping sheet
                     child: FireDetailsBottomSheet(
                       incident: _selectedIncident!,
-                      userLocation: _controller.state is MapSuccess
-                          ? (_controller.state as MapSuccess).centerLocation
-                          : null,
+                      userLocation: _controller
+                          .userGpsLocation, // Use actual GPS location, not viewport center
                       onClose: () {
                         setState(() {
                           _isBottomSheetVisible = false;

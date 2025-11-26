@@ -81,7 +81,8 @@ class FireDetailsBottomSheet extends StatelessWidget {
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: colorScheme.surface,
+            color: colorScheme.surfaceContainerHighest,
+            //color: colorScheme.surface,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
@@ -214,27 +215,38 @@ class FireDetailsBottomSheet extends StatelessWidget {
           title: 'Location',
           icon: Icons.place_outlined,
           children: [
-            // Distance and direction (if user location available)
-            if (userLocation != null)
-              _buildDetailRow(
-                context: context,
-                icon: Icons.navigation,
-                label: 'Distance & direction',
-                value: DistanceCalculator.formatDistanceAndDirection(
-                  userLocation!,
-                  inc.location,
-                ),
-                semanticLabel:
-                    'Fire is ${DistanceCalculator.formatDistanceAndDirection(userLocation!, inc.location)} from your location',
-              ),
+            // User's GPS location status
+            _buildDetailRow(
+              context: context,
+              icon: userLocation != null ? Icons.gps_fixed : Icons.gps_off,
+              label: 'Your location',
+              value: userLocation != null
+                  ? '${userLocation!.latitude.toStringAsFixed(2)}, ${userLocation!.longitude.toStringAsFixed(2)} (GPS)'
+                  : 'Unknown (GPS unavailable)',
+              semanticLabel: userLocation != null
+                  ? 'Your GPS location: ${userLocation!.latitude.toStringAsFixed(2)} latitude, ${userLocation!.longitude.toStringAsFixed(2)} longitude'
+                  : 'Your GPS location is unavailable',
+            ),
+            // Distance and direction (only if GPS available)
+            _buildDetailRow(
+              context: context,
+              icon: Icons.social_distance,
+              label: 'Distance & direction',
+              value: userLocation != null
+                  ? '${DistanceCalculator.formatDistanceAndDirection(userLocation!, inc.location)} from your location'
+                  : 'Unable to calculate (GPS required)',
+              semanticLabel: userLocation != null
+                  ? 'Fire is ${DistanceCalculator.formatDistanceAndDirection(userLocation!, inc.location)} from your GPS location'
+                  : 'Distance unavailable because GPS location is unknown',
+            ),
             _buildDetailRow(
               context: context,
               icon: Icons.location_on,
-              label: 'Coordinates',
+              label: 'Fire coordinates',
               value:
                   '${inc.location.latitude.toStringAsFixed(4)}, ${inc.location.longitude.toStringAsFixed(4)}',
               semanticLabel:
-                  'Coordinates: ${inc.location.latitude.toStringAsFixed(4)} latitude, ${inc.location.longitude.toStringAsFixed(4)} longitude',
+                  'Fire coordinates: ${inc.location.latitude.toStringAsFixed(4)} latitude, ${inc.location.longitude.toStringAsFixed(4)} longitude',
             ),
           ],
         ),
@@ -436,7 +448,7 @@ class FireDetailsBottomSheet extends StatelessWidget {
           Icon(
             icon,
             size: 20,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            color: Theme.of(context).colorScheme.onSurface,
             semanticLabel: '',
           ),
           const SizedBox(width: 12),
@@ -449,6 +461,7 @@ class FireDetailsBottomSheet extends StatelessWidget {
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontWeight: FontWeight.w500,
+                        fontSize: 13,
                       ),
                 ),
                 const SizedBox(height: 2),
@@ -457,7 +470,9 @@ class FireDetailsBottomSheet extends StatelessWidget {
                   child: Text(
                     value,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
+                          //fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
                         ),
                   ),
                 ),
@@ -547,7 +562,9 @@ class _InfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -570,7 +587,7 @@ class _InfoSection extends StatelessWidget {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: cs.surfaceContainerHighest,
+            color: isDark ? cs.surfaceContainerHigh : cs.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: cs.outlineVariant),
           ),
