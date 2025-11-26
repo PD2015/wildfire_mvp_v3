@@ -199,7 +199,7 @@ class _ManualLocationDialogState extends State<ManualLocationDialog> {
         Semantics(
           label: 'Save manual location',
           button: true,
-          child: ElevatedButton(
+          child: FilledButton(
             key: const Key('save_button'),
             onPressed: _isValidInput ? _handleSave : null,
             child: const Text('Save Location'),

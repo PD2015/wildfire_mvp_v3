@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Pre-commit hook to auto-format, analyze, and check for API keys
 # This ensures all commits have properly formatted code and no secrets
 #
@@ -21,27 +21,27 @@ echo "🔍 Running flutter analyze..."
 if command -v flutter >/dev/null 2>&1; then
   # Get list of staged Dart files (excluding deleted files)
   STAGED_DART_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.dart$' || true)
-  
+
   if [ -n "$STAGED_DART_FILES" ]; then
     # Clean any stale build artifacts that might cause version detection issues
     flutter clean > /dev/null 2>&1 || true
-    
+
     # Run analyze with better error handling for worktrees
     flutter analyze --no-fatal-infos $STAGED_DART_FILES 2>&1 | tee /tmp/flutter_analyze_output.txt
     ANALYZE_EXIT=${PIPESTATUS[0]}
-    
+
     # Check for known worktree/version detection issues
     if grep -q "version is 0.0.0-unknown" /tmp/flutter_analyze_output.txt; then
       echo ""
       echo "⚠️  Flutter SDK version detection issue (common in worktrees)"
       echo "   Falling back to dart analyze on staged files..."
-      
+
       # Fallback to dart analyze which doesn't have the same issue
       # Only analyze staged Dart files to avoid errors in uncommitted work
       dart analyze --fatal-warnings $STAGED_DART_FILES
       ANALYZE_EXIT=$?
     fi
-    
+
     if [ $ANALYZE_EXIT -ne 0 ]; then
       echo ""
       echo "❌ Static analysis found issues in staged files!"
@@ -49,7 +49,7 @@ if command -v flutter >/dev/null 2>&1; then
       echo "   Or use 'git commit --no-verify' to bypass (not recommended)."
       exit 1
     fi
-    
+
     echo "✅ Static analysis passed for staged files"
   else
     echo "ℹ️  No Dart files staged for commit"
@@ -69,7 +69,7 @@ if command -v gitleaks >/dev/null 2>&1; then
   # -v shows verbose output
   gitleaks protect --staged --redact -v
   GITLEAKS_EXIT=$?
-  
+
   if [ $GITLEAKS_EXIT -ne 0 ]; then
     echo ""
     echo "❌ Gitleaks found secrets in staged files!"
@@ -84,37 +84,71 @@ if command -v gitleaks >/dev/null 2>&1; then
     echo "To bypass (if false positive): git commit --no-verify"
     exit 1
   fi
-  
+
   echo "✅ No secrets detected by gitleaks"
 else
   echo "⚠️  Gitleaks not installed, using basic pattern matching..."
   echo "   Install: brew install gitleaks"
   echo ""
-  
+
   # Fallback to basic pattern matching if gitleaks not available
   STAGED_FILES=$(git diff --cached --name-only)
-  
+
   if [ -z "$STAGED_FILES" ]; then
     echo "✅ No files staged"
     exit 0
   fi
-  
+
   # Check for Google Maps API keys
-  if echo "$STAGED_FILES" | xargs grep -l -E "AIzaSy[0-9A-Za-z_-]{33}" 2>/dev/null | grep -v "YOUR_.*_KEY_HERE\|PLACEHOLDER\|example\."; then
-    echo ""
-    echo "❌ ERROR: Google Maps API key detected!"
-    echo ""
-    echo "API keys must be in git-ignored files:"
-    echo "  - env/dev.env.json (local development)"
-    echo "  - android/local.properties (Android builds)"
-    echo "  - GitHub Secrets (CI/CD)"
-    echo ""
-    echo "See: docs/API_KEY_SETUP.md"
-    echo ""
-    echo "To bypass (if false positive): git commit --no-verify"
-    exit 1
-  fi
+  # Get all occurrences with 2 lines of context before
+  FOUND_KEYS_RAW=$(echo "$STAGED_FILES" | xargs grep -B2 -n -E "AIzaSy[0-9A-Za-z_-]{33}" 2>/dev/null || true)
   
+  if [ -n "$FOUND_KEYS_RAW" ]; then
+    # Process each group of context lines (separated by --)
+    # If the group contains PLACEHOLDER, YOUR_*_KEY, example., or XXX, it's safe
+    UNSAFE_KEYS=""
+    
+    # Split by -- separator and check each block
+    echo "$FOUND_KEYS_RAW" | awk '
+      BEGIN { RS="--"; block="" }
+      {
+        if (NF > 0) {
+          block = $0
+          # Check if block contains API key pattern
+          if (block ~ /AIzaSy[0-9A-Za-z_-]{33}/) {
+            # Check if block has safe markers
+            if (block !~ /PLACEHOLDER|YOUR_.*_KEY|example\.|gitleaks:allow|XXX/) {
+              print block
+            }
+          }
+        }
+      }
+    ' > /tmp/unsafe_keys.txt
+    
+    UNSAFE_KEYS=$(cat /tmp/unsafe_keys.txt)
+    
+    if [ -n "$UNSAFE_KEYS" ]; then
+      echo ""
+      echo "❌ ERROR: Google Maps API key detected!"
+      echo ""
+      echo "$UNSAFE_KEYS"
+      echo ""
+      echo "API keys must be in git-ignored files:"
+      echo "  - env/dev.env.json (local development)"
+      echo "  - android/local.properties (Android builds)"
+      echo "  - GitHub Secrets (CI/CD)"
+      echo ""
+      echo "To mark as safe placeholder:"
+      echo "  - Add XML comment with 'PLACEHOLDER' above the key"
+      echo "  - Or add inline comment: # gitleaks:allow"
+      echo ""
+      echo "See: docs/guides/setup/google-maps.md"
+      echo ""
+      echo "To bypass (if false positive): git commit --no-verify"
+      exit 1
+    fi
+  fi
+
   # Check for secret files that should be git-ignored
   if echo "$STAGED_FILES" | grep -E "^(env/dev\.env\.json|android/local\.properties)$"; then
     echo ""
@@ -126,7 +160,7 @@ else
     echo "To unstage: git reset HEAD <file>"
     exit 1
   fi
-  
+
   # Check for AWS keys
   if echo "$STAGED_FILES" | xargs grep -l -E "(AKIA|ASIA)[0-9A-Z]{16}" 2>/dev/null; then
     echo ""
@@ -135,7 +169,7 @@ else
     echo "To bypass (if false positive): git commit --no-verify"
     exit 1
   fi
-  
+
   # Check for GitHub tokens
   if echo "$STAGED_FILES" | xargs grep -l -E "(ghp_|gho_|ghu_|ghs_|ghr_)[0-9A-Za-z]{36,255}" 2>/dev/null; then
     echo ""
@@ -144,7 +178,7 @@ else
     echo "To bypass (if false positive): git commit --no-verify"
     exit 1
   fi
-  
+
   echo "✅ No secrets detected (basic scan)"
 fi
 

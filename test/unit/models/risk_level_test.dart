@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
+import 'package:wildfire_mvp_v3/theme/risk_palette.dart';
 
 /// Unit tests for RiskLevel FWI mapping boundaries
 ///
@@ -91,6 +93,39 @@ void main() {
         expect(RiskLevel.values, contains(RiskLevel.high));
         expect(RiskLevel.values, contains(RiskLevel.veryHigh));
         expect(RiskLevel.values, contains(RiskLevel.extreme));
+      });
+    });
+
+    group('RiskLevelColor extension', () {
+      test('veryLow.color returns correct color', () {
+        expect(RiskLevel.veryLow.color, equals(RiskPalette.veryLow));
+      });
+
+      test('low.color returns correct color', () {
+        expect(RiskLevel.low.color, equals(RiskPalette.low));
+      });
+
+      test('moderate.color returns correct color', () {
+        expect(RiskLevel.moderate.color, equals(RiskPalette.moderate));
+      });
+
+      test('high.color returns correct color', () {
+        expect(RiskLevel.high.color, equals(RiskPalette.high));
+      });
+
+      test('veryHigh.color returns correct color', () {
+        expect(RiskLevel.veryHigh.color, equals(RiskPalette.veryHigh));
+      });
+
+      test('extreme.color returns correct color', () {
+        expect(RiskLevel.extreme.color, equals(RiskPalette.extreme));
+      });
+
+      test('all risk levels have colors', () {
+        // Ensure every risk level returns a valid Color
+        for (final level in RiskLevel.values) {
+          expect(level.color, isA<Color>());
+        }
       });
     });
   });

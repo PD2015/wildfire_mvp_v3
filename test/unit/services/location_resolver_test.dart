@@ -397,17 +397,19 @@ void main() {
       });
 
       test('logRedact handles edge cases correctly', () {
-        // Test negative coordinates
+        // Test negative coordinates (within valid range)
         expect(
-          LocationUtils.logRedact(-90.123456, 180.987654),
-          equals('-90.12,180.99'),
+          LocationUtils.logRedact(-89.123456, 179.987654),
+          equals('-89.12,179.99'),
         );
 
         // Test zero values
         expect(LocationUtils.logRedact(0.0, 0.0), equals('0.00,0.00'));
 
-        // Test boundary values
+        // Test exact boundary values (valid)
         expect(LocationUtils.logRedact(90.0, -180.0), equals('90.00,-180.00'));
+        expect(LocationUtils.logRedact(90.0, 180.0), equals('90.00,180.00'));
+        expect(LocationUtils.logRedact(-90.0, 0.0), equals('-90.00,0.00'));
       });
     });
 

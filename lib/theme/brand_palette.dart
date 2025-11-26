@@ -33,7 +33,7 @@ import 'package:flutter/material.dart';
 /// ColorScheme.light(
 ///   primary: BrandPalette.forest600,  // Light theme primary
 ///   onPrimary: BrandPalette.onDarkHigh,  // White text on forest600
-///   secondary: BrandPalette.forest500,
+///   secondary: BrandPalette.mint400,
 ///   tertiary: BrandPalette.amber500,
 /// )
 /// ```

@@ -29,8 +29,52 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   mockito: ^5.4.2
   build_runner: ^2.4.7
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.3.0
 
 flutter:
   uses-material-design: true
   assets:
     - assets/mock/
+    - assets/icons/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  web:
+    generate: true
+    background_color: "#1B6B61"
+    theme_color: "#1B6B61"
+  macos:
+    generate: true
+  image_path: "assets/icons/app_icon.png"
+  image_path_ios: "assets/icons/app_icon_ios.png"  # Separate icon for iOS
+  adaptive_icon_background: "#1B6B61"
+  adaptive_icon_foreground: "assets/icons/app_icon.png"
+
+flutter_native_splash:
+  # Background color - #1B6B61 this is the adaptive colour to match the appbar NOT BrandPalette.forest900 (#1A3A2E)
+  color: "#1B6B61"
+  
+  # App icon displayed centered on splash screen (512x512 - optimized size)
+  image: assets/icons/splash_icon.png
+  
+  # Android 12+ splash screen configuration
+  # Android 12+ uses a smaller, centered icon (max 288x288dp)
+  android_12:
+    color: "#1B6B61"
+    # Use 512x512 splash icon for proper scaling
+    image: assets/icons/splash_icon.png
+    # Icon background color matches main background (circle blends in)
+    icon_background_color: "#1B6B61"
+  
+  # Web splash screen configuration
+  web: true
+  
+  # Android gravity/positioning
+  # 'fill' would stretch the image - use 'center' to maintain aspect ratio
+  android_gravity: center
+  ios_content_mode: center
+  
+  # Remove splash screen branding text (keep it minimal)
+  fullscreen: true

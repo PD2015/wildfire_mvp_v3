@@ -100,11 +100,13 @@ class EmergencyContact extends Equatable {
 
   /// Returns display text for UI buttons
   String get displayText {
-    // T-V4: Crimestoppers button shows just "Call Crimestoppers" (phone in description)
+    // Shortened format for button width constraints
+    // Icon conveys "call" action, text shows who to call
     if (this == crimestoppers) {
-      return 'Call $name';
+      return name; // "Crimestoppers"
     }
-    return 'Call $phoneNumber — $name';
+    // Format: "999 Fire Service" or "101 Police"
+    return '$phoneNumber ${name.replaceAll(' Scotland', '')}';
   }
 
   /// Returns whether this is an urgent emergency contact

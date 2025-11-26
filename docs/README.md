@@ -13,6 +13,7 @@ We follow the [Divio Documentation System](https://documentation.divio.com/) wit
 
 #### Setup
 - [Google Maps Configuration](guides/setup/google-maps.md) - Complete setup for Web, iOS, Android
+- [Material 3 Implementation Plan](guides/setup/M3_IMPLEMENTATION_PLAN.md) - Comprehensive plan for M3 compliance
 - [Firebase Configuration](FIREBASE_DEPLOYMENT.md) *(to be moved)*
 - [API Keys Management](API_KEY_SETUP.md) *(to be moved)*
 
