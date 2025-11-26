@@ -395,6 +395,7 @@ class FireDetailsBottomSheet extends StatelessWidget {
                 'Fire Incident Details',
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: textColor,
                 ),
               ),
             ],
