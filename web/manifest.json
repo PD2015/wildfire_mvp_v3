@@ -1,6 +1,7 @@
 {
     "name": "wildfire_mvp_v3",
     "short_name": "wildfire_mvp_v3",
+    "version": "1.0.0",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#1B6B61",
