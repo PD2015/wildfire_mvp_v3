@@ -102,12 +102,12 @@ else
   # Check for Google Maps API keys
   # Get all occurrences with 2 lines of context before
   FOUND_KEYS_RAW=$(echo "$STAGED_FILES" | xargs grep -B2 -n -E "AIzaSy[0-9A-Za-z_-]{33}" 2>/dev/null || true)
-  
+
   if [ -n "$FOUND_KEYS_RAW" ]; then
     # Process each group of context lines (separated by --)
     # If the group contains PLACEHOLDER, YOUR_*_KEY, example., or XXX, it's safe
     UNSAFE_KEYS=""
-    
+
     # Split by -- separator and check each block
     echo "$FOUND_KEYS_RAW" | awk '
       BEGIN { RS="--"; block="" }
@@ -124,9 +124,9 @@ else
         }
       }
     ' > /tmp/unsafe_keys.txt
-    
+
     UNSAFE_KEYS=$(cat /tmp/unsafe_keys.txt)
-    
+
     if [ -n "$UNSAFE_KEYS" ]; then
       echo ""
       echo "❌ ERROR: Google Maps API key detected!"
