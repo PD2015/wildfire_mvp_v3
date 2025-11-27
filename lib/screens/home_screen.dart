@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wildfire_mvp_v3/widgets/location_card.dart';
 
+import '../config/feature_flags.dart';
 import '../controllers/home_controller.dart';
 import '../models/home_state.dart';
 import '../models/location_models.dart';
@@ -326,6 +328,50 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Builds a Google Static Maps URL for the given coordinates
+  ///
+  /// Uses 2-decimal precision for privacy compliance (C2).
+  /// Returns null if no API key is configured.
+  String? _buildStaticMapUrl(double lat, double lon) {
+    const apiKey = FeatureFlags.googleMapsApiKeyWeb;
+    if (apiKey.isEmpty) {
+      return null;
+    }
+
+    // Round to 2 decimal places for privacy (C2)
+    final roundedLat = (lat * 100).round() / 100;
+    final roundedLon = (lon * 100).round() / 100;
+
+    final url =
+        Uri.parse('https://maps.googleapis.com/maps/api/staticmap').replace(
+      queryParameters: {
+        'center': '$roundedLat,$roundedLon',
+        'zoom': '14',
+        'size': '600x300',
+        'markers': 'color:red|$roundedLat,$roundedLon',
+        'key': apiKey,
+        'scale': '2',
+        'maptype': 'roadmap',
+      },
+    );
+
+    return url.toString();
+  }
+
+  /// Handles copying what3words address to clipboard with snackbar feedback
+  void _handleCopyWhat3words(String what3words) {
+    Clipboard.setData(ClipboardData(text: what3words));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Copied $what3words to clipboard'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   /// Builds the location card based on current HomeState
   Widget _buildLocationCard() {
     final state = _controller.state;
@@ -364,6 +410,10 @@ class _HomeScreenState extends State<HomeScreen> {
           :final location,
           :final locationSource,
           :final placeName,
+          :final what3words,
+          :final formattedLocation,
+          :final isWhat3wordsLoading,
+          :final isGeocodingLoading,
         ):
         // Build trust-building subtitle with combination approach
         final String subtitle = switch (locationSource) {
@@ -375,6 +425,12 @@ class _HomeScreenState extends State<HomeScreen> {
           LocationSource.defaultFallback => 'Default location (Scotland)',
         };
 
+        // Build static map URL for preview
+        final staticMapUrl = _buildStaticMapUrl(
+          location.latitude,
+          location.longitude,
+        );
+
         return LocationCard(
           coordinatesLabel: LocationUtils.logRedact(
             location.latitude,
@@ -383,6 +439,16 @@ class _HomeScreenState extends State<HomeScreen> {
           subtitle: subtitle,
           onChangeLocation: _showManualLocationDialog,
           locationSource: locationSource,
+          // Enhanced properties from T043
+          what3words: what3words,
+          isWhat3wordsLoading: isWhat3wordsLoading,
+          formattedLocation: formattedLocation,
+          isGeocodingLoading: isGeocodingLoading,
+          staticMapUrl: staticMapUrl,
+          onCopyWhat3words: what3words != null
+              ? () => _handleCopyWhat3words(what3words)
+              : null,
+          onTapMapPreview: _showManualLocationDialog,
         );
 
       case HomeStateError(:final cachedLocation) when cachedLocation != null:
