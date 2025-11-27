@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wildfire_mvp_v3/widgets/location_card.dart';
 
 import '../controllers/home_controller.dart';
@@ -6,7 +7,8 @@ import '../models/home_state.dart';
 import '../models/location_models.dart';
 import '../widgets/risk_banner.dart';
 import '../widgets/risk_guidance_card.dart';
-import '../widgets/manual_location_dialog.dart';
+import '../features/location_picker/models/location_picker_mode.dart';
+import '../features/location_picker/models/picked_location.dart';
 import '../services/models/fire_risk.dart';
 import '../utils/location_utils.dart';
 
@@ -404,13 +406,22 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// Shows the manual location dialog and handles the result
+  /// Opens the location picker screen and handles the result
+  ///
+  /// Uses go_router navigation to the full-screen location picker.
+  /// Returns PickedLocation via Navigator.pop when user confirms.
   Future<void> _showManualLocationDialog() async {
-    final coordinates = await ManualLocationDialog.show(context);
+    final result = await context.push<PickedLocation>(
+      '/location-picker',
+      extra: LocationPickerMode.riskLocation,
+    );
 
-    if (coordinates != null && mounted) {
+    if (result != null && mounted) {
       // Call the controller's setManualLocation which will save via LocationResolver
-      await _controller.setManualLocation(coordinates);
+      await _controller.setManualLocation(
+        result.coordinates,
+        placeName: result.placeName,
+      );
     }
   }
 }
