@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:wildfire_mvp_v3/screens/home_screen.dart';
 import 'package:wildfire_mvp_v3/controllers/home_controller.dart';
@@ -7,7 +8,6 @@ import 'package:wildfire_mvp_v3/models/home_state.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
-import 'package:wildfire_mvp_v3/widgets/manual_location_dialog.dart';
 import 'package:wildfire_mvp_v3/widgets/risk_guidance_card.dart';
 
 /// Mock HomeController for testing UI interactions
@@ -80,18 +80,44 @@ class TestData {
 void main() {
   group('HomeScreen Widget Tests', () {
     late MockHomeController mockController;
+    bool locationPickerNavigated = false;
 
     setUp(() {
       mockController = MockHomeController();
+      locationPickerNavigated = false;
     });
 
     tearDown(() {
       mockController.dispose();
     });
 
-    /// Helper to build HomeScreen with test setup
+    /// Helper to build HomeScreen with test setup (basic - no navigation)
     Widget buildHomeScreen() {
       return MaterialApp(home: HomeScreen(controller: mockController));
+    }
+
+    /// Helper to build HomeScreen with GoRouter (for navigation tests)
+    Widget buildHomeScreenWithRouter() {
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => HomeScreen(controller: mockController),
+          ),
+          GoRoute(
+            path: '/location-picker',
+            builder: (context, state) {
+              locationPickerNavigated = true;
+              // Return a simple placeholder screen
+              return const Scaffold(
+                body: Center(child: Text('Location Picker Screen')),
+              );
+            },
+          ),
+        ],
+      );
+      return MaterialApp.router(routerConfig: router);
     }
 
     group('Initial State and Loading', () {
@@ -339,7 +365,8 @@ void main() {
             reason: 'Button should be enabled during loading');
       });
 
-      testWidgets('tapping location card button opens manual location dialog', (
+      testWidgets(
+          'tapping location card button navigates to location picker screen', (
         tester,
       ) async {
         // Arrange
@@ -352,14 +379,15 @@ void main() {
           ),
         );
 
-        await tester.pumpWidget(buildHomeScreen());
+        await tester.pumpWidget(buildHomeScreenWithRouter());
 
         // Act - Tap the Change button in LocationCard
         await tester.tap(find.text('Change'));
         await tester.pumpAndSettle();
 
-        // Assert
-        expect(find.byType(ManualLocationDialog), findsOneWidget);
+        // Assert - Should navigate to location picker
+        expect(locationPickerNavigated, isTrue);
+        expect(find.text('Location Picker Screen'), findsOneWidget);
       });
     });
 

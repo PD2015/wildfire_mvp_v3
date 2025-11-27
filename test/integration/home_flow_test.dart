@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dartz/dartz.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:wildfire_mvp_v3/controllers/home_controller.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
@@ -10,7 +11,6 @@ import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/screens/home_screen.dart';
-import 'package:wildfire_mvp_v3/widgets/manual_location_dialog.dart';
 
 /// Mock LocationResolver for controlled testing
 class MockLocationResolver implements LocationResolver {
@@ -180,6 +180,37 @@ void main() {
       );
     }
 
+    /// Helper to build app with GoRouter (for navigation tests)
+    Widget buildTestAppWithRouter(
+      HomeController controller, {
+      required bool Function() onLocationPickerNavigated,
+    }) {
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => HomeScreen(controller: controller),
+          ),
+          GoRoute(
+            path: '/location-picker',
+            builder: (context, state) {
+              onLocationPickerNavigated();
+              return const Scaffold(
+                body: Center(child: Text('Location Picker Screen')),
+              );
+            },
+          ),
+        ],
+      );
+      return MaterialApp.router(
+        title: 'WildFire Test',
+        theme: ThemeData.light(),
+        darkTheme: ThemeData.dark(),
+        routerConfig: router,
+      );
+    }
+
     /// Helper to create FireRisk test data
     FireRisk createFireRisk({
       RiskLevel level = RiskLevel.moderate,
@@ -341,23 +372,32 @@ void main() {
     });
 
     group('Scenario 5: GPS Denied → Manual Entry Flow', () {
-      testWidgets('opens manual dialog when location denied', (tester) async {
+      testWidgets('navigates to location picker when location denied', (
+        tester,
+      ) async {
         // Arrange
         mockLocationResolver.mockError(LocationError.permissionDenied);
+        bool locationPickerNavigated = false;
 
         homeController = createController();
 
         // Act
-        await tester.pumpWidget(buildTestApp(homeController));
+        await tester.pumpWidget(buildTestAppWithRouter(
+          homeController,
+          onLocationPickerNavigated: () {
+            locationPickerNavigated = true;
+            return locationPickerNavigated;
+          },
+        ));
         await tester.pump(const Duration(milliseconds: 100));
 
         // Tap the "Set" button in LocationCard
         await tester.tap(find.text('Set'));
         await tester.pumpAndSettle();
 
-        // Assert - Manual location dialog should open
-        expect(find.byType(ManualLocationDialog), findsOneWidget);
-        expect(find.text('Enter Location'), findsOneWidget);
+        // Assert - Should navigate to location picker screen
+        expect(locationPickerNavigated, isTrue);
+        expect(find.text('Location Picker Screen'), findsOneWidget);
       });
 
       testWidgets('succeeds after manual location entry', (tester) async {
