@@ -14,20 +14,20 @@
 
 ## Phase 3.1: Setup & Configuration
 
-- [ ] **T001** Add WHAT3WORDS_API_KEY to feature flags
+- [x] **T001** Add WHAT3WORDS_API_KEY to feature flags ✅
   - **Goal**: Enable what3words API key configuration via env file
   - **Files**: `lib/config/feature_flags.dart`
   - **Dependencies**: None
   - **Details**: Add `static const String what3wordsApiKey = String.fromEnvironment('WHAT3WORDS_API_KEY', defaultValue: '');`
 
-- [ ] **T002** [P] Update env template with what3words placeholder
+- [x] **T002** [P] Update env template with what3words placeholder ✅
   - **Goal**: Document required API key for developers
   - **Files**: `env/dev.env.json.template`
   - **Dependencies**: None
   - **Details**: Add `"WHAT3WORDS_API_KEY": "YOUR_W3W_KEY_HERE"` to template
   - **Note**: Static Maps API and Geocoding API use existing `GOOGLE_MAPS_API_KEY_*` keys (no new key needed)
 
-- [ ] **T003** [P] Create location_picker feature directory structure
+- [x] **T003** [P] Create location_picker feature directory structure ✅
   - **Goal**: Set up feature folder following existing patterns
   - **Files**: 
     - `lib/features/location_picker/screens/` (directory)
@@ -40,7 +40,7 @@
 
 ## Phase 3.2: Models (Parallel - different files)
 
-- [ ] **T004** [P] Create What3wordsAddress value object with validation
+- [x] **T004** [P] Create What3wordsAddress value object with validation ✅
   - **Goal**: Validated what3words address with format checking
   - **Files**: `lib/models/what3words_models.dart`
   - **Test**: `test/unit/models/what3words_models_test.dart`
@@ -51,7 +51,7 @@
     - `copyFormat` returns `word.word.word`
     - Extends Equatable
 
-- [ ] **T005** [P] Create What3wordsError sealed class hierarchy
+- [x] **T005** [P] Create What3wordsError sealed class hierarchy ✅
   - **Goal**: Typed errors for what3words service operations
   - **Files**: `lib/models/what3words_models.dart` (same file as T004)
   - **Test**: `test/unit/models/what3words_models_test.dart`
@@ -62,7 +62,7 @@
     - `What3wordsInvalidAddressError` - format validation failures
     - All have `userMessage` getter
 
-- [ ] **T006** [P] Create PickedLocation return model
+- [x] **T006** [P] Create PickedLocation return model ✅
   - **Goal**: Typed result returned from picker via Navigator.pop
   - **Files**: `lib/features/location_picker/models/picked_location.dart`
   - **Test**: `test/unit/models/picked_location_test.dart`
@@ -74,7 +74,7 @@
     - `selectedAt: DateTime` (required)
     - Extends Equatable
 
-- [ ] **T007** [P] Create LocationPickerState sealed class
+- [x] **T007** [P] Create LocationPickerState sealed class ✅
   - **Goal**: State machine for controller
   - **Files**: `lib/features/location_picker/models/location_picker_state.dart`
   - **Test**: `test/unit/models/location_picker_state_test.dart`
@@ -84,7 +84,7 @@
     - `LocationPickerReady` - with location, what3words, search state
     - `copyWith()` method for state updates
 
-- [ ] **T008** [P] Create LocationPickerMode enum
+- [x] **T008** [P] Create LocationPickerMode enum ✅
   - **Goal**: Distinguish picker entry points
   - **Files**: `lib/features/location_picker/models/location_picker_mode.dart`
   - **Dependencies**: None
@@ -105,7 +105,7 @@
 
 ## Phase 3.3: Services
 
-- [ ] **T010** Create What3wordsService interface
+- [x] **T010** Create What3wordsService interface ✅
   - **Goal**: Define contract for what3words operations
   - **Files**: `lib/services/what3words_service.dart`
   - **Dependencies**: T004, T005
@@ -115,7 +115,7 @@
     - 5s default timeout
     - C2: Document coordinate redaction in logging
 
-- [ ] **T011** Create What3wordsServiceImpl with HTTP client
+- [x] **T011** Create What3wordsServiceImpl with HTTP client ✅
   - **Goal**: HTTP implementation calling what3words API
   - **Files**: `lib/services/what3words_service_impl.dart`
   - **Test**: `test/unit/services/what3words_service_test.dart`
@@ -129,7 +129,7 @@
     - C2: Log coordinates with `LocationUtils.logRedact()`
     - C2: NEVER log what3words addresses
 
-- [ ] **T012** [P] Create MockWhat3wordsService for testing
+- [x] **T012** [P] Create MockWhat3wordsService for testing ✅
   - **Goal**: Mock implementation for widget/integration tests
   - **Files**: `lib/services/mock_what3words_service.dart`
   - **Dependencies**: T010
@@ -138,7 +138,7 @@
     - Supports delay simulation
     - Supports error injection
 
-- [ ] **T034** [P] Create GeocodingService interface
+- [x] **T034** [P] Create GeocodingService interface ✅
   - **Goal**: Define contract for reverse geocoding (coordinates → place name)
   - **Files**: `lib/services/geocoding_service.dart`
   - **Dependencies**: None
@@ -148,7 +148,7 @@
     - 3s default timeout
     - C2: Log coordinates with `LocationUtils.logRedact()`
 
-- [ ] **T035** Create GeocodingServiceImpl with HTTP client
+- [x] **T035** Create GeocodingServiceImpl with HTTP client ✅
   - **Goal**: HTTP implementation calling Google Geocoding API
   - **Files**: `lib/services/geocoding_service_impl.dart`
   - **Test**: `test/unit/services/geocoding_service_test.dart`
@@ -162,7 +162,7 @@
     - Graceful fallback if no results
     - C2: Log coordinates with `LocationUtils.logRedact()`
 
-- [ ] **T036** [P] Create MockGeocodingService for testing
+- [x] **T036** [P] Create MockGeocodingService for testing ✅
   - **Goal**: Mock implementation for widget/integration tests
   - **Files**: `lib/services/mock_geocoding_service.dart`
   - **Dependencies**: T034
@@ -175,7 +175,7 @@
 
 ## Phase 3.4: Controller
 
-- [ ] **T013** Create LocationPickerController (ChangeNotifier)
+- [x] **T013** Create LocationPickerController (ChangeNotifier) ✅
   - **Goal**: State management for picker screen
   - **Files**: `lib/features/location_picker/controllers/location_picker_controller.dart`
   - **Test**: `test/unit/controllers/location_picker_controller_test.dart`
@@ -193,7 +193,7 @@
 
 ## Phase 3.5: Widgets (some parallel)
 
-- [ ] **T014** [P] Create CrosshairOverlay widget
+- [x] **T014** [P] Create CrosshairOverlay widget ✅
   - **Goal**: Fixed center marker on map
   - **Files**: `lib/features/location_picker/widgets/crosshair_overlay.dart`
   - **Test**: `test/widget/crosshair_overlay_test.dart`
@@ -204,7 +204,7 @@
     - Uses `BrandPalette` colors
     - Decorative only (no semantics)
 
-- [ ] **T015** [P] Create LocationInfoPanel widget
+- [x] **T015** [P] Create LocationInfoPanel widget ✅
   - **Goal**: Bottom panel showing coords and what3words
   - **Files**: `lib/features/location_picker/widgets/location_info_panel.dart`
   - **Test**: `test/widget/location_info_panel_test.dart`
@@ -217,7 +217,7 @@
     - Uses `Theme.of(context).colorScheme` for colors
     - Semantic labels for all interactive elements (C3)
 
-- [ ] **T016** Create LocationSearchBar widget
+- [x] **T016** Create LocationSearchBar widget ✅
   - **Goal**: Search input with autocomplete dropdown
   - **Files**: `lib/features/location_picker/widgets/location_search_bar.dart`
   - **Test**: `test/widget/location_search_bar_test.dart`
@@ -230,7 +230,7 @@
     - ≥48dp height (C3)
     - Semantic label "Search for location" (C3)
 
-- [ ] **T017** Create LocationPickerScreen
+- [x] **T017** Create LocationPickerScreen ✅
   - **Goal**: Full-screen picker with map, search, info panel
   - **Files**: `lib/features/location_picker/screens/location_picker_screen.dart`
   - **Test**: `test/widget/location_picker_screen_test.dart`
@@ -249,7 +249,7 @@
 
 ## Phase 3.6: Integration with Existing Screens
 
-- [ ] **T037** Add what3words and formattedLocation to HomeState
+- [x] **T037** Add what3words and formattedLocation to HomeState ✅
   - **Goal**: Extend HomeStateSuccess to include location metadata for display
   - **Files**: `lib/models/home_state.dart`
   - **Test**: `test/unit/models/home_state_test.dart` (update existing)
@@ -261,7 +261,7 @@
     - Add `isGeocodingLoading: bool` to HomeStateLoading
     - Keep existing fields, extend Equatable props
 
-- [ ] **T038** Add LocationSource display label extension
+- [x] **T038** Add LocationSource display label extension ✅
   - **Goal**: User-friendly badge labels for location source
   - **Files**: `lib/models/location_models.dart`
   - **Dependencies**: None
@@ -270,7 +270,7 @@
     - `gps` → "GPS", `manual` → "Manual", `cached` → "Cached", `defaultFallback` → "Default"
     - Do NOT modify existing enum values
 
-- [ ] **T039** Update HomeController to fetch what3words on location resolution
+- [x] **T039** Update HomeController to fetch what3words on location resolution ✅
   - **Goal**: Automatically fetch what3words when GPS location obtained
   - **Files**: `lib/controllers/home_controller.dart`
   - **Test**: `test/unit/controllers/home_controller_test.dart` (update existing)
@@ -282,7 +282,7 @@
     - Graceful degradation: null if service fails (don't block main flow)
     - C2: Do NOT log what3words addresses
 
-- [ ] **T040** Update HomeController to fetch geocoding on location resolution
+- [x] **T040** Update HomeController to fetch geocoding on location resolution ✅
   - **Goal**: Automatically fetch formatted location name
   - **Files**: `lib/controllers/home_controller.dart`
   - **Dependencies**: T035, T037
@@ -293,7 +293,7 @@
     - Graceful degradation: null if service fails
     - C2: Log with `LocationUtils.logRedact()`
 
-- [ ] **T041** Create buildStaticMapUrl utility function
+- [x] **T041** Create buildStaticMapUrl utility function ✅
   - **Goal**: Generate Google Static Maps API URL for location preview
   - **Files**: `lib/utils/static_map_url_builder.dart`
   - **Test**: `test/unit/utils/static_map_url_builder_test.dart`
@@ -305,7 +305,7 @@
     - Add red marker at location
     - Return full URL string
 
-- [ ] **T042** Create LocationMiniMapPreview widget
+- [x] **T042** Create LocationMiniMapPreview widget ✅
   - **Goal**: Tappable static map preview with loading/error states
   - **Files**: `lib/widgets/location_mini_map_preview.dart`
   - **Test**: `test/widget/location_mini_map_preview_test.dart`
@@ -318,7 +318,7 @@
     - "Tap to change" label in corner
     - ≥48dp tap target (full surface)
 
-- [ ] **T043** Enhance LocationCard with what3words and static map
+- [x] **T043** Enhance LocationCard with what3words and static map ✅
   - **Goal**: Replace simple LocationCard with rich preview card
   - **Files**: `lib/widgets/location_card.dart`
   - **Test**: `test/widget/location_card_test.dart` (update existing)
@@ -333,7 +333,7 @@
     - Keep existing LocationSource icon logic
     - ≥48dp for copy and change buttons (C3)
 
-- [ ] **T044** Update HomeScreen to use enhanced LocationCard
+- [x] **T044** Update HomeScreen to use enhanced LocationCard ✅
   - **Goal**: Wire up new LocationCard with HomeController state
   - **Files**: `lib/screens/home_screen.dart`
   - **Test**: `test/widget/home_screen_test.dart` (update existing)
@@ -345,7 +345,7 @@
     - onCopyWhat3Words → copy to clipboard + snackbar
     - onTapMapPreview → same as onChangeLocation
 
-- [ ] **T045** Integrate picker navigation into HomeScreen
+- [x] **T045** Integrate picker navigation into HomeScreen ✅
   - **Goal**: Navigate to picker, handle result, update location
   - **Files**: `lib/screens/home_screen.dart`
   - **Dependencies**: T017, T044
@@ -355,7 +355,7 @@
     - On result: call `_controller.setManualLocation(result.coordinates, placeName: result.placeName)`
     - Preserve existing behavior if cancelled (pop with null)
 
-- [ ] **T046** Update RiskBanner to show formattedLocation
+- [x] **T046** Update RiskBanner to show formattedLocation ✅
   - **Goal**: Display human-readable location in risk banner
   - **Files**: `lib/widgets/risk_banner.dart`
   - **Test**: `test/widget/risk_banner_test.dart` (update if exists)
@@ -366,7 +366,7 @@
     - Graceful fallback: don't show if null
     - Keep existing risk display unchanged
 
-- [ ] **T019** Integrate picker into ReportFireScreen
+- [ ] **T019** Integrate picker into ReportFireScreen — **DEFERRED**
   - **Goal**: Add "Set Fire Location" button for w3w copy
   - **Files**: `lib/features/report/screens/report_fire_screen.dart`
   - **Test**: `test/widget/report_fire_screen_test.dart` (update existing)
@@ -376,12 +376,13 @@
     - Pass `LocationPickerMode.fireReport`
     - On result: copy what3words to clipboard + snackbar
     - Keep existing emergency contacts functionality
+  - **Status**: Deferred to future iteration
 
 ---
 
 ## Phase 3.7: Tests (TDD - write alongside implementation)
 
-- [ ] **T020** [P] Unit tests for What3wordsAddress validation
+- [x] **T020** [P] Unit tests for What3wordsAddress validation ✅
   - **Goal**: Test format validation edge cases
   - **Files**: `test/unit/models/what3words_models_test.dart`
   - **Dependencies**: T004, T005
@@ -390,7 +391,7 @@
     - Invalid: `invalid`, `two.words`, `CAPS.are.ok` → lowercase normalized
     - Error type verification
 
-- [ ] **T021** [P] Unit tests for What3wordsService
+- [x] **T021** [P] Unit tests for What3wordsService ✅
   - **Goal**: Test HTTP client integration
   - **Files**: `test/unit/services/what3words_service_test.dart`
   - **Dependencies**: T011
@@ -401,7 +402,7 @@
     - Test network timeout handling
     - Test invalid address rejection
 
-- [ ] **T047** [P] Unit tests for GeocodingService
+- [x] **T047** [P] Unit tests for GeocodingService ✅
   - **Goal**: Test HTTP client integration for reverse geocoding
   - **Files**: `test/unit/services/geocoding_service_test.dart`
   - **Dependencies**: T035
@@ -413,7 +414,7 @@
     - Test API error handling
     - Test network timeout handling
 
-- [ ] **T022** [P] Unit tests for LocationPickerController
+- [x] **T022** [P] Unit tests for LocationPickerController ✅
   - **Goal**: Test state transitions
   - **Files**: `test/unit/controllers/location_picker_controller_test.dart`
   - **Dependencies**: T013
@@ -423,7 +424,7 @@
     - w3w error doesn't crash (graceful degradation)
     - buildResult returns correct PickedLocation
 
-- [ ] **T048** [P] Unit tests for HomeController what3words/geocoding
+- [x] **T048** [P] Unit tests for HomeController what3words/geocoding ✅
   - **Goal**: Test parallel fetching of w3w and geocoding
   - **Files**: `test/unit/controllers/home_controller_test.dart` (extend existing)
   - **Dependencies**: T039, T040
@@ -434,7 +435,7 @@
     - Test geocoding failure doesn't block
     - Test parallel execution (both services called)
 
-- [ ] **T049** [P] Unit tests for buildStaticMapUrl
+- [x] **T049** [P] Unit tests for buildStaticMapUrl ✅
   - **Goal**: Test URL generation with various inputs
   - **Files**: `test/unit/utils/static_map_url_builder_test.dart`
   - **Dependencies**: T041
@@ -445,12 +446,12 @@
     - Test marker inclusion
     - Test URL encoding
 
-- [ ] **T023** [P] Widget tests for CrosshairOverlay
+- [x] **T023** [P] Widget tests for CrosshairOverlay ✅
   - **Goal**: Verify rendering
   - **Files**: `test/widget/crosshair_overlay_test.dart`
   - **Dependencies**: T014
 
-- [ ] **T024** [P] Widget tests for LocationInfoPanel
+- [x] **T024** [P] Widget tests for LocationInfoPanel ✅
   - **Goal**: Verify states and interactions
   - **Files**: `test/widget/location_info_panel_test.dart`
   - **Dependencies**: T015
@@ -460,7 +461,7 @@
     - Copy button triggers callback
     - GPS button conditional visibility
 
-- [ ] **T025** [P] Widget tests for LocationSearchBar
+- [x] **T025** [P] Widget tests for LocationSearchBar ✅
   - **Goal**: Verify input handling
   - **Files**: `test/widget/location_search_bar_test.dart`
   - **Dependencies**: T016
@@ -469,7 +470,7 @@
     - Suggestions dropdown
     - Clear button
 
-- [ ] **T026** Widget tests for LocationPickerScreen
+- [x] **T026** Widget tests for LocationPickerScreen ✅
   - **Goal**: Full screen integration test
   - **Files**: `test/widget/location_picker_screen_test.dart`
   - **Dependencies**: T017
@@ -478,7 +479,7 @@
     - fireReport mode shows emergency banner
     - Confirm button returns PickedLocation
 
-- [ ] **T050** [P] Widget tests for LocationMiniMapPreview
+- [x] **T050** [P] Widget tests for LocationMiniMapPreview ✅
   - **Goal**: Verify loading, error, and tap states
   - **Files**: `test/widget/location_mini_map_preview_test.dart`
   - **Dependencies**: T042
@@ -488,7 +489,7 @@
     - Tap triggers callback
     - Label visible in corner
 
-- [ ] **T051** [P] Widget tests for enhanced LocationCard
+- [x] **T051** [P] Widget tests for enhanced LocationCard ✅
   - **Goal**: Verify what3words display, static map, and interactions
   - **Files**: `test/widget/location_card_test.dart` (extend existing)
   - **Dependencies**: T043
