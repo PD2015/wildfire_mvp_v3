@@ -6,8 +6,8 @@
  * - Enables update notifications
  */
 
-// Import Flutter's service worker
-self.importScripts('flutter_service_worker.js?v=');
+// Import Flutter's service worker (no cache-busting needed, Flutter handles versioning)
+self.importScripts('flutter_service_worker.js');
 
 // Listen for SKIP_WAITING message from update prompt
 self.addEventListener('message', function(event) {

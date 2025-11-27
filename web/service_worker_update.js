@@ -8,8 +8,13 @@
 
 // Wait for the service worker to be ready
 if ('serviceWorker' in navigator) {
+  // Guard against reload loops - only reload once per session
+  let reloading = false;
+  
   // Listen for service worker updates
   navigator.serviceWorker.addEventListener('controllerchange', function() {
+    if (reloading) return;
+    reloading = true;
     console.log('[PWA] New service worker activated, reloading page...');
     window.location.reload();
   });
