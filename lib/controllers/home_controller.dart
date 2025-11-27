@@ -7,6 +7,8 @@ import '../models/home_state.dart';
 import '../models/location_models.dart';
 import '../services/location_resolver.dart';
 import '../services/fire_risk_service.dart';
+import '../features/location_picker/services/what3words_service.dart';
+import '../features/location_picker/services/geocoding_service.dart';
 import '../utils/location_utils.dart';
 import '../config/feature_flags.dart';
 
@@ -32,6 +34,8 @@ class HomeController extends ChangeNotifier {
 
   final LocationResolver _locationResolver;
   final FireRiskService _fireRiskService;
+  final What3wordsService? _what3wordsService;
+  final GeocodingService? _geocodingService;
 
   HomeState _state = HomeStateLoading(startTime: DateTime.now());
   bool _isLoading = false;
@@ -51,11 +55,17 @@ class HomeController extends ChangeNotifier {
   ///
   /// [locationResolver] - Service for location resolution with fallback chain
   /// [fireRiskService] - Service for fire risk data with orchestrated fallback
+  /// [what3wordsService] - Optional service for what3words address lookup
+  /// [geocodingService] - Optional service for reverse geocoding (place names)
   HomeController({
     required LocationResolver locationResolver,
     required FireRiskService fireRiskService,
+    What3wordsService? what3wordsService,
+    GeocodingService? geocodingService,
   })  : _locationResolver = locationResolver,
-        _fireRiskService = fireRiskService {
+        _fireRiskService = fireRiskService,
+        _what3wordsService = what3wordsService,
+        _geocodingService = geocodingService {
     developer.log('HomeController initialized', name: 'HomeController');
   }
 
@@ -292,6 +302,10 @@ class HomeController extends ChangeNotifier {
             ),
           );
 
+          // Fetch what3words and geocoding data in parallel (non-blocking)
+          // These enhance the display but don't block the core fire risk functionality
+          _fetchLocationMetadata(location);
+
           // Reset manual location flag after successful load
           // (but keep place name for next retry if needed)
           _isManualLocation = false;
@@ -317,6 +331,95 @@ class HomeController extends ChangeNotifier {
           canRetry: true,
         ),
       );
+    }
+  }
+
+  /// Fetches what3words address and formatted location in parallel
+  ///
+  /// This is a non-blocking operation that enhances the display after
+  /// the core fire risk data has loaded. Updates state via copyWith
+  /// as each service responds.
+  ///
+  /// Graceful degradation: if services are not injected or fail,
+  /// the corresponding fields remain null.
+  void _fetchLocationMetadata(LatLng location) {
+    // Mark loading states if services are available
+    final currentState = _state;
+    if (currentState is! HomeStateSuccess) return;
+
+    // Start with loading indicators for available services
+    if (_what3wordsService != null || _geocodingService != null) {
+      _updateState(currentState.copyWith(
+        isWhat3wordsLoading: _what3wordsService != null,
+        isGeocodingLoading: _geocodingService != null,
+      ));
+    }
+
+    // Fetch what3words address (if service available)
+    if (_what3wordsService != null) {
+      _what3wordsService!
+          .convertTo3wa(
+        lat: location.latitude,
+        lon: location.longitude,
+      )
+          .then((result) {
+        final state = _state;
+        if (state is HomeStateSuccess) {
+          switch (result) {
+            case Right(:final value):
+              developer.log(
+                'What3words resolved for ${LocationUtils.logRedact(location.latitude, location.longitude)}',
+                name: 'HomeController',
+              );
+              // NOTE: Never log the actual what3words address (privacy - C2)
+              _updateState(state.copyWith(
+                what3words: value.displayFormat,
+                isWhat3wordsLoading: false,
+              ));
+            case Left(:final value):
+              developer.log(
+                'What3words failed: ${value.userMessage}',
+                name: 'HomeController',
+              );
+              _updateState(state.copyWith(
+                isWhat3wordsLoading: false,
+              ));
+          }
+        }
+      });
+    }
+
+    // Fetch formatted location via reverse geocoding (if service available)
+    if (_geocodingService != null) {
+      _geocodingService!
+          .reverseGeocode(
+        lat: location.latitude,
+        lon: location.longitude,
+      )
+          .then((result) {
+        final state = _state;
+        if (state is HomeStateSuccess) {
+          switch (result) {
+            case Right(:final value):
+              developer.log(
+                'Geocoding resolved: $value',
+                name: 'HomeController',
+              );
+              _updateState(state.copyWith(
+                formattedLocation: value,
+                isGeocodingLoading: false,
+              ));
+            case Left(:final value):
+              developer.log(
+                'Geocoding failed: $value',
+                name: 'HomeController',
+              );
+              _updateState(state.copyWith(
+                isGeocodingLoading: false,
+              ));
+          }
+        }
+      });
     }
   }
 
