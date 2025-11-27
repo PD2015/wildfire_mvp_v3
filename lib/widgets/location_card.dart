@@ -119,13 +119,6 @@ class LocationCard extends StatelessWidget {
 
     final hasLocation = _hasValidLocation;
 
-    // Debug logging to trace values
-    debugPrint('🔍 LocationCard build:');
-    debugPrint('   locationSource: $locationSource');
-    debugPrint('   coordinatesLabel: $coordinatesLabel');
-    debugPrint('   formattedLocation: $formattedLocation');
-    debugPrint('   hasLocation: $hasLocation');
-
     return Semantics(
       container: true,
       label: hasLocation
@@ -365,9 +358,6 @@ class LocationCard extends StatelessWidget {
     bool hasLocation, {
     bool isMainDisplay = false,
   }) {
-    debugPrint(
-        '📍 Building coordinates row - hasLocation: $hasLocation, coordinatesLabel: $coordinatesLabel');
-
     final theme = Theme.of(context);
 
     if (!hasLocation) {
@@ -411,8 +401,6 @@ class LocationCard extends StatelessWidget {
   /// Builds the location source badge (GPS, Manual, etc.)
   /// Uses Material 3 Chip with tertiary colors for consistency with MapSourceChip
   Widget _buildSourceBadge(BuildContext context, ColorScheme scheme) {
-    debugPrint('🏷️ Building source badge for: $locationSource');
-
     final label = switch (locationSource!) {
       LocationSource.gps => 'GPS',
       LocationSource.manual => 'MANUAL',
@@ -426,8 +414,6 @@ class LocationCard extends StatelessWidget {
       LocationSource.cached => Icons.cached,
       LocationSource.defaultFallback => Icons.public,
     };
-
-    debugPrint('🏷️ Badge label: $label');
 
     // Use Material 3 tertiary color scheme for consistent chip styling
     // Same pattern as MapSourceChip DEMO DATA badge
@@ -453,7 +439,7 @@ class LocationCard extends StatelessWidget {
           width: 1.5,
         ),
         elevation: 4,
-        shadowColor: scheme.shadow.withOpacity(0.25),
+        shadowColor: scheme.shadow.withValues(alpha: 0.25),
         padding: const EdgeInsets.symmetric(horizontal: 4),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         visualDensity: VisualDensity.compact,

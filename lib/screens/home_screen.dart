@@ -336,10 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Returns null if no API key is configured.
   String? _buildStaticMapUrl(double lat, double lon) {
     final apiKey = FeatureFlags.googleMapsApiKey;
-    debugPrint(
-        '🔑 Static map API key check: web="${FeatureFlags.googleMapsApiKeyWeb.isNotEmpty}", android="${FeatureFlags.googleMapsApiKeyAndroid.isNotEmpty}", ios="${FeatureFlags.googleMapsApiKeyIos.isNotEmpty}"');
     if (apiKey.isEmpty) {
-      debugPrint('⚠️ Static map URL: No API key configured');
       return null;
     }
 
@@ -360,7 +357,6 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
 
-    debugPrint('🗺️ Static map URL generated for $roundedLat,$roundedLon');
     return url.toString();
   }
 
