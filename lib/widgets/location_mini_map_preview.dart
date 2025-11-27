@@ -106,13 +106,18 @@ class LocationMiniMapPreview extends StatelessWidget {
   }
 
   Widget _buildMapImage(ColorScheme scheme) {
+    debugPrint(
+        '🗺️ Loading static map from: ${staticMapUrl!.substring(0, 80)}...');
     return Image.network(
       staticMapUrl!,
       width: double.infinity,
       height: height,
       fit: BoxFit.cover,
       loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
+        if (loadingProgress == null) {
+          debugPrint('✅ Static map image loaded successfully');
+          return child;
+        }
         return Center(
           child: CircularProgressIndicator(
             value: loadingProgress.expectedTotalBytes != null
@@ -125,6 +130,7 @@ class LocationMiniMapPreview extends StatelessWidget {
         );
       },
       errorBuilder: (context, error, stackTrace) {
+        debugPrint('❌ Static map failed to load: $error');
         return _buildErrorState(scheme, Theme.of(context));
       },
     );

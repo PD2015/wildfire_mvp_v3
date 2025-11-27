@@ -119,6 +119,13 @@ class LocationCard extends StatelessWidget {
 
     final hasLocation = _hasValidLocation;
 
+    // Debug logging to trace values
+    debugPrint('🔍 LocationCard build:');
+    debugPrint('   locationSource: $locationSource');
+    debugPrint('   coordinatesLabel: $coordinatesLabel');
+    debugPrint('   formattedLocation: $formattedLocation');
+    debugPrint('   hasLocation: $hasLocation');
+
     return Semantics(
       container: true,
       label: hasLocation
@@ -165,6 +172,7 @@ class LocationCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Header row with "Location" title
                         Text(
                           'Location',
                           style: theme.textTheme.labelLarge?.copyWith(
@@ -183,14 +191,7 @@ class LocationCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            hasLocation
-                                ? coordinatesLabel!
-                                : 'Location not set',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
-                          ),
+                          _buildCoordinatesRow(context, scheme, hasLocation),
                         ] else if (isGeocodingLoading) ...[
                           Row(
                             children: [
@@ -214,24 +215,11 @@ class LocationCard extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            hasLocation
-                                ? coordinatesLabel!
-                                : 'Location not set',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
-                          ),
+                          _buildCoordinatesRow(context, scheme, hasLocation),
                         ] else ...[
-                          Text(
-                            hasLocation
-                                ? coordinatesLabel!
-                                : 'Location not set',
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: scheme.onSurface,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          // No formatted location - show coordinates as main display
+                          _buildCoordinatesRow(context, scheme, hasLocation,
+                              isMainDisplay: true),
                         ],
                         const SizedBox(height: 2),
                         Row(
@@ -265,32 +253,9 @@ class LocationCard extends StatelessWidget {
 
                   const SizedBox(width: 8),
 
-                  // Change location button
-                  if (onChangeLocation != null)
-                    Semantics(
-                      label: hasLocation
-                          ? 'Change location'
-                          : 'Set manual location for fire risk assessment',
-                      button: true,
-                      child: FilledButton.tonal(
-                        onPressed: onChangeLocation,
-                        style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          minimumSize: const Size(
-                              0, 36), // still ≥ 44dp tap area with padding
-                        ),
-                        child: Text(
-                          hasLocation ? 'Change' : 'Set',
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: scheme.onSecondaryContainer,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
+                  // Source badge in top-right (replaces Change button)
+                  if (locationSource != null)
+                    _buildSourceBadge(context, scheme),
                 ],
               ),
 
@@ -390,6 +355,109 @@ class LocationCard extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+
+  /// Builds the coordinates row with "Lat/Lng:" label
+  Widget _buildCoordinatesRow(
+    BuildContext context,
+    ColorScheme scheme,
+    bool hasLocation, {
+    bool isMainDisplay = false,
+  }) {
+    debugPrint(
+        '📍 Building coordinates row - hasLocation: $hasLocation, coordinatesLabel: $coordinatesLabel');
+
+    final theme = Theme.of(context);
+
+    if (!hasLocation) {
+      return Text(
+        'Location not set',
+        style: isMainDisplay
+            ? theme.textTheme.bodyLarge?.copyWith(
+                color: scheme.onSurface,
+                fontWeight: FontWeight.w600,
+              )
+            : theme.textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+      );
+    }
+
+    return Row(
+      children: [
+        Text(
+          'Lat/Lng: ',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: scheme.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Text(
+          coordinatesLabel!,
+          style: isMainDisplay
+              ? theme.textTheme.bodyLarge?.copyWith(
+                  color: scheme.onSurface,
+                  fontWeight: FontWeight.w600,
+                )
+              : theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+        ),
+      ],
+    );
+  }
+
+  /// Builds the location source badge (GPS, Manual, etc.)
+  /// Uses Material 3 Chip with tertiary colors for consistency with MapSourceChip
+  Widget _buildSourceBadge(BuildContext context, ColorScheme scheme) {
+    debugPrint('🏷️ Building source badge for: $locationSource');
+
+    final label = switch (locationSource!) {
+      LocationSource.gps => 'GPS',
+      LocationSource.manual => 'MANUAL',
+      LocationSource.cached => 'CACHED',
+      LocationSource.defaultFallback => 'DEFAULT',
+    };
+
+    final icon = switch (locationSource!) {
+      LocationSource.gps => Icons.gps_fixed,
+      LocationSource.manual => Icons.edit_location_alt,
+      LocationSource.cached => Icons.cached,
+      LocationSource.defaultFallback => Icons.public,
+    };
+
+    debugPrint('🏷️ Badge label: $label');
+
+    // Use Material 3 tertiary color scheme for consistent chip styling
+    // Same pattern as MapSourceChip DEMO DATA badge
+    return Semantics(
+      label: 'Location source: $label',
+      child: Chip(
+        avatar: Icon(
+          icon,
+          size: 18,
+          color: scheme.onTertiaryContainer,
+        ),
+        label: Text(
+          label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: scheme.onTertiaryContainer,
+                letterSpacing: 1.0,
+              ),
+        ),
+        backgroundColor: scheme.tertiaryContainer,
+        side: BorderSide(
+          color: scheme.tertiary,
+          width: 1.5,
+        ),
+        elevation: 4,
+        shadowColor: scheme.shadow.withOpacity(0.25),
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+      ),
     );
   }
 }

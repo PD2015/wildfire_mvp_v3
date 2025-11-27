@@ -72,14 +72,16 @@ class FeatureFlags {
   );
 
   /// Returns the appropriate Google Maps API key for the current platform
+  ///
+  /// For Static Maps API (HTTP requests), we need to use the Android/iOS key
+  /// because Web keys have HTTP referrer restrictions that don't work for
+  /// mobile app requests.
   static String get googleMapsApiKey {
-    // Platform detection happens at runtime
-    // For web builds, use GOOGLE_MAPS_API_KEY_WEB
-    // For Android, use GOOGLE_MAPS_API_KEY_ANDROID
-    // For iOS, use GOOGLE_MAPS_API_KEY_IOS
-    if (googleMapsApiKeyWeb.isNotEmpty) return googleMapsApiKeyWeb;
+    // For HTTP-based APIs (Static Maps, Geocoding), prefer Android/iOS keys
+    // as they use package name restrictions, not HTTP referrers
     if (googleMapsApiKeyAndroid.isNotEmpty) return googleMapsApiKeyAndroid;
     if (googleMapsApiKeyIos.isNotEmpty) return googleMapsApiKeyIos;
+    if (googleMapsApiKeyWeb.isNotEmpty) return googleMapsApiKeyWeb;
     return '';
   }
 }
