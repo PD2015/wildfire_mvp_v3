@@ -22,11 +22,14 @@
 		<string>$(FLUTTER_BUILD_NAME)</string>
 		<key>CFBundleSignature</key>
 		<string>????</string>
-		<key>CFBundleVersion</key>
-		<string>$(FLUTTER_BUILD_NUMBER)</string>
-		<key>GMSApiKey</key>
-		<string>AIzaSyD4pE9yhEab0k6jfh4IksNABguNcN26Vv8</string>
-		<key>LSRequiresIPhoneOS</key>
+	<key>CFBundleVersion</key>
+	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<!-- PLACEHOLDER: Replace with real Google Maps API key via env/dev.env.json -->
+	<!-- See: docs/guides/setup/google-maps.md for API key setup -->
+	<!-- This is Google's example key from documentation - NOT valid for production -->
+	<key>GMSApiKey</key>
+	<string>AIzaSyD4pE9yhEab0k6jfh4IksNABguNcN26Vv8</string>
+	<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 		<string>This app needs location access to provide wildfire risk information for your current area.</string>
