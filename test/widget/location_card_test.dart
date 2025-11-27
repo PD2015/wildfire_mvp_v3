@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/widgets/location_card.dart';
+import 'package:wildfire_mvp_v3/widgets/location_mini_map_preview.dart';
 
 /// Widget tests for LocationCard
 ///
@@ -390,6 +391,231 @@ void main() {
         findsOneWidget,
       );
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+  });
+
+  group('LocationCard Enhanced Features', () {
+    testWidgets('displays formattedLocation when provided', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: LocationCard(
+              coordinatesLabel: '55.95, -3.19',
+              subtitle: 'Current location (GPS)',
+              formattedLocation: 'Near Edinburgh, Scotland',
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Near Edinburgh, Scotland'), findsOneWidget);
+      // Coordinates should still be shown as secondary
+      expect(find.text('55.95, -3.19'), findsOneWidget);
+    });
+
+    testWidgets('shows loading state for geocoding', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: LocationCard(
+              coordinatesLabel: '55.95, -3.19',
+              subtitle: 'Current location (GPS)',
+              isGeocodingLoading: true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Loading place name...'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsWidgets);
+    });
+
+    testWidgets('displays what3words address when provided', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: LocationCard(
+              coordinatesLabel: '55.95, -3.19',
+              subtitle: 'Current location (GPS)',
+              what3words: '///daring.lion.race',
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('///daring.lion.race'), findsOneWidget);
+      expect(find.byIcon(Icons.grid_3x3), findsOneWidget);
+    });
+
+    testWidgets('shows loading state for what3words', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: LocationCard(
+              coordinatesLabel: '55.95, -3.19',
+              subtitle: 'Current location (GPS)',
+              isWhat3wordsLoading: true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Loading what3words...'), findsOneWidget);
+      expect(find.byIcon(Icons.grid_3x3), findsOneWidget);
+    });
+
+    testWidgets('shows copy button for what3words when callback provided',
+        (tester) async {
+      bool wasCopied = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LocationCard(
+              coordinatesLabel: '55.95, -3.19',
+              subtitle: 'Current location (GPS)',
+              what3words: '///daring.lion.race',
+              onCopyWhat3words: () => wasCopied = true,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.copy), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.copy));
+      await tester.pump();
+
+      expect(wasCopied, isTrue);
+    });
+
+    testWidgets('copy button has minimum 48dp tap target', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LocationCard(
+              coordinatesLabel: '55.95, -3.19',
+              subtitle: 'Current location (GPS)',
+              what3words: '///daring.lion.race',
+              onCopyWhat3words: () {},
+            ),
+          ),
+        ),
+      );
+
+      final iconButton = tester.widget<IconButton>(find.byType(IconButton));
+      expect(iconButton.constraints?.minWidth, 48);
+      expect(iconButton.constraints?.minHeight, 48);
+    });
+
+    testWidgets('displays static map preview when URL provided',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: LocationCard(
+              coordinatesLabel: '55.95, -3.19',
+              subtitle: 'Current location (GPS)',
+              staticMapUrl:
+                  'https://maps.googleapis.com/maps/api/staticmap?center=55.95,-3.19&zoom=14',
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(LocationMiniMapPreview), findsOneWidget);
+    });
+
+    testWidgets('map preview tap triggers onTapMapPreview', (tester) async {
+      bool wasTapped = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LocationCard(
+              coordinatesLabel: '55.95, -3.19',
+              subtitle: 'Current location (GPS)',
+              staticMapUrl: 'https://maps.googleapis.com/maps/api/staticmap',
+              onTapMapPreview: () => wasTapped = true,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(LocationMiniMapPreview));
+      await tester.pump();
+
+      expect(wasTapped, isTrue);
+    });
+
+    testWidgets(
+        'map preview falls back to onChangeLocation if onTapMapPreview not set',
+        (tester) async {
+      bool changeLocationCalled = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LocationCard(
+              coordinatesLabel: '55.95, -3.19',
+              subtitle: 'Current location (GPS)',
+              staticMapUrl: 'https://maps.googleapis.com/maps/api/staticmap',
+              onChangeLocation: () => changeLocationCalled = true,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(LocationMiniMapPreview));
+      await tester.pump();
+
+      expect(changeLocationCalled, isTrue);
+    });
+
+    testWidgets('displays all enhanced features together', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: LocationCard(
+              coordinatesLabel: '55.95, -3.19',
+              subtitle: 'Current location (GPS)',
+              formattedLocation: 'Near Edinburgh, Scotland',
+              what3words: '///daring.lion.race',
+              staticMapUrl: 'https://maps.googleapis.com/maps/api/staticmap',
+              locationSource: LocationSource.gps,
+            ),
+          ),
+        ),
+      );
+
+      // All enhanced elements should be present
+      expect(find.text('Near Edinburgh, Scotland'), findsOneWidget);
+      expect(find.text('///daring.lion.race'), findsOneWidget);
+      expect(find.byType(LocationMiniMapPreview), findsOneWidget);
+      expect(find.byIcon(Icons.gps_fixed), findsOneWidget);
+    });
+
+    testWidgets('backward compatible - basic card without enhanced features',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: LocationCard(
+              coordinatesLabel: '55.95, -3.19',
+              subtitle: 'Current location (GPS)',
+              // No enhanced features provided
+            ),
+          ),
+        ),
+      );
+
+      // Basic card should work
+      expect(find.text('55.95, -3.19'), findsOneWidget);
+      expect(find.text('Current location (GPS)'), findsOneWidget);
+
+      // No enhanced features shown
+      expect(find.byType(LocationMiniMapPreview), findsNothing);
+      expect(find.byIcon(Icons.grid_3x3), findsNothing);
     });
   });
 }

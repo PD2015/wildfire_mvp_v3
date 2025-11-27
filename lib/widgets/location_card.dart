@@ -1,12 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
+import 'package:wildfire_mvp_v3/widgets/location_mini_map_preview.dart';
 
+/// Enhanced location card with what3words, geocoding, and static map preview
+///
+/// Displays location information with progressive enhancement:
+/// - Basic: coordinates + subtitle (backward compatible)
+/// - Enhanced: what3words address with copy button
+/// - Enhanced: formattedLocation (reverse geocoded place name)
+/// - Enhanced: static map preview
+///
+/// Constitutional compliance:
+/// - C3: All touch targets ≥48dp
+/// - C2: Coordinates are pre-redacted, what3words displayed but not logged
 class LocationCard extends StatelessWidget {
+  // Basic properties (backward compatible)
   final String? coordinatesLabel; // e.g. "57.20, -3.83"
   final String subtitle; // e.g. "Current location (GPS)"
   final bool isLoading;
   final VoidCallback? onChangeLocation;
   final LocationSource? locationSource; // Optional source for icon display
+
+  // Enhanced properties (new in T043)
+  /// what3words address (e.g., "///daring.lion.race")
+  final String? what3words;
+
+  /// Whether what3words is currently loading
+  final bool isWhat3wordsLoading;
+
+  /// Formatted location from reverse geocoding (e.g., "Near Aviemore, Highland")
+  final String? formattedLocation;
+
+  /// Whether geocoding is currently loading
+  final bool isGeocodingLoading;
+
+  /// Static map URL for preview
+  final String? staticMapUrl;
+
+  /// Callback when what3words copy button is tapped
+  final VoidCallback? onCopyWhat3words;
+
+  /// Callback when map preview is tapped
+  final VoidCallback? onTapMapPreview;
 
   const LocationCard({
     super.key,
@@ -15,6 +51,14 @@ class LocationCard extends StatelessWidget {
     this.isLoading = false,
     this.onChangeLocation,
     this.locationSource,
+    // Enhanced properties
+    this.what3words,
+    this.isWhat3wordsLoading = false,
+    this.formattedLocation,
+    this.isGeocodingLoading = false,
+    this.staticMapUrl,
+    this.onCopyWhat3words,
+    this.onTapMapPreview,
   });
 
   /// Returns appropriate icon based on location source for trust building
@@ -64,6 +108,10 @@ class LocationCard extends StatelessWidget {
     return lat != null && lon != null;
   }
 
+  /// Whether to show the enhanced layout with map preview
+  bool get _hasEnhancedFeatures =>
+      staticMapUrl != null || what3words != null || formattedLocation != null;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -89,107 +137,259 @@ class LocationCard extends StatelessWidget {
         margin: EdgeInsets.zero,
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Leading icon
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: scheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  _getLocationSourceIcon(),
-                  color: scheme.onSecondaryContainer,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
+              // Header row with icon, location info, and change button
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Leading icon
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: scheme.secondaryContainer,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                      _getLocationSourceIcon(),
+                      color: scheme.onSecondaryContainer,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
 
-              // Location text
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Location',
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      hasLocation ? coordinatesLabel! : 'Location not set',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: scheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
+                  // Location text
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (isLoading) ...[
-                          SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation(
-                                scheme.onSurfaceVariant,
-                              ),
+                        Text(
+                          'Location',
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        // Show formatted location if available, else coordinates
+                        if (formattedLocation != null) ...[
+                          Text(
+                            formattedLocation!,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: scheme.onSurface,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const SizedBox(width: 6),
-                        ],
-                        Flexible(
-                          child: Text(
-                            subtitle,
+                          const SizedBox(height: 2),
+                          Text(
+                            hasLocation
+                                ? coordinatesLabel!
+                                : 'Location not set',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: scheme.onSurfaceVariant,
                             ),
                           ),
+                        ] else if (isGeocodingLoading) ...[
+                          Row(
+                            children: [
+                              SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation(
+                                    scheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Loading place name...',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            hasLocation
+                                ? coordinatesLabel!
+                                : 'Location not set',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: scheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ] else ...[
+                          Text(
+                            hasLocation
+                                ? coordinatesLabel!
+                                : 'Location not set',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: scheme.onSurface,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            if (isLoading) ...[
+                              SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation(
+                                    scheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                            ],
+                            Flexible(
+                              child: Text(
+                                subtitle,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+
+                  const SizedBox(width: 8),
+
+                  // Change location button
+                  if (onChangeLocation != null)
+                    Semantics(
+                      label: hasLocation
+                          ? 'Change location'
+                          : 'Set manual location for fire risk assessment',
+                      button: true,
+                      child: FilledButton.tonal(
+                        onPressed: onChangeLocation,
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          minimumSize: const Size(
+                              0, 36), // still ≥ 44dp tap area with padding
+                        ),
+                        child: Text(
+                          hasLocation ? 'Change' : 'Set',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: scheme.onSecondaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
 
-              const SizedBox(width: 8),
+              // what3words row (if available or loading)
+              if (what3words != null || isWhat3wordsLoading) ...[
+                const SizedBox(height: 12),
+                _buildWhat3wordsRow(context, theme, scheme),
+              ],
 
-              // Change location button
-              if (onChangeLocation != null)
-                Semantics(
-                  label: hasLocation
-                      ? 'Change location'
-                      : 'Set manual location for fire risk assessment',
-                  button: true,
-                  child: FilledButton.tonal(
-                    onPressed: onChangeLocation,
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      minimumSize: const Size(
-                          0, 36), // still ≥ 44dp tap area with padding
-                    ),
-                    child: Text(
-                      hasLocation ? 'Change' : 'Set',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: scheme.onSecondaryContainer,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+              // Static map preview (if available)
+              if (staticMapUrl != null || _hasEnhancedFeatures) ...[
+                const SizedBox(height: 12),
+                LocationMiniMapPreview(
+                  staticMapUrl: staticMapUrl,
+                  isLoading: staticMapUrl == null && hasLocation,
+                  onTap: onTapMapPreview ?? onChangeLocation,
                 ),
+              ],
             ],
           ),
         ),
       ),
+    );
+  }
+
+  /// Builds the what3words row with address and copy button
+  Widget _buildWhat3wordsRow(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme scheme,
+  ) {
+    return Row(
+      children: [
+        // what3words icon
+        Icon(
+          Icons.grid_3x3,
+          size: 16,
+          color: scheme.primary,
+        ),
+        const SizedBox(width: 8),
+
+        // what3words address or loading state
+        Expanded(
+          child: isWhat3wordsLoading
+              ? Row(
+                  children: [
+                    SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation(
+                          scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Loading what3words...',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                )
+              : Text(
+                  what3words ?? '',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: scheme.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+        ),
+
+        // Copy button (only when we have a what3words address)
+        if (what3words != null && onCopyWhat3words != null)
+          Semantics(
+            label: 'Copy what3words address to clipboard',
+            button: true,
+            child: IconButton(
+              icon: Icon(
+                Icons.copy,
+                size: 18,
+                color: scheme.onSurfaceVariant,
+              ),
+              constraints: const BoxConstraints(
+                minWidth: 48,
+                minHeight: 48,
+              ),
+              onPressed: () {
+                // Copy to clipboard
+                Clipboard.setData(ClipboardData(text: what3words!));
+                // Call the callback for snackbar handling
+                onCopyWhat3words!();
+              },
+              tooltip: 'Copy what3words',
+            ),
+          ),
+      ],
     );
   }
 }
