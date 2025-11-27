@@ -76,7 +76,7 @@ class LocationMiniMapPreview extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: scheme.surface.withOpacity(0.9),
+                      color: scheme.surface.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -160,7 +160,7 @@ class LocationMiniMapPreview extends StatelessWidget {
           Icon(
             Icons.map_outlined,
             size: 32,
-            color: scheme.onSurfaceVariant.withOpacity(0.6),
+            color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
           ),
           const SizedBox(height: 8),
           Text(
