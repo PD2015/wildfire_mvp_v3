@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
+import 'package:wildfire_mvp_v3/models/location_name.dart';
 import 'package:wildfire_mvp_v3/utils/location_utils.dart';
 import 'package:wildfire_mvp_v3/features/location_picker/models/place_search_result.dart';
 import 'geocoding_service.dart';
@@ -104,12 +105,16 @@ class GeocodingServiceImpl implements GeocodingService {
           GeocodingApiError('Google Maps API key not configured'));
     }
 
+    // Request multiple result types to get the most specific available
+    // Priority: locality > postal_town > sublocality > natural_feature > admin areas
+    // Note: Google returns best matches first, but we reorder by our priority
     final url = Uri.parse(_geocodeBaseUrl).replace(
       queryParameters: {
         'latlng': '$lat,$lon',
         'key': _apiKey,
+        // Request specific location types first, then fallback to admin areas
         'result_type':
-            'locality|administrative_area_level_2|administrative_area_level_1',
+            'locality|postal_town|sublocality|natural_feature|administrative_area_level_2|administrative_area_level_1',
       },
     );
 
@@ -126,14 +131,11 @@ class GeocodingServiceImpl implements GeocodingService {
         if (status == 'OK') {
           final results = json['results'] as List<dynamic>;
           if (results.isNotEmpty) {
-            final firstResult = results.first as Map<String, dynamic>;
-            final address = firstResult['formatted_address'] as String?;
-
-            // Try to get a shorter, more useful name
-            final placeName =
-                _extractPlaceName(firstResult) ?? address ?? 'Unknown location';
-            debugPrint('Geocoding: Resolved to "$placeName"');
-            return Right(placeName);
+            // Extract the best place name from all results
+            final locationName = _extractBestLocationName(results);
+            debugPrint(
+                'Geocoding: Resolved to "${locationName.displayName}" (${locationName.detailLevel.name})');
+            return Right(locationName.displayName);
           }
           return const Left(GeocodingNoResultsError('coordinates'));
         } else if (status == 'ZERO_RESULTS') {
@@ -248,7 +250,7 @@ class GeocodingServiceImpl implements GeocodingService {
     final formattedAddress = result['formatted_address'] as String? ?? '';
 
     // Extract a shorter name from address components
-    final name = _extractPlaceName(result) ?? formattedAddress;
+    final name = _extractPlaceNameFromResult(result) ?? formattedAddress;
 
     // Get coordinates if available
     LatLng? coords;
@@ -270,17 +272,190 @@ class GeocodingServiceImpl implements GeocodingService {
     );
   }
 
-  /// Extract a concise place name from address components
-  String? _extractPlaceName(Map<String, dynamic> result) {
+  /// Extract the best location name from all geocoding results
+  ///
+  /// Searches through all results to find the most specific location name.
+  /// Priority: locality > postal_town > sublocality > natural_feature > admin areas
+  /// Natural features are formatted as "Near {featureName}"
+  LocationName _extractBestLocationName(List<dynamic> results) {
+    String? locality;
+    String? postalTown;
+    String? sublocality;
+    String? naturalFeature;
+    String? adminArea2; // County/council level
+    String? adminArea1; // Region level
+    String? rawAddress;
+
+    // Scan all results to find best candidates for each type
+    for (final result in results) {
+      final r = result as Map<String, dynamic>;
+      final types = (r['types'] as List<dynamic>?)?.cast<String>() ?? [];
+      final components = r['address_components'] as List<dynamic>?;
+
+      // Capture raw address from first result
+      rawAddress ??= r['formatted_address'] as String?;
+
+      // Check result types
+      if (types.contains('locality') && locality == null) {
+        locality = _getComponentName(components, 'locality');
+      }
+      if (types.contains('postal_town') && postalTown == null) {
+        postalTown = _getComponentName(components, 'postal_town');
+      }
+      if (types.contains('sublocality') && sublocality == null) {
+        sublocality = _getComponentName(components, 'sublocality');
+      }
+      if (types.contains('natural_feature') && naturalFeature == null) {
+        naturalFeature = _getComponentName(components, 'natural_feature');
+      }
+      if (types.contains('administrative_area_level_2') && adminArea2 == null) {
+        adminArea2 =
+            _getComponentName(components, 'administrative_area_level_2');
+      }
+      if (types.contains('administrative_area_level_1') && adminArea1 == null) {
+        adminArea1 =
+            _getComponentName(components, 'administrative_area_level_1');
+      }
+
+      // Also check inside address components for these types
+      if (components != null) {
+        for (final comp in components) {
+          final c = comp as Map<String, dynamic>;
+          final compTypes = (c['types'] as List<dynamic>).cast<String>();
+          final name = c['long_name'] as String?;
+          if (name == null) continue;
+
+          if (compTypes.contains('locality') && locality == null) {
+            locality = name;
+          }
+          if (compTypes.contains('postal_town') && postalTown == null) {
+            postalTown = name;
+          }
+          if (compTypes.contains('sublocality') && sublocality == null) {
+            sublocality = name;
+          }
+          if (compTypes.contains('natural_feature') && naturalFeature == null) {
+            naturalFeature = name;
+          }
+          if (compTypes.contains('administrative_area_level_2') &&
+              adminArea2 == null) {
+            // Filter out council-style names if we have better options
+            adminArea2 = name;
+          }
+          if (compTypes.contains('administrative_area_level_1') &&
+              adminArea1 == null) {
+            adminArea1 = name;
+          }
+        }
+      }
+    }
+
+    // Return best match in priority order
+    if (locality != null) {
+      return LocationName(
+        displayName: locality,
+        rawAddress: rawAddress,
+        detailLevel: LocationNameDetailLevel.locality,
+      );
+    }
+
+    if (postalTown != null) {
+      return LocationName(
+        displayName: postalTown,
+        rawAddress: rawAddress,
+        detailLevel: LocationNameDetailLevel.postalTown,
+      );
+    }
+
+    if (sublocality != null) {
+      return LocationName(
+        displayName: sublocality,
+        rawAddress: rawAddress,
+        detailLevel: LocationNameDetailLevel.sublocality,
+      );
+    }
+
+    // Natural features get "Near X" prefix
+    if (naturalFeature != null) {
+      return LocationName(
+        displayName: 'Near $naturalFeature',
+        rawAddress: rawAddress,
+        detailLevel: LocationNameDetailLevel.naturalFeature,
+      );
+    }
+
+    // Fall back to admin areas (least specific)
+    // Prefer adminArea2 if it's not a generic council name, otherwise use adminArea1
+    if (adminArea2 != null && !_isGenericCouncilName(adminArea2)) {
+      return LocationName(
+        displayName: adminArea2,
+        rawAddress: rawAddress,
+        detailLevel: LocationNameDetailLevel.adminArea,
+      );
+    }
+
+    if (adminArea1 != null) {
+      return LocationName(
+        displayName: adminArea1,
+        rawAddress: rawAddress,
+        detailLevel: LocationNameDetailLevel.adminArea,
+      );
+    }
+
+    if (adminArea2 != null) {
+      return LocationName(
+        displayName: adminArea2,
+        rawAddress: rawAddress,
+        detailLevel: LocationNameDetailLevel.adminArea,
+      );
+    }
+
+    // Ultimate fallback
+    return LocationName(
+      displayName: rawAddress ?? 'Unknown location',
+      rawAddress: rawAddress,
+      detailLevel: LocationNameDetailLevel.coordinatesFallback,
+    );
+  }
+
+  /// Check if admin area name is a generic council-style name
+  ///
+  /// These are less useful for users as they cover very large areas.
+  /// Prefer more specific names when available.
+  bool _isGenericCouncilName(String name) {
+    final lower = name.toLowerCase();
+    return lower.contains('council') ||
+        lower.contains('county') ||
+        lower.endsWith(' area');
+  }
+
+  /// Get component name for a specific type from address components
+  String? _getComponentName(List<dynamic>? components, String type) {
+    if (components == null) return null;
+
+    for (final comp in components) {
+      final c = comp as Map<String, dynamic>;
+      final types = (c['types'] as List<dynamic>).cast<String>();
+      if (types.contains(type)) {
+        return c['long_name'] as String?;
+      }
+    }
+    return null;
+  }
+
+  /// Extract a concise place name from a single result (for search)
+  String? _extractPlaceNameFromResult(Map<String, dynamic> result) {
     final components = result['address_components'] as List<dynamic>?;
     if (components == null || components.isEmpty) return null;
 
     // Priority order for place names
     const priorityTypes = [
       'locality', // City/town
+      'postal_town',
+      'sublocality',
+      'natural_feature',
       'administrative_area_level_2', // County
       'administrative_area_level_1', // Region/country
-      'postal_town',
     ];
 
     for (final type in priorityTypes) {

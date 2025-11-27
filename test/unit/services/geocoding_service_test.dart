@@ -311,6 +311,197 @@ void main() {
           (name) => fail('Expected error'),
         );
       });
+
+      test('formats natural features with Near prefix', () async {
+        final mockClient = MockClient((request) async {
+          return http.Response(
+            jsonEncode({
+              'status': 'OK',
+              'results': [
+                {
+                  'types': ['natural_feature'],
+                  'formatted_address': 'Ben Wyvis, Highland, UK',
+                  'address_components': [
+                    {
+                      'long_name': 'Ben Wyvis',
+                      'short_name': 'Ben Wyvis',
+                      'types': ['natural_feature'],
+                    },
+                    {
+                      'long_name': 'Highland',
+                      'short_name': 'Highland',
+                      'types': ['administrative_area_level_2', 'political'],
+                    },
+                  ],
+                },
+              ],
+            }),
+            200,
+          );
+        });
+
+        final service = GeocodingServiceImpl(
+          client: mockClient,
+          apiKey: testApiKey,
+        );
+
+        final result = await service.reverseGeocode(lat: testLat, lon: testLon);
+
+        expect(result.isRight(), isTrue);
+        result.fold(
+          (error) => fail('Expected success'),
+          (placeName) {
+            expect(placeName, equals('Near Ben Wyvis'));
+          },
+        );
+      });
+
+      test('prefers postal_town over admin areas', () async {
+        final mockClient = MockClient((request) async {
+          return http.Response(
+            jsonEncode({
+              'status': 'OK',
+              'results': [
+                {
+                  'types': ['postal_code'],
+                  'formatted_address': 'PH22 1RH, Aviemore, UK',
+                  'address_components': [
+                    {
+                      'long_name': 'Aviemore',
+                      'short_name': 'Aviemore',
+                      'types': ['postal_town'],
+                    },
+                    {
+                      'long_name': 'Highland Council',
+                      'short_name': 'Highland Council',
+                      'types': ['administrative_area_level_2', 'political'],
+                    },
+                    {
+                      'long_name': 'Scotland',
+                      'short_name': 'Scotland',
+                      'types': ['administrative_area_level_1', 'political'],
+                    },
+                  ],
+                },
+              ],
+            }),
+            200,
+          );
+        });
+
+        final service = GeocodingServiceImpl(
+          client: mockClient,
+          apiKey: testApiKey,
+        );
+
+        final result = await service.reverseGeocode(lat: testLat, lon: testLon);
+
+        expect(result.isRight(), isTrue);
+        result.fold(
+          (error) => fail('Expected success'),
+          (placeName) {
+            expect(placeName, equals('Aviemore'));
+          },
+        );
+      });
+
+      test('skips council-style admin names when Scotland available', () async {
+        final mockClient = MockClient((request) async {
+          return http.Response(
+            jsonEncode({
+              'status': 'OK',
+              'results': [
+                {
+                  'types': ['administrative_area_level_2', 'political'],
+                  'formatted_address': 'Highland Council, Scotland, UK',
+                  'address_components': [
+                    {
+                      'long_name': 'Highland Council',
+                      'short_name': 'Highland Council',
+                      'types': ['administrative_area_level_2', 'political'],
+                    },
+                    {
+                      'long_name': 'Scotland',
+                      'short_name': 'Scotland',
+                      'types': ['administrative_area_level_1', 'political'],
+                    },
+                  ],
+                },
+              ],
+            }),
+            200,
+          );
+        });
+
+        final service = GeocodingServiceImpl(
+          client: mockClient,
+          apiKey: testApiKey,
+        );
+
+        final result = await service.reverseGeocode(lat: testLat, lon: testLon);
+
+        expect(result.isRight(), isTrue);
+        result.fold(
+          (error) => fail('Expected success'),
+          (placeName) {
+            // Should prefer "Scotland" over "Highland Council"
+            expect(placeName, equals('Scotland'));
+          },
+        );
+      });
+
+      test('extracts best name from multiple results', () async {
+        final mockClient = MockClient((request) async {
+          return http.Response(
+            jsonEncode({
+              'status': 'OK',
+              'results': [
+                // First result: just admin areas
+                {
+                  'types': ['administrative_area_level_2', 'political'],
+                  'formatted_address': 'Highland, Scotland, UK',
+                  'address_components': [
+                    {
+                      'long_name': 'Highland',
+                      'short_name': 'Highland',
+                      'types': ['administrative_area_level_2', 'political'],
+                    },
+                  ],
+                },
+                // Second result: has locality - should be preferred
+                {
+                  'types': ['locality', 'political'],
+                  'formatted_address': 'Aviemore, Highland, UK',
+                  'address_components': [
+                    {
+                      'long_name': 'Aviemore',
+                      'short_name': 'Aviemore',
+                      'types': ['locality', 'political'],
+                    },
+                  ],
+                },
+              ],
+            }),
+            200,
+          );
+        });
+
+        final service = GeocodingServiceImpl(
+          client: mockClient,
+          apiKey: testApiKey,
+        );
+
+        final result = await service.reverseGeocode(lat: testLat, lon: testLon);
+
+        expect(result.isRight(), isTrue);
+        result.fold(
+          (error) => fail('Expected success'),
+          (placeName) {
+            // Should extract locality from second result
+            expect(placeName, equals('Aviemore'));
+          },
+        );
+      });
     });
 
     group('searchPlaces', () {
