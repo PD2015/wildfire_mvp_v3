@@ -110,12 +110,14 @@ class _HomeScreenState extends State<HomeScreen> {
       case HomeStateLoading():
         return const RiskBanner(state: RiskBannerLoading());
 
-      case HomeStateSuccess(:final riskData, :final location):
-        // Format location with privacy-compliant 2-decimal precision (C2)
-        final locationLabel = LocationUtils.logRedact(
-          location.latitude,
-          location.longitude,
-        );
+      case HomeStateSuccess(
+          :final riskData,
+          :final location,
+          :final formattedLocation,
+        ):
+        // Prefer human-readable location name, fallback to coordinates (C2 compliant)
+        final locationLabel = formattedLocation ??
+            LocationUtils.logRedact(location.latitude, location.longitude);
 
         return RiskBanner(
           state: RiskBannerSuccess(riskData),
