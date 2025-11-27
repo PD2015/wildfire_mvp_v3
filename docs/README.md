@@ -52,6 +52,9 @@ We follow the [Divio Documentation System](https://documentation.divio.com/) wit
 - [SEPA Service](reference/api/sepa-service.md) *(pending creation)*
 - [Cache Service](reference/api/cache-service.md) *(pending creation)*
 
+#### Features
+- [Map Data Display Review](MAP_DATA_DISPLAY_REVIEW.md) - Comprehensive review of fire marker tooltips and detail sheets
+
 #### Compliance
 - [Accessibility Statement](accessibility-statement.md) *(to be moved)*
 - [Privacy Compliance](privacy-compliance.md) *(to be moved)*
@@ -185,6 +188,6 @@ See [Documentation Strategy](DOCUMENTATION_STRATEGY.md) for complete maintenance
 
 ---
 
-**Last Updated**: 2025-10-30  
-**Maintained By**: Project Team  
+**Last Updated**: 2025-10-30
+**Maintained By**: Project Team
 **Strategy**: [DOCUMENTATION_STRATEGY.md](DOCUMENTATION_STRATEGY.md)
