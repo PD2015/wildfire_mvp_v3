@@ -199,10 +199,13 @@ class LocationCard extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Text(
-                                'Loading place name...',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: scheme.onSurfaceVariant,
+                              Flexible(
+                                child: Text(
+                                  'Loading place name...',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
