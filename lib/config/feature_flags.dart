@@ -55,4 +55,31 @@ class FeatureFlags {
     'GOOGLE_MAPS_API_KEY_IOS',
     defaultValue: '',
   );
+
+  /// Google Maps API key for Web
+  /// Must be set via --dart-define-from-file=env/dev.env.json
+  static const String googleMapsApiKeyWeb = String.fromEnvironment(
+    'GOOGLE_MAPS_API_KEY_WEB',
+    defaultValue: '',
+  );
+
+  /// what3words API key for location picker
+  /// Must be set via --dart-define-from-file=env/dev.env.json
+  /// Get free API key from: https://what3words.com/select-plan
+  static const String what3wordsApiKey = String.fromEnvironment(
+    'WHAT3WORDS_API_KEY',
+    defaultValue: '',
+  );
+
+  /// Returns the appropriate Google Maps API key for the current platform
+  static String get googleMapsApiKey {
+    // Platform detection happens at runtime
+    // For web builds, use GOOGLE_MAPS_API_KEY_WEB
+    // For Android, use GOOGLE_MAPS_API_KEY_ANDROID
+    // For iOS, use GOOGLE_MAPS_API_KEY_IOS
+    if (googleMapsApiKeyWeb.isNotEmpty) return googleMapsApiKeyWeb;
+    if (googleMapsApiKeyAndroid.isNotEmpty) return googleMapsApiKeyAndroid;
+    if (googleMapsApiKeyIos.isNotEmpty) return googleMapsApiKeyIos;
+    return '';
+  }
 }

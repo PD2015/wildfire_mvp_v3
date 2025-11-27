@@ -5,6 +5,10 @@ import 'screens/home_screen.dart';
 import 'features/map/screens/map_screen.dart';
 import 'features/map/controllers/map_controller.dart';
 import 'features/report/screens/report_fire_screen.dart';
+import 'features/location_picker/screens/location_picker_screen.dart';
+import 'features/location_picker/models/location_picker_mode.dart';
+import 'features/location_picker/services/what3words_service_impl.dart';
+import 'features/location_picker/services/geocoding_service_impl.dart';
 import 'services/location_resolver.dart';
 import 'services/fire_location_service.dart';
 import 'services/fire_risk_service.dart';
@@ -39,6 +43,22 @@ class WildFireApp extends StatelessWidget {
   /// Router configuration with go_router and bottom navigation
   late final GoRouter _router = GoRouter(
     routes: [
+      // Full-screen location picker (no bottom nav)
+      GoRoute(
+        path: '/location-picker',
+        name: 'location-picker',
+        builder: (context, state) {
+          final mode = state.extra as LocationPickerMode? ??
+              LocationPickerMode.riskLocation;
+          return LocationPickerScreen(
+            mode: mode,
+            what3wordsService: What3wordsServiceImpl(),
+            geocodingService: GeocodingServiceImpl(),
+          );
+        },
+      ),
+
+      // Main app shell with bottom navigation
       ShellRoute(
         builder: (context, state, child) {
           return Scaffold(
