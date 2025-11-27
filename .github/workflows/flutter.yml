@@ -449,6 +449,7 @@ jobs:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
+          target: production
           channelId: 'pr-${{ github.event.pull_request.number }}'
           expires: 7d
 
@@ -501,14 +502,14 @@ jobs:
           name: web-build
           path: build/web/
       
-      - name: Deploy to staging channel
+      - name: Deploy to staging site
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
-          channelId: staging
-          expires: 30d
+          target: staging
+          channelId: live
 
   # Deploy to production (requires manual approval) (A11)
   deploy-production:
@@ -537,4 +538,5 @@ jobs:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
+          target: production
           channelId: live
