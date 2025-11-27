@@ -641,9 +641,7 @@ void main() {
                         ),
                       ),
                     ],
-                    onPopPage: (route, result) {
-                      return route.didPop(result);
-                    },
+                    onDidRemovePage: (page) {},
                   ),
                 );
               },
