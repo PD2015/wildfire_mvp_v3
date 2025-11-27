@@ -36,11 +36,19 @@ class HomeStateLoading extends HomeState {
   /// Used to determine if location is stale (>1 hour old)
   final DateTime? lastKnownLocationTimestamp;
 
+  /// Whether what3words address is currently being resolved
+  final bool isWhat3wordsLoading;
+
+  /// Whether geocoding (place name) is currently being resolved
+  final bool isGeocodingLoading;
+
   const HomeStateLoading({
     this.isRetry = false,
     required this.startTime,
     this.lastKnownLocation,
     this.lastKnownLocationTimestamp,
+    this.isWhat3wordsLoading = false,
+    this.isGeocodingLoading = false,
   });
 
   /// Whether the last known location is stale (>1 hour old)
@@ -61,11 +69,13 @@ class HomeStateLoading extends HomeState {
         startTime,
         lastKnownLocation,
         lastKnownLocationTimestamp,
+        isWhat3wordsLoading,
+        isGeocodingLoading,
       ];
 
   @override
   String toString() =>
-      'HomeStateLoading(isRetry: $isRetry, startTime: $startTime, lastKnownLocation: $lastKnownLocation, lastKnownLocationTimestamp: $lastKnownLocationTimestamp, isStale: $isLocationStale)';
+      'HomeStateLoading(isRetry: $isRetry, startTime: $startTime, lastKnownLocation: $lastKnownLocation, lastKnownLocationTimestamp: $lastKnownLocationTimestamp, isStale: $isLocationStale, isWhat3wordsLoading: $isWhat3wordsLoading, isGeocodingLoading: $isGeocodingLoading)';
 }
 
 /// Successfully loaded state with all required display data
@@ -91,13 +101,57 @@ class HomeStateSuccess extends HomeState {
   /// Only populated for manual locations where user provided a name
   final String? placeName;
 
+  /// Optional what3words address (e.g., "///index.home.raft")
+  /// Resolved automatically from coordinates after location is obtained
+  /// Note: Never log this value per C2 privacy compliance
+  final String? what3words;
+
+  /// Optional formatted location from reverse geocoding (e.g., "Near Aviemore, Highland")
+  /// Provides human-readable context for coordinates
+  final String? formattedLocation;
+
+  /// Whether what3words address is still being resolved
+  final bool isWhat3wordsLoading;
+
+  /// Whether geocoding (formatted location) is still being resolved
+  final bool isGeocodingLoading;
+
   const HomeStateSuccess({
     required this.riskData,
     required this.location,
     required this.lastUpdated,
     required this.locationSource,
     this.placeName,
+    this.what3words,
+    this.formattedLocation,
+    this.isWhat3wordsLoading = false,
+    this.isGeocodingLoading = false,
   });
+
+  /// Copy with method for partial updates
+  HomeStateSuccess copyWith({
+    FireRisk? riskData,
+    LatLng? location,
+    DateTime? lastUpdated,
+    LocationSource? locationSource,
+    String? placeName,
+    String? what3words,
+    String? formattedLocation,
+    bool? isWhat3wordsLoading,
+    bool? isGeocodingLoading,
+  }) {
+    return HomeStateSuccess(
+      riskData: riskData ?? this.riskData,
+      location: location ?? this.location,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+      locationSource: locationSource ?? this.locationSource,
+      placeName: placeName ?? this.placeName,
+      what3words: what3words ?? this.what3words,
+      formattedLocation: formattedLocation ?? this.formattedLocation,
+      isWhat3wordsLoading: isWhat3wordsLoading ?? this.isWhat3wordsLoading,
+      isGeocodingLoading: isGeocodingLoading ?? this.isGeocodingLoading,
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -106,11 +160,15 @@ class HomeStateSuccess extends HomeState {
         lastUpdated,
         locationSource,
         placeName,
+        what3words,
+        formattedLocation,
+        isWhat3wordsLoading,
+        isGeocodingLoading,
       ];
 
   @override
   String toString() =>
-      'HomeStateSuccess(riskData: $riskData, location: $location, lastUpdated: $lastUpdated, source: $locationSource, placeName: $placeName)';
+      'HomeStateSuccess(riskData: $riskData, location: $location, lastUpdated: $lastUpdated, source: $locationSource, placeName: $placeName, what3words: [REDACTED], formattedLocation: $formattedLocation, isWhat3wordsLoading: $isWhat3wordsLoading, isGeocodingLoading: $isGeocodingLoading)';
 }
 
 /// Error state with optional cached data for graceful degradation

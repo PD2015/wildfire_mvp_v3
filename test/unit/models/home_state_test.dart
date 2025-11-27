@@ -84,6 +84,8 @@ void main() {
         startTime: now,
         lastKnownLocation: testLocation,
         lastKnownLocationTimestamp: oneHourAgo,
+        isWhat3wordsLoading: true,
+        isGeocodingLoading: true,
       );
 
       expect(state.props, [
@@ -91,6 +93,8 @@ void main() {
         now, // startTime
         testLocation, // lastKnownLocation
         oneHourAgo, // lastKnownLocationTimestamp
+        true, // isWhat3wordsLoading
+        true, // isGeocodingLoading
       ]);
     });
 
@@ -279,6 +283,10 @@ void main() {
         lastUpdated: now,
         locationSource: LocationSource.manual,
         placeName: 'Edinburgh',
+        what3words: '///index.home.raft',
+        formattedLocation: 'Near Aviemore, Highland',
+        isWhat3wordsLoading: true,
+        isGeocodingLoading: false,
       );
 
       expect(state.props, [
@@ -287,6 +295,10 @@ void main() {
         now,
         LocationSource.manual,
         'Edinburgh',
+        '///index.home.raft',
+        'Near Aviemore, Highland',
+        true,
+        false,
       ]);
     });
 
@@ -318,6 +330,78 @@ void main() {
       final str = state.toString();
 
       expect(str, contains('placeName: null'));
+    });
+
+    test('copyWith preserves existing values', () {
+      final state = HomeStateSuccess(
+        riskData: testFireRisk,
+        location: testLocation,
+        lastUpdated: now,
+        locationSource: LocationSource.manual,
+        placeName: 'Edinburgh',
+        what3words: '///index.home.raft',
+        formattedLocation: 'Near Aviemore',
+        isWhat3wordsLoading: false,
+        isGeocodingLoading: false,
+      );
+
+      final copied = state.copyWith();
+
+      expect(copied, equals(state));
+    });
+
+    test('copyWith updates what3words', () {
+      final state = HomeStateSuccess(
+        riskData: testFireRisk,
+        location: testLocation,
+        lastUpdated: now,
+        locationSource: LocationSource.gps,
+        isWhat3wordsLoading: true,
+      );
+
+      final updated = state.copyWith(
+        what3words: '///filled.count.soap',
+        isWhat3wordsLoading: false,
+      );
+
+      expect(updated.what3words, equals('///filled.count.soap'));
+      expect(updated.isWhat3wordsLoading, isFalse);
+      // Other fields unchanged
+      expect(updated.location, equals(testLocation));
+      expect(updated.locationSource, equals(LocationSource.gps));
+    });
+
+    test('copyWith updates formattedLocation', () {
+      final state = HomeStateSuccess(
+        riskData: testFireRisk,
+        location: testLocation,
+        lastUpdated: now,
+        locationSource: LocationSource.gps,
+        isGeocodingLoading: true,
+      );
+
+      final updated = state.copyWith(
+        formattedLocation: 'Near Glasgow',
+        isGeocodingLoading: false,
+      );
+
+      expect(updated.formattedLocation, equals('Near Glasgow'));
+      expect(updated.isGeocodingLoading, isFalse);
+    });
+
+    test('toString redacts what3words for privacy', () {
+      final state = HomeStateSuccess(
+        riskData: testFireRisk,
+        location: testLocation,
+        lastUpdated: now,
+        locationSource: LocationSource.gps,
+        what3words: '///sensitive.address.here',
+      );
+
+      final str = state.toString();
+
+      expect(str, contains('what3words: [REDACTED]'));
+      expect(str, isNot(contains('sensitive.address.here')));
     });
   });
 
