@@ -320,10 +320,8 @@ class LocationCard extends StatelessWidget {
                 icon: const Icon(Icons.edit_location_alt, size: 18),
                 label: const Text('Change'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: scheme.onSurfaceVariant,
                   minimumSize:
                       const Size.fromHeight(48), // C3: ≥48dp touch target
-                  side: BorderSide(color: scheme.outline),
                 ),
               ),
             ),
@@ -362,9 +360,7 @@ class LocationCard extends StatelessWidget {
           icon: const Icon(Icons.edit_location_alt, size: 18),
           label: const Text('Change Location'),
           style: OutlinedButton.styleFrom(
-            foregroundColor: scheme.onSurfaceVariant,
             minimumSize: const Size.fromHeight(48), // C3: ≥48dp touch target
-            side: BorderSide(color: scheme.outline),
           ),
         ),
       ),

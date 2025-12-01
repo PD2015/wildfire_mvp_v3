@@ -73,21 +73,14 @@ class What3wordsWarningDialog extends StatelessWidget {
         ],
       ),
       actions: [
-        TextButton(
+        OutlinedButton(
           key: const Key('wait_button'),
           onPressed: () => Navigator.of(context).pop(false),
-          style: TextButton.styleFrom(
-            foregroundColor: colorScheme.onSurface,
-          ),
           child: const Text('Wait'),
         ),
         FilledButton(
           key: const Key('confirm_anyway_button'),
           onPressed: () => Navigator.of(context).pop(true),
-          style: FilledButton.styleFrom(
-            foregroundColor: colorScheme.onPrimary,
-            backgroundColor: colorScheme.primary,
-          ),
           child: const Text('Confirm Anyway'),
         ),
       ],

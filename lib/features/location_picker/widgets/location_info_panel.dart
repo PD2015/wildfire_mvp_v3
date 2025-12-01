@@ -315,10 +315,6 @@ class LocationInfoPanel extends StatelessWidget {
             child: OutlinedButton(
               key: const Key('cancel_button'),
               onPressed: onCancel,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: colorScheme.onSurface,
-                side: BorderSide(color: colorScheme.outline),
-              ),
               child: const Text('Cancel'),
             ),
           ),
