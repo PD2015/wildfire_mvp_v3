@@ -396,8 +396,9 @@ void main() {
         ));
         await tester.pump(const Duration(milliseconds: 100));
 
-        // Tap the "Set" button in LocationCard
-        await tester.tap(find.text('Set'));
+        // Tap the "Change Location" button in LocationCard
+        // Updated: Button text is now "Change Location" (no "Set" button)
+        await tester.tap(find.text('Change Location'));
         await tester.pumpAndSettle();
 
         // Assert - Should navigate to location picker screen
@@ -416,8 +417,9 @@ void main() {
         await tester.pumpWidget(buildTestApp(homeController));
         await tester.pump(); // Initial render
 
-        // Should show error state with LocationCard Set button
-        expect(find.text('Set'), findsOneWidget);
+        // Should show error state with LocationCard Change Location button
+        // Updated: Button text is now "Change Location" (no "Set" button)
+        expect(find.text('Change Location'), findsOneWidget);
 
         // Act - Set manual location (this updates the location resolver mock)
         mockLocationResolver.reset();
@@ -608,11 +610,14 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
 
         // Assert - Check for semantic elements and LocationCard button
+        // Updated: Button text is now "Change Location" or "Change" (no "Set")
         expect(find.byType(Semantics), findsWidgets);
-        final hasSet = find.text('Set').evaluate().isNotEmpty;
+        final hasChangeLocation =
+            find.text('Change Location').evaluate().isNotEmpty;
         final hasChange = find.text('Change').evaluate().isNotEmpty;
-        expect(hasSet || hasChange, isTrue,
-            reason: 'LocationCard should have Set or Change button');
+        expect(hasChangeLocation || hasChange, isTrue,
+            reason:
+                'LocationCard should have Change Location or Change button');
       });
     });
   });

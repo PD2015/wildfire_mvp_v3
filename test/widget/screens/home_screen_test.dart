@@ -174,10 +174,12 @@ void main() {
 
         // Assert - Retry button should not be visible in loading state
         expect(find.text('Retry'), findsNothing);
-        // LocationCard Set/Change button should still be present
-        final hasSet = find.text('Set').evaluate().isNotEmpty;
+        // LocationCard button should still be present
+        // Updated: Button text is now "Change Location" or "Change" (no "Set")
+        final hasChangeLocation =
+            find.text('Change Location').evaluate().isNotEmpty;
         final hasChange = find.text('Change').evaluate().isNotEmpty;
-        expect(hasSet || hasChange, isTrue);
+        expect(hasChangeLocation || hasChange, isTrue);
       });
     });
 
@@ -327,15 +329,16 @@ void main() {
           mockController.setState(state);
           await tester.pumpWidget(buildHomeScreen());
 
-          // LocationCard shows either "Change" or "Set" button
+          // LocationCard shows "Change Location" or "Change" button
+          // Updated: Button text no longer includes "Set"
+          final hasChangeLocation =
+              find.text('Change Location').evaluate().isNotEmpty;
           final hasChange = find.text('Change').evaluate().isNotEmpty;
-          final hasSet = find.text('Set').evaluate().isNotEmpty;
 
           expect(
-            hasChange || hasSet,
+            hasChangeLocation || hasChange,
             isTrue,
-            reason:
-                'LocationCard Change/Set button should be present in all states',
+            reason: 'LocationCard button should be present in all states',
           );
         }
       });
@@ -352,23 +355,27 @@ void main() {
         await tester.pumpWidget(buildHomeScreen());
 
         // Act & Assert - Button should be present and tappable even during loading
+        // Updated: Button text is now "Change Location" or "Change" (no "Set")
+        final hasChangeLocation =
+            find.text('Change Location').evaluate().isNotEmpty;
         final hasChange = find.text('Change').evaluate().isNotEmpty;
-        final hasSet = find.text('Set').evaluate().isNotEmpty;
-        expect(hasChange || hasSet, isTrue,
+        expect(hasChangeLocation || hasChange, isTrue,
             reason: 'LocationCard button should be present during loading');
 
-        // Verify button is tappable (don't actually open dialog to avoid timeout)
-        final buttonFinder = hasChange ? find.text('Change') : find.text('Set');
-        expect(buttonFinder, findsOneWidget);
-
-        // Verify button is enabled (has onPressed callback)
-        final button = tester.widget<FilledButton>(
-          find.ancestor(
-            of: buttonFinder,
-            matching: find.byType(FilledButton),
-          ),
+        // Verify button is tappable - find OutlinedButton widget directly
+        // Note: OutlinedButton.icon creates a _OutlinedButtonWithIcon which is a
+        // subclass of OutlinedButton. find.byType uses strict matching so we use
+        // byWidgetPredicate with 'is' check to find subclasses properly.
+        final outlinedButtons = find.byWidgetPredicate(
+          (widget) => widget is OutlinedButton,
         );
-        expect(button.onPressed, isNotNull,
+        expect(outlinedButtons, findsWidgets,
+            reason: 'Should have OutlinedButton for location change');
+
+        // Verify at least one OutlinedButton has an onPressed callback
+        final buttonWidget =
+            tester.widget<OutlinedButton>(outlinedButtons.first);
+        expect(buttonWidget.onPressed, isNotNull,
             reason: 'Button should be enabled during loading');
       });
 
@@ -388,8 +395,9 @@ void main() {
 
         await tester.pumpWidget(buildHomeScreenWithRouter());
 
-        // Act - Tap the Change button in LocationCard
-        await tester.tap(find.text('Change'));
+        // Act - Tap the Change Location button in LocationCard
+        // Updated: Button text is now "Change Location" for non-manual locations
+        await tester.tap(find.text('Change Location'));
         await tester.pumpAndSettle();
 
         // Assert - Should navigate to location picker
@@ -455,19 +463,19 @@ void main() {
         await tester.pumpWidget(buildHomeScreen());
 
         // Act & Assert - LocationCard button should be present
-        // When location is valid (Edinburgh coordinates passed), button shows "Change"
-        expect(find.text('Change'), findsOneWidget,
+        // Updated: Button text is now "Change Location" for non-manual locations
+        expect(find.text('Change Location'), findsOneWidget,
             reason:
-                'LocationCard should show Change button for valid location');
+                'LocationCard should show Change Location button for valid location');
 
         // Verify button has Semantics wrapper (structural test, not label-specific)
         final button = find.ancestor(
-          of: find.text('Change'),
+          of: find.text('Change Location'),
           matching: find.byType(Semantics),
         );
         expect(button, findsWidgets,
             reason:
-                'Change button should be accessible with semantic information');
+                'Change Location button should be accessible with semantic information');
       });
 
       testWidgets('timestamp has semantic label with source info', (
@@ -614,10 +622,12 @@ void main() {
 
         // Assert
         expect(find.text('Retry'), findsNothing);
-        // LocationCard Set/Change button should still be present
-        final hasSet = find.text('Set').evaluate().isNotEmpty;
+        // LocationCard button should still be present
+        // Updated: Button text is now "Change Location" or "Change" (no "Set")
+        final hasChangeLocation =
+            find.text('Change Location').evaluate().isNotEmpty;
         final hasChange = find.text('Change').evaluate().isNotEmpty;
-        expect(hasSet || hasChange, isTrue);
+        expect(hasChangeLocation || hasChange, isTrue);
       });
     });
 
