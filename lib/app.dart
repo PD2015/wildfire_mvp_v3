@@ -54,6 +54,7 @@ class WildFireApp extends StatelessWidget {
             mode: mode,
             what3wordsService: What3wordsServiceImpl(),
             geocodingService: GeocodingServiceImpl(),
+            locationResolver: locationResolver,
           );
         },
       ),

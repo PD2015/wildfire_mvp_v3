@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/models/what3words_models.dart';
 import 'package:wildfire_mvp_v3/features/location_picker/models/location_picker_mode.dart';
@@ -8,6 +9,7 @@ import 'package:wildfire_mvp_v3/features/location_picker/models/picked_location.
 import 'package:wildfire_mvp_v3/features/location_picker/models/place_search_result.dart';
 import 'package:wildfire_mvp_v3/features/location_picker/services/what3words_service.dart';
 import 'package:wildfire_mvp_v3/features/location_picker/services/geocoding_service.dart';
+import 'package:wildfire_mvp_v3/utils/location_utils.dart';
 
 /// Controller for LocationPickerScreen
 ///
@@ -26,12 +28,22 @@ class LocationPickerController extends ChangeNotifier {
   /// Debounce timer for search input
   Timer? _searchDebounceTimer;
 
+  /// Debounce timer for camera idle (map-first mode)
+  Timer? _cameraIdleDebounceTimer;
+
   /// Current state
   LocationPickerState _state = const LocationPickerInitial();
   LocationPickerState get state => _state;
 
+  /// Current map type (terrain, satellite, hybrid)
+  gmaps.MapType _mapType = gmaps.MapType.terrain;
+  gmaps.MapType get mapType => _mapType;
+
   /// Duration to wait after user stops typing before searching
   static const Duration searchDebounce = Duration(milliseconds: 300);
+
+  /// Duration to wait after camera stops moving before fetching w3w
+  static const Duration cameraIdleDebounce = Duration(milliseconds: 300);
 
   LocationPickerController({
     required What3wordsService what3wordsService,
@@ -56,6 +68,7 @@ class LocationPickerController extends ChangeNotifier {
   @override
   void dispose() {
     _searchDebounceTimer?.cancel();
+    _cameraIdleDebounceTimer?.cancel();
     super.dispose();
   }
 
@@ -214,6 +227,84 @@ class LocationPickerController extends ChangeNotifier {
     // Resolve both what3words and place name in parallel
     _resolveWhat3words(coordinates);
     _resolveReversePlaceName(coordinates);
+  }
+
+  /// Handle camera idle event from map-first picker
+  ///
+  /// Called when user stops panning the map. Updates coordinates and
+  /// triggers debounced what3words resolution.
+  ///
+  /// C2 compliance: Logs coordinates with 2dp precision only.
+  void setLocationFromCamera(LatLng coordinates) {
+    _cameraIdleDebounceTimer?.cancel();
+
+    // Log with redacted coordinates per C2
+    debugPrint(
+        'Camera idle at: ${LocationUtils.logRedact(coordinates.latitude, coordinates.longitude)}');
+
+    // Update state with new coordinates immediately
+    _updateState(LocationPickerSelected(
+      coordinates: coordinates,
+      what3words: _getLastKnownWhat3words(),
+      placeName: null, // Reset place name for new location
+      isResolvingWhat3words: true,
+      isResolvingPlaceName: false, // Don't resolve place name on pan (too slow)
+    ));
+
+    // Debounce the what3words fetch
+    _cameraIdleDebounceTimer = Timer(cameraIdleDebounce, () {
+      _resolveWhat3words(coordinates);
+    });
+  }
+
+  /// Cycle through map types: terrain → satellite → hybrid → terrain
+  void cycleMapType() {
+    switch (_mapType) {
+      case gmaps.MapType.terrain:
+        _mapType = gmaps.MapType.satellite;
+      case gmaps.MapType.satellite:
+        _mapType = gmaps.MapType.hybrid;
+      case gmaps.MapType.hybrid:
+        _mapType = gmaps.MapType.terrain;
+      default:
+        _mapType = gmaps.MapType.terrain;
+    }
+    notifyListeners();
+  }
+
+  /// Set map type directly
+  void setMapType(gmaps.MapType type) {
+    _mapType = type;
+    notifyListeners();
+  }
+
+  /// Get current coordinates for map centering
+  LatLng? get currentCoordinates {
+    return switch (_state) {
+      LocationPickerInitial(:final initialLocation) => initialLocation,
+      LocationPickerSelected(:final coordinates) => coordinates,
+      _ => null,
+    };
+  }
+
+  /// Whether what3words is still loading
+  bool get isWhat3wordsLoading {
+    return switch (_state) {
+      LocationPickerSelected(:final isResolvingWhat3words) =>
+        isResolvingWhat3words,
+      _ => false,
+    };
+  }
+
+  /// Get what3words error message if any
+  String? get what3wordsError {
+    if (_state is LocationPickerError) {
+      final error = _state as LocationPickerError;
+      if (error.isWhat3wordsError) {
+        return error.message;
+      }
+    }
+    return null;
   }
 
   /// Resolve what3words address for coordinates
