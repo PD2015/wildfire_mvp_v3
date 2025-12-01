@@ -29,6 +29,7 @@ class LocationInfoPanel extends StatelessWidget {
   /// [isLoadingWhat3words] - Whether what3words is being resolved
   /// [what3wordsError] - Error message if what3words resolution failed
   /// [canConfirm] - Whether confirm button should be enabled
+  /// [title] - Optional custom header title (defaults to 'Pan map to set location')
   /// [onCopyWhat3words] - Callback when copy button is tapped
   /// [onConfirm] - Callback when Confirm button is tapped
   /// [onCancel] - Callback when Cancel button is tapped
@@ -39,6 +40,7 @@ class LocationInfoPanel extends StatelessWidget {
     this.isLoadingWhat3words = false,
     this.what3wordsError,
     this.canConfirm = true,
+    this.title,
     this.onCopyWhat3words,
     this.onConfirm,
     this.onCancel,
@@ -59,6 +61,9 @@ class LocationInfoPanel extends StatelessWidget {
   /// Whether the Confirm button should be enabled
   final bool canConfirm;
 
+  /// Optional custom header title (defaults to 'Pan map to set location')
+  final String? title;
+
   /// Callback when copy button is tapped
   final VoidCallback? onCopyWhat3words;
 
@@ -78,10 +83,10 @@ class LocationInfoPanel extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -117,13 +122,13 @@ class LocationInfoPanel extends StatelessWidget {
     return Row(
       children: [
         Icon(
-          Icons.push_pin,
+          Icons.map_outlined,
           size: 18,
           color: colorScheme.primary,
         ),
         const SizedBox(width: 8),
         Text(
-          'Pin location',
+          title ?? 'Pan map to set location',
           style: theme.textTheme.titleSmall?.copyWith(
             color: colorScheme.primary,
             fontWeight: FontWeight.w600,
@@ -145,11 +150,13 @@ class LocationInfoPanel extends StatelessWidget {
           'Pin location coordinates: ${coordinates.latitude.toStringAsFixed(2)} latitude, ${coordinates.longitude.toStringAsFixed(2)} longitude',
       child: Row(
         children: [
-          Icon(
-            Icons.my_location,
-            size: 20,
-            color: colorScheme.onSurfaceVariant,
-            semanticLabel: 'Coordinates',
+          // Icon excluded from semantics - wrapper Semantics provides full description
+          ExcludeSemantics(
+            child: Icon(
+              Icons.my_location,
+              size: 18,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -289,7 +296,7 @@ class LocationInfoPanel extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Text(
-          'Pan map to get address',
+          'what3words • Awaiting location…',
           style: theme.textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
           ),

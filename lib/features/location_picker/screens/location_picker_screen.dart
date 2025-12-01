@@ -85,7 +85,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   void dispose() {
     _controller.removeListener(_onControllerChanged);
     _controller.dispose();
-    _mapController?.dispose();
+    // Note: GoogleMapController.dispose() is not called explicitly as it can
+    // be brittle on some plugin versions. The widget tree handles cleanup.
     _searchController.dispose();
     super.dispose();
   }
@@ -110,8 +111,15 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   }
 
   /// Handle camera idle (user stopped panning)
-  void _onCameraIdle() {
-    _mapController?.getVisibleRegion().then((bounds) {
+  ///
+  /// Uses getVisibleRegion() to calculate center, wrapped in try-catch
+  /// as this can occasionally throw on some platforms if map isn't ready.
+  Future<void> _onCameraIdle() async {
+    final controller = _mapController;
+    if (controller == null) return;
+
+    try {
+      final bounds = await controller.getVisibleRegion();
       // Calculate center from visible region
       final center = LatLng(
         (bounds.northeast.latitude + bounds.southwest.latitude) / 2,
@@ -121,7 +129,10 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       _controller.setLocationFromCamera(
         app.LatLng(center.latitude, center.longitude),
       );
-    });
+    } catch (_) {
+      // Silently ignore - map may not be ready yet
+      // Don't break UX for low-probability edge case
+    }
   }
 
   /// Handle confirm button tap
@@ -206,6 +217,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
           // Update controller with new location
           _controller.setLocationFromCamera(latLng);
+
+          // Haptic feedback for successful GPS recenter
+          HapticFeedback.mediumImpact();
         },
       );
     } catch (e) {
@@ -268,21 +282,26 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           const CrosshairOverlay(),
 
           // Map controls column (top right corner)
+          // Wrapped in Semantics for screen reader discoverability
           Positioned(
             top: 16,
             right: 16,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Map type selector (Google-style popup menu)
-                _buildMapTypeSelector(),
-                const SizedBox(height: 16),
-                // Zoom controls
-                _buildZoomControls(),
-                const SizedBox(height: 16),
-                // GPS recenter button
-                _buildGpsButton(),
-              ],
+            child: Semantics(
+              container: true,
+              label: 'Map controls',
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Map type selector (Google-style popup menu)
+                  _buildMapTypeSelector(),
+                  const SizedBox(height: 16),
+                  // Zoom controls
+                  _buildZoomControls(),
+                  const SizedBox(height: 16),
+                  // GPS recenter button
+                  _buildGpsButton(),
+                ],
+              ),
             ),
           ),
 
@@ -337,9 +356,10 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
   /// Build zoom control buttons (+ / -)
   Widget _buildZoomControls() {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
@@ -367,7 +387,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           Container(
             height: 1,
             width: 32,
-            color: Colors.grey.shade300,
+            color: colorScheme.outlineVariant,
           ),
           // Zoom out button
           SizedBox(
@@ -387,84 +407,97 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   }
 
   /// Build GPS recenter button
+  ///
+  /// Shows loading indicator when getting GPS, with reduced opacity
+  /// to indicate busy state.
   Widget _buildGpsButton() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: SizedBox(
-        width: 48,
-        height: 48,
-        child: _isGettingGps
-            ? const Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+    final colorScheme = Theme.of(context).colorScheme;
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 200),
+      opacity: _isGettingGps ? 0.6 : 1.0,
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: _isGettingGps
+              ? const Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : IconButton(
+                  key: const Key('gps_center_button'),
+                  icon: const Icon(Icons.my_location),
+                  onPressed: _onUseGps,
+                  tooltip: 'Center on my location',
+                  padding: EdgeInsets.zero,
                 ),
-              )
-            : IconButton(
-                key: const Key('gps_center_button'),
-                icon: const Icon(Icons.my_location),
-                onPressed: _onUseGps,
-                tooltip: 'Center on my location',
-                padding: EdgeInsets.zero,
-              ),
+        ),
       ),
     );
   }
 
   /// Build Google-style map type selector popup
   Widget _buildMapTypeSelector() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: PopupMenuButton<MapType>(
-        key: const Key('map_type_selector'),
-        icon: const Icon(Icons.layers),
-        tooltip: 'Map type',
-        onSelected: (MapType type) {
-          _controller.setMapType(type);
-        },
-        itemBuilder: (context) => [
-          _buildMapTypeMenuItem(
-            MapType.terrain,
-            'Terrain',
-            Icons.terrain,
-          ),
-          _buildMapTypeMenuItem(
-            MapType.satellite,
-            'Satellite',
-            Icons.satellite_alt,
-          ),
-          _buildMapTypeMenuItem(
-            MapType.hybrid,
-            'Hybrid',
-            Icons.layers,
-          ),
-          _buildMapTypeMenuItem(
-            MapType.normal,
-            'Normal',
-            Icons.map,
-          ),
-        ],
+    final colorScheme = Theme.of(context).colorScheme;
+    return Semantics(
+      button: true,
+      label: 'Change map type',
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: PopupMenuButton<MapType>(
+          key: const Key('map_type_selector'),
+          icon: const Icon(Icons.layers, semanticLabel: 'Change map type'),
+          tooltip: 'Change map type',
+          onSelected: (MapType type) {
+            _controller.setMapType(type);
+          },
+          itemBuilder: (context) => [
+            _buildMapTypeMenuItem(
+              MapType.terrain,
+              'Terrain',
+              Icons.terrain,
+            ),
+            _buildMapTypeMenuItem(
+              MapType.satellite,
+              'Satellite',
+              Icons.satellite_alt,
+            ),
+            _buildMapTypeMenuItem(
+              MapType.hybrid,
+              'Hybrid',
+              Icons.layers,
+            ),
+            _buildMapTypeMenuItem(
+              MapType.normal,
+              'Normal',
+              Icons.map,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -510,6 +543,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   /// Handles both place search and what3words input.
   Widget _buildSearchBarWithSuggestions() {
     final state = _controller.state;
+    final colorScheme = Theme.of(context).colorScheme;
 
     // Check if we should show suggestions
     final showSuggestions = state is LocationPickerSearching &&
@@ -521,8 +555,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         // Search input field
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.2),
@@ -614,42 +648,49 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   }
 
   /// Build suggestions dropdown list
+  ///
+  /// ClipRRect ensures clean edges on the dropdown to prevent
+  /// awkward clipping on small devices.
   Widget _buildSuggestionsDropdown(LocationPickerSearching state) {
-    return Container(
-      margin: const EdgeInsets.only(top: 4),
-      constraints: const BoxConstraints(maxHeight: 200),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: state.isLoading && state.suggestions.isEmpty
-          ? const Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ),
-            )
-          : ListView.separated(
-              shrinkWrap: true,
-              padding: EdgeInsets.zero,
-              itemCount: state.suggestions.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
-              itemBuilder: (context, index) {
-                final suggestion = state.suggestions[index];
-                return _buildSuggestionTile(suggestion);
-              },
+    final colorScheme = Theme.of(context).colorScheme;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        margin: const EdgeInsets.only(top: 4),
+        constraints: const BoxConstraints(maxHeight: 200),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.2),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
+          ],
+        ),
+        child: state.isLoading && state.suggestions.isEmpty
+            ? const Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              )
+            : ListView.separated(
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                itemCount: state.suggestions.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final suggestion = state.suggestions[index];
+                  return _buildSuggestionTile(suggestion);
+                },
+              ),
+      ),
     );
   }
 
@@ -771,27 +812,35 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     );
   }
 
+  /// Build emergency banner for fireReport mode
+  ///
+  /// Uses Semantics(liveRegion: true) so screen readers announce this
+  /// alert when shown, similar to role="alert" in web accessibility.
   Widget _buildEmergencyBanner() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      color: Colors.red.shade700,
-      child: const SafeArea(
-        bottom: false,
-        child: Row(
-          children: [
-            Icon(Icons.warning_amber, color: Colors.white),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'For emergencies, always call 999 first',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
+    return Semantics(
+      liveRegion: true,
+      label: 'Emergency warning: For emergencies, always call 999 first',
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        color: Colors.red.shade700,
+        child: const SafeArea(
+          bottom: false,
+          child: Row(
+            children: [
+              Icon(Icons.warning_amber, color: Colors.white),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'For emergencies, always call 999 first',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
