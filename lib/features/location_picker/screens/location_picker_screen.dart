@@ -8,6 +8,7 @@ import 'package:wildfire_mvp_v3/features/location_picker/controllers/location_pi
 import 'package:wildfire_mvp_v3/features/location_picker/models/location_picker_mode.dart';
 import 'package:wildfire_mvp_v3/features/location_picker/models/location_picker_state.dart';
 import 'package:wildfire_mvp_v3/features/location_picker/models/picked_location.dart';
+import 'package:wildfire_mvp_v3/features/location_picker/models/place_search_result.dart';
 import 'package:wildfire_mvp_v3/features/location_picker/services/what3words_service.dart';
 import 'package:wildfire_mvp_v3/features/location_picker/services/geocoding_service.dart';
 import 'package:wildfire_mvp_v3/features/location_picker/widgets/crosshair_overlay.dart';
@@ -238,18 +239,6 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           onPressed: _onCancel,
           tooltip: 'Cancel',
         ),
-        actions: [
-          // Confirm button - prominent filled button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: FilledButton.icon(
-              key: const Key('confirm_button'),
-              onPressed: _canConfirm(state) ? _onConfirm : null,
-              icon: const Icon(Icons.check, size: 18),
-              label: const Text('Confirm'),
-            ),
-          ),
-        ],
       ),
       body: Stack(
         children: [
@@ -297,12 +286,12 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             ),
           ),
 
-          // Search bar at top
+          // Search bar at top with suggestions dropdown
           Positioned(
             top: 8,
             left: 16,
             right: 80, // Leave space for map controls
-            child: _buildSearchBar(),
+            child: _buildSearchBarWithSuggestions(),
           ),
 
           // Bottom info panel
@@ -515,9 +504,120 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     );
   }
 
-  /// Build search bar for place/what3words lookup
-  Widget _buildSearchBar() {
+  /// Build search bar with suggestions dropdown
+  ///
+  /// Shows autocomplete suggestions when user is typing.
+  /// Handles both place search and what3words input.
+  Widget _buildSearchBarWithSuggestions() {
+    final state = _controller.state;
+
+    // Check if we should show suggestions
+    final showSuggestions = state is LocationPickerSearching &&
+        (state.suggestions.isNotEmpty || state.isLoading);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Search input field
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: TextField(
+            key: const Key('location_search_field'),
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Search places or ///what3words',
+              prefixIcon: _buildSearchPrefixIcon(),
+              suffixIcon: _buildSearchSuffixIcon(state),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+            ),
+            onChanged: (text) {
+              _controller.onSearchTextChanged(text);
+              setState(() {}); // Update UI
+            },
+            onSubmitted: (text) {
+              _controller.onSearchTextChanged(text);
+            },
+          ),
+        ),
+
+        // Suggestions dropdown
+        if (showSuggestions) _buildSuggestionsDropdown(state),
+      ],
+    );
+  }
+
+  /// Build search prefix icon (changes to /// for what3words input)
+  Widget _buildSearchPrefixIcon() {
+    final text = _searchController.text;
+    final isWhat3words = text.startsWith('/') ||
+        (text.contains('.') && text.split('.').length >= 2);
+
+    if (isWhat3words) {
+      return Padding(
+        padding: const EdgeInsets.all(12),
+        child: Text(
+          '///',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+      );
+    }
+    return const Icon(Icons.search);
+  }
+
+  /// Build search suffix icon (clear button or loading indicator)
+  Widget? _buildSearchSuffixIcon(LocationPickerState state) {
+    // Show loading indicator while searching
+    if (state is LocationPickerSearching && state.isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(12),
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    }
+
+    // Show clear button if text is present
+    if (_searchController.text.isNotEmpty) {
+      return IconButton(
+        key: const Key('clear_search_button'),
+        icon: const Icon(Icons.clear),
+        onPressed: () {
+          _searchController.clear();
+          _controller.onSearchTextChanged('');
+          setState(() {});
+        },
+        tooltip: 'Clear search',
+      );
+    }
+
+    return null;
+  }
+
+  /// Build suggestions dropdown list
+  Widget _buildSuggestionsDropdown(LocationPickerSearching state) {
     return Container(
+      margin: const EdgeInsets.only(top: 4),
+      constraints: const BoxConstraints(maxHeight: 200),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -529,37 +629,100 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           ),
         ],
       ),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: 'Search places or ///what3words',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                    _controller.onSearchTextChanged('');
-                    setState(() {});
-                  },
-                )
-              : null,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 14,
-          ),
+      child: state.isLoading && state.suggestions.isEmpty
+          ? const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            )
+          : ListView.separated(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              itemCount: state.suggestions.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final suggestion = state.suggestions[index];
+                return _buildSuggestionTile(suggestion);
+              },
+            ),
+    );
+  }
+
+  /// Build a single suggestion tile
+  Widget _buildSuggestionTile(PlaceSearchResult suggestion) {
+    return InkWell(
+      key: Key('suggestion_${suggestion.placeId}'),
+      onTap: () => _onSuggestionTapped(suggestion),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Icon(
+              Icons.location_on_outlined,
+              size: 20,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    suggestion.name,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (suggestion.formattedAddress.isNotEmpty &&
+                      suggestion.formattedAddress != suggestion.name)
+                    Text(
+                      suggestion.formattedAddress,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+          ],
         ),
-        onChanged: (text) {
-          _controller.onSearchTextChanged(text);
-          setState(() {}); // Update suffix icon
-        },
-        onSubmitted: (text) {
-          // Trigger search on submit
-          _controller.onSearchTextChanged(text);
-        },
       ),
     );
+  }
+
+  /// Handle tap on a search suggestion
+  Future<void> _onSuggestionTapped(PlaceSearchResult suggestion) async {
+    // Clear the search field
+    _searchController.clear();
+
+    // Notify controller of selection
+    await _controller.onPlaceSelected(suggestion);
+
+    // Get updated coordinates from state
+    final state = _controller.state;
+    if (state is LocationPickerSelected && state.coordinates.latitude != 0) {
+      // Animate map to selected location
+      final target = LatLng(
+        state.coordinates.latitude,
+        state.coordinates.longitude,
+      );
+      await _mapController?.animateCamera(
+        CameraUpdate.newLatLngZoom(target, 14.0),
+      );
+    }
+
+    // Rebuild to hide suggestions
+    setState(() {});
   }
 
   Widget _buildInfoPanel(LocationPickerState state) {
@@ -601,9 +764,10 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       what3words: w3w,
       isLoadingWhat3words: isLoading,
       what3wordsError: error,
-      showGpsButton: true,
+      canConfirm: _canConfirm(state),
       onCopyWhat3words: w3w != null ? _onCopyWhat3words : null,
-      onUseGps: _onUseGps,
+      onConfirm: _onConfirm,
+      onCancel: _onCancel,
     );
   }
 
