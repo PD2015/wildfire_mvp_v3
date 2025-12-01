@@ -156,8 +156,9 @@ class HomeController extends ChangeNotifier {
         name: 'HomeController',
       );
 
-      // Immediately refresh with the new location
-      await _performLoad(isRetry: false);
+      // Immediately refresh with the new location - pass the location directly
+      // to bypass LocationResolver.getLatLon() which would try GPS first
+      await _performLoad(isRetry: false, overrideLocation: location);
     } catch (e) {
       developer.log(
         'Failed to set manual location: $e',
@@ -184,7 +185,14 @@ class HomeController extends ChangeNotifier {
   }
 
   /// Core data loading implementation with timeout and error handling
-  Future<void> _performLoad({required bool isRetry}) async {
+  ///
+  /// [overrideLocation] - If provided, skip LocationResolver and use this
+  ///   location directly. Used when setManualLocation has just been called
+  ///   to ensure the manual location is used instead of GPS.
+  Future<void> _performLoad({
+    required bool isRetry,
+    LatLng? overrideLocation,
+  }) async {
     _isLoading = true;
 
     // Capture last known location and timestamp from current state if available
@@ -225,53 +233,64 @@ class HomeController extends ChangeNotifier {
     });
 
     try {
-      // Step 1: Resolve location
-      final locationResult = await _locationResolver.getLatLon(
-        allowDefault: true,
-      );
-
       late final LatLng location;
       late final LocationSource locationSource;
 
-      switch (locationResult) {
-        case Right(:final value):
-          location = value;
-          // Determine location source based on whether it was manually set
-          if (_isManualLocation) {
-            locationSource = LocationSource.manual;
-          } else {
-            // GPS or cached from LocationResolver
-            locationSource = LocationSource.gps;
-          }
-          developer.log(
-            'Location resolved: ${LocationUtils.logRedact(location.latitude, location.longitude)} (source: $locationSource)',
-            name: 'HomeController',
-          );
-        case Left(:final value):
-          // If TEST_REGION is set, use test region center (same as MapController)
-          // Otherwise, treat as error
-          if (FeatureFlags.testRegion != 'scotland') {
-            location = _getTestRegionCenter();
-            locationSource = LocationSource.defaultFallback;
+      // Step 1: Use override location if provided (from setManualLocation)
+      // Otherwise resolve location via LocationResolver
+      if (overrideLocation != null) {
+        location = overrideLocation;
+        locationSource = LocationSource.manual;
+        developer.log(
+          'Using override location: ${LocationUtils.logRedact(location.latitude, location.longitude)} (source: manual)',
+          name: 'HomeController',
+        );
+      } else {
+        // Resolve location via LocationResolver (GPS → Cache → Default)
+        final locationResult = await _locationResolver.getLatLon(
+          allowDefault: true,
+        );
+
+        switch (locationResult) {
+          case Right(:final value):
+            location = value;
+            // Determine location source based on whether it was manually set
+            if (_isManualLocation) {
+              locationSource = LocationSource.manual;
+            } else {
+              // GPS or cached from LocationResolver
+              locationSource = LocationSource.gps;
+            }
             developer.log(
-              'Using test region: ${FeatureFlags.testRegion} at ${LocationUtils.logRedact(location.latitude, location.longitude)}',
+              'Location resolved: ${LocationUtils.logRedact(location.latitude, location.longitude)} (source: $locationSource)',
               name: 'HomeController',
             );
-          } else {
-            developer.log(
-              'Location resolution failed: $value',
-              name: 'HomeController',
-            );
-            _finishLoading();
-            _updateState(
-              HomeStateError(
-                errorMessage:
-                    'Location unavailable: ${_getLocationErrorMessage(value)}',
-                canRetry: true,
-              ),
-            );
-            return;
-          }
+          case Left(:final value):
+            // If TEST_REGION is set, use test region center (same as MapController)
+            // Otherwise, treat as error
+            if (FeatureFlags.testRegion != 'scotland') {
+              location = _getTestRegionCenter();
+              locationSource = LocationSource.defaultFallback;
+              developer.log(
+                'Using test region: ${FeatureFlags.testRegion} at ${LocationUtils.logRedact(location.latitude, location.longitude)}',
+                name: 'HomeController',
+              );
+            } else {
+              developer.log(
+                'Location resolution failed: $value',
+                name: 'HomeController',
+              );
+              _finishLoading();
+              _updateState(
+                HomeStateError(
+                  errorMessage:
+                      'Location unavailable: ${_getLocationErrorMessage(value)}',
+                  canRetry: true,
+                ),
+              );
+              return;
+            }
+        }
       }
 
       // Step 2: Get fire risk data
