@@ -90,3 +90,4 @@ Thumbs.db
 
 # Golden test failures (test artifacts, not source code)
 test/widget/golden/failures/
+web/flutter_service_worker.js

@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "wildfire-app-e11f8"
-  }
+  },
+  "targets": {
+    "wildfire-app-e11f8": {
+      "hosting": {
+        "production": [
+          "wildfire-app-e11f8"
+        ],
+        "staging": [
+          "wildfire-app-e11f8-staging"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
