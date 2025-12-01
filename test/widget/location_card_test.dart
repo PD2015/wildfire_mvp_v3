@@ -152,8 +152,9 @@ void main() {
         ),
       );
 
-      expect(find.text('Use GPS Location'), findsOneWidget);
-      expect(find.text('Change Location'), findsNothing);
+      // Manual location shows BOTH buttons side-by-side
+      expect(find.text('Use GPS'), findsOneWidget);
+      expect(find.text('Change'), findsOneWidget);
     });
 
     testWidgets(
@@ -668,12 +669,12 @@ void main() {
         ),
       );
 
-      // Use GPS button should be visible for manual source
-      expect(find.text('Use GPS Location'), findsOneWidget);
-      expect(find.text('Change Location'), findsNothing);
+      // Manual location shows BOTH buttons side-by-side
+      expect(find.text('Use GPS'), findsOneWidget);
+      expect(find.text('Change'), findsOneWidget);
 
-      // Tap the button
-      await tester.tap(find.text('Use GPS Location'));
+      // Tap the Use GPS button
+      await tester.tap(find.text('Use GPS'));
       await tester.pump();
 
       expect(useGpsCalled, isTrue);
@@ -699,7 +700,7 @@ void main() {
 
       // Change Location button should be visible for GPS source
       expect(find.text('Change Location'), findsOneWidget);
-      expect(find.text('Use GPS Location'), findsNothing);
+      expect(find.text('Use GPS'), findsNothing);
 
       // Tap the button
       await tester.tap(find.text('Change Location'));
@@ -784,18 +785,29 @@ void main() {
         ),
       );
 
-      // Find the button by text
-      final buttonTextFinder = find.text('Use GPS Location');
-      expect(buttonTextFinder, findsOneWidget);
+      // Manual location shows both buttons
+      final useGpsButtonFinder = find.text('Use GPS');
+      final changeButtonFinder = find.text('Change');
+      expect(useGpsButtonFinder, findsOneWidget);
+      expect(changeButtonFinder, findsOneWidget);
 
-      // Verify button has proper semantics
-      final semanticsFinder = find.byWidgetPredicate(
+      // Verify Use GPS button has proper semantics
+      final gpsSemanticsFinder = find.byWidgetPredicate(
         (widget) =>
             widget is Semantics &&
             widget.properties.button == true &&
             widget.properties.label == 'Return to GPS location',
       );
-      expect(semanticsFinder, findsOneWidget);
+      expect(gpsSemanticsFinder, findsOneWidget);
+
+      // Verify Change button has proper semantics
+      final changeSemanticsFinder = find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics &&
+            widget.properties.button == true &&
+            widget.properties.label == 'Adjust your manual location',
+      );
+      expect(changeSemanticsFinder, findsOneWidget);
     });
 
     testWidgets('Use GPS button has correct accessibility semantics',
@@ -814,10 +826,11 @@ void main() {
         ),
       );
 
-      // Find the button
-      expect(find.text('Use GPS Location'), findsOneWidget);
+      // Find both buttons (manual location shows dual buttons)
+      expect(find.text('Use GPS'), findsOneWidget);
+      expect(find.text('Change'), findsOneWidget);
 
-      // Find Semantics wrapper by checking for its label
+      // Find Semantics wrapper for Use GPS by checking for its label
       final semanticsFinder = find.byWidgetPredicate(
         (widget) =>
             widget is Semantics &&
@@ -851,6 +864,70 @@ void main() {
             widget.properties.label == 'Change your location',
       );
       expect(semanticsFinder, findsOneWidget);
+    });
+
+    testWidgets(
+        'manual location shows dual buttons and Change callback fires correctly',
+        (tester) async {
+      bool changeLocationCalled = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LocationCard(
+              coordinatesLabel: '55.95, -3.19',
+              subtitle: 'Your chosen location',
+              locationSource: LocationSource.manual,
+              onChangeLocation: () => changeLocationCalled = true,
+              onUseGps: () {},
+            ),
+          ),
+        ),
+      );
+
+      // Both buttons visible
+      expect(find.text('Change'), findsOneWidget);
+      expect(find.text('Use GPS'), findsOneWidget);
+
+      // Tap Change button
+      await tester.tap(find.text('Change'));
+      await tester.pump();
+
+      expect(changeLocationCalled, isTrue);
+    });
+
+    testWidgets('manual location shows dual buttons (not single toggle)',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: LocationCard(
+              coordinatesLabel: '55.95, -3.19',
+              subtitle: 'Your chosen location',
+              locationSource: LocationSource.manual,
+              onChangeLocation: () {},
+              onUseGps: () {},
+            ),
+          ),
+        ),
+      );
+
+      // Manual location shows BOTH buttons side-by-side
+      expect(find.text('Use GPS'), findsOneWidget);
+      expect(find.text('Change'), findsOneWidget);
+
+      // Verify it's NOT a single button with "Change Location" text
+      expect(find.text('Change Location'), findsNothing);
+
+      // Both should have proper accessibility
+      expect(
+        find.bySemanticsLabel('Return to GPS location'),
+        findsOneWidget,
+      );
+      expect(
+        find.bySemanticsLabel('Adjust your manual location'),
+        findsOneWidget,
+      );
     });
   });
 }

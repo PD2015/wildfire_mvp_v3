@@ -285,61 +285,128 @@ class LocationCard extends StatelessWidget {
     );
   }
 
-  /// Builds the action button that toggles based on location source
+  /// Builds action buttons based on location source
   ///
-  /// - Manual location → "Use GPS Location" (returns to GPS)
-  /// - GPS/Cached/Default → "Change Location" (opens picker)
+  /// - Manual location → Two buttons side-by-side: "Change" (outlined) + "Use GPS" (filled)
+  /// - GPS/Cached/Default → Single "Change Location" button
+  ///
+  /// Material 3 compliance:
+  /// - Side-by-side layout for equal-weight actions
+  /// - Filled button for primary action (GPS = recommended)
+  /// - Outlined button for secondary action (Change)
+  /// - 12dp gap between buttons (standard M3 spacing)
+  /// - Both buttons ≥48dp height (C3 accessibility)
   Widget _buildActionButton(
     BuildContext context,
     ThemeData theme,
     ColorScheme scheme,
   ) {
     final isManual = locationSource == LocationSource.manual;
+    final hasGpsCallback = onUseGps != null;
 
-    // Determine button configuration based on location source
-    final String label;
-    final IconData icon;
-    final String semanticsLabel;
-    final VoidCallback? onPressed;
-
-    if (isManual && onUseGps != null) {
-      // Manual location: offer to return to GPS
-      label = 'Use GPS Location';
-      icon = Icons.gps_fixed;
-      semanticsLabel = 'Return to GPS location';
-      onPressed = onUseGps;
-    } else {
-      // GPS/Cached/Default: offer to change location
-      label = 'Change Location';
-      icon = Icons.edit_location_alt;
-      semanticsLabel = 'Change your location';
-      onPressed = onChangeLocation;
+    // Manual location with GPS callback: show both buttons side-by-side
+    if (isManual && hasGpsCallback) {
+      return Row(
+        children: [
+          // Secondary action: Change location (outlined)
+          Expanded(
+            child: Semantics(
+              label: 'Adjust your manual location',
+              button: true,
+              child: OutlinedButton.icon(
+                onPressed: onChangeLocation,
+                icon: Icon(
+                  Icons.edit_location_alt,
+                  size: 18,
+                  color: onChangeLocation != null
+                      ? scheme.primary
+                      : scheme.onSurfaceVariant,
+                ),
+                label: Text(
+                  'Change',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: onChangeLocation != null
+                        ? scheme.primary
+                        : scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(48, 48), // C3: ≥48dp touch target
+                  side: BorderSide(
+                    color: onChangeLocation != null
+                        ? scheme.outline
+                        : scheme.outlineVariant,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12), // M3 standard button gap
+          // Primary action: Use GPS (filled - more prominent)
+          Expanded(
+            child: Semantics(
+              label: 'Return to GPS location',
+              button: true,
+              child: FilledButton.icon(
+                onPressed: onUseGps,
+                icon: const Icon(
+                  Icons.gps_fixed,
+                  size: 18,
+                ),
+                label: Text(
+                  'Use GPS',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: scheme.onPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(48, 48), // C3: ≥48dp touch target
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
     }
 
+    // GPS/Cached/Default: single "Change Location" button
     return Semantics(
-      label: semanticsLabel,
+      label: 'Change your location',
       button: true,
       child: SizedBox(
         width: double.infinity,
         child: OutlinedButton.icon(
-          onPressed: onPressed,
+          onPressed: onChangeLocation,
           icon: Icon(
-            icon,
+            Icons.edit_location_alt,
             size: 18,
-            color: onPressed != null ? scheme.primary : scheme.onSurfaceVariant,
+            color: onChangeLocation != null
+                ? scheme.primary
+                : scheme.onSurfaceVariant,
           ),
           label: Text(
-            label,
+            'Change Location',
             style: theme.textTheme.labelLarge?.copyWith(
-              color:
-                  onPressed != null ? scheme.primary : scheme.onSurfaceVariant,
+              color: onChangeLocation != null
+                  ? scheme.primary
+                  : scheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
             ),
           ),
           style: OutlinedButton.styleFrom(
             minimumSize: const Size(48, 48), // C3: ≥48dp touch target
             side: BorderSide(
-              color: onPressed != null ? scheme.outline : scheme.outlineVariant,
+              color: onChangeLocation != null
+                  ? scheme.outline
+                  : scheme.outlineVariant,
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
