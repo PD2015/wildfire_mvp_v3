@@ -10,6 +10,7 @@ import 'package:wildfire_mvp_v3/widgets/location_mini_map_preview.dart';
 /// - Enhanced: what3words address with copy button
 /// - Enhanced: formattedLocation (reverse geocoded place name)
 /// - Enhanced: static map preview
+/// - Enhanced: "Use GPS" button when manual location is active
 ///
 /// Constitutional compliance:
 /// - C3: All touch targets ≥48dp
@@ -44,6 +45,10 @@ class LocationCard extends StatelessWidget {
   /// Callback when map preview is tapped
   final VoidCallback? onTapMapPreview;
 
+  /// Callback when "Use GPS" button is tapped (returns to GPS location)
+  /// Only shown when locationSource is manual
+  final VoidCallback? onUseGps;
+
   const LocationCard({
     super.key,
     required this.coordinatesLabel,
@@ -59,6 +64,7 @@ class LocationCard extends StatelessWidget {
     this.staticMapUrl,
     this.onCopyWhat3words,
     this.onTapMapPreview,
+    this.onUseGps,
   });
 
   /// Returns appropriate icon based on location source for trust building
@@ -270,7 +276,51 @@ class LocationCard extends StatelessWidget {
                   onTap: onTapMapPreview ?? onChangeLocation,
                 ),
               ],
+
+              // "Use GPS" button (shown when manual location is active)
+              if (locationSource == LocationSource.manual &&
+                  onUseGps != null) ...[
+                const SizedBox(height: 12),
+                _buildUseGpsButton(context, theme, scheme),
+              ],
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Builds the "Use GPS" button for returning to GPS location
+  Widget _buildUseGpsButton(
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme scheme,
+  ) {
+    return Semantics(
+      label: 'Return to GPS location',
+      button: true,
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: onUseGps,
+          icon: Icon(
+            Icons.gps_fixed,
+            size: 18,
+            color: scheme.primary,
+          ),
+          label: Text(
+            'Use GPS Location',
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: scheme.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(48, 48), // C3: ≥48dp touch target
+            side: BorderSide(color: scheme.outline),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         ),
       ),

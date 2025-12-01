@@ -451,6 +451,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ? () => _handleCopyWhat3words(what3words)
               : null,
           onTapMapPreview: _showManualLocationDialog,
+          // Show "Use GPS" button when manual location is active
+          onUseGps: locationSource == LocationSource.manual
+              ? () => _controller.useGpsLocation()
+              : null,
         );
 
       case HomeStateError(:final cachedLocation) when cachedLocation != null:
