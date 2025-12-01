@@ -24,6 +24,7 @@ class MockHomeController extends ChangeNotifier implements HomeController {
   int loadCallCount = 0;
   int retryCallCount = 0;
   int setManualLocationCallCount = 0;
+  int useGpsLocationCallCount = 0;
   LatLng? lastManualLocation;
 
   void setState(HomeState newState, {bool loading = false}) {
@@ -48,6 +49,12 @@ class MockHomeController extends ChangeNotifier implements HomeController {
   Future<void> setManualLocation(LatLng location, {String? placeName}) async {
     setManualLocationCallCount++;
     lastManualLocation = location;
+    // Immediate completion for testing
+  }
+
+  @override
+  Future<void> useGpsLocation() async {
+    useGpsLocationCallCount++;
     // Immediate completion for testing
   }
 

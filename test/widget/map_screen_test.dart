@@ -57,6 +57,11 @@ class _NoOpLocationResolver implements LocationResolver {
   Future<void> saveManual(LatLng location, {String? placeName}) async {
     // No-op
   }
+
+  @override
+  Future<void> clearManualLocation() async {
+    // No-op
+  }
 }
 
 /// No-op FireLocationService for testing

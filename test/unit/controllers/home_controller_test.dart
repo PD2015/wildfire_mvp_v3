@@ -18,6 +18,7 @@ import 'package:wildfire_mvp_v3/models/what3words_models.dart';
 class MockLocationResolver implements LocationResolver {
   Either<LocationError, LatLng>? _getLatLonResult;
   bool _saveManualThrows = false;
+  bool _clearManualThrows = false;
   List<String> loggedCalls = [];
 
   void mockGetLatLon(Either<LocationError, LatLng> result) {
@@ -28,9 +29,14 @@ class MockLocationResolver implements LocationResolver {
     _saveManualThrows = true;
   }
 
+  void mockClearManualThrows() {
+    _clearManualThrows = true;
+  }
+
   void reset() {
     _getLatLonResult = null;
     _saveManualThrows = false;
+    _clearManualThrows = false;
     loggedCalls.clear();
   }
 
@@ -53,6 +59,14 @@ class MockLocationResolver implements LocationResolver {
     );
     if (_saveManualThrows) {
       throw Exception('Save manual failed');
+    }
+  }
+
+  @override
+  Future<void> clearManualLocation() async {
+    loggedCalls.add('clearManualLocation()');
+    if (_clearManualThrows) {
+      throw Exception('Clear manual location failed');
     }
   }
 }
@@ -482,6 +496,98 @@ void main() {
         expect(
           mockLocationResolver.loggedCalls
               .where((call) => call.startsWith('saveManual'))
+              .length,
+          equals(0),
+        );
+      });
+
+      test('useGpsLocation clears manual location and reloads with GPS',
+          () async {
+        // Arrange - first set a manual location
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+
+        await controller.setManualLocation(
+          TestData.glasgow,
+          placeName: 'Glasgow',
+        );
+
+        // Verify manual location was set
+        expect(controller.state, isA<HomeStateSuccess>());
+        var successState = controller.state as HomeStateSuccess;
+        expect(successState.locationSource, equals(LocationSource.manual));
+
+        // Reset mock calls tracking
+        mockLocationResolver.reset();
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+
+        // Act - return to GPS
+        await controller.useGpsLocation();
+
+        // Assert - clearManualLocation was called
+        expect(
+          mockLocationResolver.loggedCalls
+              .where((call) => call.contains('clearManualLocation'))
+              .length,
+          equals(1),
+        );
+
+        // Assert - getLatLon was called (GPS resolution)
+        expect(
+          mockLocationResolver.loggedCalls
+              .where((call) => call.contains('getLatLon'))
+              .length,
+          equals(1),
+        );
+
+        // Assert - state should now reflect GPS location
+        expect(controller.state, isA<HomeStateSuccess>());
+        successState = controller.state as HomeStateSuccess;
+        expect(successState.locationSource, equals(LocationSource.gps));
+        expect(successState.location, equals(TestData.edinburgh));
+      });
+
+      test('useGpsLocation handles clear failure gracefully', () async {
+        // Arrange - first set a manual location
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+
+        await controller.setManualLocation(TestData.glasgow);
+
+        // Reset and configure clear to fail
+        mockLocationResolver.reset();
+        mockLocationResolver.mockClearManualThrows();
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+
+        // Act - return to GPS (clear will fail but should still reload)
+        await controller.useGpsLocation();
+
+        // Assert - should still complete with GPS location
+        expect(controller.state, isA<HomeStateSuccess>());
+        final successState = controller.state as HomeStateSuccess;
+        expect(successState.locationSource, equals(LocationSource.gps));
+      });
+
+      test('useGpsLocation ignores calls while loading', () async {
+        // Arrange - create a loading scenario
+        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+
+        // Start a load operation
+        final loadFuture = controller.load();
+
+        // Act - try to use GPS while loading
+        await controller.useGpsLocation();
+
+        // Complete the load
+        await loadFuture;
+
+        // Assert - clearManualLocation should not be called
+        expect(
+          mockLocationResolver.loggedCalls
+              .where((call) => call.contains('clearManualLocation'))
               .length,
           equals(0),
         );

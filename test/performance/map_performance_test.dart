@@ -151,6 +151,11 @@ class MockLocationResolver implements LocationResolver {
   Future<void> saveManual(LatLng location, {String? placeName}) async {
     // No-op for performance tests
   }
+
+  @override
+  Future<void> clearManualLocation() async {
+    // No-op for performance tests
+  }
 }
 
 class MockFireLocationService implements FireLocationService {

@@ -173,6 +173,47 @@ class HomeController extends ChangeNotifier {
     }
   }
 
+  /// Clears manual location and returns to GPS-based location
+  ///
+  /// Resets the manual location flag and clears any cached manual location
+  /// from persistent storage. Then reloads data using the normal location
+  /// resolution flow (GPS → cache → default).
+  ///
+  /// Use this when the user wants to "return to GPS" after having set
+  /// a manual location via the location picker.
+  Future<void> useGpsLocation() async {
+    if (_isLoading) {
+      developer.log(
+        'Use GPS request ignored - already loading',
+        name: 'HomeController',
+      );
+      return;
+    }
+
+    try {
+      // Clear manual location from cache
+      await _locationResolver.clearManualLocation();
+
+      // Reset manual location tracking
+      _isManualLocation = false;
+      _manualPlaceName = null;
+
+      developer.log('Returning to GPS location', name: 'HomeController');
+
+      // Reload with normal location resolution (GPS first)
+      await _performLoad(isRetry: false);
+    } catch (e) {
+      developer.log(
+        'Failed to clear manual location: $e',
+        name: 'HomeController',
+      );
+      // Even if clear fails, try to reload anyway
+      _isManualLocation = false;
+      _manualPlaceName = null;
+      await _performLoad(isRetry: false);
+    }
+  }
+
   /// Refreshes current data (debounced for app lifecycle scenarios)
   ///
   /// Intended for use with app lifecycle events like returning to foreground.
