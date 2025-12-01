@@ -450,8 +450,8 @@ class _HomeScreenState extends State<HomeScreen> {
           onCopyWhat3words: what3words != null
               ? () => _handleCopyWhat3words(what3words)
               : null,
-          onTapMapPreview: _showManualLocationDialog,
-          // Show "Use GPS" button when manual location is active
+          // onUseGps enables "Use GPS" button when manual location is active
+          // When not manual, button shows "Change Location" using onChangeLocation
           onUseGps: locationSource == LocationSource.manual
               ? () => _controller.useGpsLocation()
               : null,

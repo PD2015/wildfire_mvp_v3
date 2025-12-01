@@ -42,11 +42,9 @@ class LocationCard extends StatelessWidget {
   /// Callback when what3words copy button is tapped
   final VoidCallback? onCopyWhat3words;
 
-  /// Callback when map preview is tapped
-  final VoidCallback? onTapMapPreview;
-
   /// Callback when "Use GPS" button is tapped (returns to GPS location)
-  /// Only shown when locationSource is manual
+  /// When provided with manual location, shows "Use GPS Location" button
+  /// When null or non-manual location, shows "Change Location" button using onChangeLocation
   final VoidCallback? onUseGps;
 
   const LocationCard({
@@ -63,7 +61,6 @@ class LocationCard extends StatelessWidget {
     this.isGeocodingLoading = false,
     this.staticMapUrl,
     this.onCopyWhat3words,
-    this.onTapMapPreview,
     this.onUseGps,
   });
 
@@ -267,22 +264,20 @@ class LocationCard extends StatelessWidget {
                 _buildWhat3wordsRow(context, theme, scheme),
               ],
 
-              // Static map preview (if available)
+              // Static map preview (if available) - view only, no tap action
               if (staticMapUrl != null || _hasEnhancedFeatures) ...[
                 const SizedBox(height: 12),
                 LocationMiniMapPreview(
                   staticMapUrl: staticMapUrl,
                   isLoading: staticMapUrl == null && hasLocation,
-                  onTap: onTapMapPreview ?? onChangeLocation,
+                  // No onTap - action moved to dedicated button below
                 ),
               ],
 
-              // "Use GPS" button (shown when manual location is active)
-              if (locationSource == LocationSource.manual &&
-                  onUseGps != null) ...[
-                const SizedBox(height: 12),
-                _buildUseGpsButton(context, theme, scheme),
-              ],
+              // Action button - toggles between "Change Location" and "Use GPS"
+              // based on location source
+              const SizedBox(height: 12),
+              _buildActionButton(context, theme, scheme),
             ],
           ),
         ),
@@ -290,34 +285,62 @@ class LocationCard extends StatelessWidget {
     );
   }
 
-  /// Builds the "Use GPS" button for returning to GPS location
-  Widget _buildUseGpsButton(
+  /// Builds the action button that toggles based on location source
+  ///
+  /// - Manual location → "Use GPS Location" (returns to GPS)
+  /// - GPS/Cached/Default → "Change Location" (opens picker)
+  Widget _buildActionButton(
     BuildContext context,
     ThemeData theme,
     ColorScheme scheme,
   ) {
+    final isManual = locationSource == LocationSource.manual;
+
+    // Determine button configuration based on location source
+    final String label;
+    final IconData icon;
+    final String semanticsLabel;
+    final VoidCallback? onPressed;
+
+    if (isManual && onUseGps != null) {
+      // Manual location: offer to return to GPS
+      label = 'Use GPS Location';
+      icon = Icons.gps_fixed;
+      semanticsLabel = 'Return to GPS location';
+      onPressed = onUseGps;
+    } else {
+      // GPS/Cached/Default: offer to change location
+      label = 'Change Location';
+      icon = Icons.edit_location_alt;
+      semanticsLabel = 'Change your location';
+      onPressed = onChangeLocation;
+    }
+
     return Semantics(
-      label: 'Return to GPS location',
+      label: semanticsLabel,
       button: true,
       child: SizedBox(
         width: double.infinity,
         child: OutlinedButton.icon(
-          onPressed: onUseGps,
+          onPressed: onPressed,
           icon: Icon(
-            Icons.gps_fixed,
+            icon,
             size: 18,
-            color: scheme.primary,
+            color: onPressed != null ? scheme.primary : scheme.onSurfaceVariant,
           ),
           label: Text(
-            'Use GPS Location',
+            label,
             style: theme.textTheme.labelLarge?.copyWith(
-              color: scheme.primary,
+              color:
+                  onPressed != null ? scheme.primary : scheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
             ),
           ),
           style: OutlinedButton.styleFrom(
             minimumSize: const Size(48, 48), // C3: ≥48dp touch target
-            side: BorderSide(color: scheme.outline),
+            side: BorderSide(
+              color: onPressed != null ? scheme.outline : scheme.outlineVariant,
+            ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),

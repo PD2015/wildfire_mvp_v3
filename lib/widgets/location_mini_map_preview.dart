@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 
-/// A tappable static map preview widget with loading and error states
+/// A static map preview widget with loading and error states
 ///
 /// Displays a Google Static Maps API image with:
 /// - Loading spinner while fetching
 /// - Error state if image fails to load
-/// - Tappable overlay to trigger location change
+/// - Optional tappable overlay (when onTap is provided)
+///
+/// Note: In LocationCard, this is now view-only (no onTap).
+/// The action to change location is handled by a dedicated button.
 ///
 /// Constitutional compliance:
-/// - C3: Full surface is tappable (≥48dp)
+/// - C3: Full surface is tappable when onTap provided (≥48dp)
 /// - C2: staticMapUrl should use rounded coordinates (privacy)
 class LocationMiniMapPreview extends StatelessWidget {
   /// The static map URL from Google Static Maps API
