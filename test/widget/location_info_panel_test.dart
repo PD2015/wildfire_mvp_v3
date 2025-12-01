@@ -13,7 +13,8 @@ void main() {
   final testWhat3words = What3wordsAddress.tryParse('filled.count.soap')!;
 
   group('LocationInfoPanel', () {
-    testWidgets('displays "Pin location" header', (tester) async {
+    testWidgets('displays default header "Pan map to set location"',
+        (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -24,9 +25,9 @@ void main() {
         ),
       );
 
-      // Should display "Pin location" header
-      expect(find.text('Pin location'), findsOneWidget);
-      expect(find.byIcon(Icons.push_pin), findsOneWidget);
+      // Should display default header
+      expect(find.text('Pan map to set location'), findsOneWidget);
+      expect(find.byIcon(Icons.map_outlined), findsOneWidget);
     });
 
     testWidgets('displays coordinates with 2dp precision', (tester) async {
@@ -308,7 +309,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Pan map to get address'), findsOneWidget);
+      expect(find.text('what3words • Awaiting location…'), findsOneWidget);
     });
 
     testWidgets('coordinates row has location icon', (tester) async {
