@@ -296,6 +296,8 @@ class LocationCard extends StatelessWidget {
   /// - Outlined button for secondary action (Change)
   /// - 12dp gap between buttons (standard M3 spacing)
   /// - Both buttons ≥48dp height (C3 accessibility)
+  /// - foregroundColor on button style handles icon, label, and disabled states
+  /// - Corner radius from theme (12dp)
   Widget _buildActionButton(
     BuildContext context,
     ThemeData theme,
@@ -315,32 +317,13 @@ class LocationCard extends StatelessWidget {
               button: true,
               child: OutlinedButton.icon(
                 onPressed: onChangeLocation,
-                icon: Icon(
-                  Icons.edit_location_alt,
-                  size: 18,
-                  color: onChangeLocation != null
-                      ? scheme.primary
-                      : scheme.onSurfaceVariant,
-                ),
-                label: Text(
-                  'Change',
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: onChangeLocation != null
-                        ? scheme.primary
-                        : scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                icon: const Icon(Icons.edit_location_alt, size: 18),
+                label: const Text('Change'),
                 style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(48, 48), // C3: ≥48dp touch target
-                  side: BorderSide(
-                    color: onChangeLocation != null
-                        ? scheme.outline
-                        : scheme.outlineVariant,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  foregroundColor: scheme.onSurfaceVariant,
+                  minimumSize:
+                      const Size.fromHeight(48), // C3: ≥48dp touch target
+                  side: BorderSide(color: scheme.outline),
                 ),
               ),
             ),
@@ -353,22 +336,13 @@ class LocationCard extends StatelessWidget {
               button: true,
               child: FilledButton.icon(
                 onPressed: onUseGps,
-                icon: const Icon(
-                  Icons.gps_fixed,
-                  size: 18,
-                ),
-                label: Text(
-                  'Use GPS',
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: scheme.onPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                icon: const Icon(Icons.gps_fixed, size: 18),
+                label: const Text('Use GPS'),
                 style: FilledButton.styleFrom(
-                  minimumSize: const Size(48, 48), // C3: ≥48dp touch target
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  backgroundColor: scheme.primary,
+                  foregroundColor: scheme.onPrimary,
+                  minimumSize:
+                      const Size.fromHeight(48), // C3: ≥48dp touch target
                 ),
               ),
             ),
@@ -385,32 +359,12 @@ class LocationCard extends StatelessWidget {
         width: double.infinity,
         child: OutlinedButton.icon(
           onPressed: onChangeLocation,
-          icon: Icon(
-            Icons.edit_location_alt,
-            size: 18,
-            color: onChangeLocation != null
-                ? scheme.primary
-                : scheme.onSurfaceVariant,
-          ),
-          label: Text(
-            'Change Location',
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: onChangeLocation != null
-                  ? scheme.primary
-                  : scheme.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          icon: const Icon(Icons.edit_location_alt, size: 18),
+          label: const Text('Change Location'),
           style: OutlinedButton.styleFrom(
-            minimumSize: const Size(48, 48), // C3: ≥48dp touch target
-            side: BorderSide(
-              color: onChangeLocation != null
-                  ? scheme.outline
-                  : scheme.outlineVariant,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            foregroundColor: scheme.onSurfaceVariant,
+            minimumSize: const Size.fromHeight(48), // C3: ≥48dp touch target
+            side: BorderSide(color: scheme.outline),
           ),
         ),
       ),

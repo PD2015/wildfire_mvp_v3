@@ -124,13 +124,13 @@ class LocationInfoPanel extends StatelessWidget {
         Icon(
           Icons.map_outlined,
           size: 18,
-          color: colorScheme.primary,
+          color: colorScheme.onSurface,
         ),
         const SizedBox(width: 8),
         Text(
           title ?? 'Pan map to set location',
           style: theme.textTheme.titleSmall?.copyWith(
-            color: colorScheme.primary,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -318,9 +318,6 @@ class LocationInfoPanel extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 foregroundColor: colorScheme.onSurface,
                 side: BorderSide(color: colorScheme.outline),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
               ),
               child: const Text('Cancel'),
             ),
@@ -337,11 +334,6 @@ class LocationInfoPanel extends StatelessWidget {
               onPressed: canConfirm ? onConfirm : null,
               icon: const Icon(Icons.check, size: 18),
               label: const Text('Confirm Location'),
-              style: FilledButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
             ),
           ),
         ),
