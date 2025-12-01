@@ -151,7 +151,7 @@ Future<ServiceContainer> _initializeServices() async {
 
   // Initialize what3words service (A15 - optional, requires API key)
   What3wordsService? what3wordsService;
-  final w3wApiKey = FeatureFlags.what3wordsApiKey;
+  const w3wApiKey = FeatureFlags.what3wordsApiKey;
   if (w3wApiKey.isNotEmpty) {
     what3wordsService = What3wordsServiceImpl(
       client: httpClient,

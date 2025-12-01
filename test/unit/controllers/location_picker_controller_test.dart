@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wildfire_mvp_v3/features/location_picker/controllers/location_picker_controller.dart';
@@ -40,7 +38,7 @@ class MockWhat3wordsService implements What3wordsService {
       await Future.delayed(delay);
     }
     return _convertTo3waResult ??
-        Left(const What3wordsNetworkError('Mock not configured'));
+        const Left(What3wordsNetworkError('Mock not configured'));
   }
 
   @override
@@ -52,7 +50,7 @@ class MockWhat3wordsService implements What3wordsService {
       await Future.delayed(delay);
     }
     return _convertToCoordinatesResult ??
-        Left(const What3wordsNetworkError('Mock not configured'));
+        const Left(What3wordsNetworkError('Mock not configured'));
   }
 }
 
@@ -213,7 +211,7 @@ void main() {
       });
 
       test('detects what3words format and calls conversion', () async {
-        mockW3w.setConvertToCoordinatesResult(Right(testLocation));
+        mockW3w.setConvertToCoordinatesResult(const Right(testLocation));
         mockGeocoding.setReverseGeocodeResult(const Right(testPlaceName));
 
         final controller = createController();
@@ -228,7 +226,6 @@ void main() {
 
       test('debounces regular search queries', () async {
         mockGeocoding.setSearchPlacesResult(const Right([]));
-
         final controller = createController();
 
         // Rapidly type characters
@@ -260,7 +257,7 @@ void main() {
 
     group('what3words handling', () {
       test('parses what3words with triple slash prefix', () async {
-        mockW3w.setConvertToCoordinatesResult(Right(testLocation));
+        mockW3w.setConvertToCoordinatesResult(const Right(testLocation));
         mockGeocoding.setReverseGeocodeResult(const Right(testPlaceName));
 
         final controller = createController();
@@ -272,7 +269,7 @@ void main() {
       });
 
       test('parses what3words without prefix', () async {
-        mockW3w.setConvertToCoordinatesResult(Right(testLocation));
+        mockW3w.setConvertToCoordinatesResult(const Right(testLocation));
         mockGeocoding.setReverseGeocodeResult(const Right(testPlaceName));
 
         final controller = createController();
@@ -316,7 +313,7 @@ void main() {
       });
 
       test('resolves place name after what3words conversion', () async {
-        mockW3w.setConvertToCoordinatesResult(Right(testLocation));
+        mockW3w.setConvertToCoordinatesResult(const Right(testLocation));
         mockGeocoding.setReverseGeocodeResult(const Right(testPlaceName));
 
         final controller = createController();
@@ -417,7 +414,7 @@ void main() {
         mockW3w.setConvertTo3waResult(Right(testW3wAddress));
 
         final controller = createController();
-        final place = PlaceSearchResult(
+        const place = PlaceSearchResult(
           placeId: 'test_place_id',
           name: 'Edinburgh',
           formattedAddress: 'Edinburgh, UK',
@@ -435,11 +432,11 @@ void main() {
       });
 
       test('resolves coordinates from place_id when not provided', () async {
-        mockGeocoding.setGetPlaceCoordinatesResult(Right(testLocation));
+        mockGeocoding.setGetPlaceCoordinatesResult(const Right(testLocation));
         mockW3w.setConvertTo3waResult(Right(testW3wAddress));
 
         final controller = createController();
-        final place = PlaceSearchResult(
+        const place = PlaceSearchResult(
           placeId: 'test_place_id',
           name: 'Edinburgh',
           formattedAddress: 'Edinburgh, UK',
@@ -463,7 +460,7 @@ void main() {
         );
 
         final controller = createController();
-        final place = PlaceSearchResult(
+        const place = PlaceSearchResult(
           placeId: 'test_place_id',
           name: 'Edinburgh',
           formattedAddress: 'Edinburgh, UK',
