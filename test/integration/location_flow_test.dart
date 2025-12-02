@@ -80,6 +80,7 @@ void main() {
           // Assert
           stopwatch.stop();
           // Web needs slightly more time for GPS path vs instant last-known
+          // ignore: prefer_const_declarations
           final maxTime = kIsWeb ? 200 : 100;
           expect(
             stopwatch.elapsedMilliseconds,
@@ -219,6 +220,7 @@ void main() {
           // Configure timeout behavior based on platform
           // Web uses 10s timeout, native uses 3s timeout
           // We set response delay to trigger timeout exception quickly
+          // ignore: prefer_const_declarations
           final platformTimeout =
               kIsWeb ? const Duration(seconds: 10) : const Duration(seconds: 3);
           fakeGeolocator.setResponseDelay(
@@ -236,6 +238,7 @@ void main() {
           // Assert
           stopwatch.stop();
           // Allow more time on web due to longer permission/service checks
+          // ignore: prefer_const_declarations
           final maxTime = kIsWeb ? 1500 : 2500;
           expect(
             stopwatch.elapsedMilliseconds,
