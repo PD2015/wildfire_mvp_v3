@@ -500,17 +500,11 @@ void main() {
           expect(result.isRight(), isTrue);
           final location = result.getOrElse(() => TestData.aviemore);
 
-          // On macOS/desktop/web, platform guard skips GPS and uses Scotland centroid
-          if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-            expect(
-              location.latitude,
-              closeTo(TestData.glasgow.latitude, 0.001),
-            );
-            expect(
-              location.longitude,
-              closeTo(TestData.glasgow.longitude, 0.001),
-            );
-          } else {
+          // With injectable GeolocatorService, GPS works on all platforms except desktop
+          // Desktop (macOS, Windows, Linux) skips GPS and uses DEV_MODE default (Aviemore)
+          // Web and mobile platforms use the injected FakeGeolocator → Glasgow
+          if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
+            // Desktop only - GPS skipped, uses Aviemore fallback
             expect(
               location.latitude,
               closeTo(TestData.aviemore.latitude, 0.001),
@@ -518,6 +512,16 @@ void main() {
             expect(
               location.longitude,
               closeTo(TestData.aviemore.longitude, 0.001),
+            );
+          } else {
+            // Web and mobile - GPS works via FakeGeolocator → Glasgow
+            expect(
+              location.latitude,
+              closeTo(TestData.glasgow.latitude, 0.001),
+            );
+            expect(
+              location.longitude,
+              closeTo(TestData.glasgow.longitude, 0.001),
             );
           }
         }

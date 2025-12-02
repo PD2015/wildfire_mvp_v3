@@ -20,9 +20,11 @@ void main() {
     late FakeGeolocator fakeGeolocator;
     late FakeTimer fakeTimer;
 
-    /// Platform guard skips GPS on non-mobile platforms, returning Scotland centroid
+    /// Platform guard skips GPS only on desktop platforms (not web or mobile)
+    /// Web uses GPS via injectable GeolocatorService, mobile uses native GPS
+    /// Only desktop (macOS/Windows/Linux) skips GPS and returns fallback
     bool isPlatformGuardActive() =>
-        kIsWeb || (!Platform.isAndroid && !Platform.isIOS);
+        !kIsWeb && !Platform.isAndroid && !Platform.isIOS;
 
     /// Get expected coordinates when GPS is set up but platform guard may be active
     LatLng expectedLocationForGpsSetup(LatLng gpsCoordinates) {
