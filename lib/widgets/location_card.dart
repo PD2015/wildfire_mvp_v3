@@ -476,16 +476,19 @@ class LocationCard extends StatelessWidget {
             fontWeight: FontWeight.w500,
           ),
         ),
-        Text(
-          coordinatesLabel!,
-          style: isMainDisplay
-              ? theme.textTheme.bodyLarge?.copyWith(
-                  color: scheme.onSurface,
-                  fontWeight: FontWeight.w600,
-                )
-              : theme.textTheme.bodySmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
+        Flexible(
+          child: Text(
+            coordinatesLabel!,
+            style: isMainDisplay
+                ? theme.textTheme.bodyLarge?.copyWith(
+                    color: scheme.onSurface,
+                    fontWeight: FontWeight.w600,
+                  )
+                : theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );
