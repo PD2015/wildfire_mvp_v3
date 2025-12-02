@@ -23,11 +23,23 @@ class GeocodingServiceImpl implements GeocodingService {
   final http.Client _client;
   final String _apiKey;
 
+  /// Creates a GeocodingService using the dedicated Geocoding API key.
+  ///
+  /// The [apiKey] defaults to [FeatureFlags.geocodingApiKey] which is a
+  /// separate key from the Maps JS API key. This key should have no
+  /// application restriction (HTTP referrer), only API restriction to
+  /// "Geocoding API" for security.
+  ///
+  /// If no geocoding key is configured, falls back to [FeatureFlags.googleMapsApiKey]
+  /// for backwards compatibility during migration.
   GeocodingServiceImpl({
     http.Client? client,
     String? apiKey,
   })  : _client = client ?? http.Client(),
-        _apiKey = apiKey ?? FeatureFlags.googleMapsApiKey;
+        _apiKey = apiKey ??
+            (FeatureFlags.geocodingApiKey.isNotEmpty
+                ? FeatureFlags.geocodingApiKey
+                : FeatureFlags.googleMapsApiKey);
 
   @override
   Future<Either<GeocodingError, List<PlaceSearchResult>>> searchPlaces({

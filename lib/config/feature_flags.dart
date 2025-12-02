@@ -71,6 +71,23 @@ class FeatureFlags {
     defaultValue: '',
   );
 
+  /// Google Maps Geocoding API key (separate from Maps JS API key)
+  ///
+  /// This key is used for HTTP REST API calls (Geocoding, Places Autocomplete).
+  /// It should have NO application restriction (not HTTP referrer) because
+  /// it's used for server-style HTTP requests, not browser-loaded scripts.
+  ///
+  /// Security: Restrict this key to "Geocoding API" only in Google Cloud Console.
+  ///
+  /// Must be set via --dart-define or env file:
+  /// ```bash
+  /// flutter run --dart-define=GOOGLE_MAPS_GEOCODING_API_KEY=your_key
+  /// ```
+  static const String geocodingApiKey = String.fromEnvironment(
+    'GOOGLE_MAPS_GEOCODING_API_KEY',
+    defaultValue: '',
+  );
+
   /// Returns the appropriate Google Maps API key for the current platform
   ///
   /// For Static Maps API (HTTP requests), we need to use the Android/iOS key
