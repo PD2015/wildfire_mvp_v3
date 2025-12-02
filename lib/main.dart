@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Icon keep-alive for tree-shaking prevention (Flutter Web production builds)
+// ignore: unused_import
+import 'package:wildfire_mvp_v3/utils/icon_keep_alive.dart';
+
 // Service imports
 import 'services/fire_risk_service.dart';
 import 'services/fire_risk_service_impl.dart';
