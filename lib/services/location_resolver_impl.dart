@@ -146,15 +146,22 @@ class LocationResolverImpl implements LocationResolver {
   Future<Either<String, LatLng>> _tryGps() async {
     try {
       // Check if location services are enabled
-      if (!await _geolocatorService.isLocationServiceEnabled()) {
+      final serviceEnabled =
+          await _geolocatorService.isLocationServiceEnabled();
+      debugPrint('GPS: Location services enabled: $serviceEnabled');
+      if (!serviceEnabled) {
         return const Left('Location services disabled');
       }
 
       // Check permission status
       LocationPermission permission =
           await _geolocatorService.checkPermission();
+      debugPrint('GPS: Initial permission status: $permission');
+
       if (permission == LocationPermission.denied) {
+        debugPrint('GPS: Requesting permission...');
         permission = await _geolocatorService.requestPermission();
+        debugPrint('GPS: Permission after request: $permission');
         if (permission == LocationPermission.denied) {
           return const Left('Location permission denied');
         }
@@ -165,15 +172,28 @@ class LocationResolverImpl implements LocationResolver {
       }
 
       // Try last known position first (instant, may be stale)
-      final lastKnown = await _geolocatorService.getLastKnownPosition();
-      if (lastKnown != null) {
-        return Right(LatLng(lastKnown.latitude, lastKnown.longitude));
+      // Note: getLastKnownPosition is NOT supported on web - throws PlatformException
+      // We skip it on web rather than catching the exception for cleaner control flow
+      if (!kIsWeb) {
+        final lastKnown = await _geolocatorService.getLastKnownPosition();
+        if (lastKnown != null) {
+          debugPrint('GPS: Using last known position');
+          return Right(LatLng(lastKnown.latitude, lastKnown.longitude));
+        }
       }
 
-      // Get fresh position with timeout
+      // Get fresh position with platform-appropriate timeout
+      // Web browsers need longer timeout (10s) for first GPS acquisition
+      // Native platforms are faster (3s) with direct hardware access
+      // ignore: prefer_const_declarations
+      final timeout =
+          kIsWeb ? const Duration(seconds: 10) : const Duration(seconds: 3);
+
+      debugPrint(
+          'GPS: Acquiring fresh position (timeout: ${timeout.inSeconds}s)...');
       final position = await _geolocatorService.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.medium,
-        timeLimit: const Duration(seconds: 3),
+        timeLimit: timeout,
       );
 
       return Right(LatLng(position.latitude, position.longitude));
