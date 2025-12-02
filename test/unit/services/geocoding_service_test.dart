@@ -796,5 +796,58 @@ void main() {
         expect(service, isA<GeocodingService>());
       });
     });
+
+    group('empty API key handling', () {
+      test('reverseGeocode returns error when API key is empty', () async {
+        final service = GeocodingServiceImpl(apiKey: '');
+
+        final result = await service.reverseGeocode(lat: testLat, lon: testLon);
+
+        expect(result.isLeft(), isTrue);
+        result.fold(
+          (error) {
+            expect(error, isA<GeocodingApiError>());
+            final apiError = error as GeocodingApiError;
+            expect(
+              apiError.message,
+              contains('API key not configured'),
+            );
+          },
+          (_) => fail('Expected error, got success'),
+        );
+      });
+
+      test('searchPlaces returns error when API key is empty', () async {
+        final service = GeocodingServiceImpl(apiKey: '');
+
+        final result = await service.searchPlaces(query: 'Edinburgh');
+
+        expect(result.isLeft(), isTrue);
+        result.fold(
+          (error) {
+            expect(error, isA<GeocodingApiError>());
+            final apiError = error as GeocodingApiError;
+            expect(
+              apiError.message,
+              contains('API key not configured'),
+            );
+          },
+          (_) => fail('Expected error, got success'),
+        );
+      });
+
+      test('buildStaticMapUrl handles empty API key gracefully', () {
+        final service = GeocodingServiceImpl(apiKey: '');
+
+        // Static map URL should still be built but with empty key
+        // This allows the UI to show a placeholder or error
+        final url = service.buildStaticMapUrl(lat: testLat, lon: testLon);
+
+        expect(url, isNotEmpty);
+        // URL is still valid structure even with empty key
+        expect(url, contains('staticmap'));
+        expect(url, contains('center='));
+      });
+    });
   });
 }
