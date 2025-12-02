@@ -32,8 +32,12 @@ void main() {
     setUp(() {
       fakeGeolocator = FakeGeolocator();
       fakeTimer = FakeTimer();
-      locationResolver = LocationResolverImpl(); // Reset SharedPreferences
       SharedPreferences.setMockInitialValues({});
+
+      // Inject fake geolocator for controllable GPS behavior
+      locationResolver = LocationResolverImpl(
+        geolocatorService: fakeGeolocator,
+      );
     });
 
     tearDown(() {
@@ -259,12 +263,16 @@ void main() {
         await locationResolver.saveManual(testLocation, placeName: placeName);
 
         // Simulate app restart by creating new instances
-        final newLocationResolver = LocationResolverImpl();
         final newFakeGeolocator = FakeGeolocator();
 
         // Configure GPS to fail so it falls back to cache
         newFakeGeolocator.setLastKnownPosition(null);
         newFakeGeolocator.setPermission(LocationPermission.denied);
+
+        // Inject fake geolocator into new resolver
+        final newLocationResolver = LocationResolverImpl(
+          geolocatorService: newFakeGeolocator,
+        );
 
         // Act - Second session: retrieve location
         final result = await newLocationResolver.getLatLon();

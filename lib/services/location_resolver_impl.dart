@@ -8,14 +8,24 @@ import '../models/location_models.dart';
 import '../config/feature_flags.dart';
 import 'utils/geo_utils.dart';
 import 'location_resolver.dart';
+import 'geolocator_service.dart';
 
 /// Concrete implementation of LocationResolver with 5-tier fallback strategy
 ///
 /// Provides headless location resolution with privacy-compliant logging
 /// and graceful handling of platform limitations and permission changes.
+///
+/// GPS operations are abstracted via [GeolocatorService] for testability.
 class LocationResolverImpl implements LocationResolver {
-  /// Create LocationResolver
-  LocationResolverImpl();
+  /// Create LocationResolver with optional injectable dependencies.
+  ///
+  /// [geolocatorService] - GPS abstraction, defaults to real implementation.
+  /// Pass a fake in tests for controllable behavior.
+  LocationResolverImpl({
+    GeolocatorService? geolocatorService,
+  }) : _geolocatorService = geolocatorService ?? GeolocatorServiceImpl();
+
+  final GeolocatorService _geolocatorService;
 
   /// Aviemore coordinates - used as default fallback for testing
   /// Located in Cairngorms National Park, Scotland - an area with
@@ -55,8 +65,12 @@ class LocationResolverImpl implements LocationResolver {
 
     try {
       // Platform guard: Skip GPS on desktop platforms only
-      // Web browsers CAN access GPS via Geolocation API (requires HTTPS)
-      // Mobile platforms (Android/iOS) use native GPS
+      // - Desktop (macOS/Windows/Linux): No GPS hardware available
+      // - Mobile (Android/iOS): Native GPS available
+      // - Web: Geolocation API available (requires HTTPS in production)
+      //
+      // Web GPS is now safe because GeolocatorService is injectable,
+      // allowing tests to use FakeGeolocatorService instead of real browser API.
       const isTestRegionSet = FeatureFlags.testRegion != 'scotland';
 
       // Only skip GPS on desktop platforms (macOS, Windows, Linux)
@@ -132,14 +146,15 @@ class LocationResolverImpl implements LocationResolver {
   Future<Either<String, LatLng>> _tryGps() async {
     try {
       // Check if location services are enabled
-      if (!await Geolocator.isLocationServiceEnabled()) {
+      if (!await _geolocatorService.isLocationServiceEnabled()) {
         return const Left('Location services disabled');
       }
 
       // Check permission status
-      LocationPermission permission = await Geolocator.checkPermission();
+      LocationPermission permission =
+          await _geolocatorService.checkPermission();
       if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
+        permission = await _geolocatorService.requestPermission();
         if (permission == LocationPermission.denied) {
           return const Left('Location permission denied');
         }
@@ -150,13 +165,13 @@ class LocationResolverImpl implements LocationResolver {
       }
 
       // Try last known position first (instant, may be stale)
-      final lastKnown = await Geolocator.getLastKnownPosition();
+      final lastKnown = await _geolocatorService.getLastKnownPosition();
       if (lastKnown != null) {
         return Right(LatLng(lastKnown.latitude, lastKnown.longitude));
       }
 
       // Get fresh position with timeout
-      final position = await Geolocator.getCurrentPosition(
+      final position = await _geolocatorService.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.medium,
         timeLimit: const Duration(seconds: 3),
       );

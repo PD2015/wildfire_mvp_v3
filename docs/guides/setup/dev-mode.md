@@ -110,12 +110,13 @@ You can use any combination of these flags independently.
 
 ## Web Platform GPS
 
-With this update, **web browsers now attempt GPS** via the Geolocation API:
+Currently, **web browsers skip GPS** and use the fallback location directly. This is because:
 
-- **Before**: Web always skipped GPS and used fallback
-- **After**: Web attempts GPS first (requires HTTPS in production)
+1. **Test stability**: Automated tests run on Chrome require GPS permission prompts
+2. **HTTPS requirement**: Browser GPS only works over HTTPS
+3. **User experience**: Permission prompts can be confusing without proper UX
 
-This enables PWA installations on mobile phones to use real GPS location.
+**Future enhancement**: Web GPS can be enabled once proper test mocking and UX flows are implemented.
 
 **Platform behavior:**
 
@@ -123,8 +124,7 @@ This enables PWA installations on mobile phones to use real GPS location.
 |----------|---------------|---------------------|
 | Android | ✅ Yes | Permission denied, timeout, or error |
 | iOS | ✅ Yes | Permission denied, timeout, or error |
-| Web (HTTPS) | ✅ Yes | Permission denied, timeout, or error |
-| Web (HTTP) | ⚠️ Limited | Browser may block without HTTPS |
+| Web | ❌ No | Always uses fallback (GPS support planned) |
 | macOS Desktop | ❌ No | Always uses fallback |
 | Windows/Linux | ❌ No | Always uses fallback |
 
