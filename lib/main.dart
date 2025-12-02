@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Icon keep-alive for Flutter Web tree-shaking prevention
+// ignore: unused_import
+import 'utils/icon_keep_alive.dart';
+
 // Service imports
 import 'services/fire_risk_service.dart';
 import 'services/fire_risk_service_impl.dart';
@@ -48,6 +52,15 @@ import 'config/feature_flags.dart';
 void main() async {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Log DEV_MODE status for developer awareness
+  if (FeatureFlags.devMode) {
+    debugPrint(
+        '🔧 DEV_MODE enabled - using Aviemore (57.2, -3.8) as fallback location');
+  } else {
+    debugPrint(
+        '🏭 Production mode - using Scotland centroid (55.86, -4.25) as fallback location');
+  }
 
   // Clear cached location for testing Portugal coordinates
   // await _clearCachedLocation(); // COMMENTED OUT: Cache clearing fixed, now disabled

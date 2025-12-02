@@ -482,10 +482,28 @@ class _HomeScreenState extends State<HomeScreen> {
   ///
   /// Uses go_router navigation to the full-screen location picker.
   /// Returns PickedLocation via Navigator.pop when user confirms.
+  /// Passes current location so map centers on user's current position.
   Future<void> _showManualLocationDialog() async {
+    // Get current location from controller state to center map there
+    final currentState = _controller.state;
+    final LatLng? currentLocation;
+    final String? currentPlaceName;
+
+    if (currentState is HomeStateSuccess) {
+      currentLocation = currentState.location;
+      currentPlaceName = currentState.placeName;
+    } else {
+      currentLocation = null;
+      currentPlaceName = null;
+    }
+
     final result = await context.push<PickedLocation>(
       '/location-picker',
-      extra: LocationPickerMode.riskLocation,
+      extra: LocationPickerExtras(
+        mode: LocationPickerMode.riskLocation,
+        initialLocation: currentLocation,
+        initialPlaceName: currentPlaceName,
+      ),
     );
 
     if (result != null && mounted) {
