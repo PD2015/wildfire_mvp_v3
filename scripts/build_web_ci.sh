@@ -11,8 +11,15 @@ echo "================================"
 # Phase 1: Validate inputs
 if [ -z "$MAPS_API_KEY_WEB" ]; then
   echo "❌ ERROR: MAPS_API_KEY_WEB environment variable not set"
-  echo "Usage: MAPS_API_KEY_WEB=<your-key> ./scripts/build_web_ci.sh"
+  echo "Usage: MAPS_API_KEY_WEB=<your-key> GEOCODING_API_KEY=<geocoding-key> ./scripts/build_web_ci.sh"
   exit 1
+fi
+
+# Geocoding API key is optional (falls back to MAPS_API_KEY_WEB if not set)
+if [ -z "$GEOCODING_API_KEY" ]; then
+  echo "⚠️  WARNING: GEOCODING_API_KEY not set - geocoding/search may not work with referrer-restricted keys"
+  echo "   Consider creating a separate key with API restriction (Geocoding API only) instead of HTTP referrer restriction"
+  GEOCODING_API_KEY=""
 fi
 
 if ! grep -q 'src="https://maps.googleapis.com/maps/api/js"' web/index.html; then
@@ -22,7 +29,10 @@ if ! grep -q 'src="https://maps.googleapis.com/maps/api/js"' web/index.html; the
 fi
 
 echo "✅ Input validation passed"
-echo "🔑 Using API key: ${MAPS_API_KEY_WEB:0:8}***"
+echo "🔑 Using Maps API key: ${MAPS_API_KEY_WEB:0:8}***"
+if [ -n "$GEOCODING_API_KEY" ]; then
+  echo "🔑 Using Geocoding API key: ${GEOCODING_API_KEY:0:8}***"
+fi
 
 # Phase 2: Inject API key
 echo ""
@@ -33,7 +43,19 @@ sed -i.bkp 's|https://maps.googleapis.com/maps/api/js"|https://maps.googleapis.c
 # Phase 3: Build Flutter web
 echo ""
 echo "🔨 Building Flutter web app..."
-flutter build web --release --dart-define=MAP_LIVE_DATA=false
+# Pass API keys via dart-define:
+# - GOOGLE_MAPS_API_KEY_WEB: For Static Maps API and Maps JS API (FeatureFlags.googleMapsApiKeyWeb)
+# - GOOGLE_MAPS_GEOCODING_API_KEY: For Geocoding/Places REST API (FeatureFlags.geocodingApiKey)
+# Also inject Maps key into index.html for JavaScript Maps API (handled above)
+
+# Build command with optional geocoding key
+BUILD_CMD="flutter build web --release --dart-define=MAP_LIVE_DATA=false --dart-define=GOOGLE_MAPS_API_KEY_WEB=$MAPS_API_KEY_WEB"
+
+if [ -n "$GEOCODING_API_KEY" ]; then
+  BUILD_CMD="$BUILD_CMD --dart-define=GOOGLE_MAPS_GEOCODING_API_KEY=$GEOCODING_API_KEY"
+fi
+
+eval $BUILD_CMD
 
 if [ $? -ne 0 ]; then
   echo "❌ Build failed! Restoring original web/index.html..."

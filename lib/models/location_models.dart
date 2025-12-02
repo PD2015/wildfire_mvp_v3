@@ -86,3 +86,26 @@ enum LocationSource {
   /// System default location (Scotland/test region)
   defaultFallback,
 }
+
+/// Extension methods for LocationSource display in UI
+///
+/// Provides user-friendly labels for badges and accessibility.
+extension LocationSourceDisplayExtension on LocationSource {
+  /// User-friendly display label for UI badges
+  ///
+  /// Used in LocationCard header badge and accessibility labels.
+  String get displayLabel => switch (this) {
+        LocationSource.gps => 'GPS',
+        LocationSource.manual => 'Manual',
+        LocationSource.cached => 'Cached',
+        LocationSource.defaultFallback => 'Default',
+      };
+
+  /// Longer descriptive label for accessibility
+  String get accessibilityLabel => switch (this) {
+        LocationSource.gps => 'Location from GPS',
+        LocationSource.manual => 'Manually set location',
+        LocationSource.cached => 'Cached location',
+        LocationSource.defaultFallback => 'Default location',
+      };
+}

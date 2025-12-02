@@ -401,18 +401,21 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           MAPS_API_KEY_WEB: ${{ secrets.GOOGLE_MAPS_API_KEY_WEB_PREVIEW }}
+          GEOCODING_API_KEY: ${{ secrets.GOOGLE_MAPS_GEOCODING_API_KEY }}
         run: ./scripts/build_web_ci.sh
       
       - name: Build web with API key injection (Staging)
         if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
         env:
           MAPS_API_KEY_WEB: ${{ secrets.GOOGLE_MAPS_API_KEY_WEB_PREVIEW }}
+          GEOCODING_API_KEY: ${{ secrets.GOOGLE_MAPS_GEOCODING_API_KEY }}
         run: ./scripts/build_web_ci.sh
       
       - name: Build web with API key injection (Production)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           MAPS_API_KEY_WEB: ${{ secrets.GOOGLE_MAPS_API_KEY_WEB_PRODUCTION }}
+          GEOCODING_API_KEY: ${{ secrets.GOOGLE_MAPS_GEOCODING_API_KEY }}
         run: ./scripts/build_web_ci.sh
       
       - name: Upload web artifact

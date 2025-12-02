@@ -135,40 +135,61 @@ class WildfireA11yTheme {
       brightness: Brightness.light,
       scaffoldBackgroundColor: colorScheme.surface,
 
-      // ElevatedButton: ≥44dp height (C3)
+      // ElevatedButton: ≥44dp height (C3), 12dp corner radius
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(64, 44),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
 
-      // FilledButton: M3 primary CTA (≥44dp height)
+      // FilledButton: M3 primary CTA (≥44dp height), 12dp corner radius
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(64, 44),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
 
-      // OutlinedButton: ≥44dp height (C3)
+      // OutlinedButton: ≥44dp height (C3), 12dp corner radius
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(64, 44),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-          side: BorderSide(color: colorScheme.outline, width: 1.5),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+
+          // 🌲 Brand-consistent forest text/icon
+          foregroundColor: BrandPalette.forest700,
+
+          // 🌲 Forest-based outline (your built-in outline)
+          side: const BorderSide(
+            color: BrandPalette.outline,
+            width: 1.5,
+          ),
+
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
 
-      // TextButton: ≥44dp height (C3)
+      // TextButton: ≥44dp height (C3), 12dp corner radius
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           minimumSize: const Size(64, 44),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
 
@@ -294,9 +315,9 @@ class WildfireA11yTheme {
   /// Contrast ratios: forest400+white = 7.8:1, surface+onSurface = 14.2:1
   static ThemeData get dark {
     const colorScheme = ColorScheme.dark(
-      primary: BrandPalette.forest600,
-      onPrimary: BrandPalette.onDarkHigh,
-      secondary: BrandPalette.mint400,
+      primary: BrandPalette.mint400,
+      onPrimary: BrandPalette.forest900,
+      secondary: BrandPalette.forest600,
       onSecondary: BrandPalette.forest900, // dark forest text/icon
       secondaryContainer: BrandPalette.mint300, // slightly lighter mint pill
       onSecondaryContainer: BrandPalette.forest900, // dark forest text
@@ -305,14 +326,11 @@ class WildfireA11yTheme {
       // Dark theme container for tertiary (keeps same amber family)
       tertiaryContainer: BrandPalette.amber600,
       onTertiaryContainer: BrandPalette.onLightHigh,
-
-      // surface: BrandPalette.forest500,
+      surface: BrandPalette.forest700,
       onSurface: BrandPalette.onDarkHigh,
 
       surfaceContainerHighest: BrandPalette.forest400,
       onSurfaceVariant: BrandPalette.onDarkMedium,
-
-      surface: BrandPalette.forest700,
 
       surfaceContainerLowest: BrandPalette.forest900,
       surfaceContainerLow: BrandPalette.forest800,
@@ -337,40 +355,53 @@ class WildfireA11yTheme {
       brightness: Brightness.dark,
       scaffoldBackgroundColor: colorScheme.surfaceContainerLowest,
 
-      // ElevatedButton: ≥44dp height (C3)
+      // ElevatedButton: ≥44dp height (C3), 12dp corner radius
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(64, 44),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
 
-      // FilledButton: M3 primary CTA (≥44dp height)
+      // FilledButton: M3 primary CTA (≥44dp height), 12dp corner radius
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(64, 44),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
 
-      // OutlinedButton: ≥44dp height (C3)
+      // OutlinedButton: ≥44dp height (C3), 12dp corner radius
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(64, 44),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          foregroundColor: BrandPalette.onDarkMedium,
           side: BorderSide(color: colorScheme.outline, width: 1.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
 
-      // TextButton: ≥44dp height (C3)
+      // TextButton: ≥44dp height (C3), 12dp corner radius
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           minimumSize: const Size(64, 44),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
 

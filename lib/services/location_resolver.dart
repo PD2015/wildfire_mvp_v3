@@ -31,4 +31,11 @@ abstract class LocationResolver {
   /// This method is called by the manual entry dialog after successful
   /// coordinate validation and user confirmation.
   Future<void> saveManual(LatLng location, {String? placeName});
+
+  /// Clears manually entered location from persistent storage
+  ///
+  /// After calling this method, the next call to [getLatLon] will
+  /// attempt GPS location first, falling back through the tier chain.
+  /// This allows users to "return to GPS" after setting a manual location.
+  Future<void> clearManualLocation();
 }

@@ -203,8 +203,6 @@ replaces:
   - Comprehensive test coverage: 101 tests (21 LocationCard, 26 HomeState, 24 HomeController, 30 LocationUtils)
   - See "Location Tracking and Validation Patterns" section for implementation details
 - 016-016-a14-riskbanner: Added Dart 3.9.2, Flutter 3.35.5 stable + Flutter SDK, Material Design, existing RiskPalette, CachedBadge widge
-- 015-rename-home-fire: Added Dart 3.9.2, Flutter 3.35.5 stable + Flutter SDK, go_router (navigation/routing), Material Design Icons (Icons.warning_amber)
-- 012-a11-ci-cd: Added Dart 3.9.2, Flutter 3.35.5 stable + Firebase Hosting (deployment infrastructure), GitHub Actions (CI/CD orchestration), google_maps_flutter ^2.5.0 (mapping component), firebase-tools CLI (deployment tool)
 
 ## Utility Classes Reference
 
