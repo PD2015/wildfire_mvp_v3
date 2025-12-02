@@ -22,9 +22,12 @@ cp env/dev.env.json.template env/dev.env.json
   "GOOGLE_MAPS_API_KEY_ANDROID": "your_android_key_here",
   "GOOGLE_MAPS_API_KEY_IOS": "your_ios_key_here",
   "GOOGLE_MAPS_API_KEY_WEB": "your_web_key_here",
+  "GOOGLE_MAPS_GEOCODING_API_KEY": "your_geocoding_key_here",
   "EFFIS_BASE_URL": "https://ies-ows.jrc.ec.europa.eu/"
 }
 ```
+
+> **Note**: `GOOGLE_MAPS_GEOCODING_API_KEY` is required for place search and location name display on web. See [Geocoding API Key](#geocoding-api-key-webrest) section for details.
 
 ### 3. Run with Environment File
 ```bash
@@ -67,7 +70,9 @@ flutter run -d <device> --dart-define-from-file=env/dev.env.json --dart-define=M
 ### Step 2: Create API Keys
 1. Navigate to **APIs & Services > Credentials**
 2. Click **Create Credentials > API Key**
-3. Create **separate keys** for Android, iOS, and Web (recommended for security)
+3. Create **separate keys** for Android, iOS, Web, and **Geocoding** (recommended for security)
+
+> **⚠️ Important**: The Geocoding API requires a **separate key** from the Maps JavaScript API key. See [Geocoding API Key (Web/REST)](#geocoding-api-key-webrest) section below.
 
 ### Step 3: Restrict API Keys (CRITICAL for Security)
 
@@ -109,6 +114,81 @@ flutter run -d <device> --dart-define-from-file=env/dev.env.json --dart-define=M
 
 **⚠️ Web Security Note**: Web keys are visible in browser source code. Use HTTP referrer restrictions and consider implementing a backend proxy for production (see `WEB_API_KEY_SECURITY.md`).
 
+#### Geocoding API Key (Web/REST)
+
+> **🚨 CRITICAL**: The Google Geocoding REST API **cannot use HTTP referrer-restricted keys**. You MUST create a separate key for geocoding/place search functionality.
+
+**Why a Separate Key?**
+
+The Maps JavaScript API and Geocoding REST API have different security models:
+
+| API Type | Request Source | Restriction Type |
+|----------|----------------|------------------|
+| Maps JavaScript API | Browser `<script>` tag | HTTP Referrer ✅ |
+| Geocoding REST API | HTTP fetch/XHR | HTTP Referrer ❌ |
+| Static Maps API | HTTP `<img>` tag | HTTP Referrer ❌ |
+
+When Flutter web makes a `fetch()` request to the Geocoding API, the browser doesn't send an `HTTP-Referer` header in the same way as a `<script>` load. Google's servers reject the request with:
+```
+"API keys with referer restrictions cannot be used with this API."
+```
+
+**Create a Geocoding-Specific Key**:
+
+1. Go to **APIs & Services > Credentials**
+2. Click **Create Credentials > API Key**
+3. Name it: `WildFire Geocoding API Key`
+4. Under **Application restrictions**: Select **None** (or IP restriction for backend)
+5. Under **API restrictions**: Select **Restrict key** → **Geocoding API** only
+6. Save changes
+
+**Security Considerations**:
+- ✅ **API restriction** limits the key to Geocoding API only (not Maps, not other services)
+- ✅ If key is leaked, attacker can only make geocoding requests (limited abuse potential)
+- ✅ Set up **billing alerts** to detect unusual usage
+- ⚠️ Consider backend proxy for high-security production deployments
+
+**Configuration**:
+
+Add to `env/dev.env.json`:
+```json
+{
+  "GOOGLE_MAPS_API_KEY_WEB": "your_maps_js_key_here",
+  "GOOGLE_MAPS_GEOCODING_API_KEY": "your_geocoding_key_here"
+}
+```
+
+Add to GitHub Secrets (for CI/CD):
+- `GOOGLE_MAPS_GEOCODING_API_KEY` → Your geocoding-only API key
+
+**Code Usage**:
+
+The `GeocodingServiceImpl` automatically uses the correct key:
+```dart
+// In lib/config/feature_flags.dart
+static const String geocodingApiKey = String.fromEnvironment(
+  'GOOGLE_MAPS_GEOCODING_API_KEY',
+  defaultValue: '',
+);
+
+// GeocodingServiceImpl prioritizes:
+// 1. GOOGLE_MAPS_GEOCODING_API_KEY (recommended)
+// 2. Falls back to googleMapsApiKey if not set
+```
+
+**Production Recommendation**:
+
+For production deployments, use this key architecture:
+
+| Key Name | Restriction Type | APIs Enabled | Use Case |
+|----------|-----------------|--------------|----------|
+| `GOOGLE_MAPS_API_KEY_WEB` | HTTP Referrer (`*.web.app/*`) | Maps JavaScript API | Map display |
+| `GOOGLE_MAPS_GEOCODING_API_KEY` | API restriction only | Geocoding API | Place search, reverse geocoding |
+| `GOOGLE_MAPS_API_KEY_ANDROID` | Package name + SHA-1 | Maps SDK for Android, Geocoding API | Android app |
+| `GOOGLE_MAPS_API_KEY_IOS` | Bundle ID | Maps SDK for iOS, Geocoding API | iOS app |
+
+**Note**: Android and iOS keys can include Geocoding API since they use package/bundle restrictions which work for all request types.
+
 ---
 
 ## 📂 Environment File Structure
@@ -128,6 +208,7 @@ env/
   "GOOGLE_MAPS_API_KEY_ANDROID": "YOUR_ANDROID_API_KEY_HERE",
   "GOOGLE_MAPS_API_KEY_IOS": "YOUR_IOS_API_KEY_HERE", 
   "GOOGLE_MAPS_API_KEY_WEB": "YOUR_WEB_API_KEY_HERE",
+  "GOOGLE_MAPS_GEOCODING_API_KEY": "YOUR_GEOCODING_API_KEY_HERE",
   "EFFIS_BASE_URL": "https://ies-ows.jrc.ec.europa.eu/"
 }
 ```
@@ -450,6 +531,7 @@ E/Google Android Maps SDK: API Key: YOUR_API_KEY_HERE
    - `GOOGLE_MAPS_API_KEY_ANDROID`  
    - `GOOGLE_MAPS_API_KEY_IOS`
    - `GOOGLE_MAPS_API_KEY_WEB` (for web platform)
+   - `GOOGLE_MAPS_GEOCODING_API_KEY` (for place search on web)
    - `EFFIS_BASE_URL`
 4. **Restore from template** if corrupted:
    ```bash
@@ -544,5 +626,5 @@ jobs:
 
 ---
 
-**Last Updated**: October 28, 2025  
+**Last Updated**: December 2, 2025  
 **Status**: Production-ready with comprehensive platform support
