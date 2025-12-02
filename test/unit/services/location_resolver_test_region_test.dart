@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver_impl.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/config/feature_flags.dart';
-import '../../../test/support/fakes.dart';
+import '../../support/fakes.dart';
 
 /// Tests for TEST_REGION feature flag behavior in LocationResolver
 ///
