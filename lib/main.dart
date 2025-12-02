@@ -228,6 +228,8 @@ class _WildFireAppRootState extends State<WildFireAppRoot>
       locationResolver: widget.services.locationResolver,
       fireLocationService: widget.services.fireLocationService,
       fireRiskService: widget.services.fireRiskService,
+      what3wordsService: widget.services.what3wordsService,
+      geocodingService: widget.services.geocodingService,
     );
   }
 }

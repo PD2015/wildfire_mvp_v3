@@ -7,7 +7,9 @@ import 'features/map/controllers/map_controller.dart';
 import 'features/report/screens/report_fire_screen.dart';
 import 'features/location_picker/screens/location_picker_screen.dart';
 import 'features/location_picker/models/location_picker_mode.dart';
+import 'features/location_picker/services/what3words_service.dart';
 import 'features/location_picker/services/what3words_service_impl.dart';
+import 'features/location_picker/services/geocoding_service.dart';
 import 'features/location_picker/services/geocoding_service_impl.dart';
 import 'services/location_resolver.dart';
 import 'services/fire_location_service.dart';
@@ -32,12 +34,19 @@ class WildFireApp extends StatelessWidget {
   final FireLocationService fireLocationService;
   final FireRiskService fireRiskService;
 
+  /// Optional geocoding services for location picker
+  /// If null, LocationPickerScreen will create new instances with FeatureFlags defaults
+  final What3wordsService? what3wordsService;
+  final GeocodingService? geocodingService;
+
   WildFireApp({
     super.key,
     required this.homeController,
     required this.locationResolver,
     required this.fireLocationService,
     required this.fireRiskService,
+    this.what3wordsService,
+    this.geocodingService,
   });
 
   /// Router configuration with go_router and bottom navigation
@@ -52,8 +61,8 @@ class WildFireApp extends StatelessWidget {
               LocationPickerMode.riskLocation;
           return LocationPickerScreen(
             mode: mode,
-            what3wordsService: What3wordsServiceImpl(),
-            geocodingService: GeocodingServiceImpl(),
+            what3wordsService: what3wordsService ?? What3wordsServiceImpl(),
+            geocodingService: geocodingService ?? GeocodingServiceImpl(),
             locationResolver: locationResolver,
           );
         },
