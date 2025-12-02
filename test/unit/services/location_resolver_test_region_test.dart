@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver_impl.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/config/feature_flags.dart';
+import '../../support/fakes.dart';
 
 /// Tests for TEST_REGION feature flag behavior in LocationResolver
 ///
@@ -16,11 +17,19 @@ void main() {
 
   group('LocationResolver TEST_REGION Integration', () {
     late LocationResolverImpl locationResolver;
+    late FakeGeolocator fakeGeolocator;
 
     setUp(() {
       // Mock SharedPreferences to prevent hanging on web platform
       SharedPreferences.setMockInitialValues({});
-      locationResolver = LocationResolverImpl();
+
+      // Create fake geolocator for testability
+      fakeGeolocator = FakeGeolocator();
+
+      // Create location resolver with injected fake
+      locationResolver = LocationResolverImpl(
+        geolocatorService: fakeGeolocator,
+      );
     });
 
     // Note: These tests require running with specific --dart-define values

@@ -57,10 +57,13 @@ class WildFireApp extends StatelessWidget {
         path: '/location-picker',
         name: 'location-picker',
         builder: (context, state) {
-          final mode = state.extra as LocationPickerMode? ??
-              LocationPickerMode.riskLocation;
+          final extras = state.extra as LocationPickerExtras? ??
+              const LocationPickerExtras(mode: LocationPickerMode.riskLocation);
+
           return LocationPickerScreen(
-            mode: mode,
+            mode: extras.mode,
+            initialLocation: extras.initialLocation,
+            initialPlaceName: extras.initialPlaceName,
             what3wordsService: what3wordsService ?? What3wordsServiceImpl(),
             geocodingService: geocodingService ?? GeocodingServiceImpl(),
             locationResolver: locationResolver,
