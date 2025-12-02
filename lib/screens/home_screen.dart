@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wildfire_mvp_v3/widgets/location_card.dart';
 
+import '../config/feature_flags.dart';
 import '../controllers/home_controller.dart';
 import '../models/home_state.dart';
 import '../models/location_models.dart';
 import '../widgets/risk_banner.dart';
 import '../widgets/risk_guidance_card.dart';
-import '../widgets/manual_location_dialog.dart';
+import '../features/location_picker/models/location_picker_mode.dart';
+import '../features/location_picker/models/picked_location.dart';
 import '../services/models/fire_risk.dart';
 import '../utils/location_utils.dart';
 
@@ -106,12 +110,14 @@ class _HomeScreenState extends State<HomeScreen> {
       case HomeStateLoading():
         return const RiskBanner(state: RiskBannerLoading());
 
-      case HomeStateSuccess(:final riskData, :final location):
-        // Format location with privacy-compliant 2-decimal precision (C2)
-        final locationLabel = LocationUtils.logRedact(
-          location.latitude,
-          location.longitude,
-        );
+      case HomeStateSuccess(
+          :final riskData,
+          :final location,
+          :final formattedLocation,
+        ):
+        // Prefer human-readable location name, fallback to coordinates (C2 compliant)
+        final locationLabel = formattedLocation ??
+            LocationUtils.logRedact(location.latitude, location.longitude);
 
         return RiskBanner(
           state: RiskBannerSuccess(riskData),
@@ -324,6 +330,50 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Builds a Google Static Maps URL for the given coordinates
+  ///
+  /// Uses 2-decimal precision for privacy compliance (C2).
+  /// Returns null if no API key is configured.
+  String? _buildStaticMapUrl(double lat, double lon) {
+    final apiKey = FeatureFlags.googleMapsApiKey;
+    if (apiKey.isEmpty) {
+      return null;
+    }
+
+    // Round to 2 decimal places for privacy (C2)
+    final roundedLat = (lat * 100).round() / 100;
+    final roundedLon = (lon * 100).round() / 100;
+
+    final url =
+        Uri.parse('https://maps.googleapis.com/maps/api/staticmap').replace(
+      queryParameters: {
+        'center': '$roundedLat,$roundedLon',
+        'zoom': '14',
+        'size': '600x300',
+        'markers': 'color:red|$roundedLat,$roundedLon',
+        'key': apiKey,
+        'scale': '2',
+        'maptype': 'roadmap',
+      },
+    );
+
+    return url.toString();
+  }
+
+  /// Handles copying what3words address to clipboard with snackbar feedback
+  void _handleCopyWhat3words(String what3words) {
+    Clipboard.setData(ClipboardData(text: what3words));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Copied $what3words to clipboard'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   /// Builds the location card based on current HomeState
   Widget _buildLocationCard() {
     final state = _controller.state;
@@ -362,6 +412,10 @@ class _HomeScreenState extends State<HomeScreen> {
           :final location,
           :final locationSource,
           :final placeName,
+          :final what3words,
+          :final formattedLocation,
+          :final isWhat3wordsLoading,
+          :final isGeocodingLoading,
         ):
         // Build trust-building subtitle with combination approach
         final String subtitle = switch (locationSource) {
@@ -373,6 +427,12 @@ class _HomeScreenState extends State<HomeScreen> {
           LocationSource.defaultFallback => 'Default location (Scotland)',
         };
 
+        // Build static map URL for preview
+        final staticMapUrl = _buildStaticMapUrl(
+          location.latitude,
+          location.longitude,
+        );
+
         return LocationCard(
           coordinatesLabel: LocationUtils.logRedact(
             location.latitude,
@@ -381,6 +441,20 @@ class _HomeScreenState extends State<HomeScreen> {
           subtitle: subtitle,
           onChangeLocation: _showManualLocationDialog,
           locationSource: locationSource,
+          // Enhanced properties from T043
+          what3words: what3words,
+          isWhat3wordsLoading: isWhat3wordsLoading,
+          formattedLocation: formattedLocation,
+          isGeocodingLoading: isGeocodingLoading,
+          staticMapUrl: staticMapUrl,
+          onCopyWhat3words: what3words != null
+              ? () => _handleCopyWhat3words(what3words)
+              : null,
+          // onUseGps enables "Use GPS" button when manual location is active
+          // When not manual, button shows "Change Location" using onChangeLocation
+          onUseGps: locationSource == LocationSource.manual
+              ? () => _controller.useGpsLocation()
+              : null,
         );
 
       case HomeStateError(:final cachedLocation) when cachedLocation != null:
@@ -404,13 +478,22 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// Shows the manual location dialog and handles the result
+  /// Opens the location picker screen and handles the result
+  ///
+  /// Uses go_router navigation to the full-screen location picker.
+  /// Returns PickedLocation via Navigator.pop when user confirms.
   Future<void> _showManualLocationDialog() async {
-    final coordinates = await ManualLocationDialog.show(context);
+    final result = await context.push<PickedLocation>(
+      '/location-picker',
+      extra: LocationPickerMode.riskLocation,
+    );
 
-    if (coordinates != null && mounted) {
+    if (result != null && mounted) {
       // Call the controller's setManualLocation which will save via LocationResolver
-      await _controller.setManualLocation(coordinates);
+      await _controller.setManualLocation(
+        result.coordinates,
+        placeName: result.placeName,
+      );
     }
   }
 }

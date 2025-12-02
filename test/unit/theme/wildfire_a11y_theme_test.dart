@@ -76,8 +76,10 @@ void main() {
     });
 
     test('colorScheme uses lighter BrandPalette colors for dark mode', () {
-      expect(theme.colorScheme.primary, equals(BrandPalette.forest600));
-      expect(theme.colorScheme.secondary, equals(BrandPalette.mint400));
+      // Dark theme uses mint400 primary (lighter on dark backgrounds)
+      // and forest600 secondary (inverted from light theme)
+      expect(theme.colorScheme.primary, equals(BrandPalette.mint400));
+      expect(theme.colorScheme.secondary, equals(BrandPalette.forest600));
       expect(theme.colorScheme.surface, equals(BrandPalette.forest700));
       expect(theme.colorScheme.onSurface, equals(BrandPalette.onDarkHigh));
     });

@@ -119,9 +119,6 @@ class RiskGuidanceCard extends StatelessWidget {
                   foregroundColor: scheme.onTertiaryContainer,
                   padding: const EdgeInsets.all(16),
                   minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,

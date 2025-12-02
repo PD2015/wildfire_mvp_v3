@@ -17,6 +17,12 @@ import 'services/mock_fire_service.dart';
 import 'services/fire_incident_cache.dart';
 import 'services/cache/fire_incident_cache_impl.dart';
 
+// Location picker services (A15 - what3words and geocoding)
+import 'features/location_picker/services/what3words_service.dart';
+import 'features/location_picker/services/what3words_service_impl.dart';
+import 'features/location_picker/services/geocoding_service.dart';
+import 'features/location_picker/services/geocoding_service_impl.dart';
+
 // Model imports
 import 'models/api_error.dart';
 import 'models/effis_fwi_result.dart';
@@ -28,6 +34,7 @@ import 'package:dartz/dartz.dart'
 // App imports
 import 'app.dart';
 import 'controllers/home_controller.dart';
+import 'config/feature_flags.dart';
 
 /// Application entry point with composition root dependency injection
 ///
@@ -52,6 +59,8 @@ void main() async {
   final homeController = HomeController(
     locationResolver: services.locationResolver,
     fireRiskService: services.fireRiskService,
+    what3wordsService: services.what3wordsService,
+    geocodingService: services.geocodingService,
   );
 
   // Create app lifecycle manager
@@ -72,11 +81,15 @@ class ServiceContainer {
   final LocationResolver locationResolver;
   final FireRiskService fireRiskService;
   final FireLocationService fireLocationService;
+  final What3wordsService? what3wordsService;
+  final GeocodingService? geocodingService;
 
   ServiceContainer({
     required this.locationResolver,
     required this.fireRiskService,
     required this.fireLocationService,
+    this.what3wordsService,
+    this.geocodingService,
   });
 }
 
@@ -136,10 +149,42 @@ Future<ServiceContainer> _initializeServices() async {
     // TODO: Add SEPA service when implemented (T017)
   );
 
+  // Initialize what3words service (A15 - optional, requires API key)
+  What3wordsService? what3wordsService;
+  const w3wApiKey = FeatureFlags.what3wordsApiKey;
+  if (w3wApiKey.isNotEmpty) {
+    what3wordsService = What3wordsServiceImpl(
+      client: httpClient,
+      apiKey: w3wApiKey,
+    );
+    debugPrint('✅ What3words service initialized');
+  } else {
+    debugPrint('⚠️ What3words service disabled (no API key)');
+  }
+
+  // Initialize geocoding service (A15 - uses dedicated geocoding API key)
+  // The GeocodingServiceImpl constructor handles key selection:
+  // 1. Prefers GOOGLE_MAPS_GEOCODING_API_KEY (no HTTP referrer restriction)
+  // 2. Falls back to googleMapsApiKey if geocoding key not set
+  GeocodingService? geocodingService;
+  const geocodingApiKey = FeatureFlags.geocodingApiKey;
+  final mapsApiKey = FeatureFlags.googleMapsApiKey;
+  if (geocodingApiKey.isNotEmpty || mapsApiKey.isNotEmpty) {
+    geocodingService = GeocodingServiceImpl(
+      client: httpClient,
+      // Let constructor use its default key selection logic
+    );
+    debugPrint('✅ Geocoding service initialized');
+  } else {
+    debugPrint('⚠️ Geocoding service disabled (no API key)');
+  }
+
   return ServiceContainer(
     locationResolver: locationResolver,
     fireRiskService: fireRiskService,
     fireLocationService: fireLocationService,
+    what3wordsService: what3wordsService,
+    geocodingService: geocodingService,
   );
 }
 
@@ -187,6 +232,8 @@ class _WildFireAppRootState extends State<WildFireAppRoot>
       locationResolver: widget.services.locationResolver,
       fireLocationService: widget.services.fireLocationService,
       fireRiskService: widget.services.fireRiskService,
+      what3wordsService: widget.services.what3wordsService,
+      geocodingService: widget.services.geocodingService,
     );
   }
 }

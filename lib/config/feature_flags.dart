@@ -55,4 +55,50 @@ class FeatureFlags {
     'GOOGLE_MAPS_API_KEY_IOS',
     defaultValue: '',
   );
+
+  /// Google Maps API key for Web
+  /// Must be set via --dart-define-from-file=env/dev.env.json
+  static const String googleMapsApiKeyWeb = String.fromEnvironment(
+    'GOOGLE_MAPS_API_KEY_WEB',
+    defaultValue: '',
+  );
+
+  /// what3words API key for location picker
+  /// Must be set via --dart-define-from-file=env/dev.env.json
+  /// Get free API key from: https://what3words.com/select-plan
+  static const String what3wordsApiKey = String.fromEnvironment(
+    'WHAT3WORDS_API_KEY',
+    defaultValue: '',
+  );
+
+  /// Google Maps Geocoding API key (separate from Maps JS API key)
+  ///
+  /// This key is used for HTTP REST API calls (Geocoding, Places Autocomplete).
+  /// It should have NO application restriction (not HTTP referrer) because
+  /// it's used for server-style HTTP requests, not browser-loaded scripts.
+  ///
+  /// Security: Restrict this key to "Geocoding API" only in Google Cloud Console.
+  ///
+  /// Must be set via --dart-define or env file:
+  /// ```bash
+  /// flutter run --dart-define=GOOGLE_MAPS_GEOCODING_API_KEY=your_key
+  /// ```
+  static const String geocodingApiKey = String.fromEnvironment(
+    'GOOGLE_MAPS_GEOCODING_API_KEY',
+    defaultValue: '',
+  );
+
+  /// Returns the appropriate Google Maps API key for the current platform
+  ///
+  /// For Static Maps API (HTTP requests), we need to use the Android/iOS key
+  /// because Web keys have HTTP referrer restrictions that don't work for
+  /// mobile app requests.
+  static String get googleMapsApiKey {
+    // For HTTP-based APIs (Static Maps, Geocoding), prefer Android/iOS keys
+    // as they use package name restrictions, not HTTP referrers
+    if (googleMapsApiKeyAndroid.isNotEmpty) return googleMapsApiKeyAndroid;
+    if (googleMapsApiKeyIos.isNotEmpty) return googleMapsApiKeyIos;
+    if (googleMapsApiKeyWeb.isNotEmpty) return googleMapsApiKeyWeb;
+    return '';
+  }
 }

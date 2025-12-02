@@ -45,6 +45,11 @@ class MockLocationResolver implements LocationResolver {
       'saveManual(${location.latitude}, ${location.longitude}, placeName: $placeName)',
     );
   }
+
+  @override
+  Future<void> clearManualLocation() async {
+    loggedCalls.add('clearManualLocation()');
+  }
 }
 
 /// Mock FireLocationService for controlled testing

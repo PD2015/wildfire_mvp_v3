@@ -52,8 +52,12 @@ cleanup() {
 # Register cleanup on exit
 trap cleanup EXIT INT TERM
 
-# Run Flutter web
-echo "🚀 Starting Flutter web app..."
+# Run Flutter web on fixed port for API key restrictions
+# Google Cloud Console HTTP referrer: http://localhost:8080/*
+WEB_PORT=8080
+
+echo "🚀 Starting Flutter web app on port $WEB_PORT..."
+echo "   URL: http://localhost:$WEB_PORT"
 echo "   Press Ctrl+C to stop"
 echo ""
-flutter run -d chrome --dart-define-from-file="$ENV_FILE"
+flutter run -d chrome --web-port=$WEB_PORT --dart-define-from-file="$ENV_FILE"

@@ -193,6 +193,9 @@ class MockLocationResolver implements LocationResolver {
 
   @override
   Future<void> saveManual(LatLng location, {String? placeName}) async {}
+
+  @override
+  Future<void> clearManualLocation() async {}
 }
 
 /// Mock FireRiskService for TEST_REGION testing

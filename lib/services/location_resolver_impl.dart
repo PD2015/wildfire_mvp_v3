@@ -237,4 +237,24 @@ class LocationResolverImpl implements LocationResolver {
       rethrow;
     }
   }
+
+  @override
+  Future<void> clearManualLocation() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      await Future.wait([
+        prefs.remove(_versionKey),
+        prefs.remove(_latKey),
+        prefs.remove(_lonKey),
+        prefs.remove(_placeKey),
+        prefs.remove(_timestampKey),
+      ]);
+
+      debugPrint('Manual location cleared from cache');
+    } catch (e) {
+      debugPrint('Failed to clear manual location: $e');
+      rethrow;
+    }
+  }
 }
