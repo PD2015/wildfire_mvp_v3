@@ -162,13 +162,17 @@ Future<ServiceContainer> _initializeServices() async {
     debugPrint('⚠️ What3words service disabled (no API key)');
   }
 
-  // Initialize geocoding service (A15 - uses existing Google Maps API key)
+  // Initialize geocoding service (A15 - uses dedicated geocoding API key)
+  // The GeocodingServiceImpl constructor handles key selection:
+  // 1. Prefers GOOGLE_MAPS_GEOCODING_API_KEY (no HTTP referrer restriction)
+  // 2. Falls back to googleMapsApiKey if geocoding key not set
   GeocodingService? geocodingService;
+  final geocodingApiKey = FeatureFlags.geocodingApiKey;
   final mapsApiKey = FeatureFlags.googleMapsApiKey;
-  if (mapsApiKey.isNotEmpty) {
+  if (geocodingApiKey.isNotEmpty || mapsApiKey.isNotEmpty) {
     geocodingService = GeocodingServiceImpl(
       client: httpClient,
-      apiKey: mapsApiKey,
+      // Let constructor use its default key selection logic
     );
     debugPrint('✅ Geocoding service initialized');
   } else {
