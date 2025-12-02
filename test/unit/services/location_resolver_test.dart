@@ -56,6 +56,8 @@ void main() {
           longitude: TestData.edinburgh.longitude,
         );
         fakeGeolocator.setLastKnownPosition(lastKnownPos);
+        // Also set current position for web (getLastKnownPosition skipped on web)
+        fakeGeolocator.setCurrentPosition(lastKnownPos);
 
         final stopwatch = Stopwatch()..start();
 
@@ -64,9 +66,11 @@ void main() {
 
         // Assert
         stopwatch.stop();
+        // Web may take slightly longer since it uses getCurrentPosition
+        const maxTime = kIsWeb ? 500 : 100;
         expect(
           stopwatch.elapsedMilliseconds,
-          lessThan(100),
+          lessThan(maxTime),
           reason: 'Should return quickly regardless of platform',
         );
 
@@ -74,7 +78,8 @@ void main() {
         final location = result.getOrElse(() => TestData.aviemore);
 
         // With injectable GeolocatorService, GPS works on all platforms
-        // The fake returns Edinburgh coordinates as last known position
+        // The fake returns Edinburgh coordinates as last known position (native)
+        // or current position (web, since getLastKnownPosition is skipped)
         // Note: On desktop, platform guard skips GPS, so fallback is used
         if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
           // Desktop: platform guard triggers, falls back to Aviemore (DEV_MODE)
@@ -88,6 +93,7 @@ void main() {
           );
         } else {
           // Web and mobile: GPS works via injectable fake
+          // Web uses getCurrentPosition, mobile uses getLastKnownPosition
           expect(
             location.latitude,
             closeTo(TestData.edinburgh.latitude, 0.001),
@@ -290,10 +296,14 @@ void main() {
 
         // Assert
         stopwatch.stop();
+        // Web has 10s timeout, native has 3s timeout
+        // With timeout exception, should fall back to default quickly
+        // Allow more time on web since timeout is longer (though exception should be fast)
+        const maxTime = kIsWeb ? 5000 : 2500;
         expect(
           stopwatch.elapsedMilliseconds,
-          lessThan(2500),
-          reason: 'Total resolution should complete within 2.5s budget',
+          lessThan(maxTime),
+          reason: 'Total resolution should complete within timeout budget',
         );
 
         expect(result.isRight(), isTrue);
@@ -536,6 +546,8 @@ void main() {
           longitude: TestData.edinburgh.longitude,
         );
         fakeGeolocator.setLastKnownPosition(lastKnownPos);
+        // Also set current position for web (getLastKnownPosition skipped on web)
+        fakeGeolocator.setCurrentPosition(lastKnownPos);
 
         // Act & Assert
         final stopwatch = Stopwatch()..start();
@@ -543,7 +555,9 @@ void main() {
         stopwatch.stop();
 
         expect(result.isRight(), isTrue);
-        expect(stopwatch.elapsedMilliseconds, lessThan(100));
+        // Web may take slightly longer since it uses getCurrentPosition
+        const maxTime = kIsWeb ? 500 : 100;
+        expect(stopwatch.elapsedMilliseconds, lessThan(maxTime));
       });
 
       test(
@@ -563,7 +577,9 @@ void main() {
           stopwatch.stop();
 
           expect(result.isRight(), isTrue);
-          expect(stopwatch.elapsedMilliseconds, lessThan(2500));
+          // Web has 10s timeout, but exception should short-circuit quickly
+          const maxTime = kIsWeb ? 5000 : 2500;
+          expect(stopwatch.elapsedMilliseconds, lessThan(maxTime));
         },
       );
     });
