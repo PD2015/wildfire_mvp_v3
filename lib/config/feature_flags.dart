@@ -2,6 +2,35 @@
 ///
 /// Controls live data vs mock data usage and EFFIS WFS configuration.
 class FeatureFlags {
+  /// Development mode flag - enables hardcoded test coordinates
+  ///
+  /// When true (default for local development):
+  /// - Default fallback location uses Aviemore (57.2, -3.8) which has fire data for testing
+  /// - Useful for emulator/simulator testing where GPS may not work
+  ///
+  /// When false (production builds):
+  /// - Default fallback location uses real Scotland centroid (55.8642, -4.2518)
+  /// - This is the geographic center of Scotland
+  ///
+  /// Usage:
+  /// ```bash
+  /// # Development (uses Aviemore test coordinates)
+  /// flutter run --dart-define=DEV_MODE=true
+  /// flutter run --dart-define-from-file=env/dev.env.json
+  ///
+  /// # Production (uses real Scotland centroid)
+  /// flutter run --dart-define=DEV_MODE=false
+  /// flutter build apk --dart-define=DEV_MODE=false
+  /// ```
+  ///
+  /// Note: This affects the fallback location when GPS is unavailable.
+  /// It does NOT affect the TEST_REGION flag which controls which
+  /// geographic region's fire data is fetched.
+  static const bool devMode = bool.fromEnvironment(
+    'DEV_MODE',
+    defaultValue: true, // Default true for development convenience
+  );
+
   /// Control live EFFIS data vs mock data
   /// Default: false (mock-first development per C5)
   ///

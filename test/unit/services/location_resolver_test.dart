@@ -15,6 +15,11 @@ void main() {
   // Initialize Flutter binding for SharedPreferences platform channel
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Note: These tests run with DEV_MODE=true by default (compile-time constant).
+  // The default fallback location is Aviemore (57.2, -3.8) in dev mode.
+  // In production (DEV_MODE=false), the fallback would be Scotland centroid (55.8642, -4.2518).
+  // See: lib/config/feature_flags.dart and lib/services/location_resolver_impl.dart
+
   group('LocationResolver Unit Tests', () {
     late LocationResolverImpl locationResolver;
     late FakeGeolocator fakeGeolocator;
@@ -279,7 +284,11 @@ void main() {
     });
 
     group('Platform Guards', () {
-      test('web/emulator platform skips GPS and uses fallback path', () async {
+      // Note: Web platform now ALLOWS GPS access (via browser Geolocation API)
+      // Only desktop platforms (macOS, Windows, Linux) skip GPS
+      // This change was made to support PWA GPS on mobile browsers
+
+      test('desktop platform skips GPS and uses fallback path', () async {
         // Note: In a real implementation, we would mock kIsWeb or platform detection
         // For this test, we simulate the behavior by configuring GPS as unavailable
 
@@ -290,11 +299,13 @@ void main() {
         // Act
         final result = await locationResolver.getLatLon(allowDefault: true);
 
-        // Assert
+        // Assert - uses default fallback (Aviemore in DEV_MODE)
         expect(result.isRight(), isTrue);
+        // ignore: deprecated_member_use_from_same_package
         final location = result.getOrElse(() => TestData.scotlandCentroid);
         expect(
           location.latitude,
+          // ignore: deprecated_member_use_from_same_package
           closeTo(TestData.scotlandCentroid.latitude, 0.001),
         );
       });

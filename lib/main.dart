@@ -49,6 +49,15 @@ void main() async {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Log DEV_MODE status for developer awareness
+  if (FeatureFlags.devMode) {
+    debugPrint(
+        '🔧 DEV_MODE enabled - using Aviemore (57.2, -3.8) as fallback location');
+  } else {
+    debugPrint(
+        '🏭 Production mode - using Scotland centroid (55.86, -4.25) as fallback location');
+  }
+
   // Clear cached location for testing Portugal coordinates
   // await _clearCachedLocation(); // COMMENTED OUT: Cache clearing fixed, now disabled
 

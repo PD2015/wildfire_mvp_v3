@@ -17,14 +17,27 @@ class LocationResolverImpl implements LocationResolver {
   /// Create LocationResolver
   LocationResolverImpl();
 
-  /// Scotland centroid coordinates for default fallback location
-  // ORIGINAL: static const LatLng _scotlandCentroid = LatLng(55.8642, -4.2518);
-  // TEST MODE: Aviemore coordinates to test UK fire risk services
-  static const LatLng _scotlandCentroid = LatLng(
-    57.2,
-    -3.8,
-  ); // Aviemore, UK - emulator GPS workaround
-  // static const LatLng _scotlandCentroid = LatLng(55.8642, -4.2518);
+  /// Aviemore coordinates - used as default fallback for testing
+  /// Located in Cairngorms National Park, Scotland - an area with
+  /// typical fire activity data in EFFIS for realistic testing.
+  static const LatLng _aviemoreLocation = LatLng(57.2, -3.8);
+
+  /// Real Scotland geographic centroid - used in production builds
+  /// This is the approximate geographic center of Scotland.
+  static const LatLng _scotlandCentroid = LatLng(55.8642, -4.2518);
+
+  /// Default fallback location when GPS and cache are unavailable
+  ///
+  /// Controlled by DEV_MODE environment variable:
+  /// - DEV_MODE=true (default): Uses Aviemore (57.2, -3.8) for testing
+  /// - DEV_MODE=false: Uses real Scotland centroid (55.8642, -4.2518)
+  ///
+  /// Note: This must be `static final` (not `static const`) because the
+  /// ternary expression isn't a constant expression even though both branches
+  /// are const. The analyzer incorrectly suggests const but it won't compile.
+  // ignore: prefer_const_declarations
+  static final LatLng _defaultFallbackLocation =
+      FeatureFlags.devMode ? _aviemoreLocation : _scotlandCentroid;
 
   /// Cache keys for SharedPreferences persistence
   static const String _versionKey = 'manual_location_version';
@@ -41,12 +54,15 @@ class LocationResolverImpl implements LocationResolver {
     final stopwatch = Stopwatch()..start();
 
     try {
-      // Platform guard: Skip GPS on web/unsupported platforms OR when TEST_REGION is explicitly set
+      // Platform guard: Skip GPS on desktop platforms only
+      // Web browsers CAN access GPS via Geolocation API (requires HTTPS)
+      // Mobile platforms (Android/iOS) use native GPS
       const isTestRegionSet = FeatureFlags.testRegion != 'scotland';
 
-      if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
-        const platformName = kIsWeb ? 'web' : 'macos';
-        debugPrint('Platform guard: Skipping GPS on $platformName');
+      // Only skip GPS on desktop platforms (macOS, Windows, Linux)
+      // Web and mobile can attempt GPS
+      if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
+        debugPrint('Platform guard: Skipping GPS on desktop');
         return await _fallbackToCache(allowDefault);
       }
 
@@ -62,7 +78,7 @@ class LocationResolverImpl implements LocationResolver {
       // Tier 1 & 2: Try GPS with timeout
       final gpsResult = await _tryGps();
       if (gpsResult.isRight()) {
-        final coords = gpsResult.getOrElse(() => _scotlandCentroid);
+        final coords = gpsResult.getOrElse(() => _defaultFallbackLocation);
         debugPrint(
           'Location resolved via GPS: ${GeographicUtils.logRedact(coords.latitude, coords.longitude)}',
         );
@@ -74,7 +90,7 @@ class LocationResolverImpl implements LocationResolver {
       // Tier 3: SharedPreferences cached manual location
       final cacheResult = await _tryCache();
       if (cacheResult.isRight()) {
-        final coords = cacheResult.getOrElse(() => _scotlandCentroid);
+        final coords = cacheResult.getOrElse(() => _defaultFallbackLocation);
         debugPrint(
           'Location resolved via cache: ${GeographicUtils.logRedact(coords.latitude, coords.longitude)}',
         );
@@ -89,18 +105,18 @@ class LocationResolverImpl implements LocationResolver {
         return const Left(LocationError.permissionDenied);
       }
 
-      // Tier 5: Scotland centroid default
+      // Tier 5: Default fallback location
       debugPrint(
-        'Location resolved via default: ${GeographicUtils.logRedact(_scotlandCentroid.latitude, _scotlandCentroid.longitude)}',
+        'Location resolved via default: ${GeographicUtils.logRedact(_defaultFallbackLocation.latitude, _defaultFallbackLocation.longitude)}${FeatureFlags.devMode ? ' (DEV_MODE)' : ''}',
       );
-      return const Right(_scotlandCentroid);
+      return Right(_defaultFallbackLocation);
     } catch (e) {
       debugPrint('Location resolution error: $e');
       if (allowDefault) {
         debugPrint(
-          'Falling back to default: ${GeographicUtils.logRedact(_scotlandCentroid.latitude, _scotlandCentroid.longitude)}',
+          'Falling back to default: ${GeographicUtils.logRedact(_defaultFallbackLocation.latitude, _defaultFallbackLocation.longitude)}',
         );
-        return const Right(_scotlandCentroid);
+        return Right(_defaultFallbackLocation);
       }
       return const Left(LocationError.gpsUnavailable);
     } finally {
@@ -203,7 +219,7 @@ class LocationResolverImpl implements LocationResolver {
     }
 
     if (allowDefault) {
-      return const Right(_scotlandCentroid);
+      return Right(_defaultFallbackLocation);
     }
 
     // When GPS is unavailable due to platform restrictions and manual entry needed
