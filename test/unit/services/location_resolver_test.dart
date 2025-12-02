@@ -68,7 +68,7 @@ void main() {
         );
 
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
 
         // On macOS, GPS is skipped by platform guard, so we get Scotland centroid
         // On mobile platforms, we would get the last known position
@@ -85,11 +85,11 @@ void main() {
           // macOS/desktop/web: platform guard triggers, falls back to Scotland centroid
           expect(
             location.latitude,
-            closeTo(TestData.scotlandCentroid.latitude, 0.001),
+            closeTo(TestData.aviemore.latitude, 0.001),
           );
           expect(
             location.longitude,
-            closeTo(TestData.scotlandCentroid.longitude, 0.001),
+            closeTo(TestData.aviemore.longitude, 0.001),
           );
         }
       });
@@ -117,16 +117,16 @@ void main() {
         );
 
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
 
         // On all platforms without GPS support (including macOS), falls back to Scotland centroid
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
         expect(
           location.longitude,
-          closeTo(TestData.scotlandCentroid.longitude, 0.001),
+          closeTo(TestData.aviemore.longitude, 0.001),
         );
       });
     });
@@ -161,7 +161,7 @@ void main() {
           );
 
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          final location = result.getOrElse(() => TestData.aviemore);
 
           // On macOS/desktop/web, platform guard skips GPS and uses Scotland centroid
           if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
@@ -173,11 +173,11 @@ void main() {
           } else {
             expect(
               location.latitude,
-              closeTo(TestData.scotlandCentroid.latitude, 0.001),
+              closeTo(TestData.aviemore.latitude, 0.001),
             );
             expect(
               location.longitude,
-              closeTo(TestData.scotlandCentroid.longitude, 0.001),
+              closeTo(TestData.aviemore.longitude, 0.001),
             );
           }
         },
@@ -195,14 +195,14 @@ void main() {
 
           // Assert
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          final location = result.getOrElse(() => TestData.aviemore);
           expect(
             location.latitude,
-            closeTo(TestData.scotlandCentroid.latitude, 0.001),
+            closeTo(TestData.aviemore.latitude, 0.001),
           );
           expect(
             location.longitude,
-            closeTo(TestData.scotlandCentroid.longitude, 0.001),
+            closeTo(TestData.aviemore.longitude, 0.001),
           );
         },
       );
@@ -275,10 +275,10 @@ void main() {
         );
 
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
     });
@@ -302,11 +302,11 @@ void main() {
         // Assert - uses default fallback (Aviemore in DEV_MODE)
         expect(result.isRight(), isTrue);
         // ignore: deprecated_member_use_from_same_package
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
           // ignore: deprecated_member_use_from_same_package
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
     });
@@ -330,7 +330,7 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(location.latitude, closeTo(TestData.edinburgh.latitude, 0.001));
         expect(
           location.longitude,
@@ -356,10 +356,10 @@ void main() {
 
         // Assert - should fall back to Scotland centroid without crashing
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
     });
@@ -450,10 +450,10 @@ void main() {
 
         // Assert - should not crash and return default
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
 
@@ -476,7 +476,7 @@ void main() {
         // Assert - all should succeed
         for (final result in results) {
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          final location = result.getOrElse(() => TestData.aviemore);
 
           // On macOS/desktop/web, platform guard skips GPS and uses Scotland centroid
           if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
@@ -491,11 +491,11 @@ void main() {
           } else {
             expect(
               location.latitude,
-              closeTo(TestData.scotlandCentroid.latitude, 0.001),
+              closeTo(TestData.aviemore.latitude, 0.001),
             );
             expect(
               location.longitude,
-              closeTo(TestData.scotlandCentroid.longitude, 0.001),
+              closeTo(TestData.aviemore.longitude, 0.001),
             );
           }
         }

@@ -26,9 +26,7 @@ void main() {
 
     /// Get expected coordinates when GPS is set up but platform guard may be active
     LatLng expectedLocationForGpsSetup(LatLng gpsCoordinates) {
-      return isPlatformGuardActive()
-          ? TestData.scotlandCentroid
-          : gpsCoordinates;
+      return isPlatformGuardActive() ? TestData.aviemore : gpsCoordinates;
     }
 
     setUp(() {
@@ -68,7 +66,7 @@ void main() {
           );
 
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          final location = result.getOrElse(() => TestData.aviemore);
           final expectedLocation = expectedLocationForGpsSetup(
             TestData.edinburgh,
           );
@@ -107,7 +105,7 @@ void main() {
         );
 
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         final expectedLocation = expectedLocationForGpsSetup(TestData.glasgow);
         expect(location.latitude, closeTo(expectedLocation.latitude, 0.001));
         expect(location.longitude, closeTo(expectedLocation.longitude, 0.001));
@@ -131,7 +129,7 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(location.latitude, closeTo(TestData.edinburgh.latitude, 0.001));
         expect(
           location.longitude,
@@ -173,14 +171,14 @@ void main() {
 
           // Assert
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          final location = result.getOrElse(() => TestData.aviemore);
           expect(
             location.latitude,
-            closeTo(TestData.scotlandCentroid.latitude, 0.001),
+            closeTo(TestData.aviemore.latitude, 0.001),
           );
           expect(
             location.longitude,
-            closeTo(TestData.scotlandCentroid.longitude, 0.001),
+            closeTo(TestData.aviemore.longitude, 0.001),
           );
         },
       );
@@ -215,10 +213,10 @@ void main() {
           );
 
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          final location = result.getOrElse(() => TestData.aviemore);
           expect(
             location.latitude,
-            closeTo(TestData.scotlandCentroid.latitude, 0.001),
+            closeTo(TestData.aviemore.latitude, 0.001),
           );
         },
       );
@@ -273,7 +271,7 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(location.latitude, closeTo(testLocation.latitude, 0.001));
         expect(location.longitude, closeTo(testLocation.longitude, 0.001));
 
@@ -300,10 +298,10 @@ void main() {
 
         // Assert - Should fall back to Scotland centroid due to version incompatibility
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
     });
@@ -326,7 +324,7 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         final expectedLocation = expectedLocationForGpsSetup(
           TestData.edinburgh,
         );
@@ -344,10 +342,10 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
 
@@ -379,10 +377,10 @@ void main() {
 
         // Assert - Should not crash, fall back to default
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
 
@@ -404,10 +402,10 @@ void main() {
 
         // Assert - Should handle corruption gracefully
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
 
@@ -422,10 +420,10 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
     });
@@ -452,7 +450,7 @@ void main() {
         final expectedLocation = expectedLocationForGpsSetup(TestData.glasgow);
         for (final result in results) {
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          final location = result.getOrElse(() => TestData.aviemore);
           expect(location.latitude, closeTo(expectedLocation.latitude, 0.001));
           expect(
             location.longitude,
@@ -480,7 +478,7 @@ void main() {
 
           // Assert
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          final location = result.getOrElse(() => TestData.aviemore);
           expect(location.latitude, closeTo(testLocation.latitude, 0.001));
           expect(location.longitude, closeTo(testLocation.longitude, 0.001));
         },
@@ -526,7 +524,7 @@ void main() {
         stopwatch.stop();
         expect(stopwatch.elapsedMilliseconds, lessThan(2000));
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         final expectedLocation = expectedLocationForGpsSetup(
           TestData.edinburgh,
         );
@@ -544,10 +542,10 @@ void main() {
 
         // Assert - Should fall back to Scotland centroid
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
 
