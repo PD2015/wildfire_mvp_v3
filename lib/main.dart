@@ -167,7 +167,7 @@ Future<ServiceContainer> _initializeServices() async {
   // 1. Prefers GOOGLE_MAPS_GEOCODING_API_KEY (no HTTP referrer restriction)
   // 2. Falls back to googleMapsApiKey if geocoding key not set
   GeocodingService? geocodingService;
-  final geocodingApiKey = FeatureFlags.geocodingApiKey;
+  const geocodingApiKey = FeatureFlags.geocodingApiKey;
   final mapsApiKey = FeatureFlags.googleMapsApiKey;
   if (geocodingApiKey.isNotEmpty || mapsApiKey.isNotEmpty) {
     geocodingService = GeocodingServiceImpl(
