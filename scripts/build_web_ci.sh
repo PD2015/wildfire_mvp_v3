@@ -33,7 +33,11 @@ sed -i.bkp 's|https://maps.googleapis.com/maps/api/js"|https://maps.googleapis.c
 # Phase 3: Build Flutter web
 echo ""
 echo "🔨 Building Flutter web app..."
-flutter build web --release --dart-define=MAP_LIVE_DATA=false
+# Pass API key via dart-define for Static Maps API (FeatureFlags.googleMapsApiKeyWeb)
+# Also inject into index.html for JavaScript Maps API (handled above)
+flutter build web --release \
+  --dart-define=MAP_LIVE_DATA=false \
+  --dart-define=GOOGLE_MAPS_API_KEY_WEB="$MAPS_API_KEY_WEB"
 
 if [ $? -ne 0 ]; then
   echo "❌ Build failed! Restoring original web/index.html..."
