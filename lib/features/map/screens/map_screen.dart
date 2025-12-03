@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
+import 'package:wildfire_mvp_v3/features/map/utils/marker_icon_helper.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/incidents_timestamp_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 // T-V2: RiskCheckButton temporarily disabled
@@ -39,6 +40,7 @@ class _MapScreenState extends State<MapScreen> {
   FireIncident? _selectedIncident;
   bool _isBottomSheetVisible = false;
   late DebouncedViewportLoader _viewportLoader;
+  final MarkerIconHelper _markerIconHelper = MarkerIconHelper();
 
   @override
   void initState() {
@@ -57,8 +59,11 @@ class _MapScreenState extends State<MapScreen> {
       },
     );
 
-    // Initialize map data on mount
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Initialize map data and marker icons on mount
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Pre-load flame marker icons
+      await _markerIconHelper.initialize();
+      // Then load map data
       _controller.initialize();
     });
   }
@@ -78,6 +83,7 @@ class _MapScreenState extends State<MapScreen> {
     _controller.removeListener(_onControllerUpdate);
     _mapController?.dispose();
     _viewportLoader.dispose();
+    _markerIconHelper.dispose();
     super.dispose();
   }
 
@@ -201,31 +207,9 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   BitmapDescriptor _getMarkerIcon(String intensity) {
-    // Use color-coded markers based on intensity
-    // Hue values: 0=Red, 30=Orange, 45=Gold, 60=Yellow, 120=Green, 240=Blue, 300=Magenta
-    debugPrint('🎨 Getting marker icon for intensity: "$intensity"');
-    switch (intensity) {
-      case 'high':
-        debugPrint('🎨 Using RED marker (high) - hue 0');
-        return BitmapDescriptor.defaultMarkerWithHue(
-          BitmapDescriptor.hueRed,
-        ); // 0.0 - bright red
-      case 'moderate':
-        debugPrint('🎨 Using ORANGE marker (moderate) - hue 30');
-        return BitmapDescriptor.defaultMarkerWithHue(
-          BitmapDescriptor.hueOrange,
-        ); // 30.0 - orange
-      case 'low':
-        debugPrint('🎨 Using CYAN marker (low) - hue 180');
-        return BitmapDescriptor.defaultMarkerWithHue(
-          BitmapDescriptor.hueCyan,
-        ); // 180.0 - bright cyan/turquoise
-      default:
-        debugPrint('🎨 Using VIOLET marker (unknown intensity) - hue 270');
-        return BitmapDescriptor.defaultMarkerWithHue(
-          BitmapDescriptor.hueViolet,
-        ); // 270.0 - violet for debugging
-    }
+    // Use custom flame icons from MarkerIconHelper
+    // Falls back to hue-based markers if icons not yet initialized
+    return _markerIconHelper.getIcon(intensity);
   }
 
   @override
