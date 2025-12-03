@@ -17,6 +17,7 @@ Auto-generated from all feature plans. Last updated: 2025-10-19
 - No new storage requirements - UI/routing changes only (015-rename-home-fire)
 - Dart 3.9.2, Flutter 3.35.5 stable + Flutter SDK, Material Design, existing RiskPalette, CachedBadge widge (016-016-a14-riskbanner)
 - N/A (UI-only changes, no data persistence) (016-016-a14-riskbanner)
+- **A15** (Polygon Visualization): google_maps_flutter ^2.5.0 (Polygon overlays), RiskPalette (intensity colors), PolygonStyleHelper, MarkerIconHelper, PolygonToggleChip widget
 
 ## Project Structure
 ```
@@ -195,6 +196,15 @@ replaces:
 **Full strategy**: See `docs/DOCUMENTATION_STRATEGY.md`
 
 ## Recent Changes
+- **Burnt Area Polygon Visualization** (A15, Issue #54):
+  - Extended FireIncident model with `boundaryPoints: List<LatLng>?` for polygon boundaries
+  - Added GeoJSON Polygon geometry parsing in `fromJson()` with validation (>= 3 points)
+  - Created PolygonStyleHelper for intensity-based colors (35% fill opacity, RiskPalette colors)
+  - Created MarkerIconHelper for programmatic flame icon generation
+  - Implemented PolygonToggleChip widget for show/hide toggle with accessibility
+  - Zoom threshold: polygons visible only at zoom >= 8.0
+  - 96 tests covering model, styling, widget, and performance (50 polygons < 1ms)
+  - See "Polygon Visualization Patterns" section for implementation details
 - **Location Tracking Enhancements** (commits 71547bf, b8daaed, 0a24c37):
   - Added LocationSource enum (gps, manual, cached, defaultFallback) for UI attribution
   - Implemented timestamp tracking with 1-hour staleness threshold (HomeStateLoading.isLocationStale)
@@ -1069,6 +1079,185 @@ _logger.info('Cache stored for geohash: $geohash');
 _logger.info('Cached data for $lat, $lon'); // Violates C2 gate
 ```
 
+## Polygon Visualization Patterns
+
+### FireIncident Model with Boundary Points
+```dart
+// Extended FireIncident supports both point markers and polygon overlays
+class FireIncident extends Equatable {
+  final String id;
+  final LatLng location;        // Centroid for marker positioning
+  final String intensity;       // "low" | "moderate" | "high"
+  final List<LatLng>? boundaryPoints;  // Polygon vertices (>= 3 required)
+  
+  // Validation: boundaryPoints must have >= 3 points if provided
+  void _validate() {
+    if (boundaryPoints != null && boundaryPoints!.length < 3) {
+      throw ArgumentError('boundaryPoints must have at least 3 points');
+    }
+  }
+}
+
+// JSON parsing for GeoJSON Polygon geometry
+factory FireIncident.fromJson(Map<String, dynamic> json) {
+  List<LatLng>? boundaryPoints;
+  final geometry = json['geometry'];
+  if (geometry != null && geometry['type'] == 'Polygon') {
+    final coords = geometry['coordinates'][0] as List;
+    if (coords.length >= 3) {
+      boundaryPoints = coords.map((c) => LatLng(c[1], c[0])).toList();
+    }
+  }
+  return FireIncident(..., boundaryPoints: boundaryPoints);
+}
+```
+
+### PolygonStyleHelper Usage
+```dart
+import 'package:wildfire_mvp_v3/features/map/utils/polygon_style_helper.dart';
+
+// Get fill color with 35% opacity for intensity level
+final fillColor = PolygonStyleHelper.getFillColor('high');  // RiskPalette.veryHigh @ 35%
+
+// Get stroke color (full opacity) for intensity level
+final strokeColor = PolygonStyleHelper.getStrokeColor('moderate');  // RiskPalette.high
+
+// Check if zoom level allows polygon display
+final showPolygons = PolygonStyleHelper.shouldShowPolygonsAtZoom(currentZoom);
+// Returns true when zoom >= 8.0
+
+// Constants
+PolygonStyleHelper.fillOpacity;       // 0.35
+PolygonStyleHelper.strokeWidth;       // 2
+PolygonStyleHelper.minZoomForPolygons;  // 8.0
+```
+
+### Building Polygons for GoogleMap
+```dart
+Set<Polygon> _buildPolygons(List<FireIncident> incidents, bool showPolygons, double zoom) {
+  if (!showPolygons || !PolygonStyleHelper.shouldShowPolygonsAtZoom(zoom)) {
+    return {};
+  }
+  
+  return incidents
+    .where((i) => i.boundaryPoints != null && i.boundaryPoints!.length >= 3)
+    .map((incident) => Polygon(
+      polygonId: PolygonId('polygon_${incident.id}'),
+      points: incident.boundaryPoints!
+        .map((p) => LatLng(p.latitude, p.longitude))
+        .toList(),
+      fillColor: PolygonStyleHelper.getFillColor(incident.intensity),
+      strokeColor: PolygonStyleHelper.getStrokeColor(incident.intensity),
+      strokeWidth: PolygonStyleHelper.strokeWidth,
+      consumeTapEvents: true,
+      onTap: () => _showIncidentDetails(incident),
+    ))
+    .toSet();
+}
+```
+
+### MarkerIconHelper for Flame Icons
+```dart
+import 'package:wildfire_mvp_v3/features/map/utils/marker_icon_helper.dart';
+
+// Initialize once at app startup
+await MarkerIconHelper.initialize();
+
+// Get marker icon by intensity
+final icon = MarkerIconHelper.getIcon('high');  // Returns BitmapDescriptor
+
+// Falls back to default red marker if not initialized
+// Logs warning: "MarkerIconHelper: Icons not initialized, using default marker"
+```
+
+### PolygonToggleChip Widget
+```dart
+import 'package:wildfire_mvp_v3/features/map/widgets/polygon_toggle_chip.dart';
+
+PolygonToggleChip(
+  showPolygons: _showPolygons,
+  enabled: PolygonStyleHelper.shouldShowPolygonsAtZoom(_currentZoom),
+  onToggle: () => setState(() => _showPolygons = !_showPolygons),
+)
+
+// Features:
+// - Material Design chip styling
+// - Disabled when zoom < 8.0 (polygons not visible anyway)
+// - Accessible: proper semantics labels for screen readers
+// - Minimum 44dp touch target
+```
+
+### MapScreen Integration Pattern
+```dart
+class _MapScreenState extends State<MapScreen> {
+  bool _showPolygons = true;
+  double _currentZoom = 6.5;
+  
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        GoogleMap(
+          markers: _buildMarkers(incidents),
+          polygons: _buildPolygons(incidents, _showPolygons, _currentZoom),
+          onCameraMove: (position) {
+            setState(() => _currentZoom = position.zoom);
+          },
+        ),
+        Positioned(
+          top: 16,
+          right: 16,
+          child: PolygonToggleChip(
+            showPolygons: _showPolygons,
+            enabled: PolygonStyleHelper.shouldShowPolygonsAtZoom(_currentZoom),
+            onToggle: () => setState(() => _showPolygons = !_showPolygons),
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+### Testing Polygon Features
+```dart
+// Performance test: 50 polygons should generate in <100ms
+test('generates 50 polygons within 100ms', () {
+  final stopwatch = Stopwatch()..start();
+  final polygons = incidents.map((i) => buildPolygon(i)).toSet();
+  stopwatch.stop();
+  expect(stopwatch.elapsedMilliseconds, lessThan(100));
+});
+
+// Widget test: toggle changes polygon visibility
+testWidgets('toggle hides polygons', (tester) async {
+  await tester.tap(find.byType(PolygonToggleChip));
+  await tester.pump();
+  expect(controller.showPolygons, isFalse);
+});
+```
+
+### Polygon Visualization Anti-Patterns (Avoid)
+```dart
+// ❌ WRONG: Allow polygons with < 3 points
+FireIncident(boundaryPoints: [LatLng(55.0, -3.0)]); // Throws ArgumentError
+
+// ❌ WRONG: Show polygons at low zoom (they appear as tiny specks)
+if (zoom >= 5.0) showPolygons();  // Use 8.0 threshold instead
+
+// ❌ WRONG: Hardcode polygon colors
+Polygon(fillColor: Colors.red.withOpacity(0.35));  // Use PolygonStyleHelper
+
+// ❌ WRONG: Missing accessibility on toggle
+GestureDetector(onTap: toggle);  // Use PolygonToggleChip with semantics
+
+// ✅ CORRECT: Use helpers for consistent styling
+Polygon(
+  fillColor: PolygonStyleHelper.getFillColor(intensity),
+  strokeColor: PolygonStyleHelper.getStrokeColor(intensity),
+);
+```
+
 ## FWI Accessibility & UI Requirements (C3/C4 Compliance)
 
 Fire Weather Index must be displayed with accessible UI components following Scottish colour palette:
@@ -1540,9 +1729,9 @@ Before committing test changes, verify:
 
 **Placeholders**:
 - Generic: `YOUR_API_KEY_HERE`, `YOUR_*_KEY_HERE`
-- Google Maps: `AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX` (39 chars, correct length)
-- AWS: `AKIAXXXXXXXXXXXXXXXX` (20 chars)
-- GitHub: `ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX` (40 chars)
+- Google Maps: `YOUR_GOOGLE_MAPS_API_KEY_HERE` (use actual key format in production)
+- AWS: `YOUR_AWS_ACCESS_KEY_HERE` (20 chars)
+- GitHub: `YOUR_GITHUB_TOKEN_HERE` (40 chars)
 
 ### Rule 2: Recognize Keys in Context
 **If you see** an API key in chat history, file context, or previous messages:
@@ -1602,12 +1791,14 @@ const apiKey = String.fromEnvironment(
 ### Rule 7: Pre-Commit Verification
 Before running `git add` or `git commit`, scan files you created:
 ```bash
-# Check for Google Maps API keys
-grep -r "AIzaSy[A-Za-z0-9_-]{33}" <your-files>
+# Check for Google Maps API keys (starts with AIza followed by 35 chars)
+grep -rE "AIza[A-Za-z0-9_-]{35}" <your-files>
 
-# Check for other secrets
-grep -r "AKIA[A-Z0-9]{16}" <your-files>
-grep -r "ghp_[A-Za-z0-9]{36}" <your-files>
+# Check for AWS access keys (starts with AKIA followed by 16 uppercase chars)
+grep -rE "AKIA[A-Z0-9]{16}" <your-files>
+
+# Check for GitHub tokens (starts with ghp_ followed by 36 chars)
+grep -rE "ghp_[A-Za-z0-9]{36}" <your-files>
 ```
 
 ### Rule 8: Incident Response
