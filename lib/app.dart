@@ -35,6 +35,11 @@ class WildFireApp extends StatelessWidget {
   final FireLocationService fireLocationService;
   final FireRiskService fireRiskService;
 
+  /// Report fire controller for location helper state
+  /// Created lazily to avoid unnecessary initialization
+  late final ReportFireController _reportFireController =
+      ReportFireController();
+
   /// Optional geocoding services for location picker
   /// If null, LocationPickerScreen will create new instances with FeatureFlags defaults
   final What3wordsService? what3wordsService;
@@ -105,9 +110,8 @@ class WildFireApp extends StatelessWidget {
             path: '/report',
             name: 'report',
             builder: (context, state) {
-              // Create ReportFireController for location helper state
-              final controller = ReportFireController();
-              return ReportFireScreen(controller: controller);
+              // Use persisted ReportFireController for location helper state
+              return ReportFireScreen(controller: _reportFireController);
             },
           ),
         ],
