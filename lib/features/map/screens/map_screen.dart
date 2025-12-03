@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
 import 'package:wildfire_mvp_v3/features/map/utils/marker_icon_helper.dart';
+import 'package:wildfire_mvp_v3/features/map/utils/polygon_style_helper.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/incidents_timestamp_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 // T-V2: RiskCheckButton temporarily disabled
@@ -36,9 +37,13 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
+  Set<Polygon> _polygons = {};
   late MapController _controller;
   FireIncident? _selectedIncident;
   bool _isBottomSheetVisible = false;
+  // ignore: prefer_final_fields - toggled by user in Phase 1E
+  bool _showPolygons = true; // Toggle for polygon visibility
+  double _currentZoom = 8.0; // Track zoom for polygon visibility
   late DebouncedViewportLoader _viewportLoader;
   final MarkerIconHelper _markerIconHelper = MarkerIconHelper();
 
@@ -73,6 +78,7 @@ class _MapScreenState extends State<MapScreen> {
       final state = _controller.state;
       if (state is MapSuccess) {
         _updateMarkers(state);
+        _updatePolygons(state);
       }
       setState(() {});
     }
@@ -210,6 +216,69 @@ class _MapScreenState extends State<MapScreen> {
     // Use custom flame icons from MarkerIconHelper
     // Falls back to hue-based markers if icons not yet initialized
     return _markerIconHelper.getIcon(intensity);
+  }
+
+  /// Update polygon overlays from fire incidents with valid boundary points
+  void _updatePolygons(MapSuccess state) {
+    if (!_shouldShowPolygons()) {
+      _polygons = {};
+      return;
+    }
+
+    _polygons = state.incidents
+        .where((incident) => incident.hasValidPolygon)
+        .map((incident) {
+      final points = incident.boundaryPoints!
+          .map((p) => LatLng(p.latitude, p.longitude))
+          .toList();
+
+      return Polygon(
+        polygonId: PolygonId('polygon_${incident.id}'),
+        points: points,
+        fillColor: PolygonStyleHelper.getFillColor(incident.intensity),
+        strokeColor: PolygonStyleHelper.getStrokeColor(incident.intensity),
+        strokeWidth: PolygonStyleHelper.strokeWidth,
+        consumeTapEvents: true,
+        onTap: () {
+          debugPrint(
+              '🔶 Polygon tapped: ${incident.description ?? incident.id}');
+          setState(() {
+            _selectedIncident = incident;
+            _isBottomSheetVisible = true;
+          });
+        },
+      );
+    }).toSet();
+
+    debugPrint(
+        '🔶 Updated ${_polygons.length} polygons from ${state.incidents.length} incidents');
+  }
+
+  /// Check if polygons should be visible based on zoom level and toggle
+  bool _shouldShowPolygons() {
+    return _showPolygons &&
+        PolygonStyleHelper.shouldShowPolygonsAtZoom(_currentZoom);
+  }
+
+  /// Handle camera movement to track zoom level
+  void _onCameraMove(CameraPosition position) {
+    final newZoom = position.zoom;
+    final wasShowingPolygons = _shouldShowPolygons();
+
+    _currentZoom = newZoom;
+
+    // Rebuild polygons if visibility threshold crossed
+    final nowShowingPolygons = _shouldShowPolygons();
+    if (wasShowingPolygons != nowShowingPolygons) {
+      final state = _controller.state;
+      if (state is MapSuccess) {
+        _updatePolygons(state);
+        setState(() {});
+      }
+    }
+
+    // Also notify viewport loader
+    _viewportLoader.onCameraMove(position);
   }
 
   @override
@@ -417,6 +486,7 @@ class _MapScreenState extends State<MapScreen> {
               zoom: 8.0,
             ),
             markers: _markers,
+            polygons: _polygons, // Burnt area polygon overlays
             myLocationButtonEnabled: true,
             myLocationEnabled: true,
             zoomControlsEnabled: true,
@@ -431,8 +501,8 @@ class _MapScreenState extends State<MapScreen> {
               left: 16.0, // Room for timestamp chip
               right: 16.0,
             ),
-            // Debounced viewport loading (Task 17-18)
-            onCameraMove: _viewportLoader.onCameraMove,
+            // Track zoom level for polygon visibility + debounced viewport loading
+            onCameraMove: _onCameraMove,
             onCameraIdle: _viewportLoader.onCameraIdle,
           ),
         ),
