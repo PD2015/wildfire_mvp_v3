@@ -5,6 +5,7 @@ import 'screens/home_screen.dart';
 import 'features/map/screens/map_screen.dart';
 import 'features/map/controllers/map_controller.dart';
 import 'features/report/screens/report_fire_screen.dart';
+import 'features/report/controllers/report_fire_controller.dart';
 import 'features/location_picker/screens/location_picker_screen.dart';
 import 'features/location_picker/models/location_picker_mode.dart';
 import 'features/location_picker/services/what3words_service.dart';
@@ -103,7 +104,11 @@ class WildFireApp extends StatelessWidget {
           GoRoute(
             path: '/report',
             name: 'report',
-            builder: (context, state) => const ReportFireScreen(),
+            builder: (context, state) {
+              // Create ReportFireController for location helper state
+              final controller = ReportFireController();
+              return ReportFireScreen(controller: controller);
+            },
           ),
         ],
       ),

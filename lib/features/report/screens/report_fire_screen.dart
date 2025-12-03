@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:wildfire_mvp_v3/features/report/controllers/report_fire_controller.dart';
 import 'package:wildfire_mvp_v3/features/report/models/emergency_contact.dart';
 import 'package:wildfire_mvp_v3/features/report/widgets/emergency_button.dart';
+import 'package:wildfire_mvp_v3/features/report/widgets/report_fire_location_helper_card.dart';
 import 'package:wildfire_mvp_v3/utils/url_launcher_utils.dart';
 
 /// Report Fire Screen - A12b Implementation (Descriptive)
@@ -8,8 +10,41 @@ import 'package:wildfire_mvp_v3/utils/url_launcher_utils.dart';
 /// Displays Scotland-specific wildfire reporting guidance with clear visual hierarchy.
 /// Uses Material 3 design with branded colors, 52dp touch targets, and semantic labels.
 /// Preserves existing UrlLauncherUtils emergency calling infrastructure.
-class ReportFireScreen extends StatelessWidget {
-  const ReportFireScreen({super.key});
+///
+/// Features:
+/// - Location helper card to assist with 999/101 calls
+/// - Emergency call buttons for Fire Service, Police Scotland, Crimestoppers
+/// - Safety tips with expandable guidance
+///
+/// Constitutional compliance:
+/// - C3: All buttons ≥48dp touch target, semantic labels
+/// - C4: Clear disclaimer that app doesn't contact emergency services
+class ReportFireScreen extends StatefulWidget {
+  /// Controller for managing location helper state
+  final ReportFireController controller;
+
+  const ReportFireScreen({super.key, required this.controller});
+
+  @override
+  State<ReportFireScreen> createState() => _ReportFireScreenState();
+}
+
+class _ReportFireScreenState extends State<ReportFireScreen> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onControllerChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onControllerChanged);
+    super.dispose();
+  }
+
+  void _onControllerChanged() {
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +66,14 @@ class ReportFireScreen extends StatelessWidget {
             title: 'See smoke, flames, or a campfire?',
             subtitle: 'Act fast — stay safe.',
             icon: Icons.local_fire_department,
+          ),
+          const SizedBox(height: 16),
+
+          // Location helper card - helps users communicate location to 999/101
+          ReportFireLocationHelperCard(
+            location: widget.controller.state.fireLocation,
+            onSelectLocation: () =>
+                widget.controller.openLocationPicker(context),
           ),
           const SizedBox(height: 16),
 
@@ -372,26 +415,6 @@ class _TipsCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// Static factory methods for common use cases
-extension ReportFireScreenFactory on ReportFireScreen {
-  /// Creates ReportFireScreen with custom AppBar title
-  static Widget withTitle(String title) {
-    return Builder(
-      builder: (context) => Scaffold(
-        appBar: AppBar(title: Text(title), centerTitle: true),
-        body: const ReportFireScreen(),
-      ),
-    );
-  }
-
-  /// Creates ReportFireScreen without AppBar (for embedding in other screens)
-  static Widget withoutAppBar() {
-    return const SafeArea(
-      child: Padding(padding: EdgeInsets.all(24.0), child: ReportFireScreen()),
     );
   }
 }
