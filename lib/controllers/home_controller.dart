@@ -30,7 +30,11 @@ import '../config/feature_flags.dart';
 /// - C2: Privacy-first logging (no raw coordinates)
 /// - C5: Resilient error handling with visible retry options
 class HomeController extends ChangeNotifier {
-  static const Duration _globalDeadline = Duration(seconds: 8);
+  /// Global deadline for entire load operation (location + fire risk data)
+  /// Web needs longer timeout (15s) for GPS acquisition in rural/slow areas
+  /// Native platforms are faster (10s) with direct hardware access
+  static Duration get _globalDeadline =>
+      kIsWeb ? const Duration(seconds: 15) : const Duration(seconds: 10);
 
   final LocationResolver _locationResolver;
   final FireRiskService _fireRiskService;
