@@ -7,6 +7,7 @@ import 'package:wildfire_mvp_v3/features/map/utils/marker_icon_helper.dart';
 import 'package:wildfire_mvp_v3/features/map/utils/polygon_style_helper.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/incidents_timestamp_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/polygon_toggle_chip.dart';
 // T-V2: RiskCheckButton temporarily disabled
 // import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
@@ -41,7 +42,6 @@ class _MapScreenState extends State<MapScreen> {
   late MapController _controller;
   FireIncident? _selectedIncident;
   bool _isBottomSheetVisible = false;
-  // ignore: prefer_final_fields - toggled by user in Phase 1E
   bool _showPolygons = true; // Toggle for polygon visibility
   double _currentZoom = 8.0; // Track zoom for polygon visibility
   late DebouncedViewportLoader _viewportLoader;
@@ -279,6 +279,21 @@ class _MapScreenState extends State<MapScreen> {
 
     // Also notify viewport loader
     _viewportLoader.onCameraMove(position);
+  }
+
+  /// Handle polygon visibility toggle
+  void _onPolygonToggle() {
+    setState(() {
+      _showPolygons = !_showPolygons;
+    });
+
+    // Rebuild polygons with new visibility setting
+    final state = _controller.state;
+    if (state is MapSuccess) {
+      _updatePolygons(state);
+    }
+
+    debugPrint('🔶 Polygon visibility toggled: $_showPolygons');
   }
 
   @override
@@ -521,6 +536,16 @@ class _MapScreenState extends State<MapScreen> {
           left: 16,
           child: IncidentsTimestampChip(
             lastUpdated: state.lastUpdated,
+          ),
+        ),
+        // Polygon toggle chip positioned at top-right
+        Positioned(
+          top: 16,
+          right: 16,
+          child: PolygonToggleChip(
+            showPolygons: _showPolygons,
+            enabled: PolygonStyleHelper.shouldShowPolygonsAtZoom(_currentZoom),
+            onToggle: _onPolygonToggle,
           ),
         ),
         // Empty state message if no fires
