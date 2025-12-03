@@ -75,7 +75,17 @@ class _ReportFireScreenState extends State<ReportFireScreen> {
 
           // Disclaimer - app doesn't contact services
           _buildDisclaimer(context, cs),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
+
+          // Section heading - ties location card to emergency options
+          Text(
+            'Who to call about this fire',
+            style: textTheme.labelLarge?.copyWith(
+              color: cs.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
 
           // Emergency Actions Card - Groups all three contact options
           Semantics(
@@ -89,6 +99,20 @@ class _ReportFireScreenState extends State<ReportFireScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Strong CTA intro
+                    Semantics(
+                      label:
+                          'If you think the fire could spread or put people, homes or woodland at risk, call 999 immediately.',
+                      child: Text(
+                        'If you think the fire could spread or put people, homes or woodland at risk, call 999 immediately.',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: cs.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
                     // Step 1 — Emergency (999)
                     Semantics(
                       header: true,
