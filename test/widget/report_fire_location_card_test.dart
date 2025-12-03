@@ -41,7 +41,7 @@ void main() {
 
         expect(find.text('Location to give when you call'), findsOneWidget);
         expect(
-          find.text('Optional — helps you tell 999 where the fire is.'),
+          find.text('Helps you tell 999 where the fire is.'),
           findsOneWidget,
         );
       });
@@ -121,8 +121,8 @@ void main() {
           ),
         ));
 
-        // Should show precise coordinates with Lat/Lng label
-        expect(find.text('Lat/Lng'), findsOneWidget);
+        // Should show precise coordinates with Latitude / Longitude label
+        expect(find.text('Latitude / Longitude'), findsOneWidget);
         expect(find.textContaining('57.04850'), findsOneWidget);
         expect(find.textContaining('-3.59620'), findsOneWidget);
       });
@@ -198,7 +198,7 @@ void main() {
         expect(find.text(testPlaceName), findsOneWidget);
       });
 
-      testWidgets('shows Copy Location button', (tester) async {
+      testWidgets('shows Copy details button', (tester) async {
         await tester.pumpWidget(buildWidget(
           locationState: LocationDisplaySuccess(
             coordinates: testCoordinates,
@@ -207,10 +207,10 @@ void main() {
           ),
         ));
 
-        expect(find.text('Copy Location'), findsOneWidget);
+        expect(find.text('Copy details for your call'), findsOneWidget);
       });
 
-      testWidgets('Copy Location copies coordinates and w3w', (tester) async {
+      testWidgets('Copy details copies coordinates and w3w', (tester) async {
         // Set up clipboard mock
         String? clipboardContent;
         tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
@@ -232,7 +232,7 @@ void main() {
           ),
         ));
 
-        await tester.tap(find.text('Copy Location'));
+        await tester.tap(find.text('Copy details for your call'));
         // Use pump() instead of pumpAndSettle() because SnackBar has ongoing animations
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
@@ -248,7 +248,7 @@ void main() {
         );
       });
 
-      testWidgets('Copy Location includes "Unavailable" when no w3w',
+      testWidgets('Copy details includes "Unavailable" when no w3w',
           (tester) async {
         String? clipboardContent;
         tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
@@ -270,7 +270,7 @@ void main() {
           ),
         ));
 
-        await tester.tap(find.text('Copy Location'));
+        await tester.tap(find.text('Copy details for your call'));
         // Use pump() instead of pumpAndSettle() because SnackBar has ongoing animations
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));

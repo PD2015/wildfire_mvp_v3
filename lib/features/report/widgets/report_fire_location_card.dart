@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 import 'package:wildfire_mvp_v3/models/location_display_state.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
@@ -115,7 +116,7 @@ class ReportFireLocationCard extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                'Optional — helps you tell 999 where the fire is.',
+                'Helps you tell 999 where the fire is.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: scheme.onSurfaceVariant,
                 ),
@@ -278,7 +279,7 @@ class ReportFireLocationCard extends StatelessWidget {
           context,
           theme,
           scheme,
-          label: 'Lat/Lng',
+          label: 'Latitude / Longitude',
           value: preciseCoords,
           isMonospace: true,
         ),
@@ -379,7 +380,7 @@ class ReportFireLocationCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 80,
+          width: 110,
           child: Text(
             label,
             style: theme.textTheme.bodySmall?.copyWith(
@@ -429,7 +430,7 @@ class ReportFireLocationCard extends StatelessWidget {
     );
   }
 
-  /// Builds the what3words row
+  /// Builds the what3words row with tap-to-open functionality
   Widget _buildWhat3wordsRow(
     BuildContext context,
     ThemeData theme,
@@ -441,7 +442,7 @@ class ReportFireLocationCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 80,
+          width: 110,
           child: Text(
             'what3words',
             style: theme.textTheme.bodySmall?.copyWith(
@@ -472,20 +473,85 @@ class ReportFireLocationCard extends StatelessWidget {
                     ),
                   ],
                 )
-              : Text(
-                  what3words ?? '/// Unavailable',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: what3words != null
-                        ? scheme.primary
-                        : scheme.onSurfaceVariant,
-                    fontWeight: what3words != null
-                        ? FontWeight.w500
-                        : FontWeight.normal,
-                  ),
-                ),
+              : what3words != null
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Semantics(
+                          label:
+                              'Open $what3words in what3words app or website',
+                          button: true,
+                          child: InkWell(
+                            onTap: () => _openWhat3words(context, what3words),
+                            borderRadius: BorderRadius.circular(4),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: Text(
+                                what3words,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: scheme.primary,
+                                  fontWeight: FontWeight.w500,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: scheme.primary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Tap to open in what3words',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Text(
+                      '/// Unavailable',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
         ),
       ],
     );
+  }
+
+  /// Opens what3words address in app or website
+  Future<void> _openWhat3words(BuildContext context, String what3words) async {
+    // Remove leading slashes if present
+    final address = what3words.replaceAll('///', '').trim();
+
+    // Try what3words app deep link first, fall back to website
+    final appUri = Uri.parse('https://what3words.com/$address');
+
+    try {
+      final launched = await launchUrl(
+        appUri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open what3words for $what3words'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open what3words for $what3words'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   /// Builds static map preview
@@ -499,9 +565,10 @@ class ReportFireLocationCard extends StatelessWidget {
       coordinates.longitude,
     );
 
+    // When no API key, show graceful fallback (not permanent spinner)
     return LocationMiniMapPreview(
       staticMapUrl: staticMapUrl,
-      isLoading: staticMapUrl == null,
+      isLoading: false,
     );
   }
 
@@ -546,7 +613,7 @@ class ReportFireLocationCard extends StatelessWidget {
         children: [
           Expanded(
             child: Semantics(
-              label: 'Adjust your manual location',
+              label: 'Change the fire location on the map',
               button: true,
               child: OutlinedButton.icon(
                 onPressed: onChangeLocation,
@@ -561,7 +628,7 @@ class ReportFireLocationCard extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Semantics(
-              label: 'Return to GPS location',
+              label: 'Switch back to your GPS location',
               button: true,
               child: FilledButton.icon(
                 onPressed: onUseGps,
@@ -638,7 +705,7 @@ class ReportFireLocationCard extends StatelessWidget {
             placeName: placeName,
           ),
           icon: const Icon(Icons.copy, size: 18),
-          label: const Text('Copy Location'),
+          label: const Text('Copy details for your call'),
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(48),
             foregroundColor: scheme.secondary,
@@ -657,6 +724,11 @@ class ReportFireLocationCard extends StatelessWidget {
     String? placeName,
   }) {
     final buffer = StringBuffer();
+
+    // Add place name if available
+    if (placeName != null && placeName.isNotEmpty) {
+      buffer.writeln('Nearest place: $placeName');
+    }
 
     // Add coordinates (5dp)
     final preciseCoords = LocationUtils.formatPrecise(
