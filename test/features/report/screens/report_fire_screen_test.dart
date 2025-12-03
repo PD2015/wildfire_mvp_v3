@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wildfire_mvp_v3/features/report/controllers/report_fire_controller.dart';
 import 'package:wildfire_mvp_v3/features/report/screens/report_fire_screen.dart';
+
+import '../../../helpers/report_fire_test_helpers.dart';
 
 void main() {
   group('ReportFireScreen Widget Tests', () {
+    late ReportFireController controller;
+
+    setUp(() {
+      controller = createMockReportFireController();
+    });
+
     testWidgets('should display screen title and three emergency buttons', (
       tester,
     ) async {
       // Act
-      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+      await tester.pumpWidget(
+        MaterialApp(home: ReportFireScreen(controller: controller)),
+      );
       await tester.pumpAndSettle(); // Let all animations/layouts complete
 
       // Assert
@@ -27,7 +38,9 @@ void main() {
 
     testWidgets('should have AppBar with correct title', (tester) async {
       // Act
-      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+      await tester.pumpWidget(
+        MaterialApp(home: ReportFireScreen(controller: controller)),
+      );
 
       // Assert
       expect(find.byType(AppBar), findsOneWidget);
@@ -36,7 +49,9 @@ void main() {
 
     testWidgets('should display header section with guidance', (tester) async {
       // Act
-      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+      await tester.pumpWidget(
+        MaterialApp(home: ReportFireScreen(controller: controller)),
+      );
 
       // Assert - Check for new simpler A12b layout
       expect(find.text('See smoke, flames, or a campfire?'), findsOneWidget);
@@ -56,11 +71,13 @@ void main() {
       tester,
     ) async {
       // Act
-      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+      await tester.pumpWidget(
+        MaterialApp(home: ReportFireScreen(controller: controller)),
+      );
       await tester.pumpAndSettle();
 
-      // Scroll to see tips at bottom
-      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      // Scroll to see tips at bottom - need to scroll more with the Location card
+      await tester.drag(find.byType(ListView), const Offset(0, -600));
       await tester.pumpAndSettle();
 
       // Assert - Check for Tips card
@@ -77,7 +94,9 @@ void main() {
       tester,
     ) async {
       // Act
-      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+      await tester.pumpWidget(
+        MaterialApp(home: ReportFireScreen(controller: controller)),
+      );
       await tester.pumpAndSettle();
 
       // Assert - Check semantic labeling for banner
@@ -98,7 +117,9 @@ void main() {
       tester,
     ) async {
       // Act
-      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+      await tester.pumpWidget(
+        MaterialApp(home: ReportFireScreen(controller: controller)),
+      );
 
       // Tap the Fire Service button (url_launcher will fail in test environment)
       await tester.tap(find.text('999 Fire Service'));
@@ -113,7 +134,9 @@ void main() {
       tester,
     ) async {
       // Act
-      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+      await tester.pumpWidget(
+        MaterialApp(home: ReportFireScreen(controller: controller)),
+      );
 
       // Assert - Check all buttons meet accessibility requirements (48dp minimum)
       final buttons = tester.widgetList<ElevatedButton>(
@@ -131,7 +154,9 @@ void main() {
 
     testWidgets('should maintain proper layout structure', (tester) async {
       // Act
-      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+      await tester.pumpWidget(
+        MaterialApp(home: ReportFireScreen(controller: controller)),
+      );
 
       // Assert - Verify layout hierarchy (MaterialApp adds its own SafeArea)
       expect(find.byType(Scaffold), findsOneWidget);
@@ -148,7 +173,7 @@ void main() {
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           ),
-          home: const ReportFireScreen(),
+          home: ReportFireScreen(controller: controller),
         ),
       );
       await tester.pumpAndSettle();
@@ -166,7 +191,9 @@ void main() {
 
     testWidgets('should handle SnackBar dismissal correctly', (tester) async {
       // Act
-      await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+      await tester.pumpWidget(
+        MaterialApp(home: ReportFireScreen(controller: controller)),
+      );
 
       // Tap button to potentially trigger SnackBar
       await tester.tap(find.text('999 Fire Service'));
@@ -187,37 +214,6 @@ void main() {
         // SnackBar should be gone
         expect(find.byType(SnackBar), findsNothing);
       }
-    });
-  });
-
-  group('ReportFireScreen Factory Extensions', () {
-    testWidgets('withTitle factory should work correctly', (tester) async {
-      // Act
-      await tester.pumpWidget(
-        MaterialApp(
-          home: ReportFireScreenFactory.withTitle('Custom Fire Report'),
-        ),
-      );
-
-      // Assert
-      expect(find.text('Custom Fire Report'), findsOneWidget);
-      expect(
-        find.byType(AppBar),
-        findsAtLeastNWidgets(1),
-      ); // Factory creates nested Scaffold
-    });
-
-    testWidgets('withoutAppBar factory should work correctly', (tester) async {
-      // Act
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(body: ReportFireScreenFactory.withoutAppBar()),
-        ),
-      );
-
-      // Assert - Should have SafeArea and Padding but nested AppBar
-      expect(find.byType(SafeArea), findsAtLeastNWidgets(1));
-      expect(find.byType(Padding), findsAtLeastNWidgets(1));
     });
   });
 }

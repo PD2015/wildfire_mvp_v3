@@ -2,37 +2,60 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wildfire_mvp_v3/features/location_picker/models/location_picker_mode.dart';
 import 'package:wildfire_mvp_v3/features/location_picker/models/picked_location.dart';
-import 'package:wildfire_mvp_v3/features/report/models/report_fire_state.dart';
+import 'package:wildfire_mvp_v3/models/location_display_state.dart';
+import 'package:wildfire_mvp_v3/services/location_state_manager.dart';
 
 /// Controller for Report Fire screen
 ///
-/// Manages location helper state and navigation to LocationPickerScreen.
-/// Designed for future extension with fire report submission.
+/// Lightweight controller that delegates location management to the shared
+/// LocationStateManager. Handles only fire-report-specific concerns:
+/// - Navigation to location picker in fireReport mode
+/// - Processing picked location results
+///
+/// Architecture pattern:
+/// - LocationStateManager handles: GPS fetch, what3words, geocoding, state
+/// - ReportFireController handles: navigation, fire-report-specific logic
+///
+/// This separation enables:
+/// - Consistent location UX across Home, Report Fire, and future screens
+/// - Reuse of LocationCard widget without duplication
+/// - Single source of truth for location state
 ///
 /// Constitutional compliance:
-/// - C2: Uses redacted logging for coordinates (5dp in formattedCoordinates)
+/// - C2: Delegates coordinate logging to LocationStateManager
 /// - C4: Transparency - never implies app contacts emergency services
-///
-/// Usage:
-/// ```dart
-/// final controller = ReportFireController();
-/// // Listen to state changes
-/// controller.addListener(() {
-///   // Rebuild UI with controller.state
-/// });
-/// // Open location picker
-/// await controller.openLocationPicker(context);
-/// ```
 class ReportFireController extends ChangeNotifier {
-  ReportFireState _state = const ReportFireState.initial();
+  final LocationStateManager _locationStateManager;
 
-  /// Current state
-  ReportFireState get state => _state;
+  /// Whether the location picker is currently open
+  bool _isPickerOpen = false;
 
-  /// Update state and notify listeners
-  void _updateState(ReportFireState newState) {
-    _state = newState;
+  ReportFireController({
+    required LocationStateManager locationStateManager,
+  }) : _locationStateManager = locationStateManager {
+    // Listen to location state changes and forward to our listeners
+    _locationStateManager.addListener(_onLocationStateChanged);
+  }
+
+  /// Current location display state from shared manager
+  LocationDisplayState get locationState => _locationStateManager.state;
+
+  /// The shared location state manager (for screens that need direct access)
+  LocationStateManager get locationStateManager => _locationStateManager;
+
+  /// Whether the location picker is currently open
+  bool get isPickerOpen => _isPickerOpen;
+
+  void _onLocationStateChanged() {
     notifyListeners();
+  }
+
+  /// Initialize the controller by fetching GPS location
+  ///
+  /// Call this when the Report Fire screen is first displayed.
+  /// Delegates to LocationStateManager.initialize().
+  Future<void> initialize() async {
+    await _locationStateManager.initialize();
   }
 
   /// Open location picker for fire location
@@ -45,39 +68,45 @@ class ReportFireController extends ChangeNotifier {
   /// - "Set Fire Location" title
   /// - "Use This Location" confirm button
   Future<void> openLocationPicker(BuildContext context) async {
-    final result = await context.push<PickedLocation>(
-      '/location-picker',
-      extra: LocationPickerMode.fireReport,
-    );
+    _isPickerOpen = true;
+    notifyListeners();
 
-    if (result != null) {
-      onLocationPicked(result);
+    try {
+      final result = await context.push<PickedLocation>(
+        '/location-picker',
+        extra: LocationPickerMode.fireReport,
+      );
+
+      if (result != null) {
+        await _locationStateManager.setManualLocation(
+          result.coordinates,
+          placeName: result.placeName,
+        );
+      }
+    } finally {
+      _isPickerOpen = false;
+      notifyListeners();
     }
   }
 
-  /// Process picked location from LocationPickerScreen
+  /// Clear the fire location and return to GPS
   ///
-  /// Maps [PickedLocation] to [ReportFireLocation] model,
-  /// parsing the raw what3words string into validated address.
-  void onLocationPicked(PickedLocation picked) {
-    final newLocation = ReportFireLocation.fromPickedLocation(
-      coordinates: picked.coordinates,
-      what3wordsRaw: picked.what3words,
-      placeName: picked.placeName,
-    );
-
-    _updateState(_state.copyWith(fireLocation: newLocation));
-
-    // C2 compliant: only log formatted coordinates (5dp precision)
-    debugPrint('🔥 Fire location set: ${newLocation.formattedCoordinates}');
+  /// Delegates to LocationStateManager.useGpsLocation().
+  Future<void> useGpsLocation() async {
+    await _locationStateManager.useGpsLocation();
   }
 
-  /// Clear the fire location
+  /// Refresh location data
   ///
-  /// Resets state to initial (no location).
-  void clearLocation() {
-    _updateState(_state.copyWith(clearLocation: true));
-    debugPrint('🔥 Fire location cleared');
+  /// Useful for pull-to-refresh or returning to foreground.
+  Future<void> refresh() async {
+    await _locationStateManager.refresh();
+  }
+
+  @override
+  void dispose() {
+    _locationStateManager.removeListener(_onLocationStateChanged);
+    super.dispose();
   }
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -92,28 +121,6 @@ class ReportFireController extends ChangeNotifier {
   // /// Add photo to report
   // Future<void> addPhoto(File image) async { ... }
   //
-  // /// Remove photo from report
-  // void removePhoto(int index) { ... }
-  //
   // /// Submit fire report to backend
-  // Future<void> submitFireReport() async {
-  //   _updateState(_state.copyWith(isSubmitting: true));
-  //   try {
-  //     await _fireReportService.submit(_state);
-  //     _updateState(_state.copyWith(
-  //       isSubmitting: false,
-  //       submittedAt: DateTime.now(),
-  //     ));
-  //   } catch (e) {
-  //     _updateState(_state.copyWith(
-  //       isSubmitting: false,
-  //       submissionError: e.toString(),
-  //     ));
-  //   }
-  // }
-  //
-  // /// Reset report to initial state
-  // void resetReport() {
-  //   _updateState(const ReportFireState.initial());
-  // }
+  // Future<void> submitFireReport() async { ... }
 }

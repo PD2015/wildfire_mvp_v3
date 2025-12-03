@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 import 'package:wildfire_mvp_v3/features/report/controllers/report_fire_controller.dart';
 import 'package:wildfire_mvp_v3/features/report/models/emergency_contact.dart';
 import 'package:wildfire_mvp_v3/features/report/widgets/emergency_button.dart';
-import 'package:wildfire_mvp_v3/features/report/widgets/report_fire_location_helper_card.dart';
+import 'package:wildfire_mvp_v3/models/location_display_state.dart';
+import 'package:wildfire_mvp_v3/models/location_models.dart';
+import 'package:wildfire_mvp_v3/utils/location_utils.dart';
 import 'package:wildfire_mvp_v3/utils/url_launcher_utils.dart';
+import 'package:wildfire_mvp_v3/widgets/location_card.dart';
 
 /// Report Fire Screen - A12b Implementation (Descriptive)
 ///
@@ -69,12 +74,12 @@ class _ReportFireScreenState extends State<ReportFireScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Location helper card - helps users communicate location to 999/101
-          ReportFireLocationHelperCard(
-            location: widget.controller.state.fireLocation,
-            onSelectLocation: () =>
-                widget.controller.openLocationPicker(context),
-          ),
+          // Location helper card - uses shared LocationCard for consistent UX
+          _buildLocationCard(context, cs, textTheme),
+          const SizedBox(height: 8),
+
+          // Disclaimer - app doesn't contact services
+          _buildDisclaimer(context, cs),
           const SizedBox(height: 16),
 
           // Emergency Actions Card - Groups all three contact options
@@ -209,6 +214,170 @@ class _ReportFireScreenState extends State<ReportFireScreen> {
         ],
       ),
     );
+  }
+
+  /// Builds the location card using shared LocationCard widget
+  ///
+  /// Maps LocationDisplayState to LocationCard props for consistent UX
+  /// across Home and Report Fire screens.
+  Widget _buildLocationCard(
+    BuildContext context,
+    ColorScheme cs,
+    TextTheme textTheme,
+  ) {
+    final state = widget.controller.locationState;
+
+    switch (state) {
+      case LocationDisplayInitial():
+        return LocationCard(
+          coordinatesLabel: null,
+          subtitle: 'Tap to set fire location',
+          isLoading: false,
+          onChangeLocation: () => widget.controller.openLocationPicker(context),
+        );
+
+      case LocationDisplayLoading(:final lastKnownLocation):
+        return LocationCard(
+          coordinatesLabel: lastKnownLocation != null
+              ? LocationUtils.logRedact(
+                  lastKnownLocation.latitude,
+                  lastKnownLocation.longitude,
+                )
+              : null,
+          subtitle: 'Getting your location...',
+          isLoading: true,
+          onChangeLocation: () => widget.controller.openLocationPicker(context),
+        );
+
+      case LocationDisplaySuccess(
+          :final coordinates,
+          :final source,
+          :final placeName,
+          :final what3words,
+          :final isWhat3wordsLoading,
+          :final formattedLocation,
+          :final isGeocodingLoading,
+        ):
+        final subtitle = switch (source) {
+          LocationSource.gps => 'Your current location (GPS)',
+          LocationSource.manual when placeName != null =>
+            '$placeName (set by you)',
+          LocationSource.manual => 'Location you selected',
+          LocationSource.cached => 'Last known location',
+          LocationSource.defaultFallback => 'Default location',
+        };
+
+        return LocationCard(
+          coordinatesLabel: LocationUtils.logRedact(
+            coordinates.latitude,
+            coordinates.longitude,
+          ),
+          subtitle: subtitle,
+          onChangeLocation: () => widget.controller.openLocationPicker(context),
+          locationSource: source,
+          what3words: what3words,
+          isWhat3wordsLoading: isWhat3wordsLoading,
+          formattedLocation: formattedLocation,
+          isGeocodingLoading: isGeocodingLoading,
+          staticMapUrl: _buildStaticMapUrl(
+            coordinates.latitude,
+            coordinates.longitude,
+          ),
+          onCopyWhat3words: what3words != null
+              ? () => _handleCopyWhat3words(what3words)
+              : null,
+          onUseGps: source == LocationSource.manual
+              ? () => widget.controller.useGpsLocation()
+              : null,
+        );
+
+      case LocationDisplayError(:final cachedLocation):
+        return LocationCard(
+          coordinatesLabel: cachedLocation != null
+              ? LocationUtils.logRedact(
+                  cachedLocation.latitude,
+                  cachedLocation.longitude,
+                )
+              : null,
+          subtitle: 'Tap to set location manually',
+          onChangeLocation: () => widget.controller.openLocationPicker(context),
+        );
+    }
+  }
+
+  /// Builds the emergency services disclaimer
+  Widget _buildDisclaimer(BuildContext context, ColorScheme cs) {
+    return Semantics(
+      label:
+          'Important: This app does not contact emergency services. Always phone 999, 101 or Crimestoppers yourself.',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.info_outline,
+              size: 14,
+              color: cs.onSurfaceVariant,
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                'This app does not contact emergency services. Always phone 999, 101 or Crimestoppers yourself.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: cs.onSurfaceVariant,
+                      fontSize: 11,
+                    ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Builds a Google Static Maps URL for the given coordinates
+  ///
+  /// Uses 2-decimal precision for privacy compliance (C2).
+  /// Returns null if no API key is configured.
+  String? _buildStaticMapUrl(double lat, double lon) {
+    final apiKey = FeatureFlags.googleMapsApiKey;
+    if (apiKey.isEmpty) {
+      return null;
+    }
+
+    // Round to 2 decimal places for privacy (C2)
+    final roundedLat = (lat * 100).round() / 100;
+    final roundedLon = (lon * 100).round() / 100;
+
+    final url =
+        Uri.parse('https://maps.googleapis.com/maps/api/staticmap').replace(
+      queryParameters: {
+        'center': '$roundedLat,$roundedLon',
+        'zoom': '14',
+        'size': '600x300',
+        'markers': 'color:red|$roundedLat,$roundedLon',
+        'key': apiKey,
+        'scale': '2',
+        'maptype': 'roadmap',
+      },
+    );
+
+    return url.toString();
+  }
+
+  /// Handles copying what3words address to clipboard with snackbar feedback
+  void _handleCopyWhat3words(String what3words) {
+    Clipboard.setData(ClipboardData(text: what3words));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Copied $what3words to clipboard'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   /// Handles emergency call attempts with error handling and user feedback
