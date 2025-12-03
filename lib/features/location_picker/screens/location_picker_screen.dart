@@ -283,8 +283,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
           // Map controls column (top right corner)
           // Wrapped in Semantics for screen reader discoverability
+          // Position below emergency banner for fireReport mode
           Positioned(
-            top: 16,
+            top: widget.mode == LocationPickerMode.fireReport ? 56 : 16,
             right: 16,
             child: Semantics(
               container: true,
@@ -306,8 +307,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           ),
 
           // Search bar at top with suggestions dropdown
+          // Position below emergency banner for fireReport mode
           Positioned(
-            top: 8,
+            top: widget.mode == LocationPickerMode.fireReport ? 56 : 8,
             left: 16,
             right: 80, // Leave space for map controls
             child: _buildSearchBarWithSuggestions(),
