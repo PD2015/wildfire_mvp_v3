@@ -8,6 +8,7 @@ import 'package:wildfire_mvp_v3/features/map/utils/polygon_style_helper.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/incidents_timestamp_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/polygon_toggle_chip.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/map_type_selector.dart';
 // T-V2: RiskCheckButton temporarily disabled
 // import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
@@ -44,6 +45,7 @@ class _MapScreenState extends State<MapScreen> {
   bool _isBottomSheetVisible = false;
   bool _showPolygons = true; // Toggle for polygon visibility
   double _currentZoom = 8.0; // Track zoom for polygon visibility
+  MapType _currentMapType = MapType.terrain; // Current map type
   late DebouncedViewportLoader _viewportLoader;
 
   @override
@@ -502,6 +504,7 @@ class _MapScreenState extends State<MapScreen> {
             ),
             markers: _markers,
             polygons: _polygons, // Burnt area polygon overlays
+            mapType: _currentMapType,
             myLocationButtonEnabled: true,
             myLocationEnabled: true,
             zoomControlsEnabled: true,
@@ -538,14 +541,31 @@ class _MapScreenState extends State<MapScreen> {
             lastUpdated: state.lastUpdated,
           ),
         ),
-        // Polygon toggle chip positioned at top-right
+        // Map controls positioned at top-right (burn areas toggle, then map type)
         Positioned(
           top: 16,
           right: 16,
-          child: PolygonToggleChip(
-            showPolygons: _showPolygons,
-            enabled: PolygonStyleHelper.shouldShowPolygonsAtZoom(_currentZoom),
-            onToggle: _onPolygonToggle,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Burn areas visibility toggle (longer, so at top)
+              PolygonToggleChip(
+                showPolygons: _showPolygons,
+                enabled:
+                    PolygonStyleHelper.shouldShowPolygonsAtZoom(_currentZoom),
+                onToggle: _onPolygonToggle,
+              ),
+              const SizedBox(height: 8),
+              // Map type selector (dropdown menu)
+              MapTypeSelector(
+                currentMapType: _currentMapType,
+                onMapTypeChanged: (mapType) {
+                  setState(() {
+                    _currentMapType = mapType;
+                  });
+                },
+              ),
+            ],
           ),
         ),
         // Empty state message if no fires
