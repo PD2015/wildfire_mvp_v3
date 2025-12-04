@@ -609,23 +609,26 @@ class _MapScreenState extends State<MapScreen> {
             onCameraIdle: _viewportLoader.onCameraIdle,
           ),
         ),
-        // Source chip positioned at top-left
-        Positioned(
-          top: 16,
-          left: 16,
-          child: MapSourceChip(
-            source: state.freshness,
-            lastUpdated: state.lastUpdated,
+        // Source chip positioned at top-left - only show when there are fires
+        // When no fires, the empty state card already shows the data source
+        if (state.incidents.isNotEmpty)
+          Positioned(
+            top: 16,
+            left: 16,
+            child: MapSourceChip(
+              source: state.freshness,
+              lastUpdated: state.lastUpdated,
+            ),
           ),
-        ),
-        // Timestamp chip positioned at bottom-left
-        Positioned(
-          bottom: 16,
-          left: 16,
-          child: IncidentsTimestampChip(
-            lastUpdated: state.lastUpdated,
+        // Timestamp chip positioned at bottom-left - only show when there are fires
+        if (state.incidents.isNotEmpty)
+          Positioned(
+            bottom: 16,
+            left: 16,
+            child: IncidentsTimestampChip(
+              lastUpdated: state.lastUpdated,
+            ),
           ),
-        ),
         // Map controls positioned at top-right (burn areas toggle, map type, GPS)
         Positioned(
           top: 16,
