@@ -50,7 +50,6 @@ class LocationStateManager extends ChangeNotifier {
 
   LocationDisplayState _state = const LocationDisplayInitial();
   bool _isManualLocation = false;
-  String? _manualPlaceName;
 
   /// Current location display state
   LocationDisplayState get state => _state;
@@ -105,7 +104,6 @@ class LocationStateManager extends ChangeNotifier {
       await _locationResolver.saveManual(location, placeName: placeName);
 
       _isManualLocation = true;
-      _manualPlaceName = placeName;
 
       developer.log(
         'Manual location set: ${LocationUtils.logRedact(location.latitude, location.longitude)}${placeName != null ? ' ($placeName)' : ''}',
@@ -144,7 +142,6 @@ class LocationStateManager extends ChangeNotifier {
       await _locationResolver.clearManualLocation();
 
       _isManualLocation = false;
-      _manualPlaceName = null;
 
       developer.log('Returning to GPS location', name: 'LocationStateManager');
 
@@ -156,7 +153,6 @@ class LocationStateManager extends ChangeNotifier {
       );
       // Try to fetch anyway
       _isManualLocation = false;
-      _manualPlaceName = null;
       await _fetchLocation();
     }
   }
@@ -179,29 +175,48 @@ class LocationStateManager extends ChangeNotifier {
     ));
 
     try {
+      // First check for cached manual location (persisted across navigation)
+      final cached = await _locationResolver.loadCachedManualLocation();
+      if (cached != null) {
+        final (location, placeName) = cached;
+        _isManualLocation = true;
+
+        developer.log(
+          'Using cached manual location: ${LocationUtils.logRedact(location.latitude, location.longitude)}${placeName != null ? ' ($placeName)' : ''}',
+          name: 'LocationStateManager',
+        );
+
+        _updateState(LocationDisplaySuccess(
+          coordinates: location,
+          source: LocationSource.manual,
+          placeName: placeName,
+          lastUpdated: DateTime.now(),
+          isWhat3wordsLoading: _what3wordsService != null,
+          isGeocodingLoading: _geocodingService != null,
+        ));
+
+        // Fetch enrichment data
+        _fetchEnrichmentData(location);
+        return;
+      }
+
+      // No cached manual location - use GPS/fallback chain
+      _isManualLocation = false;
       final result = await _locationResolver.getLatLon(allowDefault: true);
 
       switch (result) {
         case Right(:final value):
           final location = value;
 
-          // Determine source
-          final LocationSource source;
-          if (_isManualLocation) {
-            source = LocationSource.manual;
-          } else {
-            source = LocationSource.gps;
-          }
-
           developer.log(
-            'Location resolved: ${LocationUtils.logRedact(location.latitude, location.longitude)} (source: $source)',
+            'Location resolved: ${LocationUtils.logRedact(location.latitude, location.longitude)} (source: gps)',
             name: 'LocationStateManager',
           );
 
           _updateState(LocationDisplaySuccess(
             coordinates: location,
-            source: source,
-            placeName: _isManualLocation ? _manualPlaceName : null,
+            source: LocationSource.gps,
+            placeName: null,
             lastUpdated: DateTime.now(),
             isWhat3wordsLoading: _what3wordsService != null,
             isGeocodingLoading: _geocodingService != null,

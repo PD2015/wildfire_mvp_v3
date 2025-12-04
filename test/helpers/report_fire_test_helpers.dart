@@ -12,6 +12,7 @@ import 'package:wildfire_mvp_v3/features/report/controllers/report_fire_controll
 class MockLocationResolver implements LocationResolver {
   final LatLng defaultLocation;
   LatLng? _savedManualLocation;
+  String? _savedPlaceName;
 
   MockLocationResolver({
     this.defaultLocation = const LatLng(57.2, -3.8), // Aviemore
@@ -30,11 +31,21 @@ class MockLocationResolver implements LocationResolver {
   @override
   Future<void> saveManual(LatLng location, {String? placeName}) async {
     _savedManualLocation = location;
+    _savedPlaceName = placeName;
   }
 
   @override
   Future<void> clearManualLocation() async {
     _savedManualLocation = null;
+    _savedPlaceName = null;
+  }
+
+  @override
+  Future<(LatLng, String?)?> loadCachedManualLocation() async {
+    if (_savedManualLocation != null) {
+      return (_savedManualLocation!, _savedPlaceName);
+    }
+    return null;
   }
 }
 
