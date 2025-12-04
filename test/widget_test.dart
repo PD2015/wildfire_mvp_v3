@@ -15,6 +15,8 @@ import 'package:wildfire_mvp_v3/models/risk_level.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:dartz/dartz.dart';
 
+import 'support/fakes.dart';
+
 // Mock FireRiskService for testing
 class _TestFireRiskService implements FireRiskService {
   @override
@@ -40,7 +42,10 @@ void main() {
     // without running complex async operations that can cause test instability
 
     // Create minimal test services
-    final locationResolver = LocationResolverImpl();
+    final fakeGeolocator = FakeGeolocator();
+    final locationResolver = LocationResolverImpl(
+      geolocatorService: fakeGeolocator,
+    );
     final fireRiskService = _TestFireRiskService();
 
     // Create controller with test services

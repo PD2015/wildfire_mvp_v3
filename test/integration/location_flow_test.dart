@@ -20,22 +20,26 @@ void main() {
     late FakeGeolocator fakeGeolocator;
     late FakeTimer fakeTimer;
 
-    /// Platform guard skips GPS on non-mobile platforms, returning Scotland centroid
+    /// Platform guard skips GPS only on desktop platforms (not web or mobile)
+    /// Web uses GPS via injectable GeolocatorService, mobile uses native GPS
+    /// Only desktop (macOS/Windows/Linux) skips GPS and returns fallback
     bool isPlatformGuardActive() =>
-        kIsWeb || (!Platform.isAndroid && !Platform.isIOS);
+        !kIsWeb && !Platform.isAndroid && !Platform.isIOS;
 
     /// Get expected coordinates when GPS is set up but platform guard may be active
     LatLng expectedLocationForGpsSetup(LatLng gpsCoordinates) {
-      return isPlatformGuardActive()
-          ? TestData.scotlandCentroid
-          : gpsCoordinates;
+      return isPlatformGuardActive() ? TestData.aviemore : gpsCoordinates;
     }
 
     setUp(() {
       fakeGeolocator = FakeGeolocator();
       fakeTimer = FakeTimer();
-      locationResolver = LocationResolverImpl(); // Reset SharedPreferences
       SharedPreferences.setMockInitialValues({});
+
+      // Inject fake geolocator for controllable GPS behavior
+      locationResolver = LocationResolverImpl(
+        geolocatorService: fakeGeolocator,
+      );
     });
 
     tearDown(() {
@@ -47,12 +51,26 @@ void main() {
       test(
         'Tier 1: Last known position available - returns immediately',
         () async {
-          // Arrange
-          final lastKnownPos = TestData.createPosition(
-            latitude: TestData.edinburgh.latitude,
-            longitude: TestData.edinburgh.longitude,
-          );
-          fakeGeolocator.setLastKnownPosition(lastKnownPos);
+          // Skip on web: getLastKnownPosition is not supported on web platform
+          // Web skips directly to getCurrentPosition (Tier 2)
+          if (kIsWeb) {
+            // On web, this test verifies GPS success path instead
+            fakeGeolocator.setPermission(LocationPermission.whileInUse);
+            fakeGeolocator.setLocationServiceEnabled(true);
+            fakeGeolocator.setResponseDelay(const Duration(milliseconds: 50));
+            final gpsPos = TestData.createPosition(
+              latitude: TestData.edinburgh.latitude,
+              longitude: TestData.edinburgh.longitude,
+            );
+            fakeGeolocator.setCurrentPosition(gpsPos);
+          } else {
+            // Arrange - native platforms use last known position
+            final lastKnownPos = TestData.createPosition(
+              latitude: TestData.edinburgh.latitude,
+              longitude: TestData.edinburgh.longitude,
+            );
+            fakeGeolocator.setLastKnownPosition(lastKnownPos);
+          }
 
           final stopwatch = Stopwatch()..start();
 
@@ -61,14 +79,18 @@ void main() {
 
           // Assert
           stopwatch.stop();
+          // Web needs slightly more time for GPS path vs instant last-known
+          // ignore: prefer_const_declarations
+          final maxTime = kIsWeb ? 200 : 100;
           expect(
             stopwatch.elapsedMilliseconds,
-            lessThan(100),
-            reason: 'Last known position should resolve in <100ms',
+            lessThan(maxTime),
+            reason:
+                'Position should resolve quickly (${kIsWeb ? "web GPS" : "last known"})',
           );
 
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          final location = result.getOrElse(() => TestData.aviemore);
           final expectedLocation = expectedLocationForGpsSetup(
             TestData.edinburgh,
           );
@@ -107,7 +129,7 @@ void main() {
         );
 
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         final expectedLocation = expectedLocationForGpsSetup(TestData.glasgow);
         expect(location.latitude, closeTo(expectedLocation.latitude, 0.001));
         expect(location.longitude, closeTo(expectedLocation.longitude, 0.001));
@@ -131,7 +153,7 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(location.latitude, closeTo(TestData.edinburgh.latitude, 0.001));
         expect(
           location.longitude,
@@ -173,14 +195,14 @@ void main() {
 
           // Assert
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          final location = result.getOrElse(() => TestData.aviemore);
           expect(
             location.latitude,
-            closeTo(TestData.scotlandCentroid.latitude, 0.001),
+            closeTo(TestData.aviemore.latitude, 0.001),
           );
           expect(
             location.longitude,
-            closeTo(TestData.scotlandCentroid.longitude, 0.001),
+            closeTo(TestData.aviemore.longitude, 0.001),
           );
         },
       );
@@ -194,11 +216,18 @@ void main() {
           fakeGeolocator.setLastKnownPosition(null);
           fakeGeolocator.setPermission(LocationPermission.whileInUse);
           fakeGeolocator.setLocationServiceEnabled(true);
+
+          // Configure timeout behavior based on platform
+          // Web uses 10s timeout, native uses 3s timeout
+          // We set response delay to trigger timeout exception quickly
+          // ignore: prefer_const_declarations
+          final platformTimeout =
+              kIsWeb ? const Duration(seconds: 10) : const Duration(seconds: 3);
           fakeGeolocator.setResponseDelay(
-            const Duration(seconds: 3),
-          ); // Will timeout
+            const Duration(seconds: 1),
+          ); // Small delay before throwing
           fakeGeolocator.setException(
-            TimeoutException('GPS timeout', const Duration(seconds: 2)),
+            TimeoutException('GPS timeout', platformTimeout),
           );
 
           final stopwatch = Stopwatch()..start();
@@ -208,17 +237,20 @@ void main() {
 
           // Assert
           stopwatch.stop();
+          // Allow more time on web due to longer permission/service checks
+          // ignore: prefer_const_declarations
+          final maxTime = kIsWeb ? 1500 : 2500;
           expect(
             stopwatch.elapsedMilliseconds,
-            lessThan(2500),
-            reason: 'Total resolution should complete within 2.5s budget',
+            lessThan(maxTime),
+            reason: 'Total resolution should complete within budget',
           );
 
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          final location = result.getOrElse(() => TestData.aviemore);
           expect(
             location.latitude,
-            closeTo(TestData.scotlandCentroid.latitude, 0.001),
+            closeTo(TestData.aviemore.latitude, 0.001),
           );
         },
       );
@@ -261,19 +293,23 @@ void main() {
         await locationResolver.saveManual(testLocation, placeName: placeName);
 
         // Simulate app restart by creating new instances
-        final newLocationResolver = LocationResolverImpl();
         final newFakeGeolocator = FakeGeolocator();
 
         // Configure GPS to fail so it falls back to cache
         newFakeGeolocator.setLastKnownPosition(null);
         newFakeGeolocator.setPermission(LocationPermission.denied);
 
+        // Inject fake geolocator into new resolver
+        final newLocationResolver = LocationResolverImpl(
+          geolocatorService: newFakeGeolocator,
+        );
+
         // Act - Second session: retrieve location
         final result = await newLocationResolver.getLatLon();
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(location.latitude, closeTo(testLocation.latitude, 0.001));
         expect(location.longitude, closeTo(testLocation.longitude, 0.001));
 
@@ -300,10 +336,10 @@ void main() {
 
         // Assert - Should fall back to Scotland centroid due to version incompatibility
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
     });
@@ -326,7 +362,7 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         final expectedLocation = expectedLocationForGpsSetup(
           TestData.edinburgh,
         );
@@ -344,10 +380,10 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
 
@@ -379,10 +415,10 @@ void main() {
 
         // Assert - Should not crash, fall back to default
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
 
@@ -404,10 +440,10 @@ void main() {
 
         // Assert - Should handle corruption gracefully
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
 
@@ -422,10 +458,10 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
     });
@@ -452,7 +488,7 @@ void main() {
         final expectedLocation = expectedLocationForGpsSetup(TestData.glasgow);
         for (final result in results) {
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          final location = result.getOrElse(() => TestData.aviemore);
           expect(location.latitude, closeTo(expectedLocation.latitude, 0.001));
           expect(
             location.longitude,
@@ -480,7 +516,7 @@ void main() {
 
           // Assert
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          final location = result.getOrElse(() => TestData.aviemore);
           expect(location.latitude, closeTo(testLocation.latitude, 0.001));
           expect(location.longitude, closeTo(testLocation.longitude, 0.001));
         },
@@ -526,7 +562,7 @@ void main() {
         stopwatch.stop();
         expect(stopwatch.elapsedMilliseconds, lessThan(2000));
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         final expectedLocation = expectedLocationForGpsSetup(
           TestData.edinburgh,
         );
@@ -544,10 +580,10 @@ void main() {
 
         // Assert - Should fall back to Scotland centroid
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
 

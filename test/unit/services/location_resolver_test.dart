@@ -15,6 +15,11 @@ void main() {
   // Initialize Flutter binding for SharedPreferences platform channel
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Note: These tests run with DEV_MODE=true by default (compile-time constant).
+  // The default fallback location is Aviemore (57.2, -3.8) in dev mode.
+  // In production (DEV_MODE=false), the fallback would be Scotland centroid (55.8642, -4.2518).
+  // See: lib/config/feature_flags.dart and lib/services/location_resolver_impl.dart
+
   group('LocationResolver Unit Tests', () {
     late LocationResolverImpl locationResolver;
     late FakeGeolocator fakeGeolocator;
@@ -30,8 +35,11 @@ void main() {
       // Set up SharedPreferences mock
       SharedPreferences.setMockInitialValues({});
 
-      // Create location resolver
-      locationResolver = LocationResolverImpl();
+      // Create location resolver with injected fake geolocator
+      // This allows tests to control GPS behavior regardless of platform
+      locationResolver = LocationResolverImpl(
+        geolocatorService: fakeGeolocator,
+      );
     });
 
     tearDown(() {
@@ -48,6 +56,8 @@ void main() {
           longitude: TestData.edinburgh.longitude,
         );
         fakeGeolocator.setLastKnownPosition(lastKnownPos);
+        // Also set current position for web (getLastKnownPosition skipped on web)
+        fakeGeolocator.setCurrentPosition(lastKnownPos);
 
         final stopwatch = Stopwatch()..start();
 
@@ -56,18 +66,34 @@ void main() {
 
         // Assert
         stopwatch.stop();
+        // Web may take slightly longer since it uses getCurrentPosition
+        const maxTime = kIsWeb ? 500 : 100;
         expect(
           stopwatch.elapsedMilliseconds,
-          lessThan(100),
+          lessThan(maxTime),
           reason: 'Should return quickly regardless of platform',
         );
 
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
 
-        // On macOS, GPS is skipped by platform guard, so we get Scotland centroid
-        // On mobile platforms, we would get the last known position
-        if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+        // With injectable GeolocatorService, GPS works on all platforms
+        // The fake returns Edinburgh coordinates as last known position (native)
+        // or current position (web, since getLastKnownPosition is skipped)
+        // Note: On desktop, platform guard skips GPS, so fallback is used
+        if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
+          // Desktop: platform guard triggers, falls back to Aviemore (DEV_MODE)
+          expect(
+            location.latitude,
+            closeTo(TestData.aviemore.latitude, 0.001),
+          );
+          expect(
+            location.longitude,
+            closeTo(TestData.aviemore.longitude, 0.001),
+          );
+        } else {
+          // Web and mobile: GPS works via injectable fake
+          // Web uses getCurrentPosition, mobile uses getLastKnownPosition
           expect(
             location.latitude,
             closeTo(TestData.edinburgh.latitude, 0.001),
@@ -75,16 +101,6 @@ void main() {
           expect(
             location.longitude,
             closeTo(TestData.edinburgh.longitude, 0.001),
-          );
-        } else {
-          // macOS/desktop/web: platform guard triggers, falls back to Scotland centroid
-          expect(
-            location.latitude,
-            closeTo(TestData.scotlandCentroid.latitude, 0.001),
-          );
-          expect(
-            location.longitude,
-            closeTo(TestData.scotlandCentroid.longitude, 0.001),
           );
         }
       });
@@ -112,17 +128,31 @@ void main() {
         );
 
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
 
-        // On all platforms without GPS support (including macOS), falls back to Scotland centroid
-        expect(
-          location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
-        );
-        expect(
-          location.longitude,
-          closeTo(TestData.scotlandCentroid.longitude, 0.001),
-        );
+        // With injectable GeolocatorService, GPS works on web/mobile
+        // Note: On desktop, platform guard skips GPS, so fallback is used
+        if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
+          // Desktop: platform guard triggers, falls back to Aviemore (DEV_MODE)
+          expect(
+            location.latitude,
+            closeTo(TestData.aviemore.latitude, 0.001),
+          );
+          expect(
+            location.longitude,
+            closeTo(TestData.aviemore.longitude, 0.001),
+          );
+        } else {
+          // Web and mobile: GPS works via injectable fake
+          expect(
+            location.latitude,
+            closeTo(TestData.glasgow.latitude, 0.001),
+          );
+          expect(
+            location.longitude,
+            closeTo(TestData.glasgow.longitude, 0.001),
+          );
+        }
       });
     });
 
@@ -156,23 +186,26 @@ void main() {
           );
 
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          final location = result.getOrElse(() => TestData.aviemore);
 
-          // On macOS/desktop/web, platform guard skips GPS and uses Scotland centroid
-          if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+          // With injectable GeolocatorService, GPS works on web/mobile
+          // Note: On desktop, platform guard skips GPS, so fallback is used
+          if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
+            // Desktop: platform guard triggers, falls back to Aviemore (DEV_MODE)
+            expect(
+              location.latitude,
+              closeTo(TestData.aviemore.latitude, 0.001),
+            );
+            expect(
+              location.longitude,
+              closeTo(TestData.aviemore.longitude, 0.001),
+            );
+          } else {
+            // Web and mobile: GPS works via injectable fake
             expect(location.latitude, closeTo(TestData.london.latitude, 0.001));
             expect(
               location.longitude,
               closeTo(TestData.london.longitude, 0.001),
-            );
-          } else {
-            expect(
-              location.latitude,
-              closeTo(TestData.scotlandCentroid.latitude, 0.001),
-            );
-            expect(
-              location.longitude,
-              closeTo(TestData.scotlandCentroid.longitude, 0.001),
             );
           }
         },
@@ -190,14 +223,14 @@ void main() {
 
           // Assert
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          final location = result.getOrElse(() => TestData.aviemore);
           expect(
             location.latitude,
-            closeTo(TestData.scotlandCentroid.latitude, 0.001),
+            closeTo(TestData.aviemore.latitude, 0.001),
           );
           expect(
             location.longitude,
-            closeTo(TestData.scotlandCentroid.longitude, 0.001),
+            closeTo(TestData.aviemore.longitude, 0.001),
           );
         },
       );
@@ -263,23 +296,31 @@ void main() {
 
         // Assert
         stopwatch.stop();
+        // Web has 10s timeout, native has 3s timeout
+        // With timeout exception, should fall back to default quickly
+        // Allow more time on web since timeout is longer (though exception should be fast)
+        const maxTime = kIsWeb ? 5000 : 2500;
         expect(
           stopwatch.elapsedMilliseconds,
-          lessThan(2500),
-          reason: 'Total resolution should complete within 2.5s budget',
+          lessThan(maxTime),
+          reason: 'Total resolution should complete within timeout budget',
         );
 
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
     });
 
     group('Platform Guards', () {
-      test('web/emulator platform skips GPS and uses fallback path', () async {
+      // Note: Web platform now ALLOWS GPS access (via browser Geolocation API)
+      // Only desktop platforms (macOS, Windows, Linux) skip GPS
+      // This change was made to support PWA GPS on mobile browsers
+
+      test('desktop platform skips GPS and uses fallback path', () async {
         // Note: In a real implementation, we would mock kIsWeb or platform detection
         // For this test, we simulate the behavior by configuring GPS as unavailable
 
@@ -290,12 +331,14 @@ void main() {
         // Act
         final result = await locationResolver.getLatLon(allowDefault: true);
 
-        // Assert
+        // Assert - uses default fallback (Aviemore in DEV_MODE)
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        // ignore: deprecated_member_use_from_same_package
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          // ignore: deprecated_member_use_from_same_package
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
     });
@@ -319,7 +362,7 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(location.latitude, closeTo(TestData.edinburgh.latitude, 0.001));
         expect(
           location.longitude,
@@ -345,10 +388,10 @@ void main() {
 
         // Assert - should fall back to Scotland centroid without crashing
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
     });
@@ -439,10 +482,10 @@ void main() {
 
         // Assert - should not crash and return default
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.scotlandCentroid);
+        final location = result.getOrElse(() => TestData.aviemore);
         expect(
           location.latitude,
-          closeTo(TestData.scotlandCentroid.latitude, 0.001),
+          closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
 
@@ -465,10 +508,23 @@ void main() {
         // Assert - all should succeed
         for (final result in results) {
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.scotlandCentroid);
+          final location = result.getOrElse(() => TestData.aviemore);
 
-          // On macOS/desktop/web, platform guard skips GPS and uses Scotland centroid
-          if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+          // With injectable GeolocatorService, GPS works on all platforms except desktop
+          // Desktop (macOS, Windows, Linux) skips GPS and uses DEV_MODE default (Aviemore)
+          // Web and mobile platforms use the injected FakeGeolocator → Glasgow
+          if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
+            // Desktop only - GPS skipped, uses Aviemore fallback
+            expect(
+              location.latitude,
+              closeTo(TestData.aviemore.latitude, 0.001),
+            );
+            expect(
+              location.longitude,
+              closeTo(TestData.aviemore.longitude, 0.001),
+            );
+          } else {
+            // Web and mobile - GPS works via FakeGeolocator → Glasgow
             expect(
               location.latitude,
               closeTo(TestData.glasgow.latitude, 0.001),
@@ -476,15 +532,6 @@ void main() {
             expect(
               location.longitude,
               closeTo(TestData.glasgow.longitude, 0.001),
-            );
-          } else {
-            expect(
-              location.latitude,
-              closeTo(TestData.scotlandCentroid.latitude, 0.001),
-            );
-            expect(
-              location.longitude,
-              closeTo(TestData.scotlandCentroid.longitude, 0.001),
             );
           }
         }
@@ -499,6 +546,8 @@ void main() {
           longitude: TestData.edinburgh.longitude,
         );
         fakeGeolocator.setLastKnownPosition(lastKnownPos);
+        // Also set current position for web (getLastKnownPosition skipped on web)
+        fakeGeolocator.setCurrentPosition(lastKnownPos);
 
         // Act & Assert
         final stopwatch = Stopwatch()..start();
@@ -506,7 +555,9 @@ void main() {
         stopwatch.stop();
 
         expect(result.isRight(), isTrue);
-        expect(stopwatch.elapsedMilliseconds, lessThan(100));
+        // Web may take slightly longer since it uses getCurrentPosition
+        const maxTime = kIsWeb ? 500 : 100;
+        expect(stopwatch.elapsedMilliseconds, lessThan(maxTime));
       });
 
       test(
@@ -526,7 +577,9 @@ void main() {
           stopwatch.stop();
 
           expect(result.isRight(), isTrue);
-          expect(stopwatch.elapsedMilliseconds, lessThan(2500));
+          // Web has 10s timeout, but exception should short-circuit quickly
+          const maxTime = kIsWeb ? 5000 : 2500;
+          expect(stopwatch.elapsedMilliseconds, lessThan(maxTime));
         },
       );
     });

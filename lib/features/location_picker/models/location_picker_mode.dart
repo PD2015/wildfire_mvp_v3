@@ -1,3 +1,27 @@
+import 'package:wildfire_mvp_v3/models/location_models.dart';
+
+/// Navigation extras for the location picker route
+///
+/// Bundles all parameters needed when navigating to the location picker screen.
+/// Used with go_router's `extra` parameter.
+class LocationPickerExtras {
+  /// The mode determines UI behavior (risk location vs fire report)
+  final LocationPickerMode mode;
+
+  /// Optional initial location to center the map on
+  /// If null, map will default to Scotland centroid
+  final LatLng? initialLocation;
+
+  /// Optional initial place name to display
+  final String? initialPlaceName;
+
+  const LocationPickerExtras({
+    required this.mode,
+    this.initialLocation,
+    this.initialPlaceName,
+  });
+}
+
 /// Mode for location picker behavior based on entry point
 ///
 /// Determines:

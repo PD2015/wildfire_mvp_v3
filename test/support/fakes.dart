@@ -260,10 +260,21 @@ class TestData {
   static const LatLng edinburgh = LatLng(55.9533, -3.1883);
   static const LatLng london = LatLng(51.5074, -0.1278);
   static const LatLng glasgow = LatLng(55.8642, -4.2518);
-  static const LatLng scotlandCentroid = LatLng(
-    57.2,
-    -3.8,
-  ); // Aviemore, UK - matches location_resolver_impl.dart
+
+  /// Aviemore test location - used as default fallback in DEV_MODE
+  /// This location has typical fire activity data in EFFIS for testing.
+  /// Matches LocationResolverImpl._aviemoreLocation
+  static const LatLng aviemore = LatLng(57.2, -3.8);
+
+  /// Real Scotland geographic centroid - used as fallback in production
+  /// Matches LocationResolverImpl._scotlandCentroid
+  static const LatLng realScotlandCentroid = LatLng(55.8642, -4.2518);
+
+  /// Default test location for most tests
+  /// Uses Aviemore coordinates since tests run in DEV_MODE by default.
+  /// This matches the expected fallback behavior in LocationResolverImpl.
+  @Deprecated('Use aviemore or realScotlandCentroid explicitly for clarity')
+  static const LatLng scotlandCentroid = aviemore;
 
   // Invalid coordinates for testing
   static const LatLng invalidLat = LatLng(999.0, -3.1883);
