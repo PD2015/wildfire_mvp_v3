@@ -137,8 +137,8 @@ void main() {
 
         final polygon = buildPolygon(incident);
 
-        expect(polygon.fillColor.alpha, greaterThan(0));
-        expect(polygon.strokeColor.alpha, equals(255));
+        expect((polygon.fillColor.a * 255).round(), greaterThan(0));
+        expect((polygon.strokeColor.a * 255).round(), equals(255));
         expect(polygon.points.length, equals(4));
       }
 
@@ -199,7 +199,7 @@ void main() {
           timestamp: DateTime.now(),
           source: DataSource.mock,
           freshness: Freshness.live,
-          boundaryPoints: [const app.LatLng(55.0, -4.0)], // Only 1 point
+          boundaryPoints: const [app.LatLng(55.0, -4.0)], // Only 1 point
         ),
         throwsArgumentError,
       );
@@ -217,9 +217,9 @@ void main() {
           timestamp: DateTime.now(),
           source: DataSource.mock,
           freshness: Freshness.live,
-          boundaryPoints: [
-            const app.LatLng(55.0, -4.0),
-            const app.LatLng(55.1, -3.9),
+          boundaryPoints: const [
+            app.LatLng(55.0, -4.0),
+            app.LatLng(55.1, -3.9),
           ], // Only 2 points
         ),
         throwsArgumentError,
