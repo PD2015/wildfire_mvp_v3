@@ -47,6 +47,11 @@ class _MapScreenState extends State<MapScreen> {
   double _currentZoom = 8.0; // Track zoom for polygon visibility
   MapType _currentMapType = MapType.terrain; // Current map type
   late DebouncedViewportLoader _viewportLoader;
+  bool _hasCenteredOnUser = false; // Track if we've centered on user location
+
+  /// Default fallback location (Aviemore, Scotland - matches LocationResolver)
+  static const _aviemoreLocation = LatLng(57.2, -3.8);
+  static const _defaultZoom = 8.0;
 
   @override
   void initState() {
@@ -80,9 +85,56 @@ class _MapScreenState extends State<MapScreen> {
       if (state is MapSuccess) {
         _updateMarkers(state);
         _updatePolygons(state);
+
+        // Center on user GPS location once when data first loads
+        if (!_hasCenteredOnUser && _mapController != null) {
+          _hasCenteredOnUser = true;
+          _centerOnUserLocation();
+        }
       }
       setState(() {});
     }
+  }
+
+  /// Center map on user's GPS location, fallback to Aviemore
+  Future<void> _centerOnUserLocation() async {
+    // If manual location is set, center on that; otherwise use GPS or fallback
+    final state = _controller.state;
+    LatLng targetLocation;
+    String locationSource;
+
+    if (state is MapSuccess) {
+      // Use centerLocation from state (which may be manual or GPS)
+      targetLocation = LatLng(
+        state.centerLocation.latitude,
+        state.centerLocation.longitude,
+      );
+      locationSource = _controller.isManualLocation ? 'manual location' : 'GPS';
+    } else {
+      // Fallback to stored GPS or Aviemore
+      final userLocation = _controller.userGpsLocation;
+      if (userLocation != null) {
+        targetLocation = LatLng(userLocation.latitude, userLocation.longitude);
+        locationSource = 'GPS';
+      } else {
+        targetLocation = _aviemoreLocation;
+        locationSource = 'Aviemore fallback';
+      }
+    }
+
+    await _mapController?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: targetLocation,
+          zoom: _defaultZoom,
+        ),
+      ),
+    );
+
+    debugPrint(
+      '📍 Map centered on: $locationSource '
+      '(${targetLocation.latitude.toStringAsFixed(2)}, ${targetLocation.longitude.toStringAsFixed(2)})',
+    );
   }
 
   @override
@@ -298,6 +350,36 @@ class _MapScreenState extends State<MapScreen> {
     debugPrint('🔶 Polygon visibility toggled: $_showPolygons');
   }
 
+  /// Animate camera to user's GPS location (or fallback to Aviemore)
+  /// Called when user taps the GPS button
+  Future<void> _animateToUserLocation() async {
+    if (_mapController == null) return;
+
+    try {
+      // Use stored GPS location from controller, fallback to Aviemore
+      final userLocation = _controller.userGpsLocation;
+      final targetLocation = userLocation != null
+          ? LatLng(userLocation.latitude, userLocation.longitude)
+          : _aviemoreLocation;
+
+      await _mapController!.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: targetLocation,
+            zoom: 10.0,
+          ),
+        ),
+      );
+
+      debugPrint(
+        '📍 GPS button: Animated to ${userLocation != null ? "user GPS" : "Aviemore fallback"} '
+        '(${targetLocation.latitude.toStringAsFixed(2)}, ${targetLocation.longitude.toStringAsFixed(2)})',
+      );
+    } catch (e) {
+      debugPrint('❌ Error animating to user location: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = _controller.state;
@@ -498,25 +580,28 @@ class _MapScreenState extends State<MapScreen> {
           child: GoogleMap(
             key: const ValueKey('wildfire_map'),
             onMapCreated: _onMapCreated,
+            // Start at Aviemore - will animate to user GPS once resolved
             initialCameraPosition: const CameraPosition(
-              target: LatLng(57.2, -3.8), // Scotland centroid - constant
-              zoom: 8.0,
+              target: _aviemoreLocation,
+              zoom: _defaultZoom,
             ),
             markers: _markers,
             polygons: _polygons, // Burnt area polygon overlays
             mapType: _currentMapType,
-            myLocationButtonEnabled: true,
-            myLocationEnabled: true,
+            myLocationEnabled: true, // Show blue dot for user location
             zoomControlsEnabled: true,
             zoomGesturesEnabled: true, // Enable pinch-to-zoom
             scrollGesturesEnabled: true,
             tiltGesturesEnabled: true,
             rotateGesturesEnabled: true,
             mapToolbarEnabled: false,
-            // Add padding to prevent controls from overlapping chips
+            // Disable native GPS button - we add our own for better positioning
+            myLocationButtonEnabled: false,
+            // Padding for zoom controls and overlays
             padding: const EdgeInsets.only(
-              bottom: 80.0, // Room for FAB
-              left: 16.0, // Room for timestamp chip
+              top: 100.0, // Room for top-right chips
+              bottom: 16.0,
+              left: 16.0,
               right: 16.0,
             ),
             // Track zoom level for polygon visibility + debounced viewport loading
@@ -613,6 +698,23 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
           ),
+        // Custom GPS button - positioned at bottom-right with zoom controls
+        Positioned(
+          bottom: 100, // Above zoom controls
+          right: 16,
+          child: Semantics(
+            label: 'Center map on your location',
+            button: true,
+            child: FloatingActionButton.small(
+              heroTag: 'gps_button',
+              onPressed: _animateToUserLocation,
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              foregroundColor: Theme.of(context).colorScheme.primary,
+              elevation: 2,
+              child: const Icon(Icons.my_location),
+            ),
+          ),
+        ),
       ],
     );
   }
