@@ -33,6 +33,35 @@ class LocationUtils {
     }
   }
 
+  /// High-precision coordinate formatting for emergency services (5dp = ~1m accuracy)
+  ///
+  /// Used on Report Fire screen where exact coordinates help fire service locate fires.
+  /// Format: "57.04850, -3.59620" (with space after comma for readability)
+  ///
+  /// Example: formatPrecise(57.0485, -3.5962) → "57.04850, -3.59620"
+  ///
+  /// Returns "Invalid location" if coordinates are invalid.
+  ///
+  /// Note: This is for DISPLAY only. For logging, always use logRedact() to comply
+  /// with C2 privacy requirements.
+  static String formatPrecise(double lat, double lon) {
+    try {
+      // Validate for NaN and Infinity
+      if (lat.isNaN || lat.isInfinite || lon.isNaN || lon.isInfinite) {
+        return 'Invalid location';
+      }
+
+      // Validate coordinate ranges
+      if (!isValidCoordinate(lat, lon)) {
+        return 'Invalid location';
+      }
+
+      return '${lat.toStringAsFixed(5)}, ${lon.toStringAsFixed(5)}';
+    } catch (e) {
+      return 'Invalid location';
+    }
+  }
+
   /// Validate coordinate ranges
   ///
   /// Returns true if coordinates are within valid GPS bounds:
