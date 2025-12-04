@@ -57,7 +57,7 @@ void main() {
     });
 
     test('Mock service returns List<FireIncident>', () async {
-      // Test with Scotland bounds (contains all 3 mock fires)
+      // Test with Scotland bounds (contains all 6 mock fires)
       const bounds = LatLngBounds(
         southwest: LatLng(55.0, -5.0),
         northeast: LatLng(59.0, -1.0),
@@ -67,7 +67,8 @@ void main() {
       expect(result.isRight(), isTrue);
       final incidents = result.getOrElse(() => []);
       expect(incidents, isA<List<FireIncident>>());
-      expect(incidents.length, 3); // 3 mock fires in Scotland
+      expect(incidents.length,
+          6); // 6 mock fires in Scotland (4 original + Dava + Carrbridge)
     });
 
     test('Service filters fires by bbox (Scotland coordinates)', () async {

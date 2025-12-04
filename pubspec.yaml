@@ -20,6 +20,7 @@ dependencies:
   go_router: ^14.2.7
   google_maps_flutter: ^2.5.0
   url_launcher: ^6.3.0
+  pointer_interceptor: ^0.10.1+2
 
 dev_dependencies:
   flutter_test:

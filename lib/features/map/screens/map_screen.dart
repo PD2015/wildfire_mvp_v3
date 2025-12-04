@@ -657,6 +657,7 @@ class _MapScreenState extends State<MapScreen> {
               // GPS button - center on user location
               // Styled to match Google Maps native controls (white bg, grey icon)
               Semantics(
+                key: const Key('gps_button'),
                 label: 'Center map on your location',
                 button: true,
                 child: Container(
