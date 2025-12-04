@@ -626,7 +626,7 @@ class _MapScreenState extends State<MapScreen> {
             lastUpdated: state.lastUpdated,
           ),
         ),
-        // Map controls positioned at top-right (burn areas toggle, then map type)
+        // Map controls positioned at top-right (burn areas toggle, map type, GPS)
         Positioned(
           top: 16,
           right: 16,
@@ -649,6 +649,43 @@ class _MapScreenState extends State<MapScreen> {
                     _currentMapType = mapType;
                   });
                 },
+              ),
+              const SizedBox(height: 8),
+              // GPS button - center on user location
+              // Styled to match Google Maps native controls (white bg, grey icon)
+              Semantics(
+                label: 'Center map on your location',
+                button: true,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _animateToUserLocation,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.my_location,
+                          size: 24,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -698,23 +735,6 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
           ),
-        // Custom GPS button - positioned at bottom-right with zoom controls
-        Positioned(
-          bottom: 100, // Above zoom controls
-          right: 16,
-          child: Semantics(
-            label: 'Center map on your location',
-            button: true,
-            child: FloatingActionButton.small(
-              heroTag: 'gps_button',
-              onPressed: _animateToUserLocation,
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              foregroundColor: Theme.of(context).colorScheme.primary,
-              elevation: 2,
-              child: const Icon(Icons.my_location),
-            ),
-          ),
-        ),
       ],
     );
   }

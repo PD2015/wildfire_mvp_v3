@@ -38,6 +38,8 @@ class MapTypeSelector extends StatelessWidget {
       label: 'Change map type, currently ${_getMapTypeLabel(currentMapType)}',
       child: Container(
         key: const Key('map_type_selector_container'),
+        width: 48,
+        height: 48,
         decoration: BoxDecoration(
           color: colorScheme.surface,
           borderRadius: BorderRadius.circular(8),
@@ -51,8 +53,10 @@ class MapTypeSelector extends StatelessWidget {
         ),
         child: PopupMenuButton<MapType>(
           key: const Key('map_type_selector'),
+          padding: EdgeInsets.zero,
           icon: Icon(
             _getMapTypeIcon(currentMapType),
+            size: 24,
             color: colorScheme.onSurfaceVariant,
             semanticLabel: 'Change map type',
           ),
