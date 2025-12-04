@@ -308,4 +308,41 @@ class LocationResolverImpl implements LocationResolver {
       rethrow;
     }
   }
+
+  @override
+  Future<(LatLng, String?)?> loadCachedManualLocation() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Check version compatibility
+      final version = prefs.getString(_versionKey);
+      if (version != _currentVersion) {
+        return null;
+      }
+
+      final lat = prefs.getDouble(_latKey);
+      final lon = prefs.getDouble(_lonKey);
+
+      if (lat != null && lon != null) {
+        // Validate coordinates
+        final isValidNumber =
+            !lat.isNaN && !lon.isNaN && !lat.isInfinite && !lon.isInfinite;
+        final isValidLatitude = lat >= 54.0 && lat <= 61.0;
+        final isValidLongitude = lon >= -9.0 && lon <= 0.0;
+
+        if (isValidNumber && isValidLatitude && isValidLongitude) {
+          final placeName = prefs.getString(_placeKey);
+          debugPrint(
+            'Loaded cached manual location: ${GeographicUtils.logRedact(lat, lon)}${placeName != null ? ' ($placeName)' : ''}',
+          );
+          return (LatLng(lat, lon), placeName);
+        }
+      }
+
+      return null;
+    } catch (e) {
+      debugPrint('Failed to load cached manual location: $e');
+      return null;
+    }
+  }
 }

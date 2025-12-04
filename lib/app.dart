@@ -5,6 +5,7 @@ import 'screens/home_screen.dart';
 import 'features/map/screens/map_screen.dart';
 import 'features/map/controllers/map_controller.dart';
 import 'features/report/screens/report_fire_screen.dart';
+import 'features/report/controllers/report_fire_controller.dart';
 import 'features/location_picker/screens/location_picker_screen.dart';
 import 'features/location_picker/models/location_picker_mode.dart';
 import 'features/location_picker/services/what3words_service.dart';
@@ -12,6 +13,7 @@ import 'features/location_picker/services/what3words_service_impl.dart';
 import 'features/location_picker/services/geocoding_service.dart';
 import 'features/location_picker/services/geocoding_service_impl.dart';
 import 'services/location_resolver.dart';
+import 'services/location_state_manager.dart';
 import 'services/fire_location_service.dart';
 import 'services/fire_risk_service.dart';
 import 'theme/wildfire_a11y_theme.dart';
@@ -34,6 +36,14 @@ class WildFireApp extends StatelessWidget {
   final FireLocationService fireLocationService;
   final FireRiskService fireRiskService;
 
+  /// Shared location state manager for Report Fire screen
+  /// Lazy-initialized to avoid unnecessary work on app startup
+  late final LocationStateManager _reportLocationStateManager;
+
+  /// Report fire controller for location helper state
+  /// Created lazily to avoid unnecessary initialization
+  late final ReportFireController _reportFireController;
+
   /// Optional geocoding services for location picker
   /// If null, LocationPickerScreen will create new instances with FeatureFlags defaults
   final What3wordsService? what3wordsService;
@@ -47,7 +57,19 @@ class WildFireApp extends StatelessWidget {
     required this.fireRiskService,
     this.what3wordsService,
     this.geocodingService,
-  });
+  }) {
+    // Create shared location state manager for Report Fire screen
+    _reportLocationStateManager = LocationStateManager(
+      locationResolver: locationResolver,
+      what3wordsService: what3wordsService ?? What3wordsServiceImpl(),
+      geocodingService: geocodingService ?? GeocodingServiceImpl(),
+    );
+
+    // Create ReportFireController with shared location manager
+    _reportFireController = ReportFireController(
+      locationStateManager: _reportLocationStateManager,
+    );
+  }
 
   /// Router configuration with go_router and bottom navigation
   late final GoRouter _router = GoRouter(
@@ -106,7 +128,12 @@ class WildFireApp extends StatelessWidget {
           GoRoute(
             path: '/report',
             name: 'report',
-            builder: (context, state) => const ReportFireScreen(),
+            builder: (context, state) {
+              // Initialize location on first navigation to Report Fire screen
+              // The initialize() method is idempotent (safe to call multiple times)
+              _reportFireController.initialize();
+              return ReportFireScreen(controller: _reportFireController);
+            },
           ),
         ],
       ),

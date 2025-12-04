@@ -38,4 +38,13 @@ abstract class LocationResolver {
   /// attempt GPS location first, falling back through the tier chain.
   /// This allows users to "return to GPS" after setting a manual location.
   Future<void> clearManualLocation();
+
+  /// Loads cached manual location if one exists
+  ///
+  /// Returns [Some(LatLng, String?)] with cached coordinates and optional place name
+  /// if a manual location has been saved, or [None] if no cached location exists.
+  ///
+  /// This method is used by screens that should prioritize showing a previously
+  /// set manual location (like Report Fire) over fetching GPS.
+  Future<(LatLng, String?)?> loadCachedManualLocation();
 }

@@ -50,6 +50,12 @@ class MockLocationResolver implements LocationResolver {
   Future<void> clearManualLocation() async {
     loggedCalls.add('clearManualLocation()');
   }
+
+  @override
+  Future<(LatLng, String?)?> loadCachedManualLocation() async {
+    loggedCalls.add('loadCachedManualLocation()');
+    return null; // No cached location for controller tests
+  }
 }
 
 /// Mock FireLocationService for controlled testing

@@ -25,11 +25,11 @@ void main() {
       );
 
       // Assert
-      expect(find.text('999 Fire Service'), findsOneWidget);
+      expect(find.text('999 – Fire Service'), findsOneWidget);
       expect(find.byType(EmergencyButton), findsOneWidget);
 
       // Test button tap
-      await tester.tap(find.text('999 Fire Service'));
+      await tester.tap(find.text('999 – Fire Service'));
       expect(wasPressed, true);
     });
 
@@ -49,7 +49,7 @@ void main() {
       );
 
       // Assert
-      expect(find.text('101 Police'), findsOneWidget);
+      expect(find.text('101 – Police'), findsOneWidget);
       expect(find.byType(EmergencyButton), findsOneWidget);
     });
 
@@ -114,6 +114,7 @@ void main() {
 
       // Assert - Check semantic labeling
       final semantics = tester.getSemantics(find.byType(EmergencyButton));
+      // Semantic labels use plain format (no en-dash) for screen readers
       expect(semantics.label, contains('999 Fire Service'));
       expect(semantics.label, contains('Emergency contact'));
     });
@@ -152,7 +153,7 @@ void main() {
       );
 
       // Assert
-      expect(find.text('999 Fire Service'), findsOneWidget);
+      expect(find.text('999 – Fire Service'), findsOneWidget);
     });
 
     testWidgets('PoliceScotlandButton should create correct button', (
@@ -166,7 +167,7 @@ void main() {
       );
 
       // Assert
-      expect(find.text('101 Police'), findsOneWidget);
+      expect(find.text('101 – Police'), findsOneWidget);
     });
 
     testWidgets('CrimestoppersButton should create correct button', (

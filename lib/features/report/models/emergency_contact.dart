@@ -98,7 +98,7 @@ class EmergencyContact extends Equatable {
   /// Returns phone number formatted for tel: URI scheme
   String get telUri => 'tel:${phoneNumber.replaceAll(RegExp(r'[^\d]'), '')}';
 
-  /// Returns display text for UI buttons
+  /// Returns display text for UI buttons (used for semantics/tests)
   String get displayText {
     // Shortened format for button width constraints
     // Icon conveys "call" action, text shows who to call
@@ -107,6 +107,16 @@ class EmergencyContact extends Equatable {
     }
     // Format: "999 Fire Service" or "101 Police"
     return '$phoneNumber ${name.replaceAll(' Scotland', '')}';
+  }
+
+  /// Returns visual display text with en-dash for better readability
+  /// Format: "999 – Fire Service" or "101 – Police"
+  String get visualDisplayText {
+    if (this == crimestoppers) {
+      return name; // "Crimestoppers" - no number prefix
+    }
+    // Format with en-dash: "999 – Fire Service" or "101 – Police"
+    return '$phoneNumber – ${name.replaceAll(' Scotland', '')}';
   }
 
   /// Returns whether this is an urgent emergency contact
