@@ -72,9 +72,22 @@ class ReportFireController extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Get current location to pass to picker as initial position
+      final currentState = _locationStateManager.state;
+      final currentLocation = currentState is LocationDisplaySuccess
+          ? currentState.coordinates
+          : null;
+      final currentPlaceName = currentState is LocationDisplaySuccess
+          ? currentState.formattedLocation ?? currentState.placeName
+          : null;
+
       final result = await context.push<PickedLocation>(
         '/location-picker',
-        extra: LocationPickerMode.fireReport,
+        extra: LocationPickerExtras(
+          mode: LocationPickerMode.fireReport,
+          initialLocation: currentLocation,
+          initialPlaceName: currentPlaceName,
+        ),
       );
 
       if (result != null) {
