@@ -7,51 +7,54 @@ import 'package:wildfire_mvp_v3/theme/risk_palette.dart';
 
 /// Helper utility for creating custom flame marker icons
 ///
-/// Provides flame-shaped markers colored by fire intensity level.
-/// Icons are programmatically drawn for consistent branding and
-/// cached to avoid repeated generation.
+/// Uses the Material `Icons.local_fire_department` icon rendered as
+/// bitmap markers, colored by fire intensity level. This ensures
+/// consistent branding with the rest of the app (nav bar, bottom sheet).
 ///
 /// Usage:
 /// ```dart
-/// final helper = MarkerIconHelper();
-/// await helper.initialize(); // Pre-load all icons
-/// final icon = helper.getIcon('high'); // Get cached icon
+/// await MarkerIconHelper.initialize();
+/// final icon = MarkerIconHelper.getIcon('high');
 /// ```
 class MarkerIconHelper {
   /// Cached marker icons by intensity
-  final Map<String, BitmapDescriptor> _iconCache = {};
+  static final Map<String, BitmapDescriptor> _iconCache = {};
 
   /// Whether icons have been initialized
-  bool _isInitialized = false;
+  static bool _isInitialized = false;
 
   /// Check if icons are ready to use
-  bool get isReady => _isInitialized;
+  static bool get isReady => _isInitialized;
 
-  /// Icon size in logical pixels (will be scaled for device pixel ratio)
-  static const double _iconSize = 48.0;
+  /// Icon size in logical pixels (close to Google Maps default ~27px)
+  static const double _iconSize = 28.0;
 
   /// Initialize and pre-load all flame icons
   ///
   /// Call this during widget initialization to avoid async icon loading
   /// when markers are first created.
-  Future<void> initialize() async {
+  static Future<void> initialize() async {
     if (_isInitialized) return;
 
-    await Future.wait([
-      _createFlameIcon('low', _getColorForIntensity('low')),
-      _createFlameIcon('moderate', _getColorForIntensity('moderate')),
-      _createFlameIcon('high', _getColorForIntensity('high')),
-      _createFlameIcon('unknown', RiskPalette.midGray),
-    ]);
+    try {
+      await Future.wait([
+        _createIconFromMaterial('low', _getColorForIntensity('low')),
+        _createIconFromMaterial('moderate', _getColorForIntensity('moderate')),
+        _createIconFromMaterial('high', _getColorForIntensity('high')),
+        _createIconFromMaterial('unknown', RiskPalette.midGray),
+      ]);
 
-    _isInitialized = true;
-    debugPrint('🔥 MarkerIconHelper: All flame icons initialized');
+      _isInitialized = true;
+      debugPrint('🔥 MarkerIconHelper: All flame icons initialized');
+    } catch (e) {
+      debugPrint('⚠️ MarkerIconHelper: Failed to initialize icons: $e');
+    }
   }
 
   /// Get the appropriate flame icon for the given intensity
   ///
   /// Returns a fallback default marker if icons haven't been initialized.
-  BitmapDescriptor getIcon(String intensity) {
+  static BitmapDescriptor getIcon(String intensity) {
     final normalizedIntensity = intensity.toLowerCase();
 
     if (!_isInitialized) {
@@ -66,7 +69,7 @@ class MarkerIconHelper {
   }
 
   /// Get color for intensity level using RiskPalette
-  Color _getColorForIntensity(String intensity) {
+  static Color _getColorForIntensity(String intensity) {
     switch (intensity.toLowerCase()) {
       case 'high':
         return RiskPalette.veryHigh; // Red
@@ -80,7 +83,7 @@ class MarkerIconHelper {
   }
 
   /// Fallback to default hue-based markers if custom icons not ready
-  BitmapDescriptor _getFallbackMarker(String intensity) {
+  static BitmapDescriptor _getFallbackMarker(String intensity) {
     switch (intensity) {
       case 'high':
         return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
@@ -95,184 +98,161 @@ class MarkerIconHelper {
     }
   }
 
-  /// Create a flame-shaped icon with the given color
-  Future<void> _createFlameIcon(String intensity, Color color) async {
+  /// Create a marker icon from Material Icons.local_fire_department
+  static Future<void> _createIconFromMaterial(
+      String intensity, Color color) async {
     try {
-      final bytes = await _drawFlameIcon(color);
+      final bytes = await _renderMaterialIcon(
+        Icons.local_fire_department,
+        color,
+        _iconSize,
+      );
       final descriptor = BitmapDescriptor.bytes(bytes);
       _iconCache[intensity] = descriptor;
       debugPrint('🔥 Created flame icon for intensity: $intensity');
     } catch (e) {
       debugPrint('⚠️ Failed to create flame icon for $intensity: $e');
-      // Use fallback marker on failure
       _iconCache[intensity] = _getFallbackMarker(intensity);
     }
   }
 
-  /// Draw a flame icon using Canvas
-  ///
-  /// Creates a stylized flame shape with gradient fill and
-  /// drop shadow for visibility on the map.
-  Future<Uint8List> _drawFlameIcon(Color color) async {
-    // Use higher resolution for crisp icons on high-DPI screens
-    const double scale = 3.0;
-    const double size = _iconSize * scale;
+  /// Render a Material icon to PNG bytes with Google-style teardrop pin shape
+  static Future<Uint8List> _renderMaterialIcon(
+    IconData icon,
+    Color color,
+    double size,
+  ) async {
+    // Use 2x scale for crisp rendering on retina displays
+    const double scale = 2.0;
+    final double scaledSize = size * scale;
+
+    // Pin dimensions - use 1.6 ratio like Google Maps default markers
+    final double pinWidth = scaledSize;
+    final double pinHeight = scaledSize * 1.6;
 
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
 
-    // Draw drop shadow for visibility
-    _drawFlamePath(
-      canvas,
-      size,
-      Colors.black.withValues(alpha: 0.3),
-      offset: const Offset(2, 2),
+    // Draw shadow first (offset down and right)
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.3)
+      ..style = PaintingStyle.fill;
+
+    final shadowPath = _createTeardropPath(
+      pinWidth / 2 + 3, // Offset right
+      6, // Offset down
+      pinWidth * 0.42,
+      pinHeight,
+    );
+    canvas.drawPath(shadowPath, shadowPaint);
+
+    // Draw white teardrop background
+    final bgPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    final pinPath = _createTeardropPath(
+      pinWidth / 2,
+      0,
+      pinWidth * 0.42,
+      pinHeight,
+    );
+    canvas.drawPath(pinPath, bgPaint);
+
+    // Draw subtle border for definition
+    final borderPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.15)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+    canvas.drawPath(pinPath, borderPaint);
+
+    // Draw the icon using TextPainter with icon font
+    // Position icon in the circular part (upper portion of teardrop)
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: String.fromCharCode(icon.codePoint),
+        style: TextStyle(
+          fontSize: pinWidth * 0.55,
+          fontFamily: icon.fontFamily,
+          package: icon.fontPackage,
+          color: color,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
     );
 
-    // Draw main flame
-    _drawFlamePath(canvas, size, color);
+    textPainter.layout();
 
-    // Draw inner highlight for depth
-    _drawFlameHighlight(canvas, size, color);
+    // Center the icon horizontally, position in upper circular area
+    final circleRadius = pinWidth * 0.42;
+    final circleCenterY = circleRadius; // Center of the circular part
+    final iconOffset = Offset(
+      (pinWidth - textPainter.width) / 2,
+      circleCenterY - (textPainter.height / 2),
+    );
+
+    textPainter.paint(canvas, iconOffset);
 
     final picture = recorder.endRecording();
-    final image = await picture.toImage(size.toInt(), size.toInt());
+    final image = await picture.toImage(pinWidth.toInt(), pinHeight.toInt());
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
 
     if (byteData == null) {
-      throw Exception('Failed to convert flame icon to bytes');
+      throw Exception('Failed to convert icon to bytes');
     }
 
     return byteData.buffer.asUint8List();
   }
 
-  /// Draw the flame shape path
-  void _drawFlamePath(
-    Canvas canvas,
-    double size,
-    Color color, {
-    Offset offset = Offset.zero,
-  }) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
+  /// Create a teardrop/pin path like Google Maps markers
+  ///
+  /// The shape is a circle at the top with a pointed bottom.
+  /// [centerX] - horizontal center of the pin
+  /// [topY] - top edge of the circular part
+  /// [radius] - radius of the circular part
+  /// [totalHeight] - total height including the point
+  static Path _createTeardropPath(
+    double centerX,
+    double topY,
+    double radius,
+    double totalHeight,
+  ) {
     final path = Path();
 
-    // Flame shape - stylized fire icon
-    // Base point at bottom center, flame curves up with tongues
-    final centerX = size / 2 + offset.dx;
-    final bottom = size * 0.95 + offset.dy;
-    final top = size * 0.08 + offset.dy;
+    // The circular part center
+    final circleCenterY = topY + radius;
 
-    // Start at bottom center point
-    path.moveTo(centerX, bottom);
+    // Point at the bottom
+    final pointY = topY + totalHeight * 0.85;
 
-    // Left side of flame - curves outward then up
+    // Start at the bottom point
+    path.moveTo(centerX, pointY);
+
+    // Draw left curve from point up to the circle
+    // Using quadratic bezier for smooth curve
     path.quadraticBezierTo(
-      centerX - size * 0.35 + offset.dx,
-      bottom - size * 0.15,
-      centerX - size * 0.30 + offset.dx,
-      bottom - size * 0.40,
+      centerX - radius * 0.8, // Control point X (pulls curve outward)
+      circleCenterY + radius * 0.6, // Control point Y
+      centerX - radius, // End at left edge of circle
+      circleCenterY, // At circle center height
     );
 
-    // Left tongue of flame
-    path.quadraticBezierTo(
-      centerX - size * 0.35 + offset.dx,
-      bottom - size * 0.55,
-      centerX - size * 0.20 + offset.dx,
-      bottom - size * 0.65,
+    // Draw the circular top (arc from left to right)
+    path.arcToPoint(
+      Offset(centerX + radius, circleCenterY),
+      radius: Radius.circular(radius),
+      clockwise: true,
     );
 
-    // Curve to top point
+    // Draw right curve from circle down to point
     path.quadraticBezierTo(
-      centerX - size * 0.15 + offset.dx,
-      top + size * 0.15,
-      centerX,
-      top,
-    );
-
-    // Right side - mirror of left
-    path.quadraticBezierTo(
-      centerX + size * 0.15 + offset.dx,
-      top + size * 0.15,
-      centerX + size * 0.20 + offset.dx,
-      bottom - size * 0.65,
-    );
-
-    // Right tongue of flame
-    path.quadraticBezierTo(
-      centerX + size * 0.35 + offset.dx,
-      bottom - size * 0.55,
-      centerX + size * 0.30 + offset.dx,
-      bottom - size * 0.40,
-    );
-
-    // Curve back to bottom center
-    path.quadraticBezierTo(
-      centerX + size * 0.35 + offset.dx,
-      bottom - size * 0.15,
-      centerX,
-      bottom,
+      centerX + radius * 0.8, // Control point X (pulls curve outward)
+      circleCenterY + radius * 0.6, // Control point Y
+      centerX, // End at bottom point
+      pointY,
     );
 
     path.close();
-    canvas.drawPath(path, paint);
-  }
-
-  /// Draw inner highlight for 3D depth effect
-  void _drawFlameHighlight(Canvas canvas, double size, Color baseColor) {
-    // Lighter inner flame
-    final highlightColor = Color.lerp(baseColor, Colors.yellow, 0.4)!;
-
-    final paint = Paint()
-      ..color = highlightColor.withValues(alpha: 0.7)
-      ..style = PaintingStyle.fill;
-
-    final path = Path();
-
-    final centerX = size / 2;
-    final bottom = size * 0.85;
-    final top = size * 0.25;
-
-    // Smaller inner flame shape
-    path.moveTo(centerX, bottom);
-
-    path.quadraticBezierTo(
-      centerX - size * 0.15,
-      bottom - size * 0.20,
-      centerX - size * 0.12,
-      bottom - size * 0.40,
-    );
-
-    path.quadraticBezierTo(
-      centerX - size * 0.10,
-      top + size * 0.10,
-      centerX,
-      top,
-    );
-
-    path.quadraticBezierTo(
-      centerX + size * 0.10,
-      top + size * 0.10,
-      centerX + size * 0.12,
-      bottom - size * 0.40,
-    );
-
-    path.quadraticBezierTo(
-      centerX + size * 0.15,
-      bottom - size * 0.20,
-      centerX,
-      bottom,
-    );
-
-    path.close();
-    canvas.drawPath(path, paint);
-  }
-
-  /// Dispose of cached icons
-  void dispose() {
-    _iconCache.clear();
-    _isInitialized = false;
+    return path;
   }
 }

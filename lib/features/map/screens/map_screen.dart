@@ -45,7 +45,6 @@ class _MapScreenState extends State<MapScreen> {
   bool _showPolygons = true; // Toggle for polygon visibility
   double _currentZoom = 8.0; // Track zoom for polygon visibility
   late DebouncedViewportLoader _viewportLoader;
-  final MarkerIconHelper _markerIconHelper = MarkerIconHelper();
 
   @override
   void initState() {
@@ -67,7 +66,7 @@ class _MapScreenState extends State<MapScreen> {
     // Initialize map data and marker icons on mount
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       // Pre-load flame marker icons
-      await _markerIconHelper.initialize();
+      await MarkerIconHelper.initialize();
       // Then load map data
       _controller.initialize();
     });
@@ -89,7 +88,6 @@ class _MapScreenState extends State<MapScreen> {
     _controller.removeListener(_onControllerUpdate);
     _mapController?.dispose();
     _viewportLoader.dispose();
-    _markerIconHelper.dispose();
     super.dispose();
   }
 
@@ -120,6 +118,8 @@ class _MapScreenState extends State<MapScreen> {
           incident.location.longitude,
         ),
         icon: _getMarkerIcon(incident.intensity),
+        // Anchor at bottom-center so the pin tip points to exact location
+        anchor: const Offset(0.5, 1.0),
         alpha: isSelected ? 1.0 : 0.8, // Highlight selected marker
         infoWindow: InfoWindow(
           title: title,
@@ -215,7 +215,7 @@ class _MapScreenState extends State<MapScreen> {
   BitmapDescriptor _getMarkerIcon(String intensity) {
     // Use custom flame icons from MarkerIconHelper
     // Falls back to hue-based markers if icons not yet initialized
-    return _markerIconHelper.getIcon(intensity);
+    return MarkerIconHelper.getIcon(intensity);
   }
 
   /// Update polygon overlays from fire incidents with valid boundary points
