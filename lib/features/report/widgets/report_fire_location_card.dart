@@ -83,18 +83,18 @@ class ReportFireLocationCard extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Leading icon
+        // Leading icon - matches Home LocationCard style
         Container(
-          width: 40,
-          height: 40,
+          width: 32,
+          height: 32,
           decoration: BoxDecoration(
-            color: scheme.primaryContainer,
-            shape: BoxShape.circle,
+            color: scheme.secondaryContainer,
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Icon(
             Icons.my_location,
-            color: scheme.onPrimaryContainer,
-            size: 24,
+            color: scheme.onSecondaryContainer,
+            size: 20,
           ),
         ),
         const SizedBox(width: 12),

@@ -80,7 +80,7 @@ class _ReportFireScreenState extends State<ReportFireScreen> {
           // Emergency Actions Card - Groups all three contact options
           Semantics(
             container: true,
-            label: 'Emergency contact options',
+            label: 'Emergency contact options. Who to call about this fire.',
             child: Card(
               margin: EdgeInsets.zero,
               elevation: 2.0,
@@ -89,17 +89,41 @@ class _ReportFireScreenState extends State<ReportFireScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Section heading inside card
-                    Semantics(
-                      header: true,
-                      label: 'Who to call about this fire',
-                      child: Text(
-                        'Who to call about this fire',
-                        style: textTheme.titleMedium?.copyWith(
-                          color: cs.onSurface,
-                          fontWeight: FontWeight.w600,
+                    // Header with icon and emergency-specific text
+                    // Mirrors structure of Home LocationCard header
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Leading icon - matches Home LocationCard style
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: cs.secondaryContainer,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            Icons.phone_in_talk,
+                            color: cs.onSecondaryContainer,
+                            size: 20,
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 12),
+
+                        // Header text
+                        Expanded(
+                          child: Semantics(
+                            header: true,
+                            child: Text(
+                              'Who to call about this fire',
+                              style: textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: cs.onSurface,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
 
