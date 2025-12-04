@@ -121,8 +121,9 @@ void main() {
           ),
         ));
 
-        // Should show precise coordinates with Latitude / Longitude label
-        expect(find.text('Latitude / Longitude'), findsOneWidget);
+        // Should show precise coordinates with separate Latitude / Longitude labels
+        expect(find.text('Latitude'), findsOneWidget);
+        expect(find.text('Longitude'), findsOneWidget);
         expect(find.textContaining('57.04850'), findsOneWidget);
         expect(find.textContaining('-3.59620'), findsOneWidget);
       });

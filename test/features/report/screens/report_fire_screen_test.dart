@@ -26,8 +26,8 @@ void main() {
       expect(find.text('Report a Fire'), findsOneWidget);
 
       // Check for first two button texts (visible on screen)
-      expect(find.text('999 Fire Service'), findsOneWidget);
-      expect(find.text('101 Police'), findsOneWidget);
+      expect(find.text('999 – Fire Service'), findsOneWidget);
+      expect(find.text('101 – Police'), findsOneWidget);
 
       // Scroll down to see third button
       await tester.drag(find.byType(ListView), const Offset(0, -200));
@@ -122,7 +122,7 @@ void main() {
       );
 
       // Tap the Fire Service button (url_launcher will fail in test environment)
-      await tester.tap(find.text('999 Fire Service'));
+      await tester.tap(find.text('999 – Fire Service'));
       await tester.pump();
 
       // In test environment, url_launcher fails so SnackBar should appear
@@ -184,7 +184,7 @@ void main() {
         findsAtLeastNWidgets(2),
       ); // Banner card + emergency actions card + tips card
       expect(
-        find.text('999 Fire Service'),
+        find.text('999 – Fire Service'),
         findsOneWidget,
       ); // At least one button visible
     });
@@ -194,9 +194,15 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(home: ReportFireScreen(controller: controller)),
       );
+      await tester.pumpAndSettle();
+
+      // Find and scroll to the button first
+      final buttonFinder = find.text('999 – Fire Service');
+      await tester.ensureVisible(buttonFinder);
+      await tester.pumpAndSettle();
 
       // Tap button to potentially trigger SnackBar
-      await tester.tap(find.text('999 Fire Service'));
+      await tester.tap(buttonFinder);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 

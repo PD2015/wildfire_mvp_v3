@@ -75,7 +75,7 @@ class _ReportFireScreenState extends State<ReportFireScreen> {
 
           // Disclaimer - app doesn't contact services
           _buildDisclaimer(context, cs),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           // Section heading - ties location card to emergency options
           Text(

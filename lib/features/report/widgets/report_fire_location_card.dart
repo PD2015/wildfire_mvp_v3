@@ -250,11 +250,6 @@ class ReportFireLocationCard extends StatelessWidget {
     String? formattedLocation,
     bool isGeocodingLoading = false,
   }) {
-    final preciseCoords = LocationUtils.formatPrecise(
-      coordinates.latitude,
-      coordinates.longitude,
-    );
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -274,16 +269,25 @@ class ReportFireLocationCard extends StatelessWidget {
           const SizedBox(height: 12),
         ],
 
-        // Coordinates (5dp precision with monospace)
+        // Coordinates (5dp precision with monospace) - split for readability
         _buildLabeledRow(
           context,
           theme,
           scheme,
-          label: 'Latitude / Longitude',
-          value: preciseCoords,
+          label: 'Latitude',
+          value: coordinates.latitude.toStringAsFixed(5),
           isMonospace: true,
         ),
         const SizedBox(height: 4),
+        _buildLabeledRow(
+          context,
+          theme,
+          scheme,
+          label: 'Longitude',
+          value: coordinates.longitude.toStringAsFixed(5),
+          isMonospace: true,
+        ),
+        const SizedBox(height: 6),
 
         // Helper text for coordinates
         Text(

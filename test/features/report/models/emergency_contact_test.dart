@@ -66,7 +66,10 @@ void main() {
           priority: EmergencyPriority.urgent,
         );
 
+        // displayText uses plain format (for semantics/screen readers)
         expect(contact.displayText, '999 Fire Service');
+        // visualDisplayText uses en-dash (for visual buttons)
+        expect(contact.visualDisplayText, '999 – Fire Service');
       });
 
       test('isUrgent property works correctly', () {

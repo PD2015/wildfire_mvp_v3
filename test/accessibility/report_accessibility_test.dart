@@ -28,8 +28,8 @@ void main() {
 
         // Find all emergency call buttons by their text
         final buttonTexts = [
-          '999 Fire Service',
-          '101 Police',
+          '999 – Fire Service',
+          '101 – Police',
           'Crimestoppers',
         ];
 
@@ -112,8 +112,8 @@ void main() {
         await tester.pumpAndSettle();
 
         final buttonFinders = [
-          find.widgetWithText(EmergencyButton, '999 Fire Service'),
-          find.widgetWithText(EmergencyButton, '101 Police'),
+          find.widgetWithText(EmergencyButton, '999 – Fire Service'),
+          find.widgetWithText(EmergencyButton, '101 – Police'),
           find.widgetWithText(
             EmergencyButton,
             'Crimestoppers',
@@ -155,20 +155,20 @@ void main() {
         await tester.pumpAndSettle();
 
         // Test button text visibility
-        expect(find.text('999 Fire Service'), findsOneWidget);
-        expect(find.text('101 Police'), findsOneWidget);
+        expect(find.text('999 – Fire Service'), findsOneWidget);
+        expect(find.text('101 – Police'), findsOneWidget);
         expect(find.text('Crimestoppers'), findsOneWidget);
 
         // Verify buttons exist and are tappable
         final fireServiceButton = find.widgetWithText(
           EmergencyButton,
-          '999 Fire Service',
+          '999 – Fire Service',
         );
         expect(fireServiceButton, findsOneWidget);
 
         final policeButton = find.widgetWithText(
           EmergencyButton,
-          '101 Police',
+          '101 – Police',
         );
         expect(policeButton, findsOneWidget);
 
@@ -239,7 +239,7 @@ void main() {
         // Test 999 button exists and is accessible
         final fireServiceButton = find.widgetWithText(
           EmergencyButton,
-          '999 Fire Service',
+          '999 – Fire Service',
         );
         expect(fireServiceButton, findsOneWidget);
 
@@ -272,7 +272,7 @@ void main() {
         // Buttons should still be properly sized with large text
         final fireServiceButton = find.widgetWithText(
           EmergencyButton,
-          '999 Fire Service',
+          '999 – Fire Service',
         );
         expect(fireServiceButton, findsOneWidget);
 
@@ -286,7 +286,7 @@ void main() {
         ); // Should be wider due to larger text
 
         // Verify content is still visible and accessible
-        expect(find.text('999 Fire Service'), findsOneWidget);
+        expect(find.text('999 – Fire Service'), findsOneWidget);
         expect(find.textContaining('See smoke, flames'), findsOneWidget);
       });
     });
@@ -306,8 +306,8 @@ void main() {
 
         // Test tab navigation through emergency buttons
         final buttons = [
-          find.widgetWithText(EmergencyButton, '999 Fire Service'),
-          find.widgetWithText(EmergencyButton, '101 Police'),
+          find.widgetWithText(EmergencyButton, '999 – Fire Service'),
+          find.widgetWithText(EmergencyButton, '101 – Police'),
           find.widgetWithText(
             EmergencyButton,
             'Crimestoppers',
@@ -345,8 +345,8 @@ void main() {
 
         // Verify all emergency buttons are accessible and can be tapped
         final buttons = [
-          find.widgetWithText(EmergencyButton, '999 Fire Service'),
-          find.widgetWithText(EmergencyButton, '101 Police'),
+          find.widgetWithText(EmergencyButton, '999 – Fire Service'),
+          find.widgetWithText(EmergencyButton, '101 – Police'),
           find.widgetWithText(
             EmergencyButton,
             'Crimestoppers',
@@ -380,8 +380,8 @@ void main() {
 
         // The screen should have emergency buttons visible for manual dialing
         // These are the key accessibility features - visible phone numbers
-        expect(find.text('999 Fire Service'), findsOneWidget);
-        expect(find.text('101 Police'), findsOneWidget);
+        expect(find.text('999 – Fire Service'), findsOneWidget);
+        expect(find.text('101 – Police'), findsOneWidget);
 
         // Scroll down to see more content
         await tester.drag(find.byType(ListView), const Offset(0, -400));
@@ -412,7 +412,7 @@ void main() {
         // Touch targets should still meet requirements in landscape
         final fireServiceButton = find.widgetWithText(
           EmergencyButton,
-          '999 Fire Service',
+          '999 – Fire Service',
         );
         expect(fireServiceButton, findsOneWidget);
 
