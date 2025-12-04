@@ -3,8 +3,12 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
+import 'package:wildfire_mvp_v3/features/map/utils/marker_icon_helper.dart';
+import 'package:wildfire_mvp_v3/features/map/utils/polygon_style_helper.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/incidents_timestamp_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/polygon_toggle_chip.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/map_type_selector.dart';
 // T-V2: RiskCheckButton temporarily disabled
 // import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
@@ -35,10 +39,19 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
+  Set<Polygon> _polygons = {};
   late MapController _controller;
   FireIncident? _selectedIncident;
   bool _isBottomSheetVisible = false;
+  bool _showPolygons = true; // Toggle for polygon visibility
+  double _currentZoom = 8.0; // Track zoom for polygon visibility
+  MapType _currentMapType = MapType.terrain; // Current map type
   late DebouncedViewportLoader _viewportLoader;
+  bool _hasCenteredOnUser = false; // Track if we've centered on user location
+
+  /// Default fallback location (Aviemore, Scotland - matches LocationResolver)
+  static const _aviemoreLocation = LatLng(57.2, -3.8);
+  static const _defaultZoom = 8.0;
 
   @override
   void initState() {
@@ -57,8 +70,11 @@ class _MapScreenState extends State<MapScreen> {
       },
     );
 
-    // Initialize map data on mount
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    // Initialize map data and marker icons on mount
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Pre-load flame marker icons
+      await MarkerIconHelper.initialize();
+      // Then load map data
       _controller.initialize();
     });
   }
@@ -68,9 +84,57 @@ class _MapScreenState extends State<MapScreen> {
       final state = _controller.state;
       if (state is MapSuccess) {
         _updateMarkers(state);
+        _updatePolygons(state);
+
+        // Center on user GPS location once when data first loads
+        if (!_hasCenteredOnUser && _mapController != null) {
+          _hasCenteredOnUser = true;
+          _centerOnUserLocation();
+        }
       }
       setState(() {});
     }
+  }
+
+  /// Center map on user's GPS location, fallback to Aviemore
+  Future<void> _centerOnUserLocation() async {
+    // If manual location is set, center on that; otherwise use GPS or fallback
+    final state = _controller.state;
+    LatLng targetLocation;
+    String locationSource;
+
+    if (state is MapSuccess) {
+      // Use centerLocation from state (which may be manual or GPS)
+      targetLocation = LatLng(
+        state.centerLocation.latitude,
+        state.centerLocation.longitude,
+      );
+      locationSource = _controller.isManualLocation ? 'manual location' : 'GPS';
+    } else {
+      // Fallback to stored GPS or Aviemore
+      final userLocation = _controller.userGpsLocation;
+      if (userLocation != null) {
+        targetLocation = LatLng(userLocation.latitude, userLocation.longitude);
+        locationSource = 'GPS';
+      } else {
+        targetLocation = _aviemoreLocation;
+        locationSource = 'Aviemore fallback';
+      }
+    }
+
+    await _mapController?.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: targetLocation,
+          zoom: _defaultZoom,
+        ),
+      ),
+    );
+
+    debugPrint(
+      '📍 Map centered on: $locationSource '
+      '(${targetLocation.latitude.toStringAsFixed(2)}, ${targetLocation.longitude.toStringAsFixed(2)})',
+    );
   }
 
   @override
@@ -108,6 +172,8 @@ class _MapScreenState extends State<MapScreen> {
           incident.location.longitude,
         ),
         icon: _getMarkerIcon(incident.intensity),
+        // Anchor at bottom-center so the pin tip points to exact location
+        anchor: const Offset(0.5, 1.0),
         alpha: isSelected ? 1.0 : 0.8, // Highlight selected marker
         infoWindow: InfoWindow(
           title: title,
@@ -201,30 +267,116 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   BitmapDescriptor _getMarkerIcon(String intensity) {
-    // Use color-coded markers based on intensity
-    // Hue values: 0=Red, 30=Orange, 45=Gold, 60=Yellow, 120=Green, 240=Blue, 300=Magenta
-    debugPrint('🎨 Getting marker icon for intensity: "$intensity"');
-    switch (intensity) {
-      case 'high':
-        debugPrint('🎨 Using RED marker (high) - hue 0');
-        return BitmapDescriptor.defaultMarkerWithHue(
-          BitmapDescriptor.hueRed,
-        ); // 0.0 - bright red
-      case 'moderate':
-        debugPrint('🎨 Using ORANGE marker (moderate) - hue 30');
-        return BitmapDescriptor.defaultMarkerWithHue(
-          BitmapDescriptor.hueOrange,
-        ); // 30.0 - orange
-      case 'low':
-        debugPrint('🎨 Using CYAN marker (low) - hue 180');
-        return BitmapDescriptor.defaultMarkerWithHue(
-          BitmapDescriptor.hueCyan,
-        ); // 180.0 - bright cyan/turquoise
-      default:
-        debugPrint('🎨 Using VIOLET marker (unknown intensity) - hue 270');
-        return BitmapDescriptor.defaultMarkerWithHue(
-          BitmapDescriptor.hueViolet,
-        ); // 270.0 - violet for debugging
+    // Use custom flame icons from MarkerIconHelper
+    // Falls back to hue-based markers if icons not yet initialized
+    return MarkerIconHelper.getIcon(intensity);
+  }
+
+  /// Update polygon overlays from fire incidents with valid boundary points
+  void _updatePolygons(MapSuccess state) {
+    if (!_shouldShowPolygons()) {
+      _polygons = {};
+      return;
+    }
+
+    _polygons = state.incidents
+        .where((incident) => incident.hasValidPolygon)
+        .map((incident) {
+      final points = incident.boundaryPoints!
+          .map((p) => LatLng(p.latitude, p.longitude))
+          .toList();
+
+      return Polygon(
+        polygonId: PolygonId('polygon_${incident.id}'),
+        points: points,
+        fillColor: PolygonStyleHelper.getFillColor(incident.intensity),
+        strokeColor: PolygonStyleHelper.getStrokeColor(incident.intensity),
+        strokeWidth: PolygonStyleHelper.strokeWidth,
+        consumeTapEvents: true,
+        onTap: () {
+          debugPrint(
+              '🔶 Polygon tapped: ${incident.description ?? incident.id}');
+          setState(() {
+            _selectedIncident = incident;
+            _isBottomSheetVisible = true;
+          });
+        },
+      );
+    }).toSet();
+
+    debugPrint(
+        '🔶 Updated ${_polygons.length} polygons from ${state.incidents.length} incidents');
+  }
+
+  /// Check if polygons should be visible based on zoom level and toggle
+  bool _shouldShowPolygons() {
+    return _showPolygons &&
+        PolygonStyleHelper.shouldShowPolygonsAtZoom(_currentZoom);
+  }
+
+  /// Handle camera movement to track zoom level
+  void _onCameraMove(CameraPosition position) {
+    final newZoom = position.zoom;
+    final wasShowingPolygons = _shouldShowPolygons();
+
+    _currentZoom = newZoom;
+
+    // Rebuild polygons if visibility threshold crossed
+    final nowShowingPolygons = _shouldShowPolygons();
+    if (wasShowingPolygons != nowShowingPolygons) {
+      final state = _controller.state;
+      if (state is MapSuccess) {
+        _updatePolygons(state);
+        setState(() {});
+      }
+    }
+
+    // Also notify viewport loader
+    _viewportLoader.onCameraMove(position);
+  }
+
+  /// Handle polygon visibility toggle
+  void _onPolygonToggle() {
+    setState(() {
+      _showPolygons = !_showPolygons;
+    });
+
+    // Rebuild polygons with new visibility setting
+    final state = _controller.state;
+    if (state is MapSuccess) {
+      _updatePolygons(state);
+    }
+
+    debugPrint('🔶 Polygon visibility toggled: $_showPolygons');
+  }
+
+  /// Animate camera to user's GPS location (or fallback to Aviemore)
+  /// Called when user taps the GPS button
+  Future<void> _animateToUserLocation() async {
+    if (_mapController == null) return;
+
+    try {
+      // Use stored GPS location from controller, fallback to Aviemore
+      final userLocation = _controller.userGpsLocation;
+      final targetLocation = userLocation != null
+          ? LatLng(userLocation.latitude, userLocation.longitude)
+          : _aviemoreLocation;
+
+      await _mapController!.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: targetLocation,
+            zoom: 10.0,
+          ),
+        ),
+      );
+
+      debugPrint(
+        '📍 GPS button: Animated to ${userLocation != null ? "user GPS" : "Aviemore fallback"} '
+        '(${targetLocation.latitude.toStringAsFixed(2)}, ${targetLocation.longitude.toStringAsFixed(2)})',
+      );
+    } catch (e) {
+      debugPrint('❌ Error animating to user location: $e');
     }
   }
 
@@ -428,45 +580,118 @@ class _MapScreenState extends State<MapScreen> {
           child: GoogleMap(
             key: const ValueKey('wildfire_map'),
             onMapCreated: _onMapCreated,
+            // Start at Aviemore - will animate to user GPS once resolved
             initialCameraPosition: const CameraPosition(
-              target: LatLng(57.2, -3.8), // Scotland centroid - constant
-              zoom: 8.0,
+              target: _aviemoreLocation,
+              zoom: _defaultZoom,
             ),
             markers: _markers,
-            myLocationButtonEnabled: true,
-            myLocationEnabled: true,
+            polygons: _polygons, // Burnt area polygon overlays
+            mapType: _currentMapType,
+            myLocationEnabled: true, // Show blue dot for user location
             zoomControlsEnabled: true,
             zoomGesturesEnabled: true, // Enable pinch-to-zoom
             scrollGesturesEnabled: true,
             tiltGesturesEnabled: true,
             rotateGesturesEnabled: true,
             mapToolbarEnabled: false,
-            // Add padding to prevent controls from overlapping chips
+            // Disable native GPS button - we add our own for better positioning
+            myLocationButtonEnabled: false,
+            // Padding for zoom controls and overlays
             padding: const EdgeInsets.only(
-              bottom: 80.0, // Room for FAB
-              left: 16.0, // Room for timestamp chip
+              top: 100.0, // Room for top-right chips
+              bottom: 16.0,
+              left: 16.0,
               right: 16.0,
             ),
-            // Debounced viewport loading (Task 17-18)
-            onCameraMove: _viewportLoader.onCameraMove,
+            // Track zoom level for polygon visibility + debounced viewport loading
+            onCameraMove: _onCameraMove,
             onCameraIdle: _viewportLoader.onCameraIdle,
           ),
         ),
-        // Source chip positioned at top-left
+        // Source chip positioned at top-left - only show when there are fires
+        // When no fires, the empty state card already shows the data source
+        if (state.incidents.isNotEmpty)
+          Positioned(
+            top: 16,
+            left: 16,
+            child: MapSourceChip(
+              source: state.freshness,
+              lastUpdated: state.lastUpdated,
+            ),
+          ),
+        // Timestamp chip positioned at bottom-left - only show when there are fires
+        if (state.incidents.isNotEmpty)
+          Positioned(
+            bottom: 16,
+            left: 16,
+            child: IncidentsTimestampChip(
+              lastUpdated: state.lastUpdated,
+            ),
+          ),
+        // Map controls positioned at top-right (burn areas toggle, map type, GPS)
         Positioned(
           top: 16,
-          left: 16,
-          child: MapSourceChip(
-            source: state.freshness,
-            lastUpdated: state.lastUpdated,
-          ),
-        ),
-        // Timestamp chip positioned at bottom-left
-        Positioned(
-          bottom: 16,
-          left: 16,
-          child: IncidentsTimestampChip(
-            lastUpdated: state.lastUpdated,
+          right: 16,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Burn areas visibility toggle (longer, so at top)
+              PolygonToggleChip(
+                showPolygons: _showPolygons,
+                enabled:
+                    PolygonStyleHelper.shouldShowPolygonsAtZoom(_currentZoom),
+                onToggle: _onPolygonToggle,
+              ),
+              const SizedBox(height: 8),
+              // Map type selector (dropdown menu)
+              MapTypeSelector(
+                currentMapType: _currentMapType,
+                onMapTypeChanged: (mapType) {
+                  setState(() {
+                    _currentMapType = mapType;
+                  });
+                },
+              ),
+              const SizedBox(height: 8),
+              // GPS button - center on user location
+              // Styled to match Google Maps native controls (white bg, grey icon)
+              Semantics(
+                key: const Key('gps_button'),
+                label: 'Center map on your location',
+                button: true,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _animateToUserLocation,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.my_location,
+                          size: 24,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         // Empty state message if no fires

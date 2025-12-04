@@ -2,15 +2,16 @@ import 'package:equatable/equatable.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 
-/// Fire incident data model for map markers
+/// Fire incident data model for map markers and polygon overlays
 ///
 /// Represents active fire or burnt area incident from EFFIS WFS,
 /// SEPA, Cache, or Mock sources.
 ///
-/// Enhanced with satellite sensor data for comprehensive fire information sheet
+/// Enhanced with satellite sensor data for comprehensive fire information sheet.
+/// Optionally includes polygon boundary for burnt area visualization.
 class FireIncident extends Equatable {
   final String id;
-  final LatLng location;
+  final LatLng location; // Centroid for marker positioning
   final DataSource source;
   final Freshness freshness;
   final DateTime timestamp; // Kept for backward compatibility
@@ -18,7 +19,11 @@ class FireIncident extends Equatable {
   final String? description;
   final double? areaHectares;
 
-  // New satellite sensor fields for fire information sheet
+  // Polygon boundary for burnt area visualization (Phase 1: A11)
+  // null = point marker only, non-empty = render polygon overlay
+  final List<LatLng>? boundaryPoints;
+
+  // Satellite sensor fields for fire information sheet
   final DateTime?
       detectedAt; // When fire was first detected (defaults to timestamp)
   final String?
@@ -38,6 +43,7 @@ class FireIncident extends Equatable {
     String? sensorSource,
     this.description,
     this.areaHectares,
+    this.boundaryPoints,
     this.confidence,
     this.frp,
     this.lastUpdate,
@@ -58,6 +64,7 @@ class FireIncident extends Equatable {
     String sensorSource = 'VIIRS',
     String? description,
     double? areaHectares,
+    List<LatLng>? boundaryPoints,
     double? confidence,
     double? frp,
     DateTime? lastUpdate,
@@ -74,6 +81,7 @@ class FireIncident extends Equatable {
       sensorSource: sensorSource,
       description: description,
       areaHectares: areaHectares,
+      boundaryPoints: boundaryPoints,
       confidence: confidence,
       frp: frp,
       lastUpdate: lastUpdate,
@@ -116,17 +124,84 @@ class FireIncident extends Equatable {
         lastUpdate!.isBefore(detectedAt!)) {
       throw ArgumentError('FireIncident lastUpdate must be >= detectedAt');
     }
+    // Validate boundaryPoints if provided
+    if (boundaryPoints != null && boundaryPoints!.isNotEmpty) {
+      // Valid polygon requires at least 3 distinct points
+      if (boundaryPoints!.length < 3) {
+        throw ArgumentError(
+          'FireIncident boundaryPoints must have at least 3 points for a valid polygon',
+        );
+      }
+      // All boundary points must have valid coordinates
+      for (final point in boundaryPoints!) {
+        if (!point.isValid) {
+          throw ArgumentError(
+            'FireIncident boundaryPoints contains invalid coordinates',
+          );
+        }
+      }
+    }
   }
 
+  /// Check if this incident has a valid polygon boundary for rendering
+  ///
+  /// Returns true if boundaryPoints is non-null and has >= 3 valid points.
+  /// Used for graceful degradation: incidents without valid polygons
+  /// fall back to marker-only display.
+  bool get hasValidPolygon =>
+      boundaryPoints != null && boundaryPoints!.length >= 3;
+
   /// Parse EFFIS WFS GeoJSON Feature or Mock data
+  ///
+  /// Handles both Point and Polygon geometry types:
+  /// - Point: extracts centroid, boundaryPoints = null
+  /// - Polygon: extracts centroid from first coordinate, boundaryPoints from ring
   factory FireIncident.fromJson(Map<String, dynamic> json) {
     final geometry = json['geometry'] as Map<String, dynamic>;
+    final geometryType = geometry['type'] as String;
     final coordinates = geometry['coordinates'] as List<dynamic>;
     final properties = json['properties'] as Map<String, dynamic>;
 
-    // EFFIS WFS uses [lon, lat] order in GeoJSON
-    final lon = (coordinates[0] as num).toDouble();
-    final lat = (coordinates[1] as num).toDouble();
+    late final double lat;
+    late final double lon;
+    List<LatLng>? boundaryPoints;
+
+    if (geometryType == 'Polygon') {
+      // Polygon: coordinates is [[[lon, lat], [lon, lat], ...]]
+      // First array is the outer ring, subsequent arrays are holes (ignored)
+      final outerRing = coordinates[0] as List<dynamic>;
+
+      // Extract boundary points from outer ring
+      boundaryPoints = <LatLng>[];
+      for (final coord in outerRing) {
+        final coordList = coord as List<dynamic>;
+        final pLon = (coordList[0] as num).toDouble();
+        final pLat = (coordList[1] as num).toDouble();
+        boundaryPoints.add(LatLng(pLat, pLon));
+      }
+
+      // Calculate centroid as average of all points (simple centroid)
+      if (boundaryPoints.isNotEmpty) {
+        double sumLat = 0, sumLon = 0;
+        for (final point in boundaryPoints) {
+          sumLat += point.latitude;
+          sumLon += point.longitude;
+        }
+        lat = sumLat / boundaryPoints.length;
+        lon = sumLon / boundaryPoints.length;
+      } else {
+        // Fallback: use first coordinate
+        final firstCoord = outerRing[0] as List<dynamic>;
+        lon = (firstCoord[0] as num).toDouble();
+        lat = (firstCoord[1] as num).toDouble();
+      }
+    } else {
+      // Point: coordinates is [lon, lat]
+      // EFFIS WFS uses [lon, lat] order in GeoJSON
+      lon = (coordinates[0] as num).toDouble();
+      lat = (coordinates[1] as num).toDouble();
+      boundaryPoints = null;
+    }
 
     // Parse intensity - prefer explicit intensity field, fallback to area calculation
     String intensity;
@@ -156,6 +231,7 @@ class FireIncident extends Equatable {
     return FireIncident(
       id: json['id']?.toString() ?? properties['fid']?.toString() ?? 'unknown',
       location: LatLng(lat, lon),
+      boundaryPoints: boundaryPoints,
       source: DataSource.effis, // Will be overridden by service layer
       freshness: Freshness.live,
       timestamp: DateTime.parse(
@@ -199,6 +275,9 @@ class FireIncident extends Equatable {
       'intensity': intensity,
       'description': description,
       'areaHectares': areaHectares,
+      'boundaryPoints': boundaryPoints
+          ?.map((p) => {'latitude': p.latitude, 'longitude': p.longitude})
+          .toList(),
       'detectedAt': detectedAt?.toIso8601String(),
       'sensorSource': sensorSource,
       'confidence': confidence,
@@ -210,12 +289,26 @@ class FireIncident extends Equatable {
   /// Deserialize from cache format
   factory FireIncident.fromCacheJson(Map<String, dynamic> json) {
     final location = json['location'] as Map<String, dynamic>;
+
+    // Parse boundaryPoints if present
+    List<LatLng>? boundaryPoints;
+    if (json['boundaryPoints'] != null) {
+      final pointsList = json['boundaryPoints'] as List<dynamic>;
+      boundaryPoints = pointsList
+          .map((p) => LatLng(
+                (p as Map<String, dynamic>)['latitude'] as double,
+                p['longitude'] as double,
+              ))
+          .toList();
+    }
+
     return FireIncident(
       id: json['id'] as String,
       location: LatLng(
         location['latitude'] as double,
         location['longitude'] as double,
       ),
+      boundaryPoints: boundaryPoints,
       source: DataSource.values.firstWhere(
         (e) => e.toString().split('.').last == json['source'],
         orElse: () => DataSource.mock,
@@ -248,6 +341,7 @@ class FireIncident extends Equatable {
     String? intensity,
     String? description,
     double? areaHectares,
+    List<LatLng>? boundaryPoints,
     DateTime? detectedAt,
     String? sensorSource,
     double? confidence,
@@ -263,6 +357,7 @@ class FireIncident extends Equatable {
       intensity: intensity ?? this.intensity,
       description: description ?? this.description,
       areaHectares: areaHectares ?? this.areaHectares,
+      boundaryPoints: boundaryPoints ?? this.boundaryPoints,
       detectedAt: detectedAt ?? this.detectedAt,
       sensorSource: sensorSource ?? this.sensorSource,
       confidence: confidence ?? this.confidence,
@@ -281,6 +376,7 @@ class FireIncident extends Equatable {
         intensity,
         description,
         areaHectares,
+        boundaryPoints,
         detectedAt,
         sensorSource,
         confidence,
