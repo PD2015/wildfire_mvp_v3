@@ -203,6 +203,9 @@ class LocationResolverImpl implements LocationResolver {
   }
 
   /// Attempts to load from SharedPreferences cache (Tier 3)
+  ///
+  /// Includes TTL check - cached locations older than 1 hour are ignored
+  /// to prevent stale locations from previous sessions overriding GPS.
   Future<Either<LocationError, LatLng>> _tryCache() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -211,6 +214,23 @@ class LocationResolverImpl implements LocationResolver {
       final version = prefs.getString(_versionKey);
       if (version != _currentVersion) {
         debugPrint('Cache version mismatch or missing: $version');
+        return const Left(LocationError.gpsUnavailable);
+      }
+
+      // Check if cached location has expired (>1 hour old)
+      final timestampMs = prefs.getInt(_timestampKey);
+      if (timestampMs != null) {
+        final cachedAt = DateTime.fromMillisecondsSinceEpoch(timestampMs);
+        final age = DateTime.now().difference(cachedAt);
+        if (age > _maxCacheAge) {
+          debugPrint(
+            'Cache expired (age: ${age.inMinutes} min). Skipping.',
+          );
+          return const Left(LocationError.gpsUnavailable);
+        }
+      } else {
+        // No timestamp means old-format cache - treat as expired
+        debugPrint('Cache has no timestamp. Treating as expired.');
         return const Left(LocationError.gpsUnavailable);
       }
 
@@ -309,6 +329,18 @@ class LocationResolverImpl implements LocationResolver {
     }
   }
 
+  /// Maximum age for cached manual locations before requiring GPS refresh.
+  ///
+  /// Set to 1 hour to balance user convenience (don't lose manual location
+  /// during short navigation) with freshness (don't use stale location from
+  /// previous browser sessions on different devices).
+  ///
+  /// This prevents the bug where:
+  /// 1. User sets manual location on desktop browser
+  /// 2. Later opens app on phone browser (same domain = shared localStorage)
+  /// 3. Stale manual location overrides phone's GPS
+  static const Duration _maxCacheAge = Duration(hours: 1);
+
   @override
   Future<(LatLng, String?)?> loadCachedManualLocation() async {
     try {
@@ -317,6 +349,26 @@ class LocationResolverImpl implements LocationResolver {
       // Check version compatibility
       final version = prefs.getString(_versionKey);
       if (version != _currentVersion) {
+        return null;
+      }
+
+      // Check if cached location has expired (>1 hour old)
+      final timestampMs = prefs.getInt(_timestampKey);
+      if (timestampMs != null) {
+        final cachedAt = DateTime.fromMillisecondsSinceEpoch(timestampMs);
+        final age = DateTime.now().difference(cachedAt);
+        if (age > _maxCacheAge) {
+          debugPrint(
+            'Cached manual location expired (age: ${age.inMinutes} minutes). Will use GPS.',
+          );
+          // Clear stale cache to prevent future checks
+          await clearManualLocation();
+          return null;
+        }
+      } else {
+        // No timestamp means old-format cache - treat as expired
+        debugPrint('Cached manual location has no timestamp. Will use GPS.');
+        await clearManualLocation();
         return null;
       }
 
@@ -332,8 +384,13 @@ class LocationResolverImpl implements LocationResolver {
 
         if (isValidNumber && isValidLatitude && isValidLongitude) {
           final placeName = prefs.getString(_placeKey);
+          final timestampMs = prefs.getInt(_timestampKey);
+          final age = timestampMs != null
+              ? DateTime.now()
+                  .difference(DateTime.fromMillisecondsSinceEpoch(timestampMs))
+              : Duration.zero;
           debugPrint(
-            'Loaded cached manual location: ${GeographicUtils.logRedact(lat, lon)}${placeName != null ? ' ($placeName)' : ''}',
+            'Loaded cached manual location: ${GeographicUtils.logRedact(lat, lon)}${placeName != null ? ' ($placeName)' : ''} (age: ${age.inMinutes} min)',
           );
           return (LatLng(lat, lon), placeName);
         }
