@@ -222,10 +222,10 @@ Primary geographic utility class for service layer operations:
 class GeographicUtils {
   // Privacy-compliant coordinate logging (C2 compliance)
   static String logRedact(double lat, double lon);  // "55.95,-3.19"
-  
+
   // Scotland boundary detection (for SEPA service routing)
   static bool isInScotland(double lat, double lon);
-  
+
   // Geohash encoding for spatial cache keys (uses GeohashUtils internal encoder)
   static String geohash(double lat, double lon, {int precision = 5});
 }
@@ -237,7 +237,7 @@ Internal base32 geohash encoder (no external dependencies):
 class GeohashUtils {
   // Standard geohash algorithm with base32 encoding
   static String encode(double lat, double lon, {int precision = 5});
-  
+
   // Validate geohash string format
   static bool isValid(String geohash);
 }
@@ -250,7 +250,7 @@ App-level location utilities:
 class LocationUtils {
   // Coordinate validation
   static bool isValidCoordinate(double lat, double lon);
-  
+
   // Privacy-compliant coordinate logging (C2 compliance) for app layer
   static String logRedact(double lat, double lon);  // "55.95,-3.19"
 }
@@ -308,7 +308,7 @@ Always use coordinate redaction in logs (layer-appropriate utility):
 _logger.info('Attempting EFFIS for ${GeographicUtils.logRedact(lat, lon)}');
 // Outputs: "Attempting EFFIS for 55.95,-3.19"
 
-// CORRECT: App layer logging  
+// CORRECT: App layer logging
 _logger.info('User location: ${LocationUtils.logRedact(lat, lon)}');
 // Outputs: "User location: 55.95,-3.19"
 
@@ -323,7 +323,7 @@ Test Scotland boundary detection with edge cases:
 expect(GeographicUtils.isInScotland(55.9533, -3.1883), isTrue);  // Edinburgh
 expect(GeographicUtils.isInScotland(51.5074, -0.1278), isFalse); // London
 
-// Boundary edge cases  
+// Boundary edge cases
 expect(GeographicUtils.isInScotland(54.6, -4.0), isTrue);   // Exact boundary
 expect(GeographicUtils.isInScotland(57.8, -8.6), isTrue);   // St Kilda
 expect(GeographicUtils.isInScotland(60.9, -1.0), isTrue);   // Shetland
@@ -332,7 +332,7 @@ expect(GeographicUtils.isInScotland(60.9, -1.0), isTrue);   // Shetland
 ### Stable Dependency Contracts
 Define clear interfaces for orchestrated services:
 ```dart
-abstract class EffisService { 
+abstract class EffisService {
   Future<Either<ApiError, EffisFwiResult>> getFwi({required double lat, required double lon});
 }
 
@@ -356,23 +356,23 @@ class LocationResolverImpl implements LocationResolver {
   /// Production: LatLng(55.8642, -4.2518) - Glasgow area
   /// Test Override: LatLng(57.2, -3.8) - Aviemore (for UK fire risk testing)
   static const LatLng _scotlandCentroid = LatLng(57.2, -3.8);
-  
+
   @override
   Future<Either<LocationError, LatLng>> getLatLon() async {
     // 1. GPS attempt (2s timeout)
     final gpsResult = await _tryGps();
     if (gpsResult.isRight()) return gpsResult;
-    
+
     // 2. Manual cache check
     final cachedResult = await _loadCachedLocation();
     if (cachedResult.isSome()) {
       return Right(cachedResult.getOrElse(() => _scotlandCentroid));
     }
-    
+
     // 3. Manual entry dialog (if needed)
     final manualResult = await _requestManualEntry();
     if (manualResult.isRight()) return manualResult;
-    
+
     // 4. Never-fail default
     return Right(_scotlandCentroid);
   }
@@ -387,23 +387,23 @@ Future<Either<LocationError, LatLng>> _tryGps() async {
     if (!await Geolocator.isLocationServiceEnabled()) {
       return Left(LocationError.serviceDisabled());
     }
-    
+
     // Check permission status
     final permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       final requested = await Geolocator.requestPermission();
-      if (requested == LocationPermission.denied || 
+      if (requested == LocationPermission.denied ||
           requested == LocationPermission.deniedForever) {
         return Left(LocationError.permissionDenied());
       }
     }
-    
+
     // Get position with strict timeout
     final position = await Geolocator.getCurrentPosition(
       timeLimit: Duration(seconds: 2),
       desiredAccuracy: LocationAccuracy.medium,
     );
-    
+
     return Right(LatLng(position.latitude, position.longitude));
   } catch (e) {
     return Left(LocationError.gpsUnavailable(e.toString()));
@@ -418,7 +418,7 @@ Future<Option<LatLng>> _loadCachedLocation() async {
     final prefs = await SharedPreferences.getInstance();
     final lat = prefs.getDouble('manual_location_lat');
     final lon = prefs.getDouble('manual_location_lon');
-    
+
     if (lat != null && lon != null && _isValidCoordinate(lat, lon)) {
       return Some(LatLng(lat, lon));
     }
@@ -449,25 +449,25 @@ class _ManualLocationDialogState extends State<ManualLocationDialog> {
   final _latController = TextEditingController();
   final _lonController = TextEditingController();
   String? _validationError;
-  
+
   bool _isValidCoordinate(double lat, double lon) {
     return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
   }
-  
+
   void _validateAndSave() {
     final lat = double.tryParse(_latController.text);
     final lon = double.tryParse(_lonController.text);
-    
+
     if (lat == null || lon == null || !_isValidCoordinate(lat, lon)) {
       setState(() {
         _validationError = 'Please enter valid coordinates (-90 to 90 for latitude, -180 to 180 for longitude)';
       });
       return;
     }
-    
+
     Navigator.of(context).pop(LatLng(lat, lon));
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -521,30 +521,30 @@ class _ManualLocationDialogState extends State<ManualLocationDialog> {
 // Test all fallback scenarios
 group('LocationResolver Fallback Chain', () {
   testWidgets('GPS success returns coordinates immediately', (tester) async {
-    when(mockGeolocator.getCurrentPosition()).thenAnswer((_) async => 
+    when(mockGeolocator.getCurrentPosition()).thenAnswer((_) async =>
       Position(latitude: 55.9533, longitude: -3.1883, ...));
-    
+
     final result = await locationResolver.getLatLon();
     expect(result.isRight(), true);
     expect(result.getOrElse(() => LatLng(0, 0)).latitude, 55.9533);
   });
-  
+
   testWidgets('GPS denied falls back to cache', (tester) async {
-    when(mockGeolocator.checkPermission()).thenAnswer((_) async => 
+    when(mockGeolocator.checkPermission()).thenAnswer((_) async =>
       LocationPermission.deniedForever);
     when(mockPreferences.getDouble('manual_location_lat')).thenReturn(56.0);
     when(mockPreferences.getDouble('manual_location_lon')).thenReturn(-4.0);
-    
+
     final result = await locationResolver.getLatLon();
     expect(result.isRight(), true);
     expect(result.getOrElse(() => LatLng(0, 0)).latitude, 56.0);
   });
-  
+
   testWidgets('No cache falls back to Scotland centroid', (tester) async {
-    when(mockGeolocator.checkPermission()).thenAnswer((_) async => 
+    when(mockGeolocator.checkPermission()).thenAnswer((_) async =>
       LocationPermission.deniedForever);
     when(mockPreferences.getDouble('manual_location_lat')).thenReturn(null);
-    
+
     final result = await locationResolver.getLatLon();
     expect(result.isRight(), true);
     final coords = result.getOrElse(() => LatLng(0, 0));
@@ -585,7 +585,7 @@ enum LocationSource {
 // Usage in HomeController
 Future<void> _performLoad() async {
   final locationResult = await _locationResolver.getLatLon();
-  
+
   late final LocationSource locationSource;
   switch (locationResult) {
     case Right(:final value):
@@ -595,7 +595,7 @@ Future<void> _performLoad() async {
         locationSource = LocationSource.gps;  // GPS or cached from resolver
       }
   }
-  
+
   // Create success state with source attribution
   _updateState(HomeStateSuccess(
     riskData: riskData,
@@ -615,7 +615,7 @@ Widget _buildLocationCard(HomeStateSuccess state) {
     LocationSource.cached => Icons.cached,
     LocationSource.defaultFallback => Icons.public,
   };
-  
+
   // Contextual subtitles
   final subtitle = switch (state.locationSource) {
     LocationSource.gps => 'Current location (GPS)',
@@ -634,11 +634,11 @@ Implement 1-hour staleness threshold with visible warnings:
 // lib/models/home_state.dart
 sealed class HomeStateLoading {
   final DateTime? lastKnownLocationTimestamp;
-  
+
   /// Staleness threshold: >1 hour
   bool get isLocationStale {
     if (lastKnownLocationTimestamp == null) return false;
-    return DateTime.now().difference(lastKnownLocationTimestamp!) > 
+    return DateTime.now().difference(lastKnownLocationTimestamp!) >
         const Duration(hours: 1);
   }
 }
@@ -658,7 +658,7 @@ Future<void> _performLoad({required bool isRetry}) async {
       lastKnownLocation = null;
       lastKnownLocationTimestamp = null;  // First load
   }
-  
+
   // Update loading state with captured values
   _updateState(HomeStateLoading(
     isRetry: isRetry,
@@ -686,27 +686,27 @@ class LocationCard extends StatelessWidget {
     if (locationCoordinates == null || locationCoordinates!.isEmpty) {
       return false;
     }
-    
+
     // Format validation: "XX.XX, YY.YY"
     if (!locationCoordinates!.contains(',')) {
       return false;
     }
-    
+
     final parts = locationCoordinates!.split(',');
     if (parts.length != 2) return false;
-    
+
     // Double parsing check
     final lat = double.tryParse(parts[0].trim());
     final lon = double.tryParse(parts[1].trim());
-    
+
     return lat != null && lon != null;
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final buttonText = _hasValidLocation() ? 'Change' : 'Set';
-    final displayText = _hasValidLocation() 
-      ? locationCoordinates 
+    final displayText = _hasValidLocation()
+      ? locationCoordinates
       : 'Location not set';
   }
 }
@@ -719,19 +719,19 @@ class LocationUtils {
       if (lat.isNaN || lat.isInfinite || lon.isNaN || lon.isInfinite) {
         return 'Invalid location';
       }
-      
+
       // Validate ranges: [-90, 90] x [-180, 180]
       if (!isValidCoordinate(lat, lon)) {
         return 'Invalid location';
       }
-      
+
       // C2-compliant 2-decimal redaction
       return '${lat.toStringAsFixed(2)},${lon.toStringAsFixed(2)}';
     } catch (e) {
       return 'Invalid location';  // Catch unexpected errors
     }
   }
-  
+
   static bool isValidCoordinate(double lat, double lon) {
     return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
   }
@@ -763,17 +763,17 @@ String _buildSubtitle(HomeStateSuccess state) {
     }
     return 'Your chosen location';  // Positive framing (not "manual entry")
   }
-  
+
   // GPS: Clear attribution
   if (state.locationSource == LocationSource.gps) {
     return 'Current location (GPS)';
   }
-  
+
   // Cache: Transparency
   if (state.locationSource == LocationSource.cached) {
     return 'Cached location';
   }
-  
+
   // Default: Clarity
   return 'Default location';
 }
@@ -804,11 +804,11 @@ group('LocationCard validation', () {
         ),
       ),
     );
-    
+
     expect(find.text('Set'), findsOneWidget);
     expect(find.text('Change'), findsNothing);
   });
-  
+
   testWidgets('shows correct icon per LocationSource', (tester) async {
     for (final source in LocationSource.values) {
       await tester.pumpWidget(MaterialApp(
@@ -817,7 +817,7 @@ group('LocationCard validation', () {
           locationSource: source,
         ),
       ));
-      
+
       switch (source) {
         case LocationSource.gps:
           expect(find.byIcon(Icons.gps_fixed), findsOneWidget);
@@ -839,7 +839,7 @@ test('isLocationStale returns true when >1 hour old', () {
     startTime: DateTime.now(),
     lastKnownLocationTimestamp: twoHoursAgo,
   );
-  
+
   expect(state.isLocationStale, isTrue);
 });
 
@@ -848,11 +848,11 @@ test('timestamp is captured exactly from lastUpdated', () async {
   await controller.load();
   final successState = controller.state as HomeStateSuccess;
   final exactTimestamp = successState.lastUpdated;
-  
+
   // Trigger second load
   final loadFuture = controller.load();
   await Future.delayed(const Duration(milliseconds: 10));
-  
+
   // Loading state has exact timestamp
   final loadingState = controller.state as HomeStateLoading;
   expect(loadingState.lastKnownLocationTimestamp, equals(exactTimestamp));
@@ -925,11 +925,11 @@ abstract class CacheService<T> {
 class FireRiskCacheImpl implements FireRiskCache {
   final SharedPreferences _prefs;
   final GeohashUtils _geohash;
-  
+
   Future<Option<FireRisk>> get(String geohashKey) async {
     final entry = await _loadEntry(geohashKey);
     if (entry.isEmpty || entry.value.isExpired) return none();
-    
+
     // Mark as cached freshness
     final cachedRisk = entry.value.data.copyWith(freshness: Freshness.cached);
     await _updateAccessTime(geohashKey); // LRU tracking
@@ -947,7 +947,7 @@ class GeohashUtils {
     // Edinburgh (55.9533, -3.1883) → "gcpue"
     // Glasgow (55.8642, -4.2518) → "gcpuv"
   }
-  
+
   static GeohashBounds bounds(String geohash) {
     // Decode geohash to bounding box for spatial queries
   }
@@ -966,10 +966,10 @@ class CacheEntry<T> extends Equatable {
   final T data;
   final DateTime timestamp;
   final String geohash;
-  
+
   Duration get age => DateTime.now().difference(timestamp);
   bool get isExpired => age > Duration(hours: 6);
-  
+
   // JSON serialization with version field for migration support
   Map<String, dynamic> toJson(Map<String, dynamic> Function(T) toJsonT) {
     return {
@@ -985,7 +985,7 @@ class CacheEntry<T> extends Equatable {
 class CacheMetadata extends Equatable {
   final int totalEntries;
   final Map<String, DateTime> accessLog;
-  
+
   bool get isFull => totalEntries >= 100;
   String? get lruKey => accessLog.entries
     .reduce((a, b) => a.value.isBefore(b.value) ? a : b).key;
@@ -1006,21 +1006,21 @@ FireRiskServiceImpl({
 // Cache integration in fallback chain
 Future<Either<ServiceError, FireRisk>> getCurrent({required double lat, required double lon}) async {
   // ... EFFIS attempt fails, SEPA attempt fails ...
-  
+
   // Tier 3: Cache attempt (A5 integration)
   if (cacheService != null) {
     final geohash = GeohashUtils.encode(lat, lon, precision: 5);
     final cached = await cacheService!.get(geohash).timeout(Duration(milliseconds: 200));
-    
+
     if (cached.isSome()) {
       _telemetry?.recordSuccess(source: TelemetrySource.cache);
       _logger.info('Cache hit for ${GeographicUtils.logRedact(lat, lon)}');
       return Right(cached.value); // Already marked with Freshness.cached
     }
-    
+
     _telemetry?.recordMiss(source: TelemetrySource.cache);
   }
-  
+
   // Tier 4: Mock fallback (never fails)
   return await mockService.getCurrent(lat: lat, lon: lon);
 }
@@ -1032,31 +1032,31 @@ group('CacheService TTL and LRU', () {
   testWidgets('expired entries return cache miss', (tester) async {
     // Store entry
     await cacheService.set(lat: 55.9533, lon: -3.1883, data: fireRisk);
-    
+
     // Mock 7 hours later
     final mockTime = DateTime.now().add(Duration(hours: 7));
     when(mockClock.now()).thenReturn(mockTime);
-    
+
     final result = await cacheService.get('gcpue');
     expect(result.isNone(), true);
   });
-  
+
   testWidgets('LRU eviction removes oldest accessed entry', (tester) async {
     // Fill cache to 100 entries
     for (int i = 0; i < 100; i++) {
       await cacheService.set(lat: 55.0 + i * 0.01, lon: -3.0, data: fireRisk);
     }
-    
+
     // Access first entry to make it recent
     await cacheService.get(GeohashUtils.encode(55.0, -3.0));
-    
+
     // Add 101st entry (should trigger eviction)
     await cacheService.set(lat: 56.0, lon: -3.0, data: fireRisk);
-    
+
     // Verify first entry still exists (was recently accessed)
     final firstEntry = await cacheService.get(GeohashUtils.encode(55.0, -3.0));
     expect(firstEntry.isSome(), true);
-    
+
     // Verify oldest unaccessed entry was removed
     final metadata = await cacheService.getMetadata();
     expect(metadata.totalEntries, 100);
@@ -1089,7 +1089,7 @@ class FireIncident extends Equatable {
   final LatLng location;        // Centroid for marker positioning
   final String intensity;       // "low" | "moderate" | "high"
   final List<LatLng>? boundaryPoints;  // Polygon vertices (>= 3 required)
-  
+
   // Validation: boundaryPoints must have >= 3 points if provided
   void _validate() {
     if (boundaryPoints != null && boundaryPoints!.length < 3) {
@@ -1138,7 +1138,7 @@ Set<Polygon> _buildPolygons(List<FireIncident> incidents, bool showPolygons, dou
   if (!showPolygons || !PolygonStyleHelper.shouldShowPolygonsAtZoom(zoom)) {
     return {};
   }
-  
+
   return incidents
     .where((i) => i.boundaryPoints != null && i.boundaryPoints!.length >= 3)
     .map((incident) => Polygon(
@@ -1192,7 +1192,7 @@ PolygonToggleChip(
 class _MapScreenState extends State<MapScreen> {
   bool _showPolygons = true;
   double _currentZoom = 6.5;
-  
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -1308,7 +1308,7 @@ flutter build apk --dart-define-from-file=env/prod.env.json
 
 ### Logging in Production Code
 
-**Problem**: `avoid_print` analyzer warning  
+**Problem**: `avoid_print` analyzer warning
 **Solution**: Use `debugPrint()` instead of `print()` for production-safe logging
 
 ```dart
@@ -1329,7 +1329,7 @@ import 'package:flutter/foundation.dart';  // For debugPrint()
 
 ### Const Constructors and Declarations
 
-**Problem**: `prefer_const_constructors`, `prefer_const_declarations` warnings  
+**Problem**: `prefer_const_constructors`, `prefer_const_declarations` warnings
 **Solution**: Use `const` for compile-time constants to improve performance
 
 ```dart
@@ -1356,7 +1356,7 @@ const bounds = LatLngBounds(southwest: LatLng(54.0, -8.0), northeast: LatLng(61.
 
 ### Mock API Signatures
 
-**Problem**: `invalid_override` - Mock services must match production API exactly  
+**Problem**: `invalid_override` - Mock services must match production API exactly
 **Solution**: Always check actual service signatures when creating mocks
 
 ```dart
@@ -1405,7 +1405,7 @@ import 'package:wildfire_mvp_v3/models/api_error.dart';  // For ApiError type
 
 ### Import Organization
 
-**Problem**: `unused_import` warnings  
+**Problem**: `unused_import` warnings
 **Solution**: Remove unused imports, organize logically
 
 ```dart
@@ -1498,10 +1498,10 @@ Models should provide both const constructors (for test data) and validated fact
 class LatLngBounds {
   final LatLng southwest;
   final LatLng northeast;
-  
+
   // Const constructor for test data (no validation)
   const LatLngBounds({required this.southwest, required this.northeast});
-  
+
   // Validated factory for production (throws on invalid data)
   factory LatLngBounds.validated({required LatLng southwest, required LatLng northeast}) {
     if (southwest.latitude >= northeast.latitude) {
@@ -1645,7 +1645,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   // Required before accessing any platform channels or Flutter services
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   test('cache stores data', () async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -1688,7 +1688,7 @@ Future<LatLng> getLocation() async {
     // Web or desktop - return default location
     return const LatLng(55.8642, -4.2518); // Scotland centroid
   }
-  
+
   // Mobile only - use GPS
   final position = await Geolocator.getCurrentPosition();
   return LatLng(position.latitude, position.longitude);
@@ -1697,7 +1697,7 @@ Future<LatLng> getLocation() async {
 // ✅ CORRECT: Test with platform detection
 test('location resolver falls back on web', () async {
   final location = await locationResolver.getLatLon();
-  
+
   if (kIsWeb) {
     expect(location, equals(TestData.scotlandCentroid));
   } else {
@@ -1740,7 +1740,7 @@ Before committing test changes, verify:
 - Use `YOUR_*_KEY_HERE` format
 
 ### Rule 3: Reference Template Files
-**Instead of**: Showing contents of `env/dev.env.json`  
+**Instead of**: Showing contents of `env/dev.env.json`
 **Do this**: Reference `env/dev.env.json.template`
 
 ```bash

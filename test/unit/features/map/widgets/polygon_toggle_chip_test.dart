@@ -4,7 +4,8 @@ import 'package:wildfire_mvp_v3/features/map/widgets/polygon_toggle_chip.dart';
 
 void main() {
   group('PolygonToggleChip', () {
-    testWidgets('shows "Areas ON" when showPolygons is true', (tester) async {
+    testWidgets('shows "Hide burn areas" when showPolygons is true',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -16,12 +17,13 @@ void main() {
         ),
       );
 
-      expect(find.text('Areas ON'), findsOneWidget);
-      expect(find.text('Areas OFF'), findsNothing);
-      expect(find.byIcon(Icons.layers), findsOneWidget);
+      expect(find.text('Hide burn areas'), findsOneWidget);
+      expect(find.text('Show burn areas'), findsNothing);
+      expect(find.byIcon(Icons.local_fire_department), findsOneWidget);
     });
 
-    testWidgets('shows "Areas OFF" when showPolygons is false', (tester) async {
+    testWidgets('shows "Show burn areas" when showPolygons is false',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -33,9 +35,9 @@ void main() {
         ),
       );
 
-      expect(find.text('Areas OFF'), findsOneWidget);
-      expect(find.text('Areas ON'), findsNothing);
-      expect(find.byIcon(Icons.layers_outlined), findsOneWidget);
+      expect(find.text('Show burn areas'), findsOneWidget);
+      expect(find.text('Hide burn areas'), findsNothing);
+      expect(find.byIcon(Icons.local_fire_department_outlined), findsOneWidget);
     });
 
     testWidgets('calls onToggle when tapped', (tester) async {
@@ -95,14 +97,7 @@ void main() {
         ),
       );
 
-      final containerFinder = find.descendant(
-        of: find.byType(PolygonToggleChip),
-        matching: find.byType(Container),
-      );
-
-      expect(containerFinder, findsOneWidget);
-
-      // Verify the widget meets minimum touch target requirements
+      // Verify the widget meets minimum touch target requirements (48dp set in widget)
       final size = tester.getSize(find.byType(PolygonToggleChip));
       expect(size.height, greaterThanOrEqualTo(44.0));
     });
@@ -149,8 +144,7 @@ void main() {
       expect(semanticsFinder, findsOneWidget);
     });
 
-    testWidgets('uses different background color when enabled vs disabled',
-        (tester) async {
+    testWidgets('uses reduced opacity for disabled state', (tester) async {
       // Enabled state
       await tester.pumpWidget(
         MaterialApp(
@@ -164,14 +158,10 @@ void main() {
         ),
       );
 
-      // Get first Material widget color for enabled state
-      final enabledMaterials = tester.widgetList<Material>(
-        find.descendant(
-          of: find.byType(PolygonToggleChip),
-          matching: find.byType(Material),
-        ),
-      );
-      final enabledColor = enabledMaterials.first.color;
+      // Get icon color for enabled state
+      final enabledIcon =
+          tester.widget<Icon>(find.byIcon(Icons.local_fire_department));
+      final enabledOpacity = enabledIcon.color?.a ?? 1.0;
 
       // Disabled state
       await tester.pumpWidget(
@@ -186,16 +176,12 @@ void main() {
         ),
       );
 
-      final disabledMaterials = tester.widgetList<Material>(
-        find.descendant(
-          of: find.byType(PolygonToggleChip),
-          matching: find.byType(Material),
-        ),
-      );
-      final disabledColor = disabledMaterials.first.color;
+      final disabledIcon =
+          tester.widget<Icon>(find.byIcon(Icons.local_fire_department));
+      final disabledOpacity = disabledIcon.color?.a ?? 1.0;
 
-      // Colors should differ between enabled and disabled states
-      expect(enabledColor, isNot(equals(disabledColor)));
+      // Disabled state should have lower opacity
+      expect(disabledOpacity, lessThan(enabledOpacity));
     });
   });
 }

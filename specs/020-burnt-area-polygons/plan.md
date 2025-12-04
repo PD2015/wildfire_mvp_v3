@@ -260,7 +260,7 @@ class FireIncident extends Equatable {
 
 ## Questions for Clarification
 
-1. **Marker Icon Generation**: Should we generate the flame marker icons programmatically using Canvas/CustomPainter, or create static PNG assets? 
+1. **Marker Icon Generation**: Should we generate the flame marker icons programmatically using Canvas/CustomPainter, or create static PNG assets?
    - Static PNGs are simpler but require multiple asset files
    - Programmatic generation is more flexible but adds complexity
 
