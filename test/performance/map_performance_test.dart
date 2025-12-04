@@ -156,6 +156,11 @@ class MockLocationResolver implements LocationResolver {
   Future<void> clearManualLocation() async {
     // No-op for performance tests
   }
+
+  @override
+  Future<(LatLng, String?)?> loadCachedManualLocation() async {
+    return null; // No cached location for performance tests
+  }
 }
 
 class MockFireLocationService implements FireLocationService {

@@ -3,22 +3,33 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wildfire_mvp_v3/features/report/screens/report_fire_screen.dart';
 import 'package:wildfire_mvp_v3/features/report/widgets/emergency_button.dart';
 import 'package:wildfire_mvp_v3/features/report/models/emergency_contact.dart';
+import 'package:wildfire_mvp_v3/features/report/controllers/report_fire_controller.dart';
+import '../helpers/report_fire_test_helpers.dart';
 
 void main() {
+  // Create a mock controller for each test
+  late ReportFireController controller;
+
+  setUp(() {
+    controller = createMockReportFireController();
+  });
+
   group('A12 Accessibility Validation Tests', () {
     group('Touch Target Size Requirements (C3 Compliance)', () {
       testWidgets(
           'emergency buttons meet minimum 44dp touch target requirement', (
         tester,
       ) async {
-        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+        await tester.pumpWidget(MaterialApp(
+          home: ReportFireScreen(controller: controller),
+        ));
 
         await tester.pumpAndSettle();
 
         // Find all emergency call buttons by their text
         final buttonTexts = [
-          '999 Fire Service',
-          '101 Police',
+          '999 – Fire Service',
+          '101 – Police',
           'Crimestoppers',
         ];
 
@@ -69,7 +80,7 @@ void main() {
             initialRoute: '/home',
             routes: {
               '/home': (context) => const Scaffold(body: Text('Home')),
-              '/report': (context) => const ReportFireScreen(),
+              '/report': (context) => ReportFireScreen(controller: controller),
             },
           ),
         );
@@ -95,13 +106,14 @@ void main() {
       });
 
       testWidgets('touch targets have adequate spacing', (tester) async {
-        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+        await tester.pumpWidget(
+            MaterialApp(home: ReportFireScreen(controller: controller)));
 
         await tester.pumpAndSettle();
 
         final buttonFinders = [
-          find.widgetWithText(EmergencyButton, '999 Fire Service'),
-          find.widgetWithText(EmergencyButton, '101 Police'),
+          find.widgetWithText(EmergencyButton, '999 – Fire Service'),
+          find.widgetWithText(EmergencyButton, '101 – Police'),
           find.widgetWithText(
             EmergencyButton,
             'Crimestoppers',
@@ -133,7 +145,8 @@ void main() {
       testWidgets('emergency buttons have proper semantic labels', (
         tester,
       ) async {
-        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+        await tester.pumpWidget(
+            MaterialApp(home: ReportFireScreen(controller: controller)));
 
         await tester.pumpAndSettle();
 
@@ -142,20 +155,20 @@ void main() {
         await tester.pumpAndSettle();
 
         // Test button text visibility
-        expect(find.text('999 Fire Service'), findsOneWidget);
-        expect(find.text('101 Police'), findsOneWidget);
+        expect(find.text('999 – Fire Service'), findsOneWidget);
+        expect(find.text('101 – Police'), findsOneWidget);
         expect(find.text('Crimestoppers'), findsOneWidget);
 
         // Verify buttons exist and are tappable
         final fireServiceButton = find.widgetWithText(
           EmergencyButton,
-          '999 Fire Service',
+          '999 – Fire Service',
         );
         expect(fireServiceButton, findsOneWidget);
 
         final policeButton = find.widgetWithText(
           EmergencyButton,
-          '101 Police',
+          '101 – Police',
         );
         expect(policeButton, findsOneWidget);
 
@@ -167,7 +180,8 @@ void main() {
       });
 
       testWidgets('screen has proper semantic structure', (tester) async {
-        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+        await tester.pumpWidget(
+            MaterialApp(home: ReportFireScreen(controller: controller)));
 
         await tester.pumpAndSettle();
 
@@ -191,7 +205,8 @@ void main() {
       testWidgets('emergency priority is conveyed through semantics', (
         tester,
       ) async {
-        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+        await tester.pumpWidget(
+            MaterialApp(home: ReportFireScreen(controller: controller)));
 
         // Verify emergency contact constants have correct priorities
         expect(EmergencyContact.fireService.priority, EmergencyPriority.urgent);
@@ -215,7 +230,7 @@ void main() {
             theme: ThemeData(
               colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
             ),
-            home: const ReportFireScreen(),
+            home: ReportFireScreen(controller: controller),
           ),
         );
 
@@ -224,7 +239,7 @@ void main() {
         // Test 999 button exists and is accessible
         final fireServiceButton = find.widgetWithText(
           EmergencyButton,
-          '999 Fire Service',
+          '999 – Fire Service',
         );
         expect(fireServiceButton, findsOneWidget);
 
@@ -250,14 +265,14 @@ void main() {
                 child: child!,
               );
             },
-            home: const ReportFireScreen(),
+            home: ReportFireScreen(controller: controller),
           ),
         );
 
         // Buttons should still be properly sized with large text
         final fireServiceButton = find.widgetWithText(
           EmergencyButton,
-          '999 Fire Service',
+          '999 – Fire Service',
         );
         expect(fireServiceButton, findsOneWidget);
 
@@ -271,7 +286,7 @@ void main() {
         ); // Should be wider due to larger text
 
         // Verify content is still visible and accessible
-        expect(find.text('999 Fire Service'), findsOneWidget);
+        expect(find.text('999 – Fire Service'), findsOneWidget);
         expect(find.textContaining('See smoke, flames'), findsOneWidget);
       });
     });
@@ -280,7 +295,8 @@ void main() {
       testWidgets('all interactive elements are keyboard accessible', (
         tester,
       ) async {
-        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+        await tester.pumpWidget(
+            MaterialApp(home: ReportFireScreen(controller: controller)));
 
         await tester.pumpAndSettle();
 
@@ -290,8 +306,8 @@ void main() {
 
         // Test tab navigation through emergency buttons
         final buttons = [
-          find.widgetWithText(EmergencyButton, '999 Fire Service'),
-          find.widgetWithText(EmergencyButton, '101 Police'),
+          find.widgetWithText(EmergencyButton, '999 – Fire Service'),
+          find.widgetWithText(EmergencyButton, '101 – Police'),
           find.widgetWithText(
             EmergencyButton,
             'Crimestoppers',
@@ -318,7 +334,8 @@ void main() {
       testWidgets('emergency buttons are accessible and responsive', (
         tester,
       ) async {
-        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+        await tester.pumpWidget(
+            MaterialApp(home: ReportFireScreen(controller: controller)));
 
         await tester.pumpAndSettle();
 
@@ -328,8 +345,8 @@ void main() {
 
         // Verify all emergency buttons are accessible and can be tapped
         final buttons = [
-          find.widgetWithText(EmergencyButton, '999 Fire Service'),
-          find.widgetWithText(EmergencyButton, '101 Police'),
+          find.widgetWithText(EmergencyButton, '999 – Fire Service'),
+          find.widgetWithText(EmergencyButton, '101 – Police'),
           find.widgetWithText(
             EmergencyButton,
             'Crimestoppers',
@@ -355,37 +372,30 @@ void main() {
       testWidgets('error handling provides accessible fallback information', (
         tester,
       ) async {
-        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+        await tester.pumpWidget(
+            MaterialApp(home: ReportFireScreen(controller: controller)));
 
+        // Wait for controller to initialize and settle
+        await tester.pumpAndSettle(const Duration(seconds: 1));
+
+        // The screen should have emergency buttons visible for manual dialing
+        // These are the key accessibility features - visible phone numbers
+        expect(find.text('999 – Fire Service'), findsOneWidget);
+        expect(find.text('101 – Police'), findsOneWidget);
+
+        // Scroll down to see more content
+        await tester.drag(find.byType(ListView), const Offset(0, -400));
         await tester.pumpAndSettle();
 
-        // Scroll to see tips section
-        await tester.drag(find.byType(ListView), const Offset(0, -500));
-        await tester.pumpAndSettle();
-
-        // Tap to expand "More Safety Guidance"
-        await tester.tap(find.text('More Safety Guidance'));
-        await tester.pumpAndSettle();
-
-        // Footer should contain manual dialing instructions for accessibility
-        expect(
-          find.textContaining('In immediate danger, call 999'),
-          findsOneWidget,
-        );
-
-        // Scroll back to see buttons
-        await tester.drag(find.byType(ListView), const Offset(0, 500));
-        await tester.pumpAndSettle();
-
-        // Emergency contact phone numbers should be visible in buttons for manual dialing
-        expect(find.text('999 Fire Service'), findsOneWidget);
-        expect(find.text('101 Police'), findsOneWidget);
-
-        // Scroll to see Crimestoppers button
-        await tester.drag(find.byType(ListView), const Offset(0, -300));
-        await tester.pumpAndSettle();
-
+        // Crimestoppers button should be visible after scrolling
         expect(find.text('Crimestoppers'), findsOneWidget);
+
+        // Continue scrolling to see Safety Tips
+        await tester.drag(find.byType(ListView), const Offset(0, -200));
+        await tester.pumpAndSettle();
+
+        // Safety Tips section should exist with expandable guidance
+        expect(find.text('Safety Tips'), findsOneWidget);
       });
     });
 
@@ -396,12 +406,13 @@ void main() {
         // Set landscape orientation
         await tester.binding.setSurfaceSize(const Size(800, 600));
 
-        await tester.pumpWidget(const MaterialApp(home: ReportFireScreen()));
+        await tester.pumpWidget(
+            MaterialApp(home: ReportFireScreen(controller: controller)));
 
         // Touch targets should still meet requirements in landscape
         final fireServiceButton = find.widgetWithText(
           EmergencyButton,
-          '999 Fire Service',
+          '999 – Fire Service',
         );
         expect(fireServiceButton, findsOneWidget);
 

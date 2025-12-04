@@ -115,6 +115,8 @@ class WildfireA11yTheme {
       onSurface: BrandPalette.onLightHigh,
       surfaceContainerHighest: const Color(0xFFE7F1EF),
       surfaceContainerLowest: Colors.white,
+      surfaceContainerLow:
+          const Color(0xFFF8F8F8), // Between white and offWhite for cards
       onSurfaceVariant: BrandPalette.onLightMedium,
       error: Colors.red.shade700,
       onError: BrandPalette.onDarkHigh,
@@ -133,7 +135,7 @@ class WildfireA11yTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       brightness: Brightness.light,
-      scaffoldBackgroundColor: colorScheme.surface,
+      scaffoldBackgroundColor: colorScheme.surfaceContainerLowest,
 
       // ElevatedButton: ≥44dp height (C3), 12dp corner radius
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -301,7 +303,7 @@ class WildfireA11yTheme {
 
       // CardTheme: elevated surface with outline
       cardTheme: CardThemeData(
-        color: colorScheme.surface,
+        color: colorScheme.surfaceContainerLow,
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),

@@ -39,11 +39,13 @@ class EmergencyButton extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Get display text - custom text or contact's display text
-    final buttonText = text ?? contact.displayText;
+    // Get display text - custom text or contact's visual display text
+    // Visual text uses en-dash for better readability
+    final semanticText = text ?? contact.displayText;
+    final visualText = text ?? contact.visualDisplayText;
 
     return Semantics(
-      label: _getSemanticLabel(buttonText),
+      label: _getSemanticLabel(semanticText),
       hint: _getSemanticHint(),
       button: true,
       enabled: onPressed != null,
@@ -54,25 +56,22 @@ class EmergencyButton extends StatelessWidget {
         child: ElevatedButton(
           onPressed: onPressed,
           style: _getButtonStyle(colorScheme),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.call, size: 18),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    buttonText,
-                    style: _getTextStyle(theme),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    textAlign: TextAlign.center,
-                  ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.call, size: 20),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  visualText,
+                  style: _getTextStyle(theme),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
