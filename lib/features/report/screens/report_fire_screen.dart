@@ -77,16 +77,6 @@ class _ReportFireScreenState extends State<ReportFireScreen> {
           _buildDisclaimer(context, cs),
           const SizedBox(height: 16),
 
-          // Section heading - ties location card to emergency options
-          Text(
-            'Who to call about this fire',
-            style: textTheme.labelLarge?.copyWith(
-              color: cs.onSurfaceVariant,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-
           // Emergency Actions Card - Groups all three contact options
           Semantics(
             container: true,
@@ -99,13 +89,13 @@ class _ReportFireScreenState extends State<ReportFireScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Strong CTA intro
+                    // Section heading inside card
                     Semantics(
-                      label:
-                          'If you think the fire could spread or put people, homes or woodland at risk, call 999 immediately.',
+                      header: true,
+                      label: 'Who to call about this fire',
                       child: Text(
-                        'If you think the fire could spread or put people, homes or woodland at risk, call 999 immediately.',
-                        style: textTheme.bodyMedium?.copyWith(
+                        'Who to call about this fire',
+                        style: textTheme.titleMedium?.copyWith(
                           color: cs.onSurface,
                           fontWeight: FontWeight.w600,
                         ),
