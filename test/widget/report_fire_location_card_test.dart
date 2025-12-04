@@ -208,7 +208,7 @@ void main() {
           ),
         ));
 
-        expect(find.text('Copy details for your call'), findsOneWidget);
+        expect(find.text('Copy location for your call'), findsOneWidget);
       });
 
       testWidgets('Copy details copies coordinates and w3w', (tester) async {
@@ -233,7 +233,7 @@ void main() {
           ),
         ));
 
-        await tester.tap(find.text('Copy details for your call'));
+        await tester.tap(find.text('Copy location for your call'));
         // Use pump() instead of pumpAndSettle() because SnackBar has ongoing animations
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
@@ -271,7 +271,7 @@ void main() {
           ),
         ));
 
-        await tester.tap(find.text('Copy details for your call'));
+        await tester.tap(find.text('Copy location for your call'));
         // Use pump() instead of pumpAndSettle() because SnackBar has ongoing animations
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));

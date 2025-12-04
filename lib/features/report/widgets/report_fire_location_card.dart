@@ -688,6 +688,9 @@ class ReportFireLocationCard extends StatelessWidget {
   }
 
   /// Builds the "Copy Location" button that copies coordinates + w3w
+  ///
+  /// Uses FilledTonalButton for medium emphasis - this is the primary
+  /// utility action after setting a location (M3 button hierarchy).
   Widget _buildCopyAllButton(
     BuildContext context,
     ThemeData theme,
@@ -701,7 +704,7 @@ class ReportFireLocationCard extends StatelessWidget {
       button: true,
       child: SizedBox(
         width: double.infinity,
-        child: OutlinedButton.icon(
+        child: FilledButton.tonalIcon(
           onPressed: () => _copyLocationToClipboard(
             context,
             coordinates: coordinates,
@@ -709,11 +712,9 @@ class ReportFireLocationCard extends StatelessWidget {
             placeName: placeName,
           ),
           icon: const Icon(Icons.copy, size: 18),
-          label: const Text('Copy details for your call'),
-          style: OutlinedButton.styleFrom(
+          label: const Text('Copy location for your call'),
+          style: FilledButton.styleFrom(
             minimumSize: const Size.fromHeight(48),
-            foregroundColor: scheme.secondary,
-            side: BorderSide(color: scheme.secondary),
           ),
         ),
       ),
