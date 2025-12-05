@@ -139,12 +139,15 @@ void main() {
 
 class MockLocationResolver implements LocationResolver {
   @override
-  Future<Either<LocationError, LatLng>> getLatLon({
+  Future<Either<LocationError, ResolvedLocation>> getLatLon({
     bool allowDefault = true,
   }) async {
     // Simulate GPS delay (typical: 500-1000ms)
     await Future.delayed(const Duration(milliseconds: 100));
-    return const Right(LatLng(55.9533, -3.1883)); // Edinburgh
+    return const Right(ResolvedLocation(
+      coordinates: LatLng(55.9533, -3.1883), // Edinburgh
+      source: LocationSource.gps,
+    ));
   }
 
   @override

@@ -178,17 +178,21 @@ void main() {
 
 /// Mock LocationResolver for TEST_REGION testing
 class MockLocationResolver implements LocationResolver {
-  Either<LocationError, LatLng>? _getLatLonResult;
+  Either<LocationError, ResolvedLocation>? _getLatLonResult;
 
-  void mockGetLatLon(Either<LocationError, LatLng> result) {
+  void mockGetLatLon(Either<LocationError, ResolvedLocation> result) {
     _getLatLonResult = result;
   }
 
   @override
-  Future<Either<LocationError, LatLng>> getLatLon({
+  Future<Either<LocationError, ResolvedLocation>> getLatLon({
     bool allowDefault = true,
   }) async {
-    return _getLatLonResult ?? const Right(LatLng(55.9533, -3.1883));
+    return _getLatLonResult ??
+        const Right(ResolvedLocation(
+          coordinates: LatLng(55.9533, -3.1883),
+          source: LocationSource.gps,
+        ));
   }
 
   @override

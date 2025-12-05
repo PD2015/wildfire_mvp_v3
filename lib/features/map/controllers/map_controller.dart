@@ -93,10 +93,10 @@ class MapController extends ChangeNotifier {
             debugPrint(
                 '🗺️ GPS unavailable - distance calculations will be disabled');
           },
-          (gpsLocation) {
-            _userGpsLocation = gpsLocation;
+          (resolved) {
+            _userGpsLocation = resolved.coordinates;
             debugPrint(
-              '🗺️ GPS also available at: ${gpsLocation.latitude.toStringAsFixed(2)}, ${gpsLocation.longitude.toStringAsFixed(2)}',
+              '🗺️ GPS also available at: ${resolved.coordinates.latitude.toStringAsFixed(2)}, ${resolved.coordinates.longitude.toStringAsFixed(2)} (source: ${resolved.source.name})',
             );
           },
         );
@@ -115,12 +115,12 @@ class MapController extends ChangeNotifier {
           debugPrint(
               '🗺️ GPS unavailable - distance calculations will be disabled');
           return testCenter;
-        }, (location) {
+        }, (resolved) {
           // GPS available - store as user's actual location
-          _userGpsLocation = location;
+          _userGpsLocation = resolved.coordinates;
           debugPrint(
-              '🗺️ GPS location acquired: ${location.latitude},${location.longitude}');
-          return location;
+              '🗺️ Location acquired: ${resolved.coordinates.latitude},${resolved.coordinates.longitude} (source: ${resolved.source.name})');
+          return resolved.coordinates;
         });
       }
 

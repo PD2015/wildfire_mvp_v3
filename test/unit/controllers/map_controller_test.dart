@@ -15,10 +15,10 @@ import 'package:wildfire_mvp_v3/models/risk_level.dart';
 
 /// Mock LocationResolver for controlled testing
 class MockLocationResolver implements LocationResolver {
-  Either<LocationError, LatLng>? _getLatLonResult;
+  Either<LocationError, ResolvedLocation>? _getLatLonResult;
   List<String> loggedCalls = [];
 
-  void mockGetLatLon(Either<LocationError, LatLng> result) {
+  void mockGetLatLon(Either<LocationError, ResolvedLocation> result) {
     _getLatLonResult = result;
   }
 
@@ -28,7 +28,7 @@ class MockLocationResolver implements LocationResolver {
   }
 
   @override
-  Future<Either<LocationError, LatLng>> getLatLon({
+  Future<Either<LocationError, ResolvedLocation>> getLatLon({
     bool allowDefault = true,
   }) async {
     loggedCalls.add('getLatLon(allowDefault: $allowDefault)');
@@ -36,7 +36,10 @@ class MockLocationResolver implements LocationResolver {
       return _getLatLonResult!;
     }
     // Default success case: Edinburgh
-    return const Right(LatLng(55.9533, -3.1883));
+    return const Right(ResolvedLocation(
+      coordinates: LatLng(55.9533, -3.1883),
+      source: LocationSource.gps,
+    ));
   }
 
   @override
@@ -128,6 +131,17 @@ class TestData {
     57.2,
     -3.8,
   ); // Fallback location in MapController
+
+  // ResolvedLocation versions for mock setup
+  static const edinburghResolved = ResolvedLocation(
+    coordinates: edinburgh,
+    source: LocationSource.gps,
+  );
+
+  static const glasgowResolved = ResolvedLocation(
+    coordinates: glasgow,
+    source: LocationSource.gps,
+  );
 
   static FireIncident createFireIncident({
     String id = 'test_001',
@@ -222,7 +236,8 @@ void main() {
         'transitions to MapSuccess when location and fires load successfully',
         () async {
           // Arrange
-          mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+          mockLocationResolver
+              .mockGetLatLon(const Right(TestData.edinburghResolved));
           mockFireLocationService.mockGetActiveFires(
             Right([TestData.createFireIncident(id: 'fire_001')]),
           );
@@ -274,7 +289,8 @@ void main() {
 
       test('transitions to MapError when FireLocationService fails', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireLocationService.mockGetActiveFires(
           Left(ApiError(message: 'Service unavailable')),
         );
@@ -293,7 +309,8 @@ void main() {
 
       test('notifies listeners during state transitions', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireLocationService.mockGetActiveFires(
           Right([TestData.createFireIncident(id: 'fire_001')]),
         );
@@ -314,8 +331,8 @@ void main() {
         'creates bbox with ~220km radius (±2.0 degrees) around center',
         () async {
           // Arrange
-          const testLocation = TestData.edinburgh;
-          mockLocationResolver.mockGetLatLon(const Right(testLocation));
+          mockLocationResolver
+              .mockGetLatLon(const Right(TestData.edinburghResolved));
           mockFireLocationService.mockGetActiveFires(
             Right([TestData.createFireIncident(id: 'fire_001')]),
           );
@@ -335,7 +352,8 @@ void main() {
 
       test('handles FireLocationService returning empty list', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireLocationService.mockGetActiveFires(const Right([])); // No fires
 
         // Act
@@ -355,7 +373,8 @@ void main() {
 
       test('handles exceptions during initialization', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         // Don't mock FireLocationService - let it throw
         mockFireLocationService.mockGetActiveFires(
           Left(ApiError(message: 'Unexpected error')),
@@ -373,7 +392,8 @@ void main() {
     group('refreshMapData()', () {
       test('updates incidents for new visible bounds', () async {
         // Arrange: Initialize with Edinburgh
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireLocationService.mockGetActiveFires(
           Right([TestData.createFireIncident(id: 'initial_fire')]),
         );
@@ -407,7 +427,8 @@ void main() {
 
       test('preserves previous incidents when refresh fails', () async {
         // Arrange: Initialize with successful data
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireLocationService.mockGetActiveFires(
           Right([TestData.createFireIncident(id: 'cached_fire')]),
         );
@@ -441,7 +462,8 @@ void main() {
 
       test('refreshes without MapLoading to avoid widget unmount', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireLocationService.mockGetActiveFires(
           Right([TestData.createFireIncident(id: 'initial_fire')]),
         );
@@ -475,7 +497,8 @@ void main() {
 
       test('notifies listeners on state changes', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireLocationService.mockGetActiveFires(
           Right([TestData.createFireIncident(id: 'initial_fire')]),
         );
@@ -505,7 +528,8 @@ void main() {
         'handles refresh exception and preserves previous state if available',
         () async {
           // Arrange: Initialize successfully
-          mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+          mockLocationResolver
+              .mockGetLatLon(const Right(TestData.edinburghResolved));
           mockFireLocationService.mockGetActiveFires(
             Right([TestData.createFireIncident(id: 'cached_fire')]),
           );
@@ -632,7 +656,8 @@ void main() {
     group('ChangeNotifier integration', () {
       test('notifies listeners when state changes', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireLocationService.mockGetActiveFires(
           Right([TestData.createFireIncident(id: 'fire_001')]),
         );
@@ -653,7 +678,8 @@ void main() {
 
       test('allows multiple listeners to be added', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireLocationService.mockGetActiveFires(
           Right([TestData.createFireIncident(id: 'fire_001')]),
         );
@@ -675,7 +701,8 @@ void main() {
 
       test('stops notifying after listener is removed', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireLocationService.mockGetActiveFires(
           Right([TestData.createFireIncident(id: 'fire_001')]),
         );

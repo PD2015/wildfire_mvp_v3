@@ -19,9 +19,11 @@ abstract class LocationResolver {
   /// [allowDefault] - If false, returns Left(LocationError) instead of default location
   /// to trigger manual entry by caller (e.g., A6/Home component)
   ///
-  /// Returns [Right(LatLng)] with resolved coordinates or [Left(LocationError)]
-  /// indicating caller should handle manual entry or error state.
-  Future<Either<LocationError, LatLng>> getLatLon({bool allowDefault = true});
+  /// Returns [Right(ResolvedLocation)] with coordinates and source, or
+  /// [Left(LocationError)] indicating caller should handle manual entry or error state.
+  Future<Either<LocationError, ResolvedLocation>> getLatLon({
+    bool allowDefault = true,
+  });
 
   /// Saves manually entered location to persistent storage
   ///

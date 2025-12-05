@@ -208,15 +208,16 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             );
           }
         },
-        (latLng) async {
+        (resolved) async {
           // Animate map to GPS location
-          final gpsLocation = LatLng(latLng.latitude, latLng.longitude);
+          final gpsLocation = LatLng(
+              resolved.coordinates.latitude, resolved.coordinates.longitude);
           await _mapController?.animateCamera(
             CameraUpdate.newLatLngZoom(gpsLocation, 14.0),
           );
 
           // Update controller with new location
-          _controller.setLocationFromCamera(latLng);
+          _controller.setLocationFromCamera(resolved.coordinates);
 
           // Haptic feedback for successful GPS recenter
           HapticFeedback.mediumImpact();

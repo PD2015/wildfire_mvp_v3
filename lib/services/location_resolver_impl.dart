@@ -58,7 +58,7 @@ class LocationResolverImpl implements LocationResolver {
   static const String _currentVersion = '1.0';
 
   @override
-  Future<Either<LocationError, LatLng>> getLatLon({
+  Future<Either<LocationError, ResolvedLocation>> getLatLon({
     bool allowDefault = true,
   }) async {
     final stopwatch = Stopwatch()..start();
@@ -96,7 +96,10 @@ class LocationResolverImpl implements LocationResolver {
         debugPrint(
           'Location resolved via GPS: ${GeographicUtils.logRedact(coords.latitude, coords.longitude)}',
         );
-        return Right(coords);
+        return Right(ResolvedLocation(
+          coordinates: coords,
+          source: LocationSource.gps,
+        ));
       } else {
         debugPrint('GPS unavailable: ${gpsResult.fold((e) => e, (r) => '')}');
       }
@@ -104,17 +107,26 @@ class LocationResolverImpl implements LocationResolver {
       // Tier 3: SharedPreferences cached manual location
       final cacheResult = await _tryCache();
       if (cacheResult.isRight()) {
-        final coords = cacheResult.getOrElse(() => _defaultFallbackLocation);
+        final (coords, placeName) =
+            cacheResult.getOrElse(() => (_defaultFallbackLocation, null));
         debugPrint(
           'Location resolved via cache: ${GeographicUtils.logRedact(coords.latitude, coords.longitude)}',
         );
-        return Right(coords);
+        return Right(ResolvedLocation(
+          coordinates: coords,
+          source: LocationSource.cached,
+          placeName: placeName,
+        ));
       }
 
       // Tier 4: Manual entry (caller responsibility)
-      if (!allowDefault) {
+      // On web, we NEVER silently fall back to default location because:
+      // 1. Users expect their phone to know their location
+      // 2. Showing wrong location (Aviemore) is worse than prompting for manual entry
+      // 3. On desktop, silent fallback is OK since no GPS is expected
+      if (!allowDefault || kIsWeb) {
         debugPrint(
-          'Location resolution requires manual entry (allowDefault=false)',
+          'Location resolution requires manual entry (allowDefault=$allowDefault, kIsWeb=$kIsWeb)',
         );
         return const Left(LocationError.permissionDenied);
       }
@@ -123,14 +135,20 @@ class LocationResolverImpl implements LocationResolver {
       debugPrint(
         'Location resolved via default: ${GeographicUtils.logRedact(_defaultFallbackLocation.latitude, _defaultFallbackLocation.longitude)}${FeatureFlags.devMode ? ' (DEV_MODE)' : ''}',
       );
-      return Right(_defaultFallbackLocation);
+      return Right(ResolvedLocation(
+        coordinates: _defaultFallbackLocation,
+        source: LocationSource.defaultFallback,
+      ));
     } catch (e) {
       debugPrint('Location resolution error: $e');
       if (allowDefault) {
         debugPrint(
           'Falling back to default: ${GeographicUtils.logRedact(_defaultFallbackLocation.latitude, _defaultFallbackLocation.longitude)}',
         );
-        return Right(_defaultFallbackLocation);
+        return Right(ResolvedLocation(
+          coordinates: _defaultFallbackLocation,
+          source: LocationSource.defaultFallback,
+        ));
       }
       return const Left(LocationError.gpsUnavailable);
     } finally {
@@ -182,15 +200,12 @@ class LocationResolverImpl implements LocationResolver {
         }
       }
 
-      // Get fresh position with platform-appropriate timeout
-      // Web browsers need longer timeout (10s) for first GPS acquisition
-      // Native platforms are faster (3s) with direct hardware access
-      // ignore: prefer_const_declarations
-      final timeout =
-          kIsWeb ? const Duration(seconds: 10) : const Duration(seconds: 3);
+      // Get fresh position with timeout
+      // Web browsers may take longer for first GPS acquisition
+      const timeout = Duration(seconds: 8);
 
       debugPrint(
-          'GPS: Acquiring fresh position (timeout: ${timeout.inSeconds}s)...');
+          'GPS: Acquiring fresh position (${timeout.inSeconds}s timeout)...');
       final position = await _geolocatorService.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.medium,
         timeLimit: timeout,
@@ -206,7 +221,9 @@ class LocationResolverImpl implements LocationResolver {
   ///
   /// Includes TTL check - cached locations older than 1 hour are ignored
   /// to prevent stale locations from previous sessions overriding GPS.
-  Future<Either<LocationError, LatLng>> _tryCache() async {
+  ///
+  /// Returns tuple of (LatLng, placeName?) for source attribution.
+  Future<Either<LocationError, (LatLng, String?)>> _tryCache() async {
     try {
       final prefs = await SharedPreferences.getInstance();
 
@@ -236,6 +253,7 @@ class LocationResolverImpl implements LocationResolver {
 
       final lat = prefs.getDouble(_latKey);
       final lon = prefs.getDouble(_lonKey);
+      final placeName = prefs.getString(_placeKey);
 
       if (lat != null && lon != null) {
         // Validate coordinates are not NaN, not infinite, and in correct range
@@ -246,7 +264,7 @@ class LocationResolverImpl implements LocationResolver {
         final isValidLongitude = lon >= -9.0 && lon <= 0.0;
 
         if (isValidNumber && isValidLatitude && isValidLongitude) {
-          return Right(LatLng(lat, lon));
+          return Right((LatLng(lat, lon), placeName));
         } else {
           // Clear corrupted cache (NaN, infinite, or out of range coordinates)
           debugPrint(
@@ -265,16 +283,25 @@ class LocationResolverImpl implements LocationResolver {
   }
 
   /// Fallback to cache when GPS is unavailable
-  Future<Either<LocationError, LatLng>> _fallbackToCache(
+  Future<Either<LocationError, ResolvedLocation>> _fallbackToCache(
     bool allowDefault,
   ) async {
     final cacheResult = await _tryCache();
     if (cacheResult.isRight()) {
-      return cacheResult;
+      final (coords, placeName) =
+          cacheResult.getOrElse(() => (_defaultFallbackLocation, null));
+      return Right(ResolvedLocation(
+        coordinates: coords,
+        source: LocationSource.cached,
+        placeName: placeName,
+      ));
     }
 
     if (allowDefault) {
-      return Right(_defaultFallbackLocation);
+      return Right(ResolvedLocation(
+        coordinates: _defaultFallbackLocation,
+        source: LocationSource.defaultFallback,
+      ));
     }
 
     // When GPS is unavailable due to platform restrictions and manual entry needed

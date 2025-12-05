@@ -206,17 +206,18 @@ class LocationStateManager extends ChangeNotifier {
 
       switch (result) {
         case Right(:final value):
-          final location = value;
+          final resolved = value;
+          final location = resolved.coordinates;
 
           developer.log(
-            'Location resolved: ${LocationUtils.logRedact(location.latitude, location.longitude)} (source: gps)',
+            'Location resolved: ${LocationUtils.logRedact(location.latitude, location.longitude)} (source: ${resolved.source.name})',
             name: 'LocationStateManager',
           );
 
           _updateState(LocationDisplaySuccess(
             coordinates: location,
-            source: LocationSource.gps,
-            placeName: null,
+            source: resolved.source,
+            placeName: resolved.placeName,
             lastUpdated: DateTime.now(),
             isWhat3wordsLoading: _what3wordsService != null,
             isGeocodingLoading: _geocodingService != null,
