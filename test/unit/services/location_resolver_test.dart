@@ -394,6 +394,95 @@ void main() {
           closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
+
+      test('expired cached manual location is ignored (TTL >1 hour)', () async {
+        // This test verifies the fix for the mobile web GPS bug where:
+        // 1. User sets manual location on desktop browser
+        // 2. Stale location persists in localStorage
+        // 3. Phone browser should NOT use stale location - should try GPS
+
+        // Arrange
+        fakeGeolocator.setLastKnownPosition(null);
+        fakeGeolocator.setPermission(LocationPermission.denied);
+
+        // Set up cached location from 2 hours ago (expired)
+        final twoHoursAgo = DateTime.now()
+            .subtract(const Duration(hours: 2))
+            .millisecondsSinceEpoch;
+        SharedPreferences.setMockInitialValues({
+          'manual_location_version': '1.0',
+          'manual_location_lat': TestData.edinburgh.latitude,
+          'manual_location_lon': TestData.edinburgh.longitude,
+          'manual_location_timestamp': twoHoursAgo,
+        });
+
+        // Act
+        final result = await locationResolver.getLatLon(allowDefault: true);
+
+        // Assert - should ignore expired cache and use fallback
+        expect(result.isRight(), isTrue);
+        final location = result.getOrElse(() => TestData.aviemore);
+        expect(
+          location.latitude,
+          closeTo(TestData.aviemore.latitude, 0.001),
+          reason: 'Should ignore expired cache and fall back to Aviemore',
+        );
+      });
+
+      test('fresh cached manual location is used (TTL <1 hour)', () async {
+        // Arrange
+        fakeGeolocator.setLastKnownPosition(null);
+        fakeGeolocator.setPermission(LocationPermission.denied);
+
+        // Set up cached location from 30 minutes ago (still fresh)
+        final thirtyMinutesAgo = DateTime.now()
+            .subtract(const Duration(minutes: 30))
+            .millisecondsSinceEpoch;
+        SharedPreferences.setMockInitialValues({
+          'manual_location_version': '1.0',
+          'manual_location_lat': TestData.edinburgh.latitude,
+          'manual_location_lon': TestData.edinburgh.longitude,
+          'manual_location_timestamp': thirtyMinutesAgo,
+        });
+
+        // Act
+        final result = await locationResolver.getLatLon(allowDefault: true);
+
+        // Assert - should use fresh cached location
+        expect(result.isRight(), isTrue);
+        final location = result.getOrElse(() => TestData.aviemore);
+        expect(
+          location.latitude,
+          closeTo(TestData.edinburgh.latitude, 0.001),
+          reason: 'Should use fresh cached location (within 1 hour TTL)',
+        );
+      });
+
+      test('cache without timestamp is treated as expired', () async {
+        // Arrange
+        fakeGeolocator.setLastKnownPosition(null);
+        fakeGeolocator.setPermission(LocationPermission.denied);
+
+        // Set up cached location without timestamp (old format)
+        SharedPreferences.setMockInitialValues({
+          'manual_location_version': '1.0',
+          'manual_location_lat': TestData.edinburgh.latitude,
+          'manual_location_lon': TestData.edinburgh.longitude,
+          // No timestamp key
+        });
+
+        // Act
+        final result = await locationResolver.getLatLon(allowDefault: true);
+
+        // Assert - should ignore cache without timestamp and use fallback
+        expect(result.isRight(), isTrue);
+        final location = result.getOrElse(() => TestData.aviemore);
+        expect(
+          location.latitude,
+          closeTo(TestData.aviemore.latitude, 0.001),
+          reason: 'Should treat missing timestamp as expired',
+        );
+      });
     });
 
     group('saveManual Integration', () {
