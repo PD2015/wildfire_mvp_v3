@@ -68,7 +68,7 @@ void main() {
       final incidents = result.getOrElse(() => []);
       expect(incidents, isA<List<FireIncident>>());
       expect(incidents.length,
-          6); // 6 mock fires in Scotland (4 original + Dava + Carrbridge)
+          5); // 5 mock fires in Scotland (4 original + merged Dava-Carrbridge)
     });
 
     test('Service filters fires by bbox (Scotland coordinates)', () async {

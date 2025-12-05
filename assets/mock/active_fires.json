@@ -215,87 +215,60 @@
     },
     {
       "type": "Feature",
-      "id": "dava_wildfire_2025",
+      "id": "dava_carrbridge_wildfire_2025",
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
-            [-3.65, 57.40],
-            [-3.60, 57.42],
-            [-3.55, 57.44],
-            [-3.50, 57.46],
-            [-3.48, 57.48],
-            [-3.50, 57.50],
-            [-3.55, 57.52],
-            [-3.60, 57.53],
-            [-3.65, 57.52],
-            [-3.70, 57.50],
-            [-3.75, 57.48],
-            [-3.78, 57.46],
-            [-3.80, 57.44],
-            [-3.78, 57.42],
-            [-3.75, 57.41],
-            [-3.70, 57.40],
-            [-3.65, 57.40]
+            [-3.90, 57.28],
+            [-3.85, 57.26],
+            [-3.78, 57.27],
+            [-3.70, 57.29],
+            [-3.62, 57.32],
+            [-3.55, 57.35],
+            [-3.48, 57.38],
+            [-3.42, 57.42],
+            [-3.38, 57.46],
+            [-3.36, 57.50],
+            [-3.38, 57.54],
+            [-3.42, 57.57],
+            [-3.48, 57.59],
+            [-3.55, 57.60],
+            [-3.62, 57.59],
+            [-3.70, 57.57],
+            [-3.78, 57.54],
+            [-3.85, 57.50],
+            [-3.90, 57.46],
+            [-3.94, 57.42],
+            [-3.96, 57.38],
+            [-3.95, 57.34],
+            [-3.93, 57.31],
+            [-3.90, 57.28]
           ]
         ]
       },
       "properties": {
-        "id": "dava_wildfire_2025",
-        "source": "wikipedia",
+        "id": "dava_carrbridge_wildfire_2025",
+        "source": "scottish_wildfire_forum",
         "freshness": "historical",
-        "timestamp": "2025-06-30T18:00:00Z",
+        "timestamp": "2025-07-01T18:00:00Z",
         "detected_at": "2025-06-28T17:00:00Z",
         "last_update": "2025-07-10T12:00:00Z",
         "intensity": "high",
-        "description": "Dava Wildfire 2025 - Scotland's Largest Recorded Wildfire",
-        "areaHectares": 6593.0,
-        "sensor_source": "MODIS/VIIRS",
+        "description": "Dava-Carrbridge Wildfire 2025 - Scotland's Largest Recorded Wildfire",
+        "areaHectares": 9664.0,
+        "sensor_source": "EFFIS/MODIS",
         "confidence": 99.0,
-        "frp": 2450.0,
-        "notes": "Started from Loch Allan on 28 June 2025. Spread eastward into 9 separate fires. Combined Dava (6,593 ha) and Carrbridge (5,234 ha) areas totalled 11,827 ha. Source: Wikipedia, Moorland Association report.",
+        "frp": 3200.0,
+        "notes": "Two fires (Dava moor + Carrbridge) that joined. Main fire run 28 June - 1 July 2025. EFFIS satellite: 9,664 ha. Cawdor Forestry local mapping: 9,752 ha. Perimeter ~253 km. Includes 8,716 ha moorland/peatland + 1,036 ha forest. Source: Scottish Wildfire Forum statement 10.07.25.",
         "wikipedia": "https://en.wikipedia.org/wiki/Dava_wildfire",
-        "center_coordinates": "57.4°N 3.65°W"
-      }
-    },
-    {
-      "type": "Feature",
-      "id": "carrbridge_wildfire_2025",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [-3.90, 57.25],
-            [-3.85, 57.27],
-            [-3.80, 57.29],
-            [-3.75, 57.31],
-            [-3.73, 57.33],
-            [-3.75, 57.35],
-            [-3.80, 57.36],
-            [-3.85, 57.35],
-            [-3.90, 57.33],
-            [-3.95, 57.31],
-            [-3.97, 57.29],
-            [-3.95, 57.27],
-            [-3.90, 57.25]
-          ]
-        ]
-      },
-      "properties": {
-        "id": "carrbridge_wildfire_2025",
-        "source": "wikipedia",
-        "freshness": "historical",
-        "timestamp": "2025-06-30T18:00:00Z",
-        "detected_at": "2025-06-28T17:00:00Z",
-        "last_update": "2025-07-10T12:00:00Z",
-        "intensity": "high",
-        "description": "Carrbridge Wildfire 2025 - Part of Scotland's Largest Recorded Wildfire",
-        "areaHectares": 5234.0,
-        "sensor_source": "MODIS/VIIRS",
-        "confidence": 99.0,
-        "frp": 1980.0,
-        "notes": "Adjacent fire to Dava wildfire. Combined total with Dava was 11,827 ha - Scotland's largest recorded wildfire. Smoke reached Nairn, Carrbridge, Grantown-on-Spey, and Aviemore.",
-        "wikipedia": "https://en.wikipedia.org/wiki/Dava_wildfire"
+        "swf_source": "https://www.scottishwildfireforum.co.uk/newspost/swf-statement-on-morayshire-wildfires",
+        "center_coordinates": "57.43°N 3.67°W",
+        "perimeter_km": 253,
+        "damage_breakdown": {
+          "moorland_peatland_ha": 8716,
+          "forest_ha": 1036
+        }
       }
     }
   ]
