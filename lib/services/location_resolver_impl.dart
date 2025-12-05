@@ -112,9 +112,13 @@ class LocationResolverImpl implements LocationResolver {
       }
 
       // Tier 4: Manual entry (caller responsibility)
-      if (!allowDefault) {
+      // On web, we NEVER silently fall back to default location because:
+      // 1. Users expect their phone to know their location
+      // 2. Showing wrong location (Aviemore) is worse than prompting for manual entry
+      // 3. On desktop, silent fallback is OK since no GPS is expected
+      if (!allowDefault || kIsWeb) {
         debugPrint(
-          'Location resolution requires manual entry (allowDefault=false)',
+          'Location resolution requires manual entry (allowDefault=$allowDefault, kIsWeb=$kIsWeb)',
         );
         return const Left(LocationError.permissionDenied);
       }
@@ -182,15 +186,12 @@ class LocationResolverImpl implements LocationResolver {
         }
       }
 
-      // Get fresh position with platform-appropriate timeout
-      // Web browsers need longer timeout (10s) for first GPS acquisition
-      // Native platforms are faster (3s) with direct hardware access
-      // ignore: prefer_const_declarations
-      final timeout =
-          kIsWeb ? const Duration(seconds: 10) : const Duration(seconds: 3);
+      // Get fresh position with timeout
+      // Web browsers may take longer for first GPS acquisition
+      const timeout = Duration(seconds: 8);
 
       debugPrint(
-          'GPS: Acquiring fresh position (timeout: ${timeout.inSeconds}s)...');
+          'GPS: Acquiring fresh position (${timeout.inSeconds}s timeout)...');
       final position = await _geolocatorService.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.medium,
         timeLimit: timeout,
