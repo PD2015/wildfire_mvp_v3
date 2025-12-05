@@ -591,22 +591,27 @@ void main() {
     });
 
     group('Error Handling and Resilience', () {
-      test('handles multiple GPS failures gracefully', () async {
-        // Arrange
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setException(Exception('GPS hardware error'));
+      test(
+        'handles multiple GPS failures gracefully',
+        () async {
+          // Arrange
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setException(Exception('GPS hardware error'));
 
-        // Act
-        final result = await locationResolver.getLatLon(allowDefault: true);
+          // Act
+          final result = await locationResolver.getLatLon(allowDefault: true);
 
-        // Assert - should not crash and return default
-        expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemoreResolved);
-        expect(
-          location.coordinates.latitude,
-          closeTo(TestData.aviemore.latitude, 0.001),
-        );
-      });
+          // Assert - should not crash and return default
+          expect(result.isRight(), isTrue);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
+          expect(
+            location.coordinates.latitude,
+            closeTo(TestData.aviemore.latitude, 0.001),
+          );
+        },
+        // Web intentionally requires manual entry rather than silent default fallback
+        skip: kIsWeb,
+      );
 
       test('handles concurrent location requests', () async {
         // Arrange
@@ -700,6 +705,8 @@ void main() {
           const maxTime = kIsWeb ? 5000 : 2500;
           expect(stopwatch.elapsedMilliseconds, lessThan(maxTime));
         },
+        // Web intentionally requires manual entry rather than silent default fallback
+        skip: kIsWeb,
       );
     });
   });
