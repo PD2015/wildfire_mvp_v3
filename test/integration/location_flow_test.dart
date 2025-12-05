@@ -90,13 +90,14 @@ void main() {
           );
 
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.aviemore);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
           final expectedLocation = expectedLocationForGpsSetup(
             TestData.edinburgh,
           );
-          expect(location.latitude, closeTo(expectedLocation.latitude, 0.001));
+          expect(location.coordinates.latitude,
+              closeTo(expectedLocation.latitude, 0.001));
           expect(
-            location.longitude,
+            location.coordinates.longitude,
             closeTo(expectedLocation.longitude, 0.001),
           );
         },
@@ -129,10 +130,12 @@ void main() {
         );
 
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         final expectedLocation = expectedLocationForGpsSetup(TestData.glasgow);
-        expect(location.latitude, closeTo(expectedLocation.latitude, 0.001));
-        expect(location.longitude, closeTo(expectedLocation.longitude, 0.001));
+        expect(location.coordinates.latitude,
+            closeTo(expectedLocation.latitude, 0.001));
+        expect(location.coordinates.longitude,
+            closeTo(expectedLocation.longitude, 0.001));
       });
 
       test('Tier 3: Cached manual location when GPS fails', () async {
@@ -153,10 +156,11 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
-        expect(location.latitude, closeTo(TestData.edinburgh.latitude, 0.001));
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
+        expect(location.coordinates.latitude,
+            closeTo(TestData.edinburgh.latitude, 0.001));
         expect(
-          location.longitude,
+          location.coordinates.longitude,
           closeTo(TestData.edinburgh.longitude, 0.001),
         );
       });
@@ -195,13 +199,13 @@ void main() {
 
           // Assert
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.aviemore);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
           expect(
-            location.latitude,
+            location.coordinates.latitude,
             closeTo(TestData.aviemore.latitude, 0.001),
           );
           expect(
-            location.longitude,
+            location.coordinates.longitude,
             closeTo(TestData.aviemore.longitude, 0.001),
           );
         },
@@ -247,9 +251,9 @@ void main() {
           );
 
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.aviemore);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
           expect(
-            location.latitude,
+            location.coordinates.latitude,
             closeTo(TestData.aviemore.latitude, 0.001),
           );
         },
@@ -309,9 +313,11 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
-        expect(location.latitude, closeTo(testLocation.latitude, 0.001));
-        expect(location.longitude, closeTo(testLocation.longitude, 0.001));
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
+        expect(location.coordinates.latitude,
+            closeTo(testLocation.latitude, 0.001));
+        expect(location.coordinates.longitude,
+            closeTo(testLocation.longitude, 0.001));
 
         // Verify place name is also persisted
         final cache = LocationCache();
@@ -336,9 +342,9 @@ void main() {
 
         // Assert - Should fall back to Scotland centroid due to version incompatibility
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         expect(
-          location.latitude,
+          location.coordinates.latitude,
           closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
@@ -362,12 +368,14 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         final expectedLocation = expectedLocationForGpsSetup(
           TestData.edinburgh,
         );
-        expect(location.latitude, closeTo(expectedLocation.latitude, 0.001));
-        expect(location.longitude, closeTo(expectedLocation.longitude, 0.001));
+        expect(location.coordinates.latitude,
+            closeTo(expectedLocation.latitude, 0.001));
+        expect(location.coordinates.longitude,
+            closeTo(expectedLocation.longitude, 0.001));
       });
 
       test('permission denied flow falls back correctly', () async {
@@ -380,9 +388,9 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         expect(
-          location.latitude,
+          location.coordinates.latitude,
           closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
@@ -415,9 +423,9 @@ void main() {
 
         // Assert - Should not crash, fall back to default
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         expect(
-          location.latitude,
+          location.coordinates.latitude,
           closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
@@ -440,9 +448,9 @@ void main() {
 
         // Assert - Should handle corruption gracefully
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         expect(
-          location.latitude,
+          location.coordinates.latitude,
           closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
@@ -458,9 +466,9 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         expect(
-          location.latitude,
+          location.coordinates.latitude,
           closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
@@ -488,10 +496,11 @@ void main() {
         final expectedLocation = expectedLocationForGpsSetup(TestData.glasgow);
         for (final result in results) {
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.aviemore);
-          expect(location.latitude, closeTo(expectedLocation.latitude, 0.001));
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
+          expect(location.coordinates.latitude,
+              closeTo(expectedLocation.latitude, 0.001));
           expect(
-            location.longitude,
+            location.coordinates.longitude,
             closeTo(expectedLocation.longitude, 0.001),
           );
         }
@@ -516,9 +525,11 @@ void main() {
 
           // Assert
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.aviemore);
-          expect(location.latitude, closeTo(testLocation.latitude, 0.001));
-          expect(location.longitude, closeTo(testLocation.longitude, 0.001));
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
+          expect(location.coordinates.latitude,
+              closeTo(testLocation.latitude, 0.001));
+          expect(location.coordinates.longitude,
+              closeTo(testLocation.longitude, 0.001));
         },
       );
 
@@ -562,12 +573,14 @@ void main() {
         stopwatch.stop();
         expect(stopwatch.elapsedMilliseconds, lessThan(2000));
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         final expectedLocation = expectedLocationForGpsSetup(
           TestData.edinburgh,
         );
-        expect(location.latitude, closeTo(expectedLocation.latitude, 0.001));
-        expect(location.longitude, closeTo(expectedLocation.longitude, 0.001));
+        expect(location.coordinates.latitude,
+            closeTo(expectedLocation.latitude, 0.001));
+        expect(location.coordinates.longitude,
+            closeTo(expectedLocation.longitude, 0.001));
       });
 
       test('user denies GPS permission scenario', () async {
@@ -580,9 +593,9 @@ void main() {
 
         // Assert - Should fall back to Scotland centroid
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         expect(
-          location.latitude,
+          location.coordinates.latitude,
           closeTo(TestData.aviemore.latitude, 0.001),
         );
       });

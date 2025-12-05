@@ -53,7 +53,7 @@ class MockLocationResolver implements LocationResolver {
   }
 
   @override
-  Future<Either<LocationError, LatLng>> getLatLon({
+  Future<Either<LocationError, ResolvedLocation>> getLatLon({
     bool allowDefault = true,
   }) async {
     callCount++;
@@ -63,7 +63,11 @@ class MockLocationResolver implements LocationResolver {
     }
 
     // Return mock location or default to Edinburgh
-    return Right(_locationToReturn ?? const LatLng(55.9533, -3.1883));
+    final coords = _locationToReturn ?? const LatLng(55.9533, -3.1883);
+    return Right(ResolvedLocation(
+      coordinates: coords,
+      source: LocationSource.gps,
+    ));
   }
 
   @override

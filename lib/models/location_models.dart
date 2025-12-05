@@ -109,3 +109,23 @@ extension LocationSourceDisplayExtension on LocationSource {
         LocationSource.defaultFallback => 'Default location',
       };
 }
+
+/// Result of location resolution containing coordinates and source
+///
+/// Used to propagate location source information through the stack
+/// for accurate logging and UI display.
+class ResolvedLocation {
+  final LatLng coordinates;
+  final LocationSource source;
+  final String? placeName;
+
+  const ResolvedLocation({
+    required this.coordinates,
+    required this.source,
+    this.placeName,
+  });
+
+  @override
+  String toString() =>
+      'ResolvedLocation(${coordinates.latitude}, ${coordinates.longitude}, source: ${source.name})';
+}

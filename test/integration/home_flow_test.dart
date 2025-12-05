@@ -17,12 +17,15 @@ class MockLocationResolver implements LocationResolver {
   bool _returnError = false;
   LocationError? _errorToReturn;
   LatLng? _successLocation;
+  LocationSource _successSource = LocationSource.gps;
   int getLatLonCallCount = 0;
   List<LatLng> savedLocations = [];
 
-  void mockSuccessWithLocation(LatLng location) {
+  void mockSuccessWithLocation(LatLng location,
+      {LocationSource source = LocationSource.gps}) {
     _returnError = false;
     _successLocation = location;
+    _successSource = source;
   }
 
   void mockError(LocationError error) {
@@ -34,12 +37,13 @@ class MockLocationResolver implements LocationResolver {
     _returnError = false;
     _errorToReturn = null;
     _successLocation = null;
+    _successSource = LocationSource.gps;
     getLatLonCallCount = 0;
     savedLocations.clear();
   }
 
   @override
-  Future<Either<LocationError, LatLng>> getLatLon({
+  Future<Either<LocationError, ResolvedLocation>> getLatLon({
     bool allowDefault = true,
   }) async {
     getLatLonCallCount++;
@@ -49,11 +53,17 @@ class MockLocationResolver implements LocationResolver {
     }
 
     if (_successLocation != null) {
-      return Right(_successLocation!);
+      return Right(ResolvedLocation(
+        coordinates: _successLocation!,
+        source: _successSource,
+      ));
     }
 
     // Default to Edinburgh
-    return const Right(LatLng(55.9533, -3.1883));
+    return const Right(ResolvedLocation(
+      coordinates: LatLng(55.9533, -3.1883),
+      source: LocationSource.gps,
+    ));
   }
 
   @override

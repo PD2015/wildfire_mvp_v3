@@ -47,10 +47,13 @@ class MockMapController extends MapController {
 /// No-op LocationResolver for testing
 class _NoOpLocationResolver implements LocationResolver {
   @override
-  Future<Either<LocationError, LatLng>> getLatLon({
+  Future<Either<LocationError, ResolvedLocation>> getLatLon({
     bool allowDefault = true,
   }) async {
-    return const Right(LatLng(55.9533, -3.1883)); // Edinburgh
+    return const Right(ResolvedLocation(
+      coordinates: LatLng(55.9533, -3.1883), // Edinburgh
+      source: LocationSource.gps,
+    ));
   }
 
   @override

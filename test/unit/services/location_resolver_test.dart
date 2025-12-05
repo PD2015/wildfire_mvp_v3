@@ -75,7 +75,7 @@ void main() {
         );
 
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
 
         // With injectable GeolocatorService, GPS works on all platforms
         // The fake returns Edinburgh coordinates as last known position (native)
@@ -84,22 +84,22 @@ void main() {
         if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
           // Desktop: platform guard triggers, falls back to Aviemore (DEV_MODE)
           expect(
-            location.latitude,
+            location.coordinates.latitude,
             closeTo(TestData.aviemore.latitude, 0.001),
           );
           expect(
-            location.longitude,
+            location.coordinates.longitude,
             closeTo(TestData.aviemore.longitude, 0.001),
           );
         } else {
           // Web and mobile: GPS works via injectable fake
           // Web uses getCurrentPosition, mobile uses getLastKnownPosition
           expect(
-            location.latitude,
+            location.coordinates.latitude,
             closeTo(TestData.edinburgh.latitude, 0.001),
           );
           expect(
-            location.longitude,
+            location.coordinates.longitude,
             closeTo(TestData.edinburgh.longitude, 0.001),
           );
         }
@@ -128,28 +128,28 @@ void main() {
         );
 
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
 
         // With injectable GeolocatorService, GPS works on web/mobile
         // Note: On desktop, platform guard skips GPS, so fallback is used
         if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
           // Desktop: platform guard triggers, falls back to Aviemore (DEV_MODE)
           expect(
-            location.latitude,
+            location.coordinates.latitude,
             closeTo(TestData.aviemore.latitude, 0.001),
           );
           expect(
-            location.longitude,
+            location.coordinates.longitude,
             closeTo(TestData.aviemore.longitude, 0.001),
           );
         } else {
           // Web and mobile: GPS works via injectable fake
           expect(
-            location.latitude,
+            location.coordinates.latitude,
             closeTo(TestData.glasgow.latitude, 0.001),
           );
           expect(
-            location.longitude,
+            location.coordinates.longitude,
             closeTo(TestData.glasgow.longitude, 0.001),
           );
         }
@@ -186,25 +186,26 @@ void main() {
           );
 
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.aviemore);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
 
           // With injectable GeolocatorService, GPS works on web/mobile
           // Note: On desktop, platform guard skips GPS, so fallback is used
           if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
             // Desktop: platform guard triggers, falls back to Aviemore (DEV_MODE)
             expect(
-              location.latitude,
+              location.coordinates.latitude,
               closeTo(TestData.aviemore.latitude, 0.001),
             );
             expect(
-              location.longitude,
+              location.coordinates.longitude,
               closeTo(TestData.aviemore.longitude, 0.001),
             );
           } else {
             // Web and mobile: GPS works via injectable fake
-            expect(location.latitude, closeTo(TestData.london.latitude, 0.001));
+            expect(location.coordinates.latitude,
+                closeTo(TestData.london.latitude, 0.001));
             expect(
-              location.longitude,
+              location.coordinates.longitude,
               closeTo(TestData.london.longitude, 0.001),
             );
           }
@@ -223,13 +224,13 @@ void main() {
 
           // Assert
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.aviemore);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
           expect(
-            location.latitude,
+            location.coordinates.latitude,
             closeTo(TestData.aviemore.latitude, 0.001),
           );
           expect(
-            location.longitude,
+            location.coordinates.longitude,
             closeTo(TestData.aviemore.longitude, 0.001),
           );
         },
@@ -307,9 +308,9 @@ void main() {
         );
 
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         expect(
-          location.latitude,
+          location.coordinates.latitude,
           closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
@@ -334,9 +335,9 @@ void main() {
         // Assert - uses default fallback (Aviemore in DEV_MODE)
         expect(result.isRight(), isTrue);
         // ignore: deprecated_member_use_from_same_package
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         expect(
-          location.latitude,
+          location.coordinates.latitude,
           // ignore: deprecated_member_use_from_same_package
           closeTo(TestData.aviemore.latitude, 0.001),
         );
@@ -362,10 +363,11 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
-        expect(location.latitude, closeTo(TestData.edinburgh.latitude, 0.001));
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
+        expect(location.coordinates.latitude,
+            closeTo(TestData.edinburgh.latitude, 0.001));
         expect(
-          location.longitude,
+          location.coordinates.longitude,
           closeTo(TestData.edinburgh.longitude, 0.001),
         );
       });
@@ -388,9 +390,9 @@ void main() {
 
         // Assert - should fall back to Scotland centroid without crashing
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         expect(
-          location.latitude,
+          location.coordinates.latitude,
           closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
@@ -421,9 +423,9 @@ void main() {
 
         // Assert - should ignore expired cache and use fallback
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         expect(
-          location.latitude,
+          location.coordinates.latitude,
           closeTo(TestData.aviemore.latitude, 0.001),
           reason: 'Should ignore expired cache and fall back to Aviemore',
         );
@@ -450,9 +452,9 @@ void main() {
 
         // Assert - should use fresh cached location
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         expect(
-          location.latitude,
+          location.coordinates.latitude,
           closeTo(TestData.edinburgh.latitude, 0.001),
           reason: 'Should use fresh cached location (within 1 hour TTL)',
         );
@@ -476,9 +478,9 @@ void main() {
 
         // Assert - should ignore cache without timestamp and use fallback
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         expect(
-          location.latitude,
+          location.coordinates.latitude,
           closeTo(TestData.aviemore.latitude, 0.001),
           reason: 'Should treat missing timestamp as expired',
         );
@@ -571,9 +573,9 @@ void main() {
 
         // Assert - should not crash and return default
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         expect(
-          location.latitude,
+          location.coordinates.latitude,
           closeTo(TestData.aviemore.latitude, 0.001),
         );
       });
@@ -597,7 +599,7 @@ void main() {
         // Assert - all should succeed
         for (final result in results) {
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.aviemore);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
 
           // With injectable GeolocatorService, GPS works on all platforms except desktop
           // Desktop (macOS, Windows, Linux) skips GPS and uses DEV_MODE default (Aviemore)
@@ -605,21 +607,21 @@ void main() {
           if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
             // Desktop only - GPS skipped, uses Aviemore fallback
             expect(
-              location.latitude,
+              location.coordinates.latitude,
               closeTo(TestData.aviemore.latitude, 0.001),
             );
             expect(
-              location.longitude,
+              location.coordinates.longitude,
               closeTo(TestData.aviemore.longitude, 0.001),
             );
           } else {
             // Web and mobile - GPS works via FakeGeolocator → Glasgow
             expect(
-              location.latitude,
+              location.coordinates.latitude,
               closeTo(TestData.glasgow.latitude, 0.001),
             );
             expect(
-              location.longitude,
+              location.coordinates.longitude,
               closeTo(TestData.glasgow.longitude, 0.001),
             );
           }

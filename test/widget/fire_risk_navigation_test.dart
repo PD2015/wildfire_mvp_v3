@@ -29,7 +29,10 @@ void main() {
 
       // Set up default mock behaviors
       when(mockLocationResolver.getLatLon()).thenAnswer(
-        (_) async => const Right(LatLng(55.9533, -3.1883)), // Edinburgh
+        (_) async => const Right(ResolvedLocation(
+          coordinates: LatLng(55.9533, -3.1883), // Edinburgh
+          source: LocationSource.gps,
+        )),
       );
 
       when(

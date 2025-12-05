@@ -75,9 +75,14 @@ void main() {
       );
 
       // Verify we get valid coordinates
-      final coords = result.getOrElse(() => const LatLng(0, 0));
-      expect(coords.latitude, isNonZero);
-      expect(coords.longitude, isNonZero);
+      final resolved = result.getOrElse(
+        () => const ResolvedLocation(
+          coordinates: LatLng(0, 0),
+          source: LocationSource.defaultFallback,
+        ),
+      );
+      expect(resolved.coordinates.latitude, isNonZero);
+      expect(resolved.coordinates.longitude, isNonZero);
     });
 
     group('GPS Skip Behavior (Integration Test Scenarios)', () {
