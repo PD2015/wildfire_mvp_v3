@@ -16,12 +16,12 @@ import 'package:wildfire_mvp_v3/models/what3words_models.dart';
 
 /// Mock LocationResolver for controlled testing
 class MockLocationResolver implements LocationResolver {
-  Either<LocationError, LatLng>? _getLatLonResult;
+  Either<LocationError, ResolvedLocation>? _getLatLonResult;
   bool _saveManualThrows = false;
   bool _clearManualThrows = false;
   List<String> loggedCalls = [];
 
-  void mockGetLatLon(Either<LocationError, LatLng> result) {
+  void mockGetLatLon(Either<LocationError, ResolvedLocation> result) {
     _getLatLonResult = result;
   }
 
@@ -41,7 +41,7 @@ class MockLocationResolver implements LocationResolver {
   }
 
   @override
-  Future<Either<LocationError, LatLng>> getLatLon({
+  Future<Either<LocationError, ResolvedLocation>> getLatLon({
     bool allowDefault = true,
   }) async {
     loggedCalls.add('getLatLon(allowDefault: $allowDefault)');
@@ -49,7 +49,10 @@ class MockLocationResolver implements LocationResolver {
       return _getLatLonResult!;
     }
     // Default success case
-    return const Right(LatLng(55.9533, -3.1883)); // Edinburgh
+    return const Right(ResolvedLocation(
+      coordinates: LatLng(55.9533, -3.1883), // Edinburgh
+      source: LocationSource.gps,
+    ));
   }
 
   @override
@@ -135,6 +138,17 @@ class MockFireRiskService implements FireRiskService {
 class TestData {
   static const edinburgh = LatLng(55.9533, -3.1883);
   static const glasgow = LatLng(55.8642, -4.2518);
+
+  // ResolvedLocation versions for mock setup
+  static const edinburghResolved = ResolvedLocation(
+    coordinates: edinburgh,
+    source: LocationSource.gps,
+  );
+
+  static const glasgowResolved = ResolvedLocation(
+    coordinates: glasgow,
+    source: LocationSource.gps,
+  );
 
   static FireRisk createFireRisk({
     RiskLevel level = RiskLevel.moderate,
@@ -322,7 +336,8 @@ void main() {
         final states = <HomeState>[];
         controller.addListener(() => states.add(controller.state));
 
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act
@@ -367,7 +382,8 @@ void main() {
         final states = <HomeState>[];
         controller.addListener(() => states.add(controller.state));
 
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(
           Left(TestData.createApiError(message: 'Service unavailable')),
         );
@@ -394,7 +410,8 @@ void main() {
           final states = <HomeState>[];
           controller.addListener(() => states.add(controller.state));
 
-          mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+          mockLocationResolver
+              .mockGetLatLon(const Right(TestData.edinburghResolved));
           mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
           // Act
@@ -415,7 +432,8 @@ void main() {
         final states = <HomeState>[];
         controller.addListener(() => states.add(controller.state));
 
-        mockLocationResolver.mockGetLatLon(const Right(TestData.glasgow));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.glasgowResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act
@@ -459,11 +477,13 @@ void main() {
     group('Re-entrancy Protection', () {
       test('load() ignores subsequent calls while loading', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Set up normal successful responses
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
 
         // Act
         final future1 = controller.load();
@@ -486,7 +506,8 @@ void main() {
 
       test('setManualLocation ignores calls while loading', () async {
         // Arrange - create a slow-loading scenario
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Start a load operation
@@ -510,7 +531,8 @@ void main() {
       test('useGpsLocation clears manual location and reloads with GPS',
           () async {
         // Arrange - first set a manual location
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         await controller.setManualLocation(
@@ -525,7 +547,8 @@ void main() {
 
         // Reset mock calls tracking
         mockLocationResolver.reset();
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act - return to GPS
@@ -556,7 +579,8 @@ void main() {
 
       test('useGpsLocation handles clear failure gracefully', () async {
         // Arrange - first set a manual location
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         await controller.setManualLocation(TestData.glasgow);
@@ -564,7 +588,8 @@ void main() {
         // Reset and configure clear to fail
         mockLocationResolver.reset();
         mockLocationResolver.mockClearManualThrows();
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act - return to GPS (clear will fail but should still reload)
@@ -578,7 +603,8 @@ void main() {
 
       test('useGpsLocation ignores calls while loading', () async {
         // Arrange - create a loading scenario
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Start a load operation
@@ -617,7 +643,8 @@ void main() {
         int notificationCount = 0;
         controller.addListener(() => notificationCount++);
 
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act
@@ -652,7 +679,8 @@ void main() {
         // The actual log redaction testing is done in the LocationUtils tests
         // We verify the controller doesn't expose raw coordinates in state
 
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         await controller.load();
@@ -683,7 +711,8 @@ void main() {
 
       test('C4: Success state includes source attribution', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(
           Right(TestData.createFireRisk(source: DataSource.sepa)),
         );
@@ -702,7 +731,8 @@ void main() {
     group('State Capture and Timestamp Tracking', () {
       test('retry captures lastKnownLocation from success state', () async {
         // Arrange: First load succeeds
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         await controller.load();
@@ -712,7 +742,8 @@ void main() {
         final originalTimestamp = successState.lastUpdated;
 
         // Setup second load with delay
-        mockLocationResolver.mockGetLatLon(const Right(TestData.glasgow));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.glasgowResolved));
         mockFireRiskService.mockGetCurrentWithDelay(
           Right(TestData.createFireRisk()),
           const Duration(milliseconds: 100),
@@ -744,7 +775,8 @@ void main() {
 
         // Arrange: Simulate error with cached location
         // In real scenario, FireRiskService returns error with cached data
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(
           Left(ApiError(message: 'Network error')),
         );
@@ -774,7 +806,8 @@ void main() {
 
       test('load with no previous state has null lastKnownLocation', () async {
         // Arrange: Fresh controller, no previous state
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrentWithDelay(
           Right(TestData.createFireRisk()),
           const Duration(milliseconds: 100),
@@ -796,7 +829,8 @@ void main() {
 
       test('timestamp is captured exactly from lastUpdated', () async {
         // Arrange: First load succeeds
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         await controller.load();
@@ -834,7 +868,8 @@ void main() {
       test('setManualLocation tracks locationSource as manual with placeName',
           () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act
@@ -854,7 +889,8 @@ void main() {
       test('setManualLocation without placeName still tracks manual source',
           () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act
@@ -869,7 +905,8 @@ void main() {
 
       test('GPS location uses locationSource.gps', () async {
         // Arrange: Normal load (not manual)
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act
@@ -884,7 +921,8 @@ void main() {
 
       test('manual location flag resets after normal load', () async {
         // Arrange: Set manual location first
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         await controller.setManualLocation(
@@ -933,7 +971,8 @@ void main() {
           'without services, success state has no what3words or formattedLocation',
           () async {
         // Arrange: Controller without what3words/geocoding services
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act
@@ -952,7 +991,8 @@ void main() {
           'with services, fetches what3words and geocoding after fire risk success',
           () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
         mockWhat3wordsService.mockConvertTo3wa(
           Right(What3wordsAddress.parse('daring.lion.race')),
@@ -989,7 +1029,8 @@ void main() {
 
       test('what3words failure does not affect success state', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
         mockWhat3wordsService.mockConvertTo3wa(
           const Left(What3wordsNetworkError('Network unavailable')),
@@ -1013,7 +1054,8 @@ void main() {
 
       test('geocoding failure does not affect success state', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
         mockWhat3wordsService.mockConvertTo3wa(
           Right(What3wordsAddress.parse('daring.lion.race')),
@@ -1037,7 +1079,8 @@ void main() {
 
       test('both services fail gracefully', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
         mockWhat3wordsService.mockConvertTo3wa(
           const Left(What3wordsNetworkError('Network unavailable')),
@@ -1062,7 +1105,8 @@ void main() {
 
       test('loading states are set while services are fetching', () async {
         // Arrange: Services with delays
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
         mockWhat3wordsService.mockConvertTo3waWithDelay(
           Right(What3wordsAddress.parse('daring.lion.race')),
@@ -1097,7 +1141,8 @@ void main() {
 
       test('fire risk failure does not trigger metadata fetch', () async {
         // Arrange: Fire risk fails
-        mockLocationResolver.mockGetLatLon(const Right(TestData.edinburgh));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.edinburghResolved));
         mockFireRiskService.mockGetCurrent(
           Left(ApiError(message: 'Service error')),
         );
@@ -1114,7 +1159,8 @@ void main() {
 
       test('manual location also triggers metadata fetch', () async {
         // Arrange
-        mockLocationResolver.mockGetLatLon(const Right(TestData.glasgow));
+        mockLocationResolver
+            .mockGetLatLon(const Right(TestData.glasgowResolved));
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
         mockWhat3wordsService.mockConvertTo3wa(
           Right(What3wordsAddress.parse('filled.count.soap')),

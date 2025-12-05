@@ -11,21 +11,30 @@ import 'package:wildfire_mvp_v3/features/report/controllers/report_fire_controll
 /// Returns a default location without actually accessing GPS or preferences.
 class MockLocationResolver implements LocationResolver {
   final LatLng defaultLocation;
+  final LocationSource defaultSource;
   LatLng? _savedManualLocation;
   String? _savedPlaceName;
 
   MockLocationResolver({
     this.defaultLocation = const LatLng(57.2, -3.8), // Aviemore
+    this.defaultSource = LocationSource.gps,
   });
 
   @override
-  Future<Either<LocationError, LatLng>> getLatLon({
+  Future<Either<LocationError, ResolvedLocation>> getLatLon({
     bool allowDefault = true,
   }) async {
     if (_savedManualLocation != null) {
-      return Right(_savedManualLocation!);
+      return Right(ResolvedLocation(
+        coordinates: _savedManualLocation!,
+        source: LocationSource.cached,
+        placeName: _savedPlaceName,
+      ));
     }
-    return Right(defaultLocation);
+    return Right(ResolvedLocation(
+      coordinates: defaultLocation,
+      source: defaultSource,
+    ));
   }
 
   @override

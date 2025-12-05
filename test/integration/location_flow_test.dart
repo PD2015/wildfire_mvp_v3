@@ -90,13 +90,14 @@ void main() {
           );
 
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.aviemore);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
           final expectedLocation = expectedLocationForGpsSetup(
             TestData.edinburgh,
           );
-          expect(location.latitude, closeTo(expectedLocation.latitude, 0.001));
+          expect(location.coordinates.latitude,
+              closeTo(expectedLocation.latitude, 0.001));
           expect(
-            location.longitude,
+            location.coordinates.longitude,
             closeTo(expectedLocation.longitude, 0.001),
           );
         },
@@ -129,10 +130,12 @@ void main() {
         );
 
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         final expectedLocation = expectedLocationForGpsSetup(TestData.glasgow);
-        expect(location.latitude, closeTo(expectedLocation.latitude, 0.001));
-        expect(location.longitude, closeTo(expectedLocation.longitude, 0.001));
+        expect(location.coordinates.latitude,
+            closeTo(expectedLocation.latitude, 0.001));
+        expect(location.coordinates.longitude,
+            closeTo(expectedLocation.longitude, 0.001));
       });
 
       test('Tier 3: Cached manual location when GPS fails', () async {
@@ -153,10 +156,11 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
-        expect(location.latitude, closeTo(TestData.edinburgh.latitude, 0.001));
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
+        expect(location.coordinates.latitude,
+            closeTo(TestData.edinburgh.latitude, 0.001));
         expect(
-          location.longitude,
+          location.coordinates.longitude,
           closeTo(TestData.edinburgh.longitude, 0.001),
         );
       });
@@ -195,16 +199,18 @@ void main() {
 
           // Assert
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.aviemore);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
           expect(
-            location.latitude,
+            location.coordinates.latitude,
             closeTo(TestData.aviemore.latitude, 0.001),
           );
           expect(
-            location.longitude,
+            location.coordinates.longitude,
             closeTo(TestData.aviemore.longitude, 0.001),
           );
         },
+        // Web intentionally requires manual entry rather than silent default fallback
+        skip: kIsWeb,
       );
     });
 
@@ -247,12 +253,14 @@ void main() {
           );
 
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.aviemore);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
           expect(
-            location.latitude,
+            location.coordinates.latitude,
             closeTo(TestData.aviemore.latitude, 0.001),
           );
         },
+        // Web intentionally requires manual entry rather than silent default fallback
+        skip: kIsWeb,
       );
 
       test('cached location lookup is fast (<200ms)', () async {
@@ -309,9 +317,11 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
-        expect(location.latitude, closeTo(testLocation.latitude, 0.001));
-        expect(location.longitude, closeTo(testLocation.longitude, 0.001));
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
+        expect(location.coordinates.latitude,
+            closeTo(testLocation.latitude, 0.001));
+        expect(location.coordinates.longitude,
+            closeTo(testLocation.longitude, 0.001));
 
         // Verify place name is also persisted
         final cache = LocationCache();
@@ -319,29 +329,34 @@ void main() {
         expect(savedPlace, equals(placeName));
       });
 
-      test('version compatibility check works correctly', () async {
-        // Arrange - Set up cache with different version
-        SharedPreferences.setMockInitialValues({
-          'manual_location_version': '2.0', // Future version
-          'manual_location_lat': TestData.edinburgh.latitude,
-          'manual_location_lon': TestData.edinburgh.longitude,
-          'manual_location_timestamp': DateTime.now().millisecondsSinceEpoch,
-        });
+      test(
+        'version compatibility check works correctly',
+        () async {
+          // Arrange - Set up cache with different version
+          SharedPreferences.setMockInitialValues({
+            'manual_location_version': '2.0', // Future version
+            'manual_location_lat': TestData.edinburgh.latitude,
+            'manual_location_lon': TestData.edinburgh.longitude,
+            'manual_location_timestamp': DateTime.now().millisecondsSinceEpoch,
+          });
 
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setPermission(LocationPermission.denied);
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setPermission(LocationPermission.denied);
 
-        // Act
-        final result = await locationResolver.getLatLon(allowDefault: true);
+          // Act
+          final result = await locationResolver.getLatLon(allowDefault: true);
 
-        // Assert - Should fall back to Scotland centroid due to version incompatibility
-        expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
-        expect(
-          location.latitude,
-          closeTo(TestData.aviemore.latitude, 0.001),
-        );
-      });
+          // Assert - Should fall back to Scotland centroid due to version incompatibility
+          expect(result.isRight(), isTrue);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
+          expect(
+            location.coordinates.latitude,
+            closeTo(TestData.aviemore.latitude, 0.001),
+          );
+        },
+        // Web intentionally requires manual entry rather than silent default fallback
+        skip: kIsWeb,
+      );
     });
 
     group('Permission Flow Testing', () {
@@ -362,30 +377,37 @@ void main() {
 
         // Assert
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         final expectedLocation = expectedLocationForGpsSetup(
           TestData.edinburgh,
         );
-        expect(location.latitude, closeTo(expectedLocation.latitude, 0.001));
-        expect(location.longitude, closeTo(expectedLocation.longitude, 0.001));
+        expect(location.coordinates.latitude,
+            closeTo(expectedLocation.latitude, 0.001));
+        expect(location.coordinates.longitude,
+            closeTo(expectedLocation.longitude, 0.001));
       });
 
-      test('permission denied flow falls back correctly', () async {
-        // Arrange
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setPermission(LocationPermission.denied);
+      test(
+        'permission denied flow falls back correctly',
+        () async {
+          // Arrange
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setPermission(LocationPermission.denied);
 
-        // Act
-        final result = await locationResolver.getLatLon(allowDefault: true);
+          // Act
+          final result = await locationResolver.getLatLon(allowDefault: true);
 
-        // Assert
-        expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
-        expect(
-          location.latitude,
-          closeTo(TestData.aviemore.latitude, 0.001),
-        );
-      });
+          // Assert
+          expect(result.isRight(), isTrue);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
+          expect(
+            location.coordinates.latitude,
+            closeTo(TestData.aviemore.latitude, 0.001),
+          );
+        },
+        // Web intentionally requires manual entry rather than silent default fallback
+        skip: kIsWeb,
+      );
 
       test('permission deniedForever flow handles gracefully', () async {
         // Arrange
@@ -403,67 +425,82 @@ void main() {
     });
 
     group('Error Resilience Testing', () {
-      test('handles GPS hardware failure gracefully', () async {
-        // Arrange
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setPermission(LocationPermission.whileInUse);
-        fakeGeolocator.setLocationServiceEnabled(true);
-        fakeGeolocator.setException(Exception('GPS hardware failure'));
+      test(
+        'handles GPS hardware failure gracefully',
+        () async {
+          // Arrange
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setPermission(LocationPermission.whileInUse);
+          fakeGeolocator.setLocationServiceEnabled(true);
+          fakeGeolocator.setException(Exception('GPS hardware failure'));
 
-        // Act
-        final result = await locationResolver.getLatLon(allowDefault: true);
+          // Act
+          final result = await locationResolver.getLatLon(allowDefault: true);
 
-        // Assert - Should not crash, fall back to default
-        expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
-        expect(
-          location.latitude,
-          closeTo(TestData.aviemore.latitude, 0.001),
-        );
-      });
+          // Assert - Should not crash, fall back to default
+          expect(result.isRight(), isTrue);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
+          expect(
+            location.coordinates.latitude,
+            closeTo(TestData.aviemore.latitude, 0.001),
+          );
+        },
+        // Web intentionally requires manual entry rather than silent default fallback
+        skip: kIsWeb,
+      );
 
-      test('handles SharedPreferences corruption without crash', () async {
-        // Arrange
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setPermission(LocationPermission.denied);
+      test(
+        'handles SharedPreferences corruption without crash',
+        () async {
+          // Arrange
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setPermission(LocationPermission.denied);
 
-        // Set up corrupted cache data
-        SharedPreferences.setMockInitialValues({
-          'manual_location_version': '1.0',
-          'manual_location_lat': double.nan, // Corrupted data
-          'manual_location_lon': TestData.edinburgh.longitude,
-          'manual_location_timestamp': DateTime.now().millisecondsSinceEpoch,
-        });
+          // Set up corrupted cache data
+          SharedPreferences.setMockInitialValues({
+            'manual_location_version': '1.0',
+            'manual_location_lat': double.nan, // Corrupted data
+            'manual_location_lon': TestData.edinburgh.longitude,
+            'manual_location_timestamp': DateTime.now().millisecondsSinceEpoch,
+          });
 
-        // Act
-        final result = await locationResolver.getLatLon(allowDefault: true);
+          // Act
+          final result = await locationResolver.getLatLon(allowDefault: true);
 
-        // Assert - Should handle corruption gracefully
-        expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
-        expect(
-          location.latitude,
-          closeTo(TestData.aviemore.latitude, 0.001),
-        );
-      });
+          // Assert - Should handle corruption gracefully
+          expect(result.isRight(), isTrue);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
+          expect(
+            location.coordinates.latitude,
+            closeTo(TestData.aviemore.latitude, 0.001),
+          );
+        },
+        // Web intentionally requires manual entry rather than silent default fallback
+        skip: kIsWeb,
+      );
 
-      test('handles location service disabled scenario', () async {
-        // Arrange
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setPermission(LocationPermission.whileInUse);
-        fakeGeolocator.setLocationServiceEnabled(false); // Services disabled
+      test(
+        'handles location service disabled scenario',
+        () async {
+          // Arrange
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setPermission(LocationPermission.whileInUse);
+          fakeGeolocator.setLocationServiceEnabled(false); // Services disabled
 
-        // Act
-        final result = await locationResolver.getLatLon(allowDefault: true);
+          // Act
+          final result = await locationResolver.getLatLon(allowDefault: true);
 
-        // Assert
-        expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
-        expect(
-          location.latitude,
-          closeTo(TestData.aviemore.latitude, 0.001),
-        );
-      });
+          // Assert
+          expect(result.isRight(), isTrue);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
+          expect(
+            location.coordinates.latitude,
+            closeTo(TestData.aviemore.latitude, 0.001),
+          );
+        },
+        // Web intentionally requires manual entry rather than silent default fallback
+        skip: kIsWeb,
+      );
     });
 
     group('Concurrent Request Handling', () {
@@ -488,10 +525,11 @@ void main() {
         final expectedLocation = expectedLocationForGpsSetup(TestData.glasgow);
         for (final result in results) {
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.aviemore);
-          expect(location.latitude, closeTo(expectedLocation.latitude, 0.001));
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
+          expect(location.coordinates.latitude,
+              closeTo(expectedLocation.latitude, 0.001));
           expect(
-            location.longitude,
+            location.coordinates.longitude,
             closeTo(expectedLocation.longitude, 0.001),
           );
         }
@@ -516,9 +554,11 @@ void main() {
 
           // Assert
           expect(result.isRight(), isTrue);
-          final location = result.getOrElse(() => TestData.aviemore);
-          expect(location.latitude, closeTo(testLocation.latitude, 0.001));
-          expect(location.longitude, closeTo(testLocation.longitude, 0.001));
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
+          expect(location.coordinates.latitude,
+              closeTo(testLocation.latitude, 0.001));
+          expect(location.coordinates.longitude,
+              closeTo(testLocation.longitude, 0.001));
         },
       );
 
@@ -562,54 +602,66 @@ void main() {
         stopwatch.stop();
         expect(stopwatch.elapsedMilliseconds, lessThan(2000));
         expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
+        final location = result.getOrElse(() => TestData.aviemoreResolved);
         final expectedLocation = expectedLocationForGpsSetup(
           TestData.edinburgh,
         );
-        expect(location.latitude, closeTo(expectedLocation.latitude, 0.001));
-        expect(location.longitude, closeTo(expectedLocation.longitude, 0.001));
+        expect(location.coordinates.latitude,
+            closeTo(expectedLocation.latitude, 0.001));
+        expect(location.coordinates.longitude,
+            closeTo(expectedLocation.longitude, 0.001));
       });
 
-      test('user denies GPS permission scenario', () async {
-        // Arrange
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setPermission(LocationPermission.denied);
+      test(
+        'user denies GPS permission scenario',
+        () async {
+          // Arrange
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setPermission(LocationPermission.denied);
 
-        // Act
-        final result = await locationResolver.getLatLon(allowDefault: true);
+          // Act
+          final result = await locationResolver.getLatLon(allowDefault: true);
 
-        // Assert - Should fall back to Scotland centroid
-        expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemore);
-        expect(
-          location.latitude,
-          closeTo(TestData.aviemore.latitude, 0.001),
-        );
-      });
+          // Assert - Should fall back to Scotland centroid
+          expect(result.isRight(), isTrue);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
+          expect(
+            location.coordinates.latitude,
+            closeTo(TestData.aviemore.latitude, 0.001),
+          );
+        },
+        // Web intentionally requires manual entry rather than silent default fallback
+        skip: kIsWeb,
+      );
 
-      test('poor GPS signal timeout scenario', () async {
-        // Arrange - GPS permission granted but signal times out
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setPermission(LocationPermission.whileInUse);
-        fakeGeolocator.setLocationServiceEnabled(true);
-        fakeGeolocator.setException(
-          TimeoutException('GPS timeout', const Duration(seconds: 2)),
-        );
+      test(
+        'poor GPS signal timeout scenario',
+        () async {
+          // Arrange - GPS permission granted but signal times out
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setPermission(LocationPermission.whileInUse);
+          fakeGeolocator.setLocationServiceEnabled(true);
+          fakeGeolocator.setException(
+            TimeoutException('GPS timeout', const Duration(seconds: 2)),
+          );
 
-        final stopwatch = Stopwatch()..start();
+          final stopwatch = Stopwatch()..start();
 
-        // Act
-        final result = await locationResolver.getLatLon(allowDefault: true);
+          // Act
+          final result = await locationResolver.getLatLon(allowDefault: true);
 
-        // Assert
-        stopwatch.stop();
-        expect(
-          stopwatch.elapsedMilliseconds,
-          lessThan(2500),
-          reason: 'Should complete within budget even with GPS timeout',
-        );
-        expect(result.isRight(), isTrue);
-      });
+          // Assert
+          stopwatch.stop();
+          expect(
+            stopwatch.elapsedMilliseconds,
+            lessThan(2500),
+            reason: 'Should complete within budget even with GPS timeout',
+          );
+          expect(result.isRight(), isTrue);
+        },
+        // Web intentionally requires manual entry rather than silent default fallback
+        skip: kIsWeb,
+      );
     });
   });
 }

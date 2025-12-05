@@ -23,11 +23,17 @@ class MapController extends ChangeNotifier {
   /// This is set once during initialization and never changes with viewport
   LatLng? _userGpsLocation;
 
+  /// Whether a manual location is being used (from location picker)
+  bool _isManualLocation = false;
+
   MapState get state => _state;
 
   /// Get user's actual GPS location (for distance calculations)
   /// Returns null if GPS was unavailable during initialization
   LatLng? get userGpsLocation => _userGpsLocation;
+
+  /// Whether the current center is from a manual location selection
+  bool get isManualLocation => _isManualLocation;
 
   MapController({
     required LocationResolver locationResolver,
@@ -64,26 +70,59 @@ class MapController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Step 1: Resolve location
-      final locationResult = await _locationResolver.getLatLon();
+      // Step 1: Check for cached manual location first (from location picker)
+      // This takes priority over GPS for map centering
+      final cachedManual = await _locationResolver.loadCachedManualLocation();
 
-      final LatLng centerLocation = locationResult.fold((error) {
-        // GPS unavailable - use test region but don't set as user GPS location
-        _userGpsLocation = null;
-        final testCenter = _getTestRegionCenter();
+      LatLng centerLocation;
+
+      if (cachedManual != null) {
+        // Manual location exists - use it for map center
+        final (location, placeName) = cachedManual;
+        centerLocation = location;
+        _isManualLocation = true;
         debugPrint(
-          '🗺️ Using test region: ${FeatureFlags.testRegion} at ${testCenter.latitude},${testCenter.longitude}',
+          '🗺️ Using manual location: ${location.latitude.toStringAsFixed(2)}, ${location.longitude.toStringAsFixed(2)}${placeName != null ? ' ($placeName)' : ''}',
         );
-        debugPrint(
-            '🗺️ GPS unavailable - distance calculations will be disabled');
-        return testCenter;
-      }, (location) {
-        // GPS available - store as user's actual location
-        _userGpsLocation = location;
-        debugPrint(
-            '🗺️ GPS location acquired: ${location.latitude},${location.longitude}');
-        return location;
-      });
+
+        // Still try to get GPS for distance calculations (but don't use for centering)
+        final gpsResult = await _locationResolver.getLatLon();
+        gpsResult.fold(
+          (error) {
+            _userGpsLocation = null;
+            debugPrint(
+                '🗺️ GPS unavailable - distance calculations will be disabled');
+          },
+          (resolved) {
+            _userGpsLocation = resolved.coordinates;
+            debugPrint(
+              '🗺️ GPS also available at: ${resolved.coordinates.latitude.toStringAsFixed(2)}, ${resolved.coordinates.longitude.toStringAsFixed(2)} (source: ${resolved.source.name})',
+            );
+          },
+        );
+      } else {
+        // No manual location - use GPS or test region fallback
+        _isManualLocation = false;
+        final locationResult = await _locationResolver.getLatLon();
+
+        centerLocation = locationResult.fold((error) {
+          // GPS unavailable - use test region but don't set as user GPS location
+          _userGpsLocation = null;
+          final testCenter = _getTestRegionCenter();
+          debugPrint(
+            '🗺️ Using test region: ${FeatureFlags.testRegion} at ${testCenter.latitude},${testCenter.longitude}',
+          );
+          debugPrint(
+              '🗺️ GPS unavailable - distance calculations will be disabled');
+          return testCenter;
+        }, (resolved) {
+          // GPS available - store as user's actual location
+          _userGpsLocation = resolved.coordinates;
+          debugPrint(
+              '🗺️ Location acquired: ${resolved.coordinates.latitude},${resolved.coordinates.longitude} (source: ${resolved.source.name})');
+          return resolved.coordinates;
+        });
+      }
 
       // Step 2: Create default bbox around location (~220km radius to cover all of Scotland)
       final mapBounds = bounds.LatLngBounds(

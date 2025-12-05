@@ -266,6 +266,35 @@ class TestData {
   /// Matches LocationResolverImpl._aviemoreLocation
   static const LatLng aviemore = LatLng(57.2, -3.8);
 
+  /// ResolvedLocation versions for use in getOrElse fallbacks and mock setup
+  static const ResolvedLocation aviemoreResolved = ResolvedLocation(
+    coordinates: aviemore,
+    source: LocationSource.defaultFallback,
+  );
+
+  static const ResolvedLocation edinburghResolved = ResolvedLocation(
+    coordinates: edinburgh,
+    source: LocationSource.gps,
+  );
+
+  static const ResolvedLocation glasgowResolved = ResolvedLocation(
+    coordinates: glasgow,
+    source: LocationSource.gps,
+  );
+
+  /// Helper to create ResolvedLocation from any LatLng
+  static ResolvedLocation resolved(
+    LatLng coords, {
+    LocationSource source = LocationSource.gps,
+    String? placeName,
+  }) {
+    return ResolvedLocation(
+      coordinates: coords,
+      source: source,
+      placeName: placeName,
+    );
+  }
+
   /// Real Scotland geographic centroid - used as fallback in production
   /// Matches LocationResolverImpl._scotlandCentroid
   static const LatLng realScotlandCentroid = LatLng(55.8642, -4.2518);

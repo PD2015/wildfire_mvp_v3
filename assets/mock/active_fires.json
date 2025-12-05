@@ -5,10 +5,46 @@
       "type": "Feature",
       "id": "mock_fire_001",
       "geometry": {
-        "type": "Point",
+        "type": "Polygon",
         "coordinates": [
-          -3.1883,
-          55.9533
+          [
+            [
+              -3.1920,
+              55.9510
+            ],
+            [
+              -3.1900,
+              55.9520
+            ],
+            [
+              -3.1870,
+              55.9530
+            ],
+            [
+              -3.1850,
+              55.9545
+            ],
+            [
+              -3.1860,
+              55.9555
+            ],
+            [
+              -3.1885,
+              55.9560
+            ],
+            [
+              -3.1910,
+              55.9550
+            ],
+            [
+              -3.1925,
+              55.9535
+            ],
+            [
+              -3.1920,
+              55.9510
+            ]
+          ]
         ]
       },
       "properties": {
@@ -30,10 +66,54 @@
       "type": "Feature",
       "id": "mock_fire_002",
       "geometry": {
-        "type": "Point",
+        "type": "Polygon",
         "coordinates": [
-          -4.2518,
-          55.8642
+          [
+            [
+              -4.2580,
+              55.8600
+            ],
+            [
+              -4.2550,
+              55.8615
+            ],
+            [
+              -4.2500,
+              55.8630
+            ],
+            [
+              -4.2460,
+              55.8640
+            ],
+            [
+              -4.2450,
+              55.8660
+            ],
+            [
+              -4.2470,
+              55.8680
+            ],
+            [
+              -4.2520,
+              55.8685
+            ],
+            [
+              -4.2570,
+              55.8670
+            ],
+            [
+              -4.2590,
+              55.8645
+            ],
+            [
+              -4.2585,
+              55.8620
+            ],
+            [
+              -4.2580,
+              55.8600
+            ]
+          ]
         ]
       },
       "properties": {
@@ -55,10 +135,42 @@
       "type": "Feature",
       "id": "mock_fire_003",
       "geometry": {
-        "type": "Point",
+        "type": "Polygon",
         "coordinates": [
-          -3.8,
-          57.2
+          [
+            [
+              -3.8050,
+              57.1970
+            ],
+            [
+              -3.8020,
+              57.1985
+            ],
+            [
+              -3.7970,
+              57.2000
+            ],
+            [
+              -3.7960,
+              57.2020
+            ],
+            [
+              -3.7980,
+              57.2035
+            ],
+            [
+              -3.8030,
+              57.2030
+            ],
+            [
+              -3.8060,
+              57.2010
+            ],
+            [
+              -3.8050,
+              57.1970
+            ]
+          ]
         ]
       },
       "properties": {
@@ -74,6 +186,75 @@
         "sensor_source": "VIIRS",
         "confidence": 68.4,
         "frp": 95.2
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "mock_fire_004",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -4.0285,
+          56.1165
+        ]
+      },
+      "properties": {
+        "id": "mock_fire_004",
+        "source": "mock",
+        "freshness": "mock",
+        "timestamp": "2025-10-19T16:45:00Z",
+        "detected_at": "2025-10-19T16:30:00Z",
+        "last_update": "2025-10-19T16:45:00Z",
+        "intensity": "low",
+        "description": "Stirling - Touch Hills (marker only)",
+        "areaHectares": 2.1,
+        "sensor_source": "VIIRS",
+        "confidence": 55.0,
+        "frp": 45.8
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "dava_wildfire_2025",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-3.78, 57.46],
+            [-3.72, 57.465],
+            [-3.66, 57.46],
+            [-3.62, 57.45],
+            [-3.60, 57.435],
+            [-3.59, 57.42],
+            [-3.60, 57.40],
+            [-3.63, 57.385],
+            [-3.68, 57.38],
+            [-3.74, 57.385],
+            [-3.78, 57.40],
+            [-3.80, 57.42],
+            [-3.80, 57.44],
+            [-3.78, 57.46]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "dava_wildfire_2025",
+        "source": "scottish_wildfire_forum",
+        "freshness": "historical",
+        "timestamp": "2025-07-01T18:00:00Z",
+        "detected_at": "2025-06-28T17:00:00Z",
+        "last_update": "2025-07-10T12:00:00Z",
+        "intensity": "high",
+        "description": "Dava Moor Wildfire 2025 - Scotland's Largest Recorded Wildfire",
+        "areaHectares": 9664.0,
+        "sensor_source": "EFFIS/MODIS",
+        "confidence": 99.0,
+        "frp": 3200.0,
+        "notes": "Main Dava moor fire. Main fire run 28 June - 1 July 2025. EFFIS satellite measured 9,664 ha total. Perimeter ~253 km. Polygon is approximate - covers Dava Moor area between Dava village and Lochindorb. Source: Scottish Wildfire Forum statement 10.07.25.",
+        "wikipedia": "https://en.wikipedia.org/wiki/Dava_wildfire",
+        "swf_source": "https://www.scottishwildfireforum.co.uk/newspost/swf-statement-on-morayshire-wildfires",
+        "polygon_status": "approximate - based on known fire extent from SWF reports, not georeferenced from Cawdor maps",
+        "center_coordinates": "57.42°N 3.70°W"
       }
     }
   ]

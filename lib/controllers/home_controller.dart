@@ -298,16 +298,16 @@ class HomeController extends ChangeNotifier {
 
         switch (locationResult) {
           case Right(:final value):
-            location = value;
-            // Determine location source based on whether it was manually set
+            final resolved = value;
+            location = resolved.coordinates;
+            // Use the source from resolver (respects GPS/cached/default distinction)
             if (_isManualLocation) {
               locationSource = LocationSource.manual;
             } else {
-              // GPS or cached from LocationResolver
-              locationSource = LocationSource.gps;
+              locationSource = resolved.source;
             }
             developer.log(
-              'Location resolved: ${LocationUtils.logRedact(location.latitude, location.longitude)} (source: $locationSource)',
+              'Location resolved: ${LocationUtils.logRedact(location.latitude, location.longitude)} (source: ${locationSource.name})',
               name: 'HomeController',
             );
           case Left(:final value):
