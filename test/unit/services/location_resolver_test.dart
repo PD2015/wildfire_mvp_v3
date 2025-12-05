@@ -234,6 +234,9 @@ void main() {
             closeTo(TestData.aviemore.longitude, 0.001),
           );
         },
+        // Web intentionally requires manual entry rather than silent default fallback
+        // See location_resolver_impl.dart Tier 4 comments
+        skip: kIsWeb,
       );
 
       test(
@@ -278,42 +281,47 @@ void main() {
     });
 
     group('GPS Timeout and Fallback', () {
-      test('GPS timeout triggers fallback within 2.5s total budget', () async {
-        // Arrange
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setPermission(LocationPermission.whileInUse);
-        fakeGeolocator.setLocationServiceEnabled(true);
-        fakeGeolocator.setResponseDelay(
-          const Duration(seconds: 3),
-        ); // Exceeds 2s timeout
-        fakeGeolocator.setException(
-          TimeoutException('GPS timeout', const Duration(seconds: 2)),
-        );
+      test(
+        'GPS timeout triggers fallback within 2.5s total budget',
+        () async {
+          // Arrange
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setPermission(LocationPermission.whileInUse);
+          fakeGeolocator.setLocationServiceEnabled(true);
+          fakeGeolocator.setResponseDelay(
+            const Duration(seconds: 3),
+          ); // Exceeds 2s timeout
+          fakeGeolocator.setException(
+            TimeoutException('GPS timeout', const Duration(seconds: 2)),
+          );
 
-        final stopwatch = Stopwatch()..start();
+          final stopwatch = Stopwatch()..start();
 
-        // Act
-        final result = await locationResolver.getLatLon(allowDefault: true);
+          // Act
+          final result = await locationResolver.getLatLon(allowDefault: true);
 
-        // Assert
-        stopwatch.stop();
-        // Web has 10s timeout, native has 3s timeout
-        // With timeout exception, should fall back to default quickly
-        // Allow more time on web since timeout is longer (though exception should be fast)
-        const maxTime = kIsWeb ? 5000 : 2500;
-        expect(
-          stopwatch.elapsedMilliseconds,
-          lessThan(maxTime),
-          reason: 'Total resolution should complete within timeout budget',
-        );
+          // Assert
+          stopwatch.stop();
+          // Web has 10s timeout, native has 3s timeout
+          // With timeout exception, should fall back to default quickly
+          // Allow more time on web since timeout is longer (though exception should be fast)
+          const maxTime = kIsWeb ? 5000 : 2500;
+          expect(
+            stopwatch.elapsedMilliseconds,
+            lessThan(maxTime),
+            reason: 'Total resolution should complete within timeout budget',
+          );
 
-        expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemoreResolved);
-        expect(
-          location.coordinates.latitude,
-          closeTo(TestData.aviemore.latitude, 0.001),
-        );
-      });
+          expect(result.isRight(), isTrue);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
+          expect(
+            location.coordinates.latitude,
+            closeTo(TestData.aviemore.latitude, 0.001),
+          );
+        },
+        // Web intentionally requires manual entry rather than silent default fallback
+        skip: kIsWeb,
+      );
     });
 
     group('Platform Guards', () {
@@ -321,27 +329,32 @@ void main() {
       // Only desktop platforms (macOS, Windows, Linux) skip GPS
       // This change was made to support PWA GPS on mobile browsers
 
-      test('desktop platform skips GPS and uses fallback path', () async {
-        // Note: In a real implementation, we would mock kIsWeb or platform detection
-        // For this test, we simulate the behavior by configuring GPS as unavailable
+      test(
+        'desktop platform skips GPS and uses fallback path',
+        () async {
+          // Note: In a real implementation, we would mock kIsWeb or platform detection
+          // For this test, we simulate the behavior by configuring GPS as unavailable
 
-        // Arrange
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setLocationServiceEnabled(false);
+          // Arrange
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setLocationServiceEnabled(false);
 
-        // Act
-        final result = await locationResolver.getLatLon(allowDefault: true);
+          // Act
+          final result = await locationResolver.getLatLon(allowDefault: true);
 
-        // Assert - uses default fallback (Aviemore in DEV_MODE)
-        expect(result.isRight(), isTrue);
-        // ignore: deprecated_member_use_from_same_package
-        final location = result.getOrElse(() => TestData.aviemoreResolved);
-        expect(
-          location.coordinates.latitude,
+          // Assert - uses default fallback (Aviemore in DEV_MODE)
+          expect(result.isRight(), isTrue);
           // ignore: deprecated_member_use_from_same_package
-          closeTo(TestData.aviemore.latitude, 0.001),
-        );
-      });
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
+          expect(
+            location.coordinates.latitude,
+            // ignore: deprecated_member_use_from_same_package
+            closeTo(TestData.aviemore.latitude, 0.001),
+          );
+        },
+        // Web intentionally requires manual entry rather than silent default fallback
+        skip: kIsWeb,
+      );
     });
 
     group('SharedPreferences Cache Tier', () {
@@ -372,64 +385,74 @@ void main() {
         );
       });
 
-      test('handles SharedPreferences corruption gracefully', () async {
-        // Arrange
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setPermission(LocationPermission.denied);
+      test(
+        'handles SharedPreferences corruption gracefully',
+        () async {
+          // Arrange
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setPermission(LocationPermission.denied);
 
-        // Set up corrupted cache data
-        SharedPreferences.setMockInitialValues({
-          'manual_location_version': '1.0',
-          'manual_location_lat': 999.0, // Invalid latitude
-          'manual_location_lon': TestData.edinburgh.longitude,
-          'manual_location_timestamp': DateTime.now().millisecondsSinceEpoch,
-        });
+          // Set up corrupted cache data
+          SharedPreferences.setMockInitialValues({
+            'manual_location_version': '1.0',
+            'manual_location_lat': 999.0, // Invalid latitude
+            'manual_location_lon': TestData.edinburgh.longitude,
+            'manual_location_timestamp': DateTime.now().millisecondsSinceEpoch,
+          });
 
-        // Act
-        final result = await locationResolver.getLatLon(allowDefault: true);
+          // Act
+          final result = await locationResolver.getLatLon(allowDefault: true);
 
-        // Assert - should fall back to Scotland centroid without crashing
-        expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemoreResolved);
-        expect(
-          location.coordinates.latitude,
-          closeTo(TestData.aviemore.latitude, 0.001),
-        );
-      });
+          // Assert - should fall back to Scotland centroid without crashing
+          expect(result.isRight(), isTrue);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
+          expect(
+            location.coordinates.latitude,
+            closeTo(TestData.aviemore.latitude, 0.001),
+          );
+        },
+        // Web intentionally requires manual entry rather than silent default fallback
+        skip: kIsWeb,
+      );
 
-      test('expired cached manual location is ignored (TTL >1 hour)', () async {
-        // This test verifies the fix for the mobile web GPS bug where:
-        // 1. User sets manual location on desktop browser
-        // 2. Stale location persists in localStorage
-        // 3. Phone browser should NOT use stale location - should try GPS
+      test(
+        'expired cached manual location is ignored (TTL >1 hour)',
+        () async {
+          // This test verifies the fix for the mobile web GPS bug where:
+          // 1. User sets manual location on desktop browser
+          // 2. Stale location persists in localStorage
+          // 3. Phone browser should NOT use stale location - should try GPS
 
-        // Arrange
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setPermission(LocationPermission.denied);
+          // Arrange
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setPermission(LocationPermission.denied);
 
-        // Set up cached location from 2 hours ago (expired)
-        final twoHoursAgo = DateTime.now()
-            .subtract(const Duration(hours: 2))
-            .millisecondsSinceEpoch;
-        SharedPreferences.setMockInitialValues({
-          'manual_location_version': '1.0',
-          'manual_location_lat': TestData.edinburgh.latitude,
-          'manual_location_lon': TestData.edinburgh.longitude,
-          'manual_location_timestamp': twoHoursAgo,
-        });
+          // Set up cached location from 2 hours ago (expired)
+          final twoHoursAgo = DateTime.now()
+              .subtract(const Duration(hours: 2))
+              .millisecondsSinceEpoch;
+          SharedPreferences.setMockInitialValues({
+            'manual_location_version': '1.0',
+            'manual_location_lat': TestData.edinburgh.latitude,
+            'manual_location_lon': TestData.edinburgh.longitude,
+            'manual_location_timestamp': twoHoursAgo,
+          });
 
-        // Act
-        final result = await locationResolver.getLatLon(allowDefault: true);
+          // Act
+          final result = await locationResolver.getLatLon(allowDefault: true);
 
-        // Assert - should ignore expired cache and use fallback
-        expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemoreResolved);
-        expect(
-          location.coordinates.latitude,
-          closeTo(TestData.aviemore.latitude, 0.001),
-          reason: 'Should ignore expired cache and fall back to Aviemore',
-        );
-      });
+          // Assert - should ignore expired cache and use fallback
+          expect(result.isRight(), isTrue);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
+          expect(
+            location.coordinates.latitude,
+            closeTo(TestData.aviemore.latitude, 0.001),
+            reason: 'Should ignore expired cache and fall back to Aviemore',
+          );
+        },
+        // Web intentionally requires manual entry rather than silent default fallback
+        skip: kIsWeb,
+      );
 
       test('fresh cached manual location is used (TTL <1 hour)', () async {
         // Arrange
@@ -460,31 +483,36 @@ void main() {
         );
       });
 
-      test('cache without timestamp is treated as expired', () async {
-        // Arrange
-        fakeGeolocator.setLastKnownPosition(null);
-        fakeGeolocator.setPermission(LocationPermission.denied);
+      test(
+        'cache without timestamp is treated as expired',
+        () async {
+          // Arrange
+          fakeGeolocator.setLastKnownPosition(null);
+          fakeGeolocator.setPermission(LocationPermission.denied);
 
-        // Set up cached location without timestamp (old format)
-        SharedPreferences.setMockInitialValues({
-          'manual_location_version': '1.0',
-          'manual_location_lat': TestData.edinburgh.latitude,
-          'manual_location_lon': TestData.edinburgh.longitude,
-          // No timestamp key
-        });
+          // Set up cached location without timestamp (old format)
+          SharedPreferences.setMockInitialValues({
+            'manual_location_version': '1.0',
+            'manual_location_lat': TestData.edinburgh.latitude,
+            'manual_location_lon': TestData.edinburgh.longitude,
+            // No timestamp key
+          });
 
-        // Act
-        final result = await locationResolver.getLatLon(allowDefault: true);
+          // Act
+          final result = await locationResolver.getLatLon(allowDefault: true);
 
-        // Assert - should ignore cache without timestamp and use fallback
-        expect(result.isRight(), isTrue);
-        final location = result.getOrElse(() => TestData.aviemoreResolved);
-        expect(
-          location.coordinates.latitude,
-          closeTo(TestData.aviemore.latitude, 0.001),
-          reason: 'Should treat missing timestamp as expired',
-        );
-      });
+          // Assert - should ignore cache without timestamp and use fallback
+          expect(result.isRight(), isTrue);
+          final location = result.getOrElse(() => TestData.aviemoreResolved);
+          expect(
+            location.coordinates.latitude,
+            closeTo(TestData.aviemore.latitude, 0.001),
+            reason: 'Should treat missing timestamp as expired',
+          );
+        },
+        // Web intentionally requires manual entry rather than silent default fallback
+        skip: kIsWeb,
+      );
     });
 
     group('saveManual Integration', () {
