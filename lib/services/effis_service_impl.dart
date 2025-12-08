@@ -264,6 +264,7 @@ class EffisServiceImpl implements EffisService {
         'BBOX': '$minLat,$minLon,$maxLat,$maxLon',
         'WIDTH': '256',
         'HEIGHT': '256',
+        'STYLES': '', // Required by MapServer 8.0+ (empty = default style)
         'I': '128', // Query point X
         'J': '128', // Query point Y
         'INFO_FORMAT':

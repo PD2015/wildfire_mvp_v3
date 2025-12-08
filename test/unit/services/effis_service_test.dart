@@ -127,6 +127,8 @@ void main() {
         expect(requestUri.queryParameters['CRS'], equals('EPSG:4326'));
         expect(requestUri.queryParameters['INFO_FORMAT'], equals('text/plain'));
         expect(requestUri.queryParameters['FEATURE_COUNT'], equals('1'));
+        // STYLES required by MapServer 8.0+ (new endpoint)
+        expect(requestUri.queryParameters['STYLES'], equals(''));
       });
     });
 
