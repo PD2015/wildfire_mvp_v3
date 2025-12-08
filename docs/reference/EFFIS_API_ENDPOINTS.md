@@ -9,6 +9,10 @@ related:
   - ../guides/setup/google-maps.md
   - ../../lib/models/fire_incident.dart
   - ../../test/fixtures/scotland_fire_273772_fixture.dart
+changelog:
+  - 2025-12-08: Added "Understanding FIREDATE and LASTUPDATE" section explaining date semantics
+  - 2025-12-08: Added historical fire data queries with CQL filters and sorting
+  - 2025-12-08: Documented ms:modis.ba.poly.season layer and response schema
 ---
 
 # EFFIS API Endpoints Reference
@@ -326,6 +330,80 @@ The June 28 Scotland fire contains **24 polygon rings** with **22,020 total coor
 A pre-parsed fixture is available at:
 - **JSON**: `assets/mock/scotland_fire_273772.json`
 - **Dart fixture**: `test/fixtures/scotland_fire_273772_fixture.dart`
+
+---
+
+## Understanding FIREDATE and LASTUPDATE
+
+### Why Fires Only Appear on One Date
+
+A common question: *"Why does a large fire show on June 28 but not on June 27 or 29?"*
+
+The answer lies in understanding what EFFIS date fields actually represent:
+
+| Field | Meaning | Fire 273772 Example |
+|-------|---------|---------------------|
+| `FIREDATE` | **First satellite detection** timestamp | `2025-06-28T11:53:00` |
+| `LASTUPDATE` | When polygon boundary was last refined | `2025-07-09T13:28:59` |
+
+### The EFFIS Burnt Area Timeline
+
+```
+June 27        June 28         June 29-July 1      July 9
+    |              |                |                 |
+    v              v                v                 v
+No detection → FIRST THERMAL → Fire continues → Polygon
+               DETECTION        burning           finalized
+               (11:53 UTC)      (NO new polygon)  (LASTUPDATE)
+               
+               FIREDATE         Still one         Final boundary
+               assigned         polygon with      with all 9,809 ha
+                               FIREDATE=28th
+```
+
+### Key Insights
+
+1. **FIREDATE = First Detection, Not Fire Duration**
+   - The Dava Moor fire burned for **4 days** (June 28 - July 1)
+   - But EFFIS assigns only ONE `FIREDATE`: when it was first detected
+   - Querying June 29, 30, or July 1 returns nothing - the fire already has its date
+
+2. **Burnt Areas vs Active Fires**
+   - **Burnt area polygons** (`ms:modis.ba.poly.*`): Created AFTER fire ends
+   - **Active fire hotspots** (`ms:modis.hs`, `ms:viirs.hs`): Near-real-time during fire
+
+3. **To Query "What Was Burning on Date X"**
+   - Use **active fire hotspots** for fires burning on a specific date
+   - Use **burnt area polygons** for historical damage assessment after fires end
+
+### Practical Query Examples
+
+```bash
+# Find fires DETECTED on a specific date (first detection only)
+cql_filter=FIREDATE='2025-06-28'
+
+# Find fires UPDATED after a date (includes polygon refinements)
+cql_filter=LASTUPDATE>='2025-07-01'
+
+# Find fires that burned ≥1000 hectares (regardless of date)
+cql_filter=AREA_HA>=1000
+
+# Scottish Wildfire Forum noted: "Main fire run 28 June - 1 July 2025"
+# But EFFIS shows: FIREDATE=28, LASTUPDATE=July 9 (single polygon, 9,809 ha)
+```
+
+### Active Fire Layers for Real-Time Tracking
+
+If you need to track fires **while they're burning**, use hotspot layers:
+
+| Layer | Source | Update Frequency |
+|-------|--------|------------------|
+| `ms:viirs.hs` | VIIRS (Suomi NPP, NOAA-20) | ~3 hours |
+| `ms:modis.hs` | MODIS (Terra, Aqua) | ~4 hours |
+| `ms:noaa.hs` | NOAA satellites | ~6 hours |
+| `ms:all.hs` | Combined all sources | Rolling |
+
+**Note:** Hotspot layers are ephemeral - they show current thermal anomalies, not historical records.
 
 ---
 
