@@ -7,6 +7,8 @@ subcategory: api
 related:
   - ../DATA-SOURCES.md
   - ../guides/setup/google-maps.md
+  - ../../lib/models/fire_incident.dart
+  - ../../test/fixtures/scotland_fire_273772_fixture.dart
 ---
 
 # EFFIS API Endpoints Reference
@@ -162,6 +164,7 @@ https://maps.effis.emergency.copernicus.eu/gwis
 | `ms:modis.ba.point` | MODIS burnt area centroids | Points |
 | `ms:effis.nrt.ba.poly` | Near-real-time burnt areas | Polygons |
 | `ms:effis.nrt.ba.point` | NRT burnt area centroids | Points |
+| `ms:modis.ba.poly.season` | Seasonal burnt areas (current fire season) | Polygons |
 
 ### WFS GetFeature Request
 
@@ -181,6 +184,148 @@ https://maps.effis.emergency.copernicus.eu/effis
 - `SPATIALITEZIP` (for download)
 
 **Note:** JSON output format is NOT supported on this endpoint.
+
+---
+
+## Historical Fire Data Queries (WFS)
+
+The EFFIS WFS service provides access to historical burnt area data through the seasonal layer. This is useful for:
+- Analyzing past fire patterns
+- Creating test fixtures with real data
+- Validating polygon rendering with actual fire boundaries
+
+### Seasonal Burnt Areas Layer
+
+**Layer:** `ms:modis.ba.poly.season`
+
+Contains all fires detected during the current fire season (typically January to present).
+
+### Query by Geographic Bounding Box
+
+Use the `bbox` parameter to filter fires by region. Format: `minLat,minLon,maxLat,maxLon,CRS`
+
+**Scotland BBOX:** `54.5,-9.0,61.0,0.0,EPSG:4326`
+
+```bash
+# Query all Scotland fires (2025 season)
+curl -s "https://maps.effis.emergency.copernicus.eu/effis?\
+service=WFS&\
+version=1.1.0&\
+request=GetFeature&\
+typeName=ms:modis.ba.poly.season&\
+bbox=54.5,-9.0,61.0,0.0,EPSG:4326&\
+count=1000"
+```
+
+### Query by Date Range (CQL Filter)
+
+Use CQL filters for date-specific queries:
+
+```bash
+# Fires on a specific date
+curl -s "https://maps.effis.emergency.copernicus.eu/effis?\
+service=WFS&\
+version=1.1.0&\
+request=GetFeature&\
+typeName=ms:modis.ba.poly.season&\
+cql_filter=FIREDATE='2025-06-28'"
+
+# Fires in date range
+curl -s "https://maps.effis.emergency.copernicus.eu/effis?\
+service=WFS&\
+version=1.1.0&\
+request=GetFeature&\
+typeName=ms:modis.ba.poly.season&\
+cql_filter=FIREDATE>='2025-06-01' AND FIREDATE<='2025-06-30'"
+
+# Combine with BBOX for region + date
+curl -s "https://maps.effis.emergency.copernicus.eu/effis?\
+service=WFS&\
+version=1.1.0&\
+request=GetFeature&\
+typeName=ms:modis.ba.poly.season&\
+bbox=54.5,-9.0,61.0,0.0,EPSG:4326&\
+cql_filter=FIREDATE>='2025-06-01'"
+```
+
+### Response Schema (GML)
+
+The response contains detailed fire incident data:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ms:id` | Integer | Unique fire identifier |
+| `ms:FIREDATE` | DateTime | Detection timestamp (UTC) |
+| `ms:LASTUPDATE` | Date | Most recent data update |
+| `ms:COUNTRY` | String | Country code (e.g., "UK") |
+| `ms:PROVINCE` | String | Administrative region |
+| `ms:COMMUNE` | String | Local area name |
+| `ms:AREA_HA` | Float | Burnt area in hectares |
+| `ms:BROADLEAVED` | Float | % broadleaved forest |
+| `ms:CONIFEROUS` | Float | % coniferous forest |
+| `ms:MIXED` | Float | % mixed forest |
+| `ms:SCLEROPHYLLOUS` | Float | % sclerophyllous vegetation |
+| `ms:TRANSITIONAL` | Float | % transitional woodland |
+| `ms:OTHER_NATURAL` | Float | % other natural (moorland, heath) |
+| `ms:OTHER` | Float | % other land cover |
+| `gml:posList` | Coordinates | Polygon boundary points (lat lon pairs) |
+
+### Sort by Date
+
+Use `sortBy` parameter for chronological ordering:
+
+```bash
+# Most recent fires first
+sortBy=FIREDATE+D
+
+# Oldest fires first
+sortBy=FIREDATE+A
+
+# Example: Latest 10 fires in Scotland
+curl -s "https://maps.effis.emergency.copernicus.eu/effis?\
+service=WFS&\
+version=1.1.0&\
+request=GetFeature&\
+typeName=ms:modis.ba.poly.season&\
+bbox=54.5,-9.0,61.0,0.0,EPSG:4326&\
+sortBy=FIREDATE+D&\
+count=10"
+```
+
+### Example: June 28, 2025 Scotland Fire
+
+Query that discovered fire ID 273772 (9,809 hectare moorland fire):
+
+```bash
+curl -s "https://maps.effis.emergency.copernicus.eu/effis?\
+service=WFS&\
+version=1.1.0&\
+request=GetFeature&\
+typeName=ms:modis.ba.poly.season&\
+bbox=54.5,-9.0,61.0,0.0,EPSG:4326&\
+count=1000" | grep -E "2025-06-28|AREA_HA|COMMUNE"
+```
+
+**Result:**
+- Fire ID: 273772
+- Date: 2025-06-28T11:53:00
+- Location: West Moray, Inverness & Nairn and Moray, Badenoch & Strathspey
+- Area: 9,809.46 hectares
+- Land cover: 93.24% moorland (OTHER_NATURAL), 4.24% transitional woodland
+
+### Multi-Polygon Fires
+
+Large fires may contain multiple polygon rings representing:
+1. **Outer ring**: Main fire boundary
+2. **Inner rings**: Unburnt islands within the fire perimeter
+
+The June 28 Scotland fire contains **24 polygon rings** with **22,020 total coordinate points**.
+
+### Test Fixtures
+
+A pre-parsed fixture is available at:
+- **JSON**: `assets/mock/scotland_fire_273772.json`
+- **Dart fixture**: `test/fixtures/scotland_fire_273772_fixture.dart`
 
 ---
 
