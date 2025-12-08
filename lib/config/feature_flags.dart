@@ -58,17 +58,18 @@ class FeatureFlags {
   );
 
   /// EFFIS base URL for WFS queries
-  /// Default: European Commission JRC endpoint
+  /// Default: Copernicus emergency endpoint (migrated Dec 2025)
+  /// Legacy: ies-ows.jrc.ec.europa.eu (deprecated, stale data)
   static const String effisBaseUrl = String.fromEnvironment(
     'EFFIS_BASE_URL',
-    defaultValue: 'https://ies-ows.jrc.ec.europa.eu/',
+    defaultValue: 'https://maps.effis.emergency.copernicus.eu/',
   );
 
   /// EFFIS WFS layer name for burnt areas
-  /// Default: effis:ba.curryear (current year burnt areas)
+  /// Default: ms:modis.ba.poly (MODIS burnt area polygons)
   static const String effisWfsLayerActive = String.fromEnvironment(
     'EFFIS_WFS_LAYER_ACTIVE',
-    defaultValue: 'effis:ba.curryear',
+    defaultValue: 'ms:modis.ba.poly',
   );
 
   /// Google Maps API key for Android

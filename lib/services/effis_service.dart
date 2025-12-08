@@ -80,10 +80,11 @@ abstract class EffisService {
   /// - [timeout]: Request timeout duration (default: 8 seconds for map loads)
   ///
   /// WFS Query Details:
-  /// - Endpoint: ies-ows.jrc.ec.europa.eu/wfs
-  /// - Layer: burnt_areas_current_year (updated daily)
-  /// - Format: GeoJSON FeatureCollection
+  /// - Endpoint: maps.effis.emergency.copernicus.eu/effis (migrated Dec 2025)
+  /// - Layer: ms:modis.ba.poly (MODIS burnt area polygons)
+  /// - Format: GML3 (JSON not supported on this endpoint)
   /// - Projection: EPSG:4326 (WGS84 lat/lon)
+  /// - See: docs/reference/EFFIS_API_ENDPOINTS.md
   ///
   /// Error Handling:
   /// - 404/Empty → Returns Right([]) (no fires in region, not an error)
