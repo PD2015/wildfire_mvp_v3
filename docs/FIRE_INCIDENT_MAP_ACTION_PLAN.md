@@ -156,16 +156,25 @@ The "near me" distance threshold is configurable by the user:
 
 | Setting | Default | Storage | UI Location |
 |---------|---------|---------|-------------|
-| **Alert distance** | 25 km | `SharedPreferences: alert_distance_km` | First-run prompt + Settings |
+| **Distance threshold** | 25 km | `SharedPreferences: alert_distance_km` | First-run prompt + Settings |
 | **Options** | 10 km, 25 km, 50 km, 100 km | Dropdown/Slider | Settings screen |
+
+**What this enables now:**
+- Risk Banner shows "X active fires within [distance]" when fires are nearby
+- Fire Details Bottom Sheet shows distance + bearing to selected fire
+- Map can filter/highlight fires within the user's chosen radius
 
 **First-run flow:**
 1. User opens app for first time
-2. After location permission, show: "Alert me when fires are detected within: [25 km ▼]"
-3. User selects preference, stored for future sessions
-4. Can be changed in Settings > Notifications
+2. After location permission, show: "Show fires detected within: [25 km ▼]"
+3. Explanatory text: "We'll show you active fires within this distance. Push notifications are not yet available."
+4. User selects preference, stored for future sessions
+5. Can be changed in Settings > Fire Alerts
 
-**Future:** Push notifications when fire detected within user's chosen distance (requires Firebase, out of MVP scope).
+**Future (not in MVP scope):** Push notifications when fire detected within user's chosen distance. This requires:
+- Firebase Cloud Messaging integration
+- Backend service to monitor fire data
+- User opt-in for notifications
 
 ---
 
