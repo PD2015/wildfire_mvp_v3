@@ -1,7 +1,7 @@
 ---
 title: EFFIS API Endpoints Reference
 status: active
-last_updated: 2025-12-08
+last_updated: 2025-12-09
 category: reference
 subcategory: api
 related:
@@ -10,6 +10,8 @@ related:
   - ../../lib/models/fire_incident.dart
   - ../../test/fixtures/scotland_fire_273772_fixture.dart
 changelog:
+  - 2025-12-09: Discovered working real-time hotspot layers on GWIS endpoint (viirs.hs.today, etc.)
+  - 2025-12-09: Documented EFFIS vs GWIS endpoint differences for hotspot data
   - 2025-12-08: Added "Understanding FIREDATE and LASTUPDATE" section explaining date semantics
   - 2025-12-08: Added historical fire data queries with CQL filters and sorting
   - 2025-12-08: Documented ms:modis.ba.poly.season layer and response schema
@@ -27,6 +29,17 @@ As of December 2025, EFFIS has migrated from the legacy JRC endpoint to a new Co
 |---------|------------------------------|----------------------------|
 | **GWIS (FWI)** | `ies-ows.jrc.ec.europa.eu/gwis` | `maps.effis.emergency.copernicus.eu/gwis` |
 | **EFFIS (Fires)** | `ies-ows.jrc.ec.europa.eu/effis` | `maps.effis.emergency.copernicus.eu/effis` |
+
+### ⚠️ Important: Hotspot Data Requires GWIS Endpoint
+
+Real-time active fire hotspots are **only available via the GWIS endpoint**, not the EFFIS endpoint:
+
+| Data Type | Endpoint | Layer Example | Status |
+|-----------|----------|---------------|--------|
+| **Real-time Hotspots** | `/gwis` | `viirs.hs.today` | ✅ Current (Dec 2025) |
+| **Historical Hotspots** | `/effis` | `viirs.hs` | ❌ Stale (Oct 2021) |
+| **Burnt Areas** | `/effis` | `modis.ba.poly.season` | ✅ Current |
+| **FWI Data** | `/gwis` | `nasa_geos5.query` | ✅ Current |
 
 ## Endpoint Comparison
 
@@ -153,22 +166,21 @@ https://maps.effis.emergency.copernicus.eu/gwis
 
 ## Fire Incidents - WFS Service
 
+> ⚠️ **Warning**: The hotspot layers (`ms:viirs.hs`, `ms:modis.hs`, etc.) on the EFFIS WFS endpoint contain **stale data from October 2021**. For real-time hotspots, use the GWIS WMS endpoint with `.today` layers instead. See [Real-Time Hotspots via GWIS](#real-time-hotspots-via-gwis) section.
+
 ### Available Layers
 
-| Layer Name | Description | Data Type |
-|------------|-------------|-----------|
-| `ms:all.hs` | All active fire hotspots | Points |
-| `ms:all.hs.query` | All hotspots (queryable) | Points |
-| `ms:viirs.hs` | VIIRS satellite hotspots | Points |
-| `ms:viirs.hs.query` | VIIRS hotspots (queryable) | Points |
-| `ms:modis.hs` | MODIS satellite hotspots | Points |
-| `ms:modis.hs.query` | MODIS hotspots (queryable) | Points |
-| `ms:noaa.hs` | NOAA satellite hotspots | Points |
-| `ms:modis.ba.poly` | MODIS burnt areas | Polygons |
-| `ms:modis.ba.point` | MODIS burnt area centroids | Points |
-| `ms:effis.nrt.ba.poly` | Near-real-time burnt areas | Polygons |
-| `ms:effis.nrt.ba.point` | NRT burnt area centroids | Points |
-| `ms:modis.ba.poly.season` | Seasonal burnt areas (current fire season) | Polygons |
+| Layer Name | Description | Data Type | Status |
+|------------|-------------|-----------|--------|
+| `ms:all.hs` | All active fire hotspots | Points | ⚠️ Stale (Oct 2021) |
+| `ms:viirs.hs` | VIIRS satellite hotspots | Points | ⚠️ Stale (Oct 2021) |
+| `ms:modis.hs` | MODIS satellite hotspots | Points | ⚠️ Stale (Oct 2021) |
+| `ms:noaa.hs` | NOAA satellite hotspots | Points | ⚠️ Stale (Oct 2021) |
+| `ms:modis.ba.poly` | MODIS burnt areas | Polygons | ✅ Current |
+| `ms:modis.ba.point` | MODIS burnt area centroids | Points | ✅ Current |
+| `ms:effis.nrt.ba.poly` | Near-real-time burnt areas | Polygons | ✅ Current |
+| `ms:effis.nrt.ba.point` | NRT burnt area centroids | Points | ✅ Current |
+| `ms:modis.ba.poly.season` | Seasonal burnt areas (current fire season) | Polygons | ✅ Current |
 
 ### WFS GetFeature Request
 
@@ -188,6 +200,115 @@ https://maps.effis.emergency.copernicus.eu/effis
 - `SPATIALITEZIP` (for download)
 
 **Note:** JSON output format is NOT supported on this endpoint.
+
+---
+
+## Real-Time Hotspots via GWIS
+
+> 🔥 **Key Discovery (Dec 2025)**: Real-time active fire hotspots require the GWIS endpoint with time-filtered layers (`.today`, `.week`). The base hotspot layers on EFFIS WFS are stale.
+
+### Working Endpoint for Real-Time Hotspots
+
+**Base URL:** `https://maps.effis.emergency.copernicus.eu/gwis`
+
+### Available Time-Filtered Layers
+
+| Layer | Coverage | Satellite | Status |
+|-------|----------|-----------|--------|
+| `viirs.hs.today` | Last 24 hours | All VIIRS | ✅ Current |
+| `viirs.hs.week` | Last 7 days | All VIIRS | ✅ Current |
+| `viirs.hs.n20.today` | Last 24 hours | NOAA-20 | ✅ Current |
+| `viirs.hs.n21.today` | Last 24 hours | NOAA-21 | ✅ Current |
+| `viirs.hs.suomi.today` | Last 24 hours | Suomi NPP | ✅ Current |
+| `modis.hs.today` | Last 24 hours | Terra/Aqua | ✅ Current |
+| `modis.hs.week` | Last 7 days | Terra/Aqua | ✅ Current |
+| `s3.hs.today` | Last 24 hours | Sentinel-3 | ✅ Current |
+| `all.hs.today` | Last 24 hours | All sources | ✅ Current |
+| `all.hs.week` | Last 7 days | All sources | ✅ Current |
+
+### WMS GetFeatureInfo Request
+
+```
+https://maps.effis.emergency.copernicus.eu/gwis
+  ?SERVICE=WMS
+  &VERSION=1.3.0
+  &REQUEST=GetFeatureInfo
+  &LAYERS=viirs.hs.today
+  &QUERY_LAYERS=viirs.hs.today
+  &CRS=EPSG:4326
+  &BBOX={minLat},{minLon},{maxLat},{maxLon}
+  &WIDTH=256
+  &HEIGHT=256
+  &I=128
+  &J=128
+  &INFO_FORMAT=application/vnd.ogc.gml
+  &STYLES=
+  &FEATURE_COUNT=10
+```
+
+### Response Structure (GML)
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<msGMLOutput>
+  <viirs.hs.today_layer>
+    <gml:name>viirs.hs.today</gml:name>
+    <viirs.hs.today_feature>
+      <gml:boundedBy>
+        <gml:Box srsName="EPSG:4326">
+          <gml:coordinates>0.085720,10.495960 0.085720,10.495960</gml:coordinates>
+        </gml:Box>
+      </gml:boundedBy>
+      <id>41646136449</id>
+      <acq_at>2025-12-08 01:17:00</acq_at>
+      <CLASS>1DAY_2</CLASS>
+    </viirs.hs.today_feature>
+  </viirs.hs.today_layer>
+</msGMLOutput>
+```
+
+### Hotspot Field Definitions
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| `id` | Unique hotspot identifier | `41646136449` |
+| `acq_at` | Acquisition timestamp (UTC) | `2025-12-08 01:17:00` |
+| `CLASS` | Time classification | `1DAY_2` (within last 24h) |
+| `gml:coordinates` | Point location (lon,lat) | `0.085720,10.495960` |
+
+**Note:** The `.today` layers provide minimal fields. For full hotspot details (FRP, confidence, brightness temps), you may need to use the base layers with TIME parameter, though these may have stale WFS data.
+
+### WMTS Tiles for Map Display
+
+For map tile display (not data queries), use WMTS:
+
+```
+https://maps.effis.emergency.copernicus.eu/gwist/wmts
+  ?layer=viirs.hs.today
+  &style=default
+  &tilematrixset=EPSG3857
+  &Service=WMTS
+  &Request=GetTile
+  &Version=1.0.0
+  &Format=image/png
+  &TileMatrix={z}
+  &TileCol={x}
+  &TileRow={y}
+```
+
+WMTS tiles are updated regularly (observed: Last-Modified timestamp within hours of current time).
+
+### Comparing EFFIS vs GWIS for Hotspots
+
+| Aspect | EFFIS Endpoint (`/effis`) | GWIS Endpoint (`/gwis`) |
+|--------|---------------------------|-------------------------|
+| **Hotspot WFS** | ❌ Stale (Oct 2021) | N/A (no WFS for hotspots) |
+| **Hotspot WMS `.today`** | ❌ Not available | ✅ Current data |
+| **Hotspot WMTS** | ❌ Not available | ✅ Current tiles |
+| **Burnt Area WFS** | ✅ Current | N/A |
+| **FWI WMS** | Via `/gwis` only | ✅ Current |
+
+**Recommendation:** Use GWIS for FWI and real-time hotspots, EFFIS for burnt area polygons.
 
 ---
 
