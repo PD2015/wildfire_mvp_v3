@@ -125,10 +125,10 @@ Future<ServiceContainer> _initializeServices() async {
   // Initialize mock service for fallback
   final MockService mockService = MockService.defaultStrategy();
 
-  // DEBUG: Test the EFFIS service directly
-  debugPrint('🔍 Testing EFFIS service directly...');
+  // DEBUG: Test the EFFIS service directly using Aviemore coordinates
+  debugPrint('🔍 Testing EFFIS service directly (Aviemore, Scotland)...');
   try {
-    final testResult = await effisServiceAdapter.getFwi(lat: 39.6, lon: -9.1);
+    final testResult = await effisServiceAdapter.getFwi(lat: 57.2, lon: -3.8);
     testResult.fold(
       (error) => debugPrint('🔍 EFFIS direct test FAILED: ${error.message}'),
       (result) => debugPrint(

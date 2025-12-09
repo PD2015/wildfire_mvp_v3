@@ -284,12 +284,21 @@ All Material 3 components pre-themed for consistency:
 
 ## 🌐 API Integration
 
-### EFFIS WMS Service
-- **Endpoint**: `https://ies-ows.jrc.ec.europa.eu/gwis`
+### EFFIS WMS Service (FWI Data)
+- **Endpoint**: `https://maps.effis.emergency.copernicus.eu/gwis` (updated Dec 2025)
 - **Service**: WMS GetFeatureInfo
-- **Layer**: `ecmwf.fwi` (ECMWF Fire Weather Index)
-- **Coordinate System**: EPSG:3857 (Web Mercator)
-- **Format**: GeoJSON FeatureCollection
+- **Layer**: `nasa_geos5.query` (NASA GEOS-5 Fire Weather Index)
+- **Coordinate System**: EPSG:4326 (WGS84)
+- **Format**: GML3
+
+### EFFIS WFS Service (Fire Incidents)
+- **Endpoint**: `https://maps.effis.emergency.copernicus.eu/effis`
+- **Service**: WFS GetFeature
+- **Layer**: `ms:modis.ba.poly` (MODIS burnt area polygons)
+- **Format**: GML3
+
+> **Note**: Legacy endpoint `ies-ows.jrc.ec.europa.eu` is deprecated (stale data since Jan 2025).
+> See [docs/reference/EFFIS_API_ENDPOINTS.md](docs/reference/EFFIS_API_ENDPOINTS.md) for full API documentation.
 
 ### Request Configuration
 - **User-Agent**: `WildFire/0.1 (prototype)`

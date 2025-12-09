@@ -1,0 +1,16 @@
+# Test configuration for wildfire_mvp_v3
+# See: https://github.com/dart-lang/test/blob/master/pkgs/test/doc/configuration.md
+
+# Define custom tags for test categorization
+tags:
+  # Contract tests make real HTTP requests to external APIs
+  # Run separately from unit tests: flutter test --tags contract
+  # Exclude from CI: flutter test --exclude-tags contract
+  contract:
+    timeout: 30s
+
+# Default test timeout
+timeout: 60s
+
+# Retry flaky tests once
+retry: 1

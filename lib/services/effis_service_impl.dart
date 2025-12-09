@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:dartz/dartz.dart';
 import 'package:http/http.dart' as http;
+import 'package:xml/xml.dart';
 import '../models/api_error.dart';
 import '../models/effis_fwi_result.dart';
 import '../models/effis_fire.dart';
@@ -80,8 +81,13 @@ import 'utils/geo_utils.dart';
 /// - Invalid coordinates → Non-retryable validation error
 /// - Malformed JSON response → Non-retryable parsing error
 class EffisServiceImpl implements EffisService {
+  // EFFIS API Endpoints (migrated December 2025)
+  // See docs/reference/EFFIS_API_ENDPOINTS.md for full documentation
+  // Legacy endpoint ies-ows.jrc.ec.europa.eu is deprecated (stale data since Jan 2025)
   static const String _baseUrl =
-      'https://ies-ows.jrc.ec.europa.eu/gwis'; // GWIS - proven working
+      'https://maps.effis.emergency.copernicus.eu/gwis'; // Current official GWIS endpoint
+  static const String _wfsBaseUrl =
+      'https://maps.effis.emergency.copernicus.eu/effis'; // Current official WFS endpoint
   static const String _userAgent = 'WildFire/0.1 (prototype)';
   static const String _acceptHeader = 'application/json,*/*;q=0.8';
 
@@ -240,9 +246,10 @@ class EffisServiceImpl implements EffisService {
     final maxLon = lon + buffer;
 
     // Get current date for TIME parameter (EFFIS requires temporal specification)
-    // Use known working date for EFFIS data (has fire weather data available)
-    const currentDate =
-        '2024-08-15'; // YYYY-MM-DD format - verified to have FWI data
+    // Use today's date to get live/current fire weather data
+    final now = DateTime.now().toUtc();
+    final currentDate =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}'; // YYYY-MM-DD format
 
     return Uri.parse(_baseUrl).replace(
       queryParameters: {
@@ -257,6 +264,7 @@ class EffisServiceImpl implements EffisService {
         'BBOX': '$minLat,$minLon,$maxLat,$maxLon',
         'WIDTH': '256',
         'HEIGHT': '256',
+        'STYLES': '', // Required by MapServer 8.0+ (empty = default style)
         'I': '128', // Query point X
         'J': '128', // Query point Y
         'INFO_FORMAT':
@@ -755,18 +763,19 @@ class EffisServiceImpl implements EffisService {
     // Format: minLon,minLat,maxLon,maxLat (west,south,east,north)
     final bboxStr = bounds.toBboxString();
 
-    final uri = Uri(
-      scheme: 'https',
-      host: 'ies-ows.jrc.ec.europa.eu',
-      path: '/wfs',
+    // Use current EFFIS WFS endpoint (migrated from ies-ows.jrc.ec.europa.eu)
+    // Layer ms:modis.ba.poly provides MODIS-derived burnt area polygons
+    // Note: outputFormat must be GML3 (JSON not supported on this endpoint)
+    final uri = Uri.parse(_wfsBaseUrl).replace(
       queryParameters: {
         'service': 'WFS',
         'version': '2.0.0',
         'request': 'GetFeature',
-        'typeName': 'ms:burnt_areas_current_year',
+        'typeName': 'ms:modis.ba.poly', // Correct layer name on new endpoint
         'bbox': bboxStr,
-        'outputFormat': 'application/json',
+        'outputFormat': 'GML3', // JSON not supported, use GML3
         'srsName': 'EPSG:4326', // WGS84 lat/lon
+        'count': '100', // Limit results for performance
       },
     );
 
@@ -804,36 +813,42 @@ class EffisServiceImpl implements EffisService {
         );
       }
 
-      // Parse GeoJSON FeatureCollection
-      final jsonData = json.decode(response.body) as Map<String, dynamic>;
-      final features = jsonData['features'] as List<dynamic>?;
+      // Parse GML3 FeatureCollection (new endpoint format)
+      // Response format: <wfs:FeatureCollection><wfs:member><ms:modis.ba.poly>...</ms:modis.ba.poly></wfs:member>...</wfs:FeatureCollection>
+      final document = XmlDocument.parse(response.body);
+      final members = document.findAllElements('wfs:member');
 
-      if (features == null || features.isEmpty) {
-        // Empty features array means no fires in region (valid state)
+      if (members.isEmpty) {
+        // Empty members means no fires in region (valid state)
         developer.log(
-          'EFFIS WFS returned empty features - no fires in bbox',
+          'EFFIS WFS returned empty members - no fires in bbox',
           name: 'EffisService.getActiveFires',
         );
         return const Right([]);
       }
 
-      // Parse features to EffisFire objects
+      // Parse members to EffisFire objects
       final fires = <EffisFire>[];
-      for (final feature in features) {
+      for (final member in members) {
         try {
-          final fire = EffisFire.fromJson(feature as Map<String, dynamic>);
-          fires.add(fire);
-          developer.log(
-            'Parsed EFFIS fire: ${fire.id}, area=${fire.areaHectares.toStringAsFixed(1)}ha, location=${GeographicUtils.logRedact(fire.location.latitude, fire.location.longitude)}',
-            name: 'EffisService.getActiveFires',
-          );
+          // Find the modis.ba.poly element within the member
+          final polyElement =
+              member.findAllElements('ms:modis.ba.poly').firstOrNull;
+          if (polyElement != null) {
+            final fire = EffisFire.fromGml(polyElement);
+            fires.add(fire);
+            developer.log(
+              'Parsed EFFIS fire: ${fire.id}, area=${fire.areaHectares.toStringAsFixed(1)}ha, location=${GeographicUtils.logRedact(fire.location.latitude, fire.location.longitude)}',
+              name: 'EffisService.getActiveFires',
+            );
+          }
         } catch (e) {
           developer.log(
-            'Failed to parse EFFIS WFS feature: $e',
+            'Failed to parse EFFIS WFS member: $e',
             name: 'EffisService.getActiveFires',
             level: 900, // Warning
           );
-          // Skip malformed features, continue parsing
+          // Skip malformed members, continue parsing
         }
       }
 
@@ -861,9 +876,16 @@ class EffisServiceImpl implements EffisService {
         level: 900,
       );
       return Left(ApiError(message: 'Network error connecting to EFFIS WFS'));
+    } on XmlParserException catch (e) {
+      developer.log(
+        'EFFIS WFS GML3 parse error: $e',
+        name: 'EffisService.getActiveFires',
+        level: 1000, // Error
+      );
+      return Left(ApiError(message: 'Failed to parse EFFIS WFS GML3 response'));
     } on FormatException catch (e) {
       developer.log(
-        'EFFIS WFS JSON parse error: $e',
+        'EFFIS WFS format error: $e',
         name: 'EffisService.getActiveFires',
         level: 1000, // Error
       );
