@@ -9,6 +9,7 @@ import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
+import 'package:wildfire_mvp_v3/models/fire_data_mode.dart';
 import 'package:wildfire_mvp_v3/models/api_error.dart';
 import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
@@ -21,9 +22,13 @@ import 'package:dartz/dartz.dart';
 /// Mock MapController for widget testing with controllable state
 class MockMapController extends MapController {
   MapState _mockState;
+  FireDataMode _mockFireDataMode;
 
-  MockMapController(this._mockState)
-      : super(
+  MockMapController(
+    this._mockState, {
+    FireDataMode fireDataMode = FireDataMode.hotspots,
+  })  : _mockFireDataMode = fireDataMode,
+        super(
           locationResolver: _NoOpLocationResolver(),
           fireLocationService: _NoOpFireLocationService(),
           fireRiskService: _NoOpFireRiskService(),
@@ -32,9 +37,19 @@ class MockMapController extends MapController {
   @override
   MapState get state => _mockState;
 
+  @override
+  FireDataMode get fireDataMode => _mockFireDataMode;
+
   /// Update state and notify listeners (for testing state changes)
   void setState(MapState newState) {
     _mockState = newState;
+    notifyListeners();
+  }
+
+  /// Update fire data mode and notify listeners (for testing mode changes)
+  @override
+  void setFireDataMode(FireDataMode mode) {
+    _mockFireDataMode = mode;
     notifyListeners();
   }
 
@@ -854,5 +869,173 @@ void main() {
         );
       }
     });
+  });
+
+  // T039: Empty state mode-specific messaging tests
+  group('Empty State Mode-Specific Messaging', () {
+    testWidgets(
+      'shows hotspots empty state when no incidents in hotspots mode',
+      (tester) async {
+        // Skip on unsupported platforms
+        if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+          return;
+        }
+
+        final mockController = MockMapController(
+          MapSuccess(
+            incidents: const [],
+            centerLocation: const LatLng(55.9, -3.2),
+            freshness: Freshness.mock,
+            lastUpdated: DateTime.now(),
+          ),
+          fireDataMode: FireDataMode.hotspots,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(home: MapScreen(controller: mockController)),
+        );
+        await tester.pumpAndSettle();
+
+        // Verify hotspots-specific empty state messaging
+        expect(
+          find.text('No Active Fires Detected'),
+          findsOneWidget,
+          reason: 'Should show hotspots-specific title',
+        );
+        expect(
+          find.textContaining('No satellite-detected hotspots'),
+          findsOneWidget,
+          reason: 'Should show hotspots-specific description',
+        );
+        expect(
+          find.text('Try viewing burnt areas instead →'),
+          findsOneWidget,
+          reason: 'Should show hint to try burnt areas mode',
+        );
+      },
+    );
+
+    testWidgets(
+      'shows burnt areas empty state when no incidents in burnt areas mode',
+      (tester) async {
+        // Skip on unsupported platforms
+        if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+          return;
+        }
+
+        final mockController = MockMapController(
+          MapSuccess(
+            incidents: const [],
+            centerLocation: const LatLng(55.9, -3.2),
+            freshness: Freshness.mock,
+            lastUpdated: DateTime.now(),
+          ),
+          fireDataMode: FireDataMode.burntAreas,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(home: MapScreen(controller: mockController)),
+        );
+        await tester.pumpAndSettle();
+
+        // Verify burnt areas-specific empty state messaging
+        expect(
+          find.text('No Burnt Areas This Season'),
+          findsOneWidget,
+          reason: 'Should show burnt areas-specific title',
+        );
+        expect(
+          find.textContaining('No verified burnt areas'),
+          findsOneWidget,
+          reason: 'Should show burnt areas-specific description',
+        );
+        expect(
+          find.text('Try viewing active hotspots instead →'),
+          findsOneWidget,
+          reason: 'Should show hint to try hotspots mode',
+        );
+      },
+    );
+
+    testWidgets(
+      'empty state hint button switches mode when tapped',
+      (tester) async {
+        // Skip on unsupported platforms
+        if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+          return;
+        }
+
+        final mockController = MockMapController(
+          MapSuccess(
+            incidents: const [],
+            centerLocation: const LatLng(55.9, -3.2),
+            freshness: Freshness.mock,
+            lastUpdated: DateTime.now(),
+          ),
+          fireDataMode: FireDataMode.hotspots,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(home: MapScreen(controller: mockController)),
+        );
+        await tester.pumpAndSettle();
+
+        // Verify initial mode
+        expect(mockController.fireDataMode, equals(FireDataMode.hotspots));
+
+        // Find and tap the hint button
+        final hintButton = find.text('Try viewing burnt areas instead →');
+        expect(hintButton, findsOneWidget);
+        await tester.tap(hintButton);
+        await tester.pumpAndSettle();
+
+        // Verify mode switched
+        expect(mockController.fireDataMode, equals(FireDataMode.burntAreas));
+      },
+    );
+
+    testWidgets(
+      'empty state does not appear when incidents are present',
+      (tester) async {
+        // Skip on unsupported platforms
+        if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+          return;
+        }
+
+        final testIncident = FireIncident.test(
+          id: 'test-1',
+          location: const LatLng(55.95, -3.19),
+          intensity: 'moderate',
+          sensorSource: 'MODIS',
+        );
+
+        final mockController = MockMapController(
+          MapSuccess(
+            incidents: [testIncident],
+            centerLocation: const LatLng(55.9, -3.2),
+            freshness: Freshness.mock,
+            lastUpdated: DateTime.now(),
+          ),
+          fireDataMode: FireDataMode.hotspots,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(home: MapScreen(controller: mockController)),
+        );
+        await tester.pumpAndSettle();
+
+        // Verify empty state is NOT shown
+        expect(
+          find.text('No Active Fires Detected'),
+          findsNothing,
+          reason: 'Should not show empty state when incidents present',
+        );
+        expect(
+          find.text('No Burnt Areas This Season'),
+          findsNothing,
+          reason: 'Should not show any empty state when incidents present',
+        );
+      },
+    );
   });
 }

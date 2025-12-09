@@ -748,7 +748,7 @@ class _MapScreenState extends State<MapScreen> {
             ],
           ),
         ),
-        // Empty state message if no fires
+        // Empty state message if no fires - mode-specific messaging
         if (state.incidents.isEmpty)
           Center(
             child: Card(
@@ -766,7 +766,7 @@ class _MapScreenState extends State<MapScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'No Active Fires Detected',
+                      _getEmptyStateTitle(),
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -774,7 +774,7 @@ class _MapScreenState extends State<MapScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'There are currently no wildfire incidents in this region',
+                      _getEmptyStateDescription(),
                       style: Theme.of(context).textTheme.bodyMedium,
                       textAlign: TextAlign.center,
                     ),
@@ -788,6 +788,26 @@ class _MapScreenState extends State<MapScreen> {
                               Theme.of(context).colorScheme.onSurfaceVariant),
                       textAlign: TextAlign.center,
                     ),
+                    const SizedBox(height: 8),
+                    // Hint to try other mode
+                    TextButton(
+                      onPressed: () {
+                        final newMode =
+                            _controller.fireDataMode == FireDataMode.hotspots
+                                ? FireDataMode.burntAreas
+                                : FireDataMode.hotspots;
+                        _controller.setFireDataMode(newMode);
+                        setState(() {
+                          _showPolygons = newMode == FireDataMode.burntAreas;
+                        });
+                      },
+                      child: Text(
+                        _getEmptyStateHint(),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -795,6 +815,36 @@ class _MapScreenState extends State<MapScreen> {
           ),
       ],
     );
+  }
+
+  /// Get mode-specific empty state title
+  String _getEmptyStateTitle() {
+    switch (_controller.fireDataMode) {
+      case FireDataMode.hotspots:
+        return 'No Active Fires Detected';
+      case FireDataMode.burntAreas:
+        return 'No Burnt Areas This Season';
+    }
+  }
+
+  /// Get mode-specific empty state description
+  String _getEmptyStateDescription() {
+    switch (_controller.fireDataMode) {
+      case FireDataMode.hotspots:
+        return 'No satellite-detected hotspots in the last 24 hours within the current view. This is good news!';
+      case FireDataMode.burntAreas:
+        return 'No verified burnt areas have been recorded for the current fire season in this region.';
+    }
+  }
+
+  /// Get hint text suggesting the user try the other mode
+  String _getEmptyStateHint() {
+    switch (_controller.fireDataMode) {
+      case FireDataMode.hotspots:
+        return 'Try viewing burnt areas instead →';
+      case FireDataMode.burntAreas:
+        return 'Try viewing active hotspots instead →';
+    }
   }
 
   Widget _buildErrorView(MapError state) {

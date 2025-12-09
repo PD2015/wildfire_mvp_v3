@@ -308,7 +308,7 @@
 
 ## Phase 3.3: MapScreen Integration
 
-- [ ] T037 Extend `lib/features/map/screens/map_screen.dart` (per D1, D2):
+- [x] T037 Extend `lib/features/map/screens/map_screen.dart` (per D1, D2):
   - **Replace** `PolygonToggleChip` with `FireDataModeToggle` widget
   - Add `TimeFilterChips` below mode toggle (shows relevant filters for active mode)
   - Remove `_showPolygons` state - replaced by `_fireDataMode`
@@ -317,17 +317,20 @@
   - Add zoom change listener to trigger clustering/declustering
   - Handle mode toggle → clear previous data, refetch appropriate data
   - Burnt areas with `isLastSeason: true` use dashed outline + muted colors
+  - **Implemented**: `_updateMarkersForMode()`, `_updatePolygonsForMode()`, `FireDataModeToggle`, `TimeFilterChips`
 
-- [ ] T038 Update `_onCameraMove()` in map_screen.dart:
+- [x] T038 Update `_onCameraMove()` in map_screen.dart:
   - Track current zoom level in controller
   - Trigger reclustering when crossing zoom threshold 10
   - Hotspot squares visible at zoom ≥ 10, clusters at zoom < 10
   - Burnt area polygons visible at zoom ≥ 8 (existing behavior)
+  - **Implemented**: `updateZoom()`, `_reclusterHotspots()`, `shouldShowClusters` getter
 
-- [ ] T039 Create empty state handling for each mode:
+- [x] T039 Create empty state handling for each mode:
   - Hotspots mode: "No active fires detected in the last 24 hours"
   - Burnt areas mode: "No verified burnt areas for this season"
   - Include hint to try other mode
+  - Added 4 widget tests in `map_screen_test.dart` (Empty State Mode-Specific Messaging group)
 
 **Acceptance**: Visual verification per quickstart.md checklist
 
@@ -335,19 +338,20 @@
 
 ## Phase 4.0: Integration Tests
 
-- [ ] T040 [P] Create `test/integration/live_fire_hotspots_test.dart`:
+- [x] T040 [P] Create `test/integration/map/live_fire_hotspots_test.dart`:
   - Test GWIS service → MapController → MapScreen data flow
   - Test mode toggle switches data layer
   - Test time filter changes refetch data
   - Test clustering at low zoom
   - Test individual squares at high zoom
-  - Test tap hotspot → bottom sheet with correct content
+  - **Implemented**: 17 tests covering mode defaults, zoom-based clustering, mode toggle, hotspot attributes, cluster behavior
 
-- [ ] T041 [P] Create `test/integration/live_fire_burnt_areas_test.dart`:
+- [x] T041 [P] Create `test/integration/map/live_fire_burnt_areas_test.dart`:
   - Test EFFIS service → MapController → MapScreen data flow
   - Test polygon simplification applied
   - Test tap polygon → bottom sheet with land cover
   - Test simplification notice displayed
+  - **Implemented**: 14 tests covering season filter, burnt area attributes, land cover breakdown, polygon simplification, mode switching
 
 - [ ] T042 Create `test/integration/fire_data_fallback_test.dart` (per D5):
   - Test GWIS service failure → mock hotspots displayed
