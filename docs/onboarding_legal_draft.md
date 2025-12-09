@@ -64,7 +64,7 @@ Example (high level):
 final prefs = await SharedPreferences.getInstance();
 final completed = prefs.getBool('onboarding_complete_v1') ?? false;
 
-if (!completed && state.subloc != '/onboarding') {
+if (!completed && state.uri.path != '/onboarding') {
   return '/onboarding';
 }
 ```
@@ -297,9 +297,9 @@ Add text:
 - Holds `selectedRadiusKm` state.
 - Saves prefs and navigates to `/` on completion.
 
-### `lib/services/preferences/` or wherever you centralise prefs (optional)
+### `lib/services/onboarding_prefs.dart` (new)
 
-Add helper getters/setters:
+Add helper getters/setters (or integrate into existing service pattern):
 
 ```dart
 Future<bool> isOnboardingCompleteV1()
@@ -308,11 +308,11 @@ Future<int> getNotificationRadiusKm()
 Future<void> setNotificationRadiusKm(int km)
 ```
 
-### `lib/features/home/home_screen.dart`
+### `lib/screens/home_screen.dart`
 
 - Add footer disclaimer text under the risk banner.
 
-### `lib/features/map/widgets/fire_details_bottom_sheet.dart` (or similar)
+### `lib/widgets/fire_details_bottom_sheet.dart`
 
 - Append satellite anomaly disclaimer line.
 
