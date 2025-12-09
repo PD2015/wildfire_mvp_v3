@@ -1,0 +1,251 @@
+{
+  "hotspots": [
+    {
+      "id": "mock_hotspot_001",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-3.1883, 55.9533]
+      },
+      "properties": {
+        "acq_date": "2025-07-15",
+        "acq_time": "1345",
+        "frp": 35.5,
+        "confidence": "high",
+        "latitude": 55.9533,
+        "longitude": -3.1883
+      }
+    },
+    {
+      "id": "mock_hotspot_002",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-3.1920, 55.9510]
+      },
+      "properties": {
+        "acq_date": "2025-07-15",
+        "acq_time": "1400",
+        "frp": 22.0,
+        "confidence": "nominal",
+        "latitude": 55.9510,
+        "longitude": -3.1920
+      }
+    },
+    {
+      "id": "mock_hotspot_003",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-4.2518, 55.8642]
+      },
+      "properties": {
+        "acq_date": "2025-07-15",
+        "acq_time": "1415",
+        "frp": 8.5,
+        "confidence": "low",
+        "latitude": 55.8642,
+        "longitude": -4.2518
+      }
+    },
+    {
+      "id": "mock_hotspot_004",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-3.8, 57.2]
+      },
+      "properties": {
+        "acq_date": "2025-07-15",
+        "acq_time": "1430",
+        "frp": 55.0,
+        "confidence": "high",
+        "latitude": 57.2,
+        "longitude": -3.8
+      }
+    },
+    {
+      "id": "mock_hotspot_005",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-3.85, 57.15]
+      },
+      "properties": {
+        "acq_date": "2025-07-15",
+        "acq_time": "1430",
+        "frp": 45.0,
+        "confidence": "high",
+        "latitude": 57.15,
+        "longitude": -3.85
+      }
+    },
+    {
+      "id": "mock_hotspot_006",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-3.78, 57.22]
+      },
+      "properties": {
+        "acq_date": "2025-07-15",
+        "acq_time": "1445",
+        "frp": 32.0,
+        "confidence": "nominal",
+        "latitude": 57.22,
+        "longitude": -3.78
+      }
+    }
+  ],
+  "burntAreas": [
+    {
+      "id": "mock_ba_001",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-3.1920, 55.9510],
+            [-3.1900, 55.9520],
+            [-3.1870, 55.9530],
+            [-3.1850, 55.9545],
+            [-3.1860, 55.9555],
+            [-3.1885, 55.9560],
+            [-3.1910, 55.9550],
+            [-3.1925, 55.9535],
+            [-3.1920, 55.9510]
+          ]
+        ]
+      },
+      "properties": {
+        "area_ha": 12.5,
+        "firedate": "2025-04-15",
+        "year": 2025,
+        "lc_forest": 0.35,
+        "lc_shrub": 0.30,
+        "lc_grass": 0.25,
+        "lc_agri": 0.05,
+        "lc_other": 0.05
+      }
+    },
+    {
+      "id": "mock_ba_002",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-4.2600, 55.8700],
+            [-4.2580, 55.8720],
+            [-4.2540, 55.8740],
+            [-4.2500, 55.8730],
+            [-4.2480, 55.8700],
+            [-4.2520, 55.8670],
+            [-4.2570, 55.8680],
+            [-4.2600, 55.8700]
+          ]
+        ]
+      },
+      "properties": {
+        "area_ha": 85.0,
+        "firedate": "2025-05-20",
+        "year": 2025,
+        "lc_forest": 0.55,
+        "lc_shrub": 0.25,
+        "lc_grass": 0.10,
+        "lc_agri": 0.05,
+        "lc_other": 0.05
+      }
+    },
+    {
+      "id": "mock_ba_003",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-3.8200, 57.2100],
+            [-3.8150, 57.2200],
+            [-3.8000, 57.2250],
+            [-3.7850, 57.2200],
+            [-3.7800, 57.2100],
+            [-3.7900, 57.2000],
+            [-3.8050, 57.1950],
+            [-3.8150, 57.2000],
+            [-3.8200, 57.2100]
+          ]
+        ]
+      },
+      "properties": {
+        "area_ha": 250.0,
+        "firedate": "2025-06-10",
+        "year": 2025,
+        "lc_forest": 0.15,
+        "lc_shrub": 0.45,
+        "lc_grass": 0.30,
+        "lc_agri": 0.05,
+        "lc_other": 0.05
+      }
+    }
+  ],
+  "lastSeasonBurntAreas": [
+    {
+      "id": "mock_ba_2024_001",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-4.5000, 56.0000],
+            [-4.4900, 56.0100],
+            [-4.4700, 56.0150],
+            [-4.4500, 56.0100],
+            [-4.4450, 55.9950],
+            [-4.4600, 55.9850],
+            [-4.4800, 55.9900],
+            [-4.5000, 56.0000]
+          ]
+        ]
+      },
+      "properties": {
+        "area_ha": 180.0,
+        "firedate": "2024-05-12",
+        "year": 2024,
+        "lc_forest": 0.40,
+        "lc_shrub": 0.35,
+        "lc_grass": 0.15,
+        "lc_agri": 0.05,
+        "lc_other": 0.05
+      }
+    },
+    {
+      "id": "mock_ba_2024_002",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-5.1000, 56.5000],
+            [-5.0800, 56.5150],
+            [-5.0500, 56.5200],
+            [-5.0200, 56.5100],
+            [-5.0100, 56.4900],
+            [-5.0300, 56.4750],
+            [-5.0600, 56.4700],
+            [-5.0900, 56.4850],
+            [-5.1000, 56.5000]
+          ]
+        ]
+      },
+      "properties": {
+        "area_ha": 320.0,
+        "firedate": "2024-07-25",
+        "year": 2024,
+        "lc_forest": 0.60,
+        "lc_shrub": 0.20,
+        "lc_grass": 0.10,
+        "lc_agri": 0.05,
+        "lc_other": 0.05
+      }
+    }
+  ],
+  "metadata": {
+    "generated": "2025-07-15T12:00:00Z",
+    "source": "mock",
+    "description": "Mock fire data for development and testing",
+    "region": "Scotland",
+    "seasonRange": {
+      "start": "2025-03-01",
+      "end": "2025-09-30"
+    }
+  }
+}

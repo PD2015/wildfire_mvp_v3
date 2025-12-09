@@ -7,8 +7,10 @@ import 'package:wildfire_mvp_v3/features/map/utils/marker_icon_helper.dart';
 import 'package:wildfire_mvp_v3/features/map/utils/polygon_style_helper.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/incidents_timestamp_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
-import 'package:wildfire_mvp_v3/features/map/widgets/polygon_toggle_chip.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/fire_data_mode_toggle.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/time_filter_chips.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_type_selector.dart';
+import 'package:wildfire_mvp_v3/models/fire_data_mode.dart';
 // T-V2: RiskCheckButton temporarily disabled
 // import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
@@ -83,8 +85,9 @@ class _MapScreenState extends State<MapScreen> {
     if (mounted) {
       final state = _controller.state;
       if (state is MapSuccess) {
-        _updateMarkers(state);
-        _updatePolygons(state);
+        // Update markers and polygons based on current fire data mode
+        _updateMarkersForMode(state);
+        _updatePolygonsForMode(state);
 
         // Center on user GPS location once when data first loads
         if (!_hasCenteredOnUser && _mapController != null) {
@@ -155,7 +158,19 @@ class _MapScreenState extends State<MapScreen> {
         '🗺️ MapScreen: GoogleMapController initialized, viewport loader configured');
   }
 
-  void _updateMarkers(MapSuccess state) {
+  /// Update markers based on current fire data mode
+  ///
+  /// In Hotspots mode: shows fire incident markers (pins)
+  /// In Burnt Areas mode: hides markers (polygons shown instead)
+  void _updateMarkersForMode(MapSuccess state) {
+    // In Burnt Areas mode, don't show markers - only polygons
+    if (_controller.fireDataMode == FireDataMode.burntAreas) {
+      _markers = {};
+      debugPrint('🔶 Burnt Areas mode: markers cleared');
+      return;
+    }
+
+    // Hotspots mode: show markers from incidents
     _markers = state.incidents.map((incident) {
       debugPrint(
         '🎯 Creating marker: id=${incident.id}, intensity="${incident.intensity}", desc=${incident.description}',
@@ -272,8 +287,19 @@ class _MapScreenState extends State<MapScreen> {
     return MarkerIconHelper.getIcon(intensity);
   }
 
-  /// Update polygon overlays from fire incidents with valid boundary points
-  void _updatePolygons(MapSuccess state) {
+  /// Update polygon overlays based on current fire data mode
+  ///
+  /// In Burnt Areas mode: shows polygons from fire incidents
+  /// In Hotspots mode: hides polygons (markers shown instead)
+  void _updatePolygonsForMode(MapSuccess state) {
+    // In Hotspots mode, don't show polygons - only markers
+    if (_controller.fireDataMode == FireDataMode.hotspots) {
+      _polygons = {};
+      debugPrint('🔶 Hotspots mode: polygons cleared');
+      return;
+    }
+
+    // Burnt Areas mode: check zoom threshold
     if (!_shouldShowPolygons()) {
       _polygons = {};
       return;
@@ -321,12 +347,15 @@ class _MapScreenState extends State<MapScreen> {
 
     _currentZoom = newZoom;
 
-    // Rebuild polygons if visibility threshold crossed
+    // Update controller zoom for clustering decisions
+    _controller.updateZoom(newZoom);
+
+    // Rebuild polygons if visibility threshold crossed (only in Burnt Areas mode)
     final nowShowingPolygons = _shouldShowPolygons();
     if (wasShowingPolygons != nowShowingPolygons) {
       final state = _controller.state;
       if (state is MapSuccess) {
-        _updatePolygons(state);
+        _updatePolygonsForMode(state);
         setState(() {});
       }
     }
@@ -335,20 +364,20 @@ class _MapScreenState extends State<MapScreen> {
     _viewportLoader.onCameraMove(position);
   }
 
-  /// Handle polygon visibility toggle
-  void _onPolygonToggle() {
-    setState(() {
-      _showPolygons = !_showPolygons;
-    });
-
-    // Rebuild polygons with new visibility setting
-    final state = _controller.state;
-    if (state is MapSuccess) {
-      _updatePolygons(state);
-    }
-
-    debugPrint('🔶 Polygon visibility toggled: $_showPolygons');
-  }
+  // T-V3: Polygon toggle replaced by FireDataModeToggle (021-live-fire-data)
+  // void _onPolygonToggle() {
+  //   setState(() {
+  //     _showPolygons = !_showPolygons;
+  //   });
+  //
+  //   // Rebuild polygons with new visibility setting
+  //   final state = _controller.state;
+  //   if (state is MapSuccess) {
+  //     _updatePolygons(state);
+  //   }
+  //
+  //   debugPrint('🔶 Polygon visibility toggled: $_showPolygons');
+  // }
 
   /// Animate camera to user's GPS location (or fallback to Aviemore)
   /// Called when user taps the GPS button
@@ -629,19 +658,44 @@ class _MapScreenState extends State<MapScreen> {
               lastUpdated: state.lastUpdated,
             ),
           ),
-        // Map controls positioned at top-right (burn areas toggle, map type, GPS)
+        // Map controls positioned at top-right (fire data mode, filters, map type, GPS)
         Positioned(
           top: 16,
           right: 16,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // Burn areas visibility toggle (longer, so at top)
-              PolygonToggleChip(
-                showPolygons: _showPolygons,
-                enabled:
-                    PolygonStyleHelper.shouldShowPolygonsAtZoom(_currentZoom),
-                onToggle: _onPolygonToggle,
+              // Fire data mode toggle (Hotspots / Burnt Areas)
+              FireDataModeToggle(
+                mode: _controller.fireDataMode,
+                onModeChanged: (mode) {
+                  _controller.setFireDataMode(mode);
+                  // Immediately update markers/polygons for new mode
+                  final state = _controller.state;
+                  if (state is MapSuccess) {
+                    _updateMarkersForMode(state);
+                    _updatePolygonsForMode(state);
+                  }
+                  setState(() {
+                    // Sync local polygon visibility with mode
+                    _showPolygons = mode == FireDataMode.burntAreas;
+                  });
+                },
+                enabled: true,
+              ),
+              const SizedBox(height: 8),
+              // Time filter chips (dynamic based on mode)
+              TimeFilterChips(
+                mode: _controller.fireDataMode,
+                hotspotFilter: _controller.hotspotTimeFilter,
+                burntAreaFilter: _controller.burntAreaSeasonFilter,
+                onHotspotFilterChanged: (filter) {
+                  _controller.setHotspotTimeFilter(filter);
+                },
+                onBurntAreaFilterChanged: (filter) {
+                  _controller.setBurntAreaSeasonFilter(filter);
+                },
+                enabled: true,
               ),
               const SizedBox(height: 8),
               // Map type selector (dropdown menu)

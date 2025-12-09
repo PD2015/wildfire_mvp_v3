@@ -3,19 +3,29 @@ import 'package:dartz/dartz.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart' as bounds;
+import 'package:wildfire_mvp_v3/models/fire_data_mode.dart';
+import 'package:wildfire_mvp_v3/models/hotspot.dart';
+import 'package:wildfire_mvp_v3/models/burnt_area.dart';
+import 'package:wildfire_mvp_v3/models/hotspot_cluster.dart';
 import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
+import 'package:wildfire_mvp_v3/services/gwis_hotspot_service.dart';
+import 'package:wildfire_mvp_v3/services/effis_burnt_area_service.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
+import 'package:wildfire_mvp_v3/features/map/utils/hotspot_clusterer.dart';
 import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 
 /// MapController manages state for MapScreen
 ///
 /// Orchestrates location resolution, fire data fetching, and risk assessment.
+/// Extended with fire data mode support for 021-live-fire-data feature.
 class MapController extends ChangeNotifier {
   final LocationResolver _locationResolver;
   final FireLocationService _fireLocationService;
   final FireRiskService _fireRiskService;
+  final GwisHotspotService? _hotspotService;
+  final EffisBurntAreaService? _burntAreaService;
 
   MapState _state = const MapLoading();
 
@@ -26,6 +36,23 @@ class MapController extends ChangeNotifier {
   /// Whether a manual location is being used (from location picker)
   bool _isManualLocation = false;
 
+  // Fire data mode state (021-live-fire-data)
+  FireDataMode _fireDataMode = FireDataMode.hotspots;
+  HotspotTimeFilter _hotspotTimeFilter = HotspotTimeFilter.today;
+  BurntAreaSeasonFilter _burntAreaSeasonFilter =
+      BurntAreaSeasonFilter.thisSeason;
+
+  // Fire data collections
+  List<Hotspot> _hotspots = [];
+  List<BurntArea> _burntAreas = [];
+  List<HotspotCluster> _clusters = [];
+
+  // Zoom level for clustering decisions
+  double _currentZoom = 8.0;
+
+  // Whether live data is available or using mock fallback
+  bool _isUsingMockData = false;
+
   MapState get state => _state;
 
   /// Get user's actual GPS location (for distance calculations)
@@ -35,13 +62,26 @@ class MapController extends ChangeNotifier {
   /// Whether the current center is from a manual location selection
   bool get isManualLocation => _isManualLocation;
 
+  // Fire data mode getters
+  FireDataMode get fireDataMode => _fireDataMode;
+  HotspotTimeFilter get hotspotTimeFilter => _hotspotTimeFilter;
+  BurntAreaSeasonFilter get burntAreaSeasonFilter => _burntAreaSeasonFilter;
+  List<Hotspot> get hotspots => _hotspots;
+  List<BurntArea> get burntAreas => _burntAreas;
+  List<HotspotCluster> get clusters => _clusters;
+  bool get isUsingMockData => _isUsingMockData;
+
   MapController({
     required LocationResolver locationResolver,
     required FireLocationService fireLocationService,
     required FireRiskService fireRiskService,
+    GwisHotspotService? hotspotService,
+    EffisBurntAreaService? burntAreaService,
   })  : _locationResolver = locationResolver,
         _fireLocationService = fireLocationService,
-        _fireRiskService = fireRiskService;
+        _fireRiskService = fireRiskService,
+        _hotspotService = hotspotService,
+        _burntAreaService = burntAreaService;
 
   /// Get test region coordinates based on TEST_REGION environment variable
   static LatLng _getTestRegionCenter() {
@@ -185,6 +225,9 @@ class MapController extends ChangeNotifier {
   Future<void> refreshMapData(bounds.LatLngBounds visibleBounds) async {
     final previousState = _state;
 
+    // Store bounds for mode-specific data fetching
+    _currentBounds = visibleBounds;
+
     // DON'T set state to loading during viewport refresh - causes map widget unmount
     // Just fetch data in background and update markers when ready
 
@@ -217,6 +260,9 @@ class MapController extends ChangeNotifier {
         },
       );
 
+      // Also fetch mode-specific data (hotspots or burnt areas)
+      _fetchDataForCurrentMode();
+
       notifyListeners();
     } catch (e) {
       _state = MapError(
@@ -246,6 +292,197 @@ class MapController extends ChangeNotifier {
       return Left('Risk check error: $e');
     }
   }
+
+  // === Fire Data Mode Methods (021-live-fire-data) ===
+
+  /// Set the fire data display mode
+  ///
+  /// Clears data from the previous mode and triggers refetch for the new mode.
+  void setFireDataMode(FireDataMode mode) {
+    if (_fireDataMode == mode) return;
+
+    _fireDataMode = mode;
+
+    // Clear data from previous mode
+    if (mode == FireDataMode.hotspots) {
+      _burntAreas = [];
+    } else {
+      _hotspots = [];
+      _clusters = [];
+    }
+
+    // Fetch data for the new mode
+    _fetchDataForCurrentMode();
+
+    notifyListeners();
+  }
+
+  /// Set the hotspot time filter
+  ///
+  /// Only applicable when in hotspots mode. Triggers data refetch.
+  void setHotspotTimeFilter(HotspotTimeFilter filter) {
+    if (_hotspotTimeFilter == filter) return;
+
+    _hotspotTimeFilter = filter;
+    // Refetch hotspots with new filter if in hotspots mode
+    if (_fireDataMode == FireDataMode.hotspots) {
+      _fetchHotspotsForCurrentBounds();
+    }
+    notifyListeners();
+  }
+
+  /// Set the burnt area season filter
+  ///
+  /// Only applicable when in burnt areas mode. Triggers data refetch.
+  void setBurntAreaSeasonFilter(BurntAreaSeasonFilter filter) {
+    if (_burntAreaSeasonFilter == filter) return;
+
+    _burntAreaSeasonFilter = filter;
+    // Refetch burnt areas with new filter if in burnt areas mode
+    if (_fireDataMode == FireDataMode.burntAreas) {
+      _fetchBurntAreasForCurrentBounds();
+    }
+    notifyListeners();
+  }
+
+  /// Current viewport bounds for data fetching
+  bounds.LatLngBounds? _currentBounds;
+
+  /// Update viewport bounds and fetch appropriate data
+  ///
+  /// Called when map viewport changes significantly.
+  void updateBounds(bounds.LatLngBounds newBounds) {
+    _currentBounds = newBounds;
+    _fetchDataForCurrentMode();
+  }
+
+  /// Fetch data for the current mode using current bounds
+  void _fetchDataForCurrentMode() {
+    if (_currentBounds == null) return;
+
+    if (_fireDataMode == FireDataMode.hotspots) {
+      _fetchHotspotsForCurrentBounds();
+    } else {
+      _fetchBurntAreasForCurrentBounds();
+    }
+  }
+
+  /// Fetch hotspots from GWIS service for current viewport
+  Future<void> _fetchHotspotsForCurrentBounds() async {
+    if (_currentBounds == null) return;
+    if (_hotspotService == null) {
+      debugPrint('🗺️ MapController: Hotspot service not available');
+      return;
+    }
+
+    debugPrint(
+      '🗺️ MapController: Fetching hotspots for bounds '
+      'SW(${_currentBounds!.southwest.latitude.toStringAsFixed(2)},${_currentBounds!.southwest.longitude.toStringAsFixed(2)}) '
+      'NE(${_currentBounds!.northeast.latitude.toStringAsFixed(2)},${_currentBounds!.northeast.longitude.toStringAsFixed(2)}) '
+      'filter: ${_hotspotTimeFilter.name}',
+    );
+
+    final result = await _hotspotService!.getHotspots(
+      bounds: _currentBounds!,
+      timeFilter: _hotspotTimeFilter,
+    );
+
+    result.fold(
+      (error) {
+        debugPrint(
+          '🗺️ MapController: Error fetching hotspots: ${error.message}',
+        );
+        _isUsingMockData = true;
+      },
+      (hotspots) {
+        debugPrint(
+          '🗺️ MapController: Loaded ${hotspots.length} hotspots',
+        );
+        _hotspots = hotspots;
+        _isUsingMockData = false;
+
+        // Recluster based on current zoom
+        _reclusterHotspots();
+      },
+    );
+
+    notifyListeners();
+  }
+
+  /// Fetch burnt areas from EFFIS service for current viewport
+  Future<void> _fetchBurntAreasForCurrentBounds() async {
+    if (_currentBounds == null) return;
+    if (_burntAreaService == null) {
+      debugPrint('🗺️ MapController: Burnt area service not available');
+      return;
+    }
+
+    debugPrint(
+      '🗺️ MapController: Fetching burnt areas for bounds '
+      'SW(${_currentBounds!.southwest.latitude.toStringAsFixed(2)},${_currentBounds!.southwest.longitude.toStringAsFixed(2)}) '
+      'NE(${_currentBounds!.northeast.latitude.toStringAsFixed(2)},${_currentBounds!.northeast.longitude.toStringAsFixed(2)}) '
+      'filter: ${_burntAreaSeasonFilter.name}',
+    );
+
+    final result = await _burntAreaService!.getBurntAreas(
+      bounds: _currentBounds!,
+      seasonFilter: _burntAreaSeasonFilter,
+    );
+
+    result.fold(
+      (error) {
+        debugPrint(
+          '🗺️ MapController: Error fetching burnt areas: ${error.message}',
+        );
+        _isUsingMockData = true;
+      },
+      (areas) {
+        debugPrint(
+          '🗺️ MapController: Loaded ${areas.length} burnt areas',
+        );
+        _burntAreas = areas;
+        _isUsingMockData = false;
+      },
+    );
+
+    notifyListeners();
+  }
+
+  /// Update current zoom level and recluster hotspots if needed
+  ///
+  /// Hotspots are clustered at zoom < 10, shown individually at zoom >= 10.
+  void updateZoom(double zoom) {
+    final previousZoom = _currentZoom;
+    _currentZoom = zoom;
+
+    // Check if we crossed the clustering threshold (zoom 10)
+    const clusterThreshold = 10.0;
+    final wasAboveThreshold = previousZoom >= clusterThreshold;
+    final isAboveThreshold = zoom >= clusterThreshold;
+
+    if (wasAboveThreshold != isAboveThreshold) {
+      _reclusterHotspots();
+    }
+  }
+
+  /// Recluster hotspots based on current zoom level
+  void _reclusterHotspots() {
+    if (_fireDataMode != FireDataMode.hotspots) return;
+
+    if (_currentZoom >= 10.0) {
+      // High zoom: no clustering, show individual hotspots
+      _clusters = [];
+    } else {
+      // Low zoom: cluster hotspots
+      _clusters = HotspotClusterer.cluster(_hotspots);
+    }
+
+    notifyListeners();
+  }
+
+  /// Whether to show individual hotspots or clusters based on zoom
+  bool get shouldShowClusters =>
+      _fireDataMode == FireDataMode.hotspots && _currentZoom < 10.0;
 
   @override
   void dispose() {
