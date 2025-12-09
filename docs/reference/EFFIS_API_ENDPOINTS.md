@@ -10,6 +10,7 @@ related:
   - ../../lib/models/fire_incident.dart
   - ../../test/fixtures/scotland_fire_273772_fixture.dart
 changelog:
+  - 2025-12-09: Added satellite sensor comparison (VIIRS vs MODIS vs NOAA) and map implementation recommendations
   - 2025-12-09: Discovered working real-time hotspot layers on GWIS endpoint (viirs.hs.today, etc.)
   - 2025-12-09: Documented EFFIS vs GWIS endpoint differences for hotspot data
   - 2025-12-08: Added "Understanding FIREDATE and LASTUPDATE" section explaining date semantics
@@ -525,6 +526,168 @@ If you need to track fires **while they're burning**, use hotspot layers:
 | `ms:all.hs` | Combined all sources | Rolling |
 
 **Note:** Hotspot layers are ephemeral - they show current thermal anomalies, not historical records.
+
+---
+
+## Satellite Sensor Comparison
+
+Understanding the differences between satellite sensors helps choose the right data for your use case.
+
+### VIIRS vs MODIS vs NOAA
+
+| Aspect | VIIRS | MODIS | NOAA (AVHRR) |
+|--------|-------|-------|--------------|
+| **Resolution** | **375m** (best) | 1km | 1.1km |
+| **Satellites** | Suomi NPP, NOAA-20, NOAA-21 | Terra, Aqua | NOAA-18, NOAA-19 |
+| **Orbit** | Polar, 14 passes/day | Polar, 4 passes/day | Polar, ~4 passes/day |
+| **First Launch** | 2011 | 1999 | 1978 (legacy) |
+| **Fire Detection** | 375m I-band thermal | 1km thermal | 1.1km thermal |
+| **Best For** | Small fires, precision | Historical continuity | Backup/validation |
+
+### Why VIIRS is Recommended
+
+1. **4x Better Resolution**: 375m vs 1km means VIIRS can detect fires ~16x smaller in area
+2. **More Satellites**: 3 VIIRS satellites (Suomi NPP, NOAA-20, NOAA-21) vs 2 MODIS (Terra, Aqua)
+3. **More Frequent Passes**: ~14 observations/day globally vs ~4 for MODIS
+4. **Better Night Detection**: Improved I-band sensor for low-light conditions
+5. **Reduced False Positives**: Better algorithms reject industrial heat sources
+
+### Sensor Resolution Visual Comparison
+
+```
+VIIRS (375m pixel)         MODIS (1km pixel)
+┌───┬───┬───┐              ┌─────────────────┐
+│ 🔥│   │   │              │                 │
+├───┼───┼───┤              │       🔥        │
+│   │   │   │              │    (entire      │
+├───┼───┼───┤              │     pixel)      │
+│   │   │   │              │                 │
+└───┴───┴───┘              └─────────────────┘
+9 pixels = same area        1 pixel
+
+A 500m fire:
+- VIIRS: Detected in 1-2 pixels with precise location
+- MODIS: Detected in 1 pixel, location uncertainty ±500m
+```
+
+### When to Use Each Sensor
+
+| Use Case | Recommended Sensor | Reason |
+|----------|-------------------|--------|
+| **Real-time alerts** | VIIRS | Best resolution, most frequent |
+| **Small fires (<1km²)** | VIIRS | Only sensor that can detect |
+| **Historical analysis (pre-2012)** | MODIS | VIIRS not available before 2011 |
+| **Validation/cross-check** | All sensors | Compare for confidence |
+| **UK/Scotland fires** | VIIRS | Small moorland fires need resolution |
+
+### Hotspot Data Fields
+
+When querying hotspot data via WFS, these fields are available:
+
+| Field | Description | Example Value |
+|-------|-------------|---------------|
+| `id` | Unique hotspot identifier | `41646539755` |
+| `acq_at` | Detection timestamp (UTC) | `2025-12-08 02:08:00` |
+| `lat` / `lon` | Coordinates | `57.2`, `-3.8` |
+| `frp` | Fire Radiative Power (MW) | `15.3` (intensity) |
+| `confidence` | Detection confidence | `high`, `nominal`, `low` |
+| `night` | Night-time detection | `true` / `false` |
+| `satellite` | Source satellite | `N20` (NOAA-20) |
+| `bright_mir` | Mid-infrared brightness (K) | `342.5` |
+| `bright_tir` | Thermal infrared brightness (K) | `298.1` |
+| `scan` / `track` | Pixel dimensions (km) | `0.39`, `0.45` |
+| `CLASS` | Temporal classification | `1DAY_1` = today |
+
+**Note:** Hotspots are **points only** - they do NOT have area data. For area measurements, use burnt area polygons (`AREA_HA` field).
+
+---
+
+## Map Implementation Recommendations
+
+### Recommended Layer Strategy
+
+For a user-friendly fire map application, use this layered approach:
+
+| Layer Type | Endpoint | Layer | User Toggle Label |
+|------------|----------|-------|-------------------|
+| **Today's Fires** | GWIS WMS | `viirs.hs.today` | "Active Fires (24h)" |
+| **Recent Fires** | GWIS WMS | `viirs.hs.week` | "Recent Activity (7d)" |
+| **Burnt Areas** | EFFIS WFS | `modis.ba.poly.season` | "Fire Damage" |
+
+### Endpoint URLs for Implementation
+
+```dart
+// 1. WMTS Tiles - Fast raster display for zoomed-out view
+const wmtsTileUrl = 'https://maps.effis.emergency.copernicus.eu/gwist/wmts'
+    '?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile'
+    '&LAYER=viirs.hs.today'  // or viirs.hs.week
+    '&FORMAT=image/png'
+    '&TILEMATRIXSET=EPSG:3857'
+    '&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}';
+
+// 2. WMS GetFeatureInfo - Tap hotspot for details
+const wmsInfoUrl = 'https://maps.effis.emergency.copernicus.eu/gwis'
+    '?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo'
+    '&LAYERS=viirs.hs.today&QUERY_LAYERS=viirs.hs.today'
+    '&CRS=EPSG:4326&BBOX={bbox}'
+    '&WIDTH=256&HEIGHT=256&I={pixelX}&J={pixelY}'
+    '&INFO_FORMAT=application/vnd.ogc.gml';
+
+// 3. WFS Burnt Areas - Polygon overlay with area data
+const wfsBurntUrl = 'https://maps.effis.emergency.copernicus.eu/effis'
+    '?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature'
+    '&TYPENAMES=ms:modis.ba.poly.season'
+    '&BBOX={bbox},EPSG:4326'
+    '&OUTPUTFORMAT=geojson';
+```
+
+### Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        MAP DISPLAY                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌─────────────────┐   ┌─────────────────┐   ┌───────────────┐ │
+│  │ Google Maps     │ + │ WMTS Hotspot    │ + │ Burnt Area    │ │
+│  │ Base Map        │   │ Tile Overlay    │   │ Polygons      │ │
+│  └─────────────────┘   └─────────────────┘   └───────────────┘ │
+│                                                                 │
+│  Zoom < 8:  Show WMTS tiles only (clustered view)              │
+│  Zoom ≥ 8:  Show individual markers + polygons                 │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │ Filter:  [🔥 Today] [📅 This Week] [🗺️ Burnt Areas]        ││
+│  └─────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────┘
+
+Data Flow:
+• Tiles:    GWIST WMTS → viirs.hs.today (raster for overview)
+• Details:  GWIS WMS GetFeatureInfo → viirs.hs.today (tap info)
+• Areas:    EFFIS WFS → modis.ba.poly.season (polygon + AREA_HA)
+```
+
+### User-Friendly Display Guidelines
+
+| Data Element | Show to User | Hide from User |
+|--------------|--------------|----------------|
+| Detection time | "Detected 2 hours ago" | Raw UTC timestamp |
+| Confidence | "High confidence" icon | Numeric value |
+| Fire intensity | 🔥🔥🔥 icons by FRP | Raw MW value |
+| Satellite | "VIIRS satellite" | "N20" code |
+| Coordinates | On tap only | Not in list view |
+| Burnt area | "950 hectares affected" | AREA_HA field name |
+
+### Zoom-Based Visibility
+
+| Zoom Level | Display |
+|------------|---------|
+| 0-5 | Country-level WMTS tile overlay only |
+| 6-7 | Regional WMTS tiles, no individual markers |
+| 8-10 | Individual hotspot markers appear |
+| 11+ | Burnt area polygons + detailed markers |
+
+This prevents visual clutter at low zoom levels while providing detail when users zoom in.
 
 ---
 
