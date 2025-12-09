@@ -10,6 +10,8 @@ related:
   - ../../lib/models/fire_incident.dart
   - ../../test/fixtures/scotland_fire_273772_fixture.dart
 changelog:
+  - 2025-12-09: Added hotspot pixel limitations section explaining why area estimation from hotspots is inaccurate
+  - 2025-12-09: Documented Scotland Wildfire Tracker (Strathclyde) as alternative data source with analysis
   - 2025-12-09: Added satellite sensor comparison (VIIRS vs MODIS vs NOAA) and map implementation recommendations
   - 2025-12-09: Discovered working real-time hotspot layers on GWIS endpoint (viirs.hs.today, etc.)
   - 2025-12-09: Documented EFFIS vs GWIS endpoint differences for hotspot data
@@ -724,6 +726,165 @@ Requires free registration for MAP_KEY.
 | European Focus | ✅ Yes | Global |
 | Resolution | ~1km | 375m-1km |
 | Registration Required | No | Yes (free) |
+
+---
+
+## Understanding Hotspot Pixel Limitations
+
+### Why Hotspots Cannot Accurately Measure Fire Area
+
+From the **NASA FIRMS FAQ**:
+
+> "It is not recommended to use active fire locations to estimate burned area as determining burned area to an acceptable degree of accuracy is not possible due to nontrivial spatial and temporal sampling issues."
+
+### The Problem: Pixels Are Not Fire Boundaries
+
+Each hotspot detection represents a **pixel center**, not the actual fire location or extent:
+
+```
+What the satellite sees:        What the fire actually is:
+┌─────────────────┐             
+│                 │                    🔥🔥
+│        •        │  ← Pixel          🔥🔥🔥
+│    (center)     │    center           🔥
+│                 │                    
+└─────────────────┘             
+     375m × 375m                   ~200m actual
+     
+Reported: 0.14 km²              Actual: ~0.04 km²
+```
+
+### Pixel Size Varies by Satellite Position
+
+The `scan` and `track` fields in hotspot data show actual pixel size:
+
+| Satellite Position | Nominal Size | Actual Pixel Size |
+|-------------------|--------------|-------------------|
+| Nadir (directly below) | 375m × 375m | ~375m × 375m |
+| Edge of swath | 375m × 375m | **~800m × 800m** |
+
+This "bow-tie effect" causes pixels at the swath edge to be larger and overlap:
+
+```
+Nadir (accurate)              Edge of swath (distorted)
+┌───┬───┬───┐                 ╱▔▔▔▔▔▔▔▔▔▔▔╲
+│   │   │   │                ╱    ╱    ╲    ╲
+├───┼───┼───┤               ╱    ╱      ╲    ╲
+│   │   │   │              ╱    ╱   🔥   ╲    ╲
+└───┴───┴───┘             ╱____╱__________╲____╲
+Regular grid              Distorted pixels overlap
+```
+
+### Multiple Passes = Duplicated Detections
+
+A fire detected on multiple satellite passes can appear "bigger" due to pixel center shifts:
+
+```
+Pass 1 (1:30 AM):  Fire at (57.1234, -3.4567)
+Pass 2 (1:30 PM):  Fire at (57.1256, -3.4589)  ← Shifted ~200m
+
+If naively merged as separate pixels:
+→ Estimated area: 2 × 0.14 km² = 0.28 km²
+→ Actual fire: might be only 0.05 km²
+```
+
+### Large Fire Example: Dava Moor (9,809 hectares)
+
+For a fire of ~98 km²:
+- **Theoretical pixels needed**: ~700 pixels (at 375m resolution)
+- **But**: Fire burns over 4 days, satellite passes ~4 times/day
+- **Each pass**: Only captures actively burning portion at that moment
+- **Cumulative pixels**: Could massively overcount if merged naively
+
+### What Each Data Type Actually Represents
+
+| Data Type | What It Measures | Accuracy |
+|-----------|------------------|----------|
+| **Hotspot point** | "A fire exists somewhere in this ~375m pixel" | ±200m location |
+| **Clustered hotspots** | Cumulative thermal detections over time | Overestimates area |
+| **EFFIS Burnt Area** | Verified post-fire damage polygon | ±30m boundary |
+| **FRP (Fire Radiative Power)** | Energy output in megawatts | Fire intensity, not size |
+
+### Recommendation for Applications
+
+| Use Case | Recommended Data | Avoid |
+|----------|------------------|-------|
+| "Where are fires burning now?" | Hotspot points | - |
+| "How big is the fire?" | EFFIS burnt areas (`AREA_HA`) | Clustered hotspots |
+| "How intense is the fire?" | FRP (megawatts) | - |
+| "Show fire history" | EFFIS burnt area polygons | Accumulated hotspots |
+
+**If displaying hotspot clusters**, label clearly:
+- ✅ "Estimated active fire extent"
+- ❌ "Fire area" or "Burnt area"
+
+---
+
+## Alternative Tracker: Scotland Wildfire Tracker (Strathclyde)
+
+**URL:** `https://ee-eif-uni-of-strathclyde.projects.earthengine.app/view/scotland-wildfire-tracker`
+
+This Google Earth Engine application provides an alternative view of Scottish wildfires.
+
+### Data Sources Used
+
+| Data Type | Source | Resolution |
+|-----------|--------|------------|
+| Active Fires | `NASA/LANCE/SNPP_VIIRS/C2` | 375m |
+| Before/After Imagery | `COPERNICUS/S2_HARMONIZED` (Sentinel-2) | 10m |
+| Admin Boundaries | `FAO/GAUL_SIMPLIFIED_500m/2015/level2` | 500m |
+
+### How They Calculate "Fire Area"
+
+The tracker derives area by **clustering hotspot pixels** - NOT from verified burnt area data:
+
+```javascript
+// Their algorithm (simplified):
+// 1. Mosaic VIIRS hotspots from last 3 days
+viirsMosaic = firesCollection.qualityMosaic('confidence');
+
+// 2. Convert hotspot pixels to polygons at 375m scale
+fireVectors = viirsMosaic.reduceToVectors({
+  scale: 375,              // VIIRS resolution
+  geometryType: 'polygon', // Merge adjacent pixels
+  eightConnected: true     // Include diagonal neighbors
+});
+
+// 3. Calculate area from merged polygon geometry
+area = feature.geometry().area();  // Returns m²
+```
+
+### Limitations of This Approach
+
+| Issue | Impact |
+|-------|--------|
+| Multi-day accumulation | Fire on Day 1 + Day 2 = larger polygon (overcounts) |
+| Pixel shift between passes | Same fire detected at different locations |
+| Sub-pixel fires | 100m fire triggers full 375m pixel |
+| No verification | Purely algorithmic, no analyst review |
+
+### Comparison: Strathclyde vs EFFIS
+
+| Aspect | Strathclyde Tracker | EFFIS |
+|--------|---------------------|-------|
+| Area Source | Derived from hotspot clustering | Verified burnt area polygons |
+| Update Speed | Real-time (last 3 days) | Post-fire (days to weeks) |
+| Before/After | ✅ Sentinel-2 comparison | ❌ Not available |
+| Geographic Focus | Scotland/UK only | Europe/Global |
+| API Access | Earth Engine only (no REST) | WMS/WFS/WMTS (open) |
+| Area Accuracy | Rough estimate | Verified (±30m boundary) |
+
+### Key Feature: Before/After Imagery
+
+The tracker's compelling feature is Sentinel-2 split-view comparison:
+- **Before**: Composite from 60-14 days before fire
+- **After**: Latest imagery from past 3 days
+- **Visualization**: RGB, NIR, and SWIR false color options
+
+This could be replicated using:
+- Sentinel Hub API (commercial)
+- Copernicus Data Space (free, requires registration)
+- Google Earth Engine (requires GEE account)
 
 ---
 
