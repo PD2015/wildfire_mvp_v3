@@ -7,6 +7,8 @@
 ///
 /// Run with: flutter test test/contract/effis_endpoint_contract_test.dart
 /// Note: Requires network access. Skip in CI if needed with @Tags(['contract'])
+// NOTE: print() statements are intentional in contract tests for diagnostic output
+// ignore_for_file: avoid_print
 @Tags(['contract'])
 library effis_endpoint_contract_test;
 

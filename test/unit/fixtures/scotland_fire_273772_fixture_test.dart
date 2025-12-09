@@ -17,7 +17,7 @@ void main() {
     });
 
     test('simplified polygon has at least 3 points for valid polygon', () {
-      final polygon = ScotlandFire273772Fixture.simplifiedPolygon;
+      const polygon = ScotlandFire273772Fixture.simplifiedPolygon;
 
       expect(polygon.length, greaterThanOrEqualTo(3));
       expect(polygon.first.isValid, isTrue);
@@ -59,7 +59,7 @@ void main() {
     });
 
     test('ring2Simplified forms closed polygon', () {
-      final ring = ScotlandFire273772Fixture.ring2Simplified;
+      const ring = ScotlandFire273772Fixture.ring2Simplified;
 
       // A closed polygon should have first point == last point
       expect(ring.first.latitude, equals(ring.last.latitude));
