@@ -10,6 +10,7 @@ related:
   - ../../lib/models/fire_incident.dart
   - ../../test/fixtures/scotland_fire_273772_fixture.dart
 changelog:
+  - 2025-12-09: Added hotspot data lifecycle section (time windows, archive retention, historical access)
   - 2025-12-09: Added hotspot pixel limitations section explaining why area estimation from hotspots is inaccurate
   - 2025-12-09: Documented Scotland Wildfire Tracker (Strathclyde) as alternative data source with analysis
   - 2025-12-09: Added satellite sensor comparison (VIIRS vs MODIS vs NOAA) and map implementation recommendations
@@ -817,6 +818,102 @@ For a fire of ~98 km²:
 **If displaying hotspot clusters**, label clearly:
 - ✅ "Estimated active fire extent"
 - ❌ "Fire area" or "Burnt area"
+
+---
+
+## Hotspot Data Lifecycle: Persistence and Time Windows
+
+### How Hotspots "Age Out" of Views
+
+Hotspots are **not deleted** - they're organized into **time-windowed layers**:
+
+| Layer | Time Window | Use Case |
+|-------|-------------|----------|
+| `viirs.hs.today` | Rolling 24 hours | "What's burning now?" |
+| `viirs.hs.week` | Rolling 7 days | "Recent fire activity" |
+| `viirs.hs` (archive) | All historical data | Research, analysis |
+
+**Lifecycle example**:
+```
+Day 1: Fire detected
+  → Appears in: .today ✓, .week ✓, archive ✓
+
+Day 2: Fire still burning, new hotspots added
+  → Day 1 hotspots: .today ✗, .week ✓, archive ✓
+  → Day 2 hotspots: .today ✓, .week ✓, archive ✓
+
+Day 8: Fire extinguished
+  → All hotspots: .today ✗, .week ✗, archive ✓
+```
+
+### NASA FIRMS Historical Data Retention
+
+All hotspot data is **permanently archived**:
+
+| Sensor | Data Available From | Archive Access |
+|--------|---------------------|----------------|
+| MODIS (Terra/Aqua) | November 2000 | Full archive |
+| VIIRS S-NPP | January 2012 | Full archive |
+| VIIRS NOAA-20 | April 2018 | Full archive |
+| VIIRS NOAA-21 | January 2024 | Full archive |
+| Landsat | June 2022 | Full archive |
+
+### Accessing Historical Hotspot Data
+
+**Option 1: NASA FIRMS Map Viewer** (interactive, no login for viewing)
+
+URL format: `https://firms.modaps.eosdis.nasa.gov/map/#d:{DATE};@{LON},{LAT},{ZOOM}z`
+
+Example for Dava Moor fire (June 28 - July 1, 2025):
+- June 28: `https://firms.modaps.eosdis.nasa.gov/map/#d:2025-06-28;@-3.7,57.4,10.0z`
+- June 29: `https://firms.modaps.eosdis.nasa.gov/map/#d:2025-06-29;@-3.7,57.4,10.0z`
+- June 30: `https://firms.modaps.eosdis.nasa.gov/map/#d:2025-06-30;@-3.7,57.4,10.0z`
+- July 1: `https://firms.modaps.eosdis.nasa.gov/map/#d:2025-07-01;@-3.7,57.4,10.0z`
+
+To view cumulative spread:
+1. Click "Advanced" in time selector
+2. Set custom date range
+
+**Option 2: NASA FIRMS Archive Download** (requires Earthdata login)
+
+URL: `https://firms.modaps.eosdis.nasa.gov/download/`
+
+- Download as: Shapefile, CSV, or JSON
+- Filter by: Date range, geographic area, satellite
+- Standard quality data available ~5 months after NRT
+
+**Option 3: GWIS/EFFIS Viewers**
+
+- GWIS: `https://gwis.jrc.ec.europa.eu/apps/gwis.statistics/currentSituation`
+- EFFIS: `https://effis.jrc.ec.europa.eu/apps/effis.statistics/currentSituation`
+
+Use the date picker to navigate to historical dates.
+
+### Satellite Pass Frequency
+
+Understanding pass frequency helps interpret hotspot data:
+
+| Sensor | Satellites | Passes/Day (mid-latitudes) | Orbit Type |
+|--------|------------|---------------------------|------------|
+| VIIRS | 3 (S-NPP, NOAA-20, NOAA-21) | ~6-8 | Polar, ~14 orbits/day |
+| MODIS | 2 (Terra, Aqua) | ~4 | Polar |
+| GOES | 2 (GOES-16, GOES-19) | Continuous | Geostationary |
+
+**For Scotland** (latitude ~57°N):
+- VIIRS: ~3-4 daytime + 3-4 nighttime passes per day
+- Each pass captures a "snapshot" - actively burning area only
+- Large fires detected on multiple passes show fire spread over time
+
+### Why You See Multiple Hotspots for One Fire
+
+```
+Pass 1 (02:00 UTC)    Pass 2 (13:30 UTC)    Pass 3 (14:20 UTC)
+      🔥                   🔥🔥                  🔥🔥🔥
+                           🔥                    🔥🔥
+
+Fire is spreading, each pass captures current state.
+Cumulative view shows "fire progression" not "simultaneous extent".
+```
 
 ---
 
