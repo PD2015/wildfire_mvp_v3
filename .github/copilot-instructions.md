@@ -196,6 +196,7 @@ replaces:
 **Full strategy**: See `docs/DOCUMENTATION_STRATEGY.md`
 
 ## Recent Changes
+- 021-live-fire-data: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 - **Burnt Area Polygon Visualization** (A15, Issue #54):
   - Extended FireIncident model with `boundaryPoints: List<LatLng>?` for polygon boundaries
   - Added GeoJSON Polygon geometry parsing in `fromJson()` with validation (>= 3 points)
@@ -212,7 +213,6 @@ replaces:
   - Implemented trust-building UX: combination approach with icons, place names, positive framing
   - Comprehensive test coverage: 101 tests (21 LocationCard, 26 HomeState, 24 HomeController, 30 LocationUtils)
   - See "Location Tracking and Validation Patterns" section for implementation details
-- 016-016-a14-riskbanner: Added Dart 3.9.2, Flutter 3.35.5 stable + Flutter SDK, Material Design, existing RiskPalette, CachedBadge widge
 
 ## Utility Classes Reference
 
