@@ -152,7 +152,8 @@ void main() {
     group('cluster validation', () {
       test('throws ArgumentError for empty hotspot list', () {
         expect(
-          () => HotspotCluster.fromHotspots(id: 'cluster_1', hotspots: []),
+          () =>
+              HotspotCluster.fromHotspots(id: 'cluster_1', hotspots: const []),
           throwsArgumentError,
         );
       });

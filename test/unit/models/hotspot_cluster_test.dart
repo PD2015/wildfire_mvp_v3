@@ -43,7 +43,7 @@ void main() {
         expect(
           () => HotspotCluster.fromHotspots(
             id: 'empty',
-            hotspots: [],
+            hotspots: const [],
           ),
           throwsArgumentError,
         );

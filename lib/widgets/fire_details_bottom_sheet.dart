@@ -1,9 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
+import 'package:wildfire_mvp_v3/models/hotspot.dart';
+import 'package:wildfire_mvp_v3/models/burnt_area.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/utils/distance_calculator.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
+
+/// Type of fire data being displayed
+enum FireDataDisplayType {
+  /// Standard fire incident (from FireLocationService)
+  incident,
+
+  /// Active hotspot from VIIRS satellite
+  hotspot,
+
+  /// Verified burnt area from MODIS satellite
+  burntArea,
+}
 
 /// Bottom sheet widget displaying comprehensive fire incident details
 ///
@@ -56,6 +70,15 @@ class FireDetailsBottomSheet extends StatelessWidget {
   /// Error message to display (shows error state when non-null)
   final String? errorMessage;
 
+  /// Type of fire data being displayed (incident, hotspot, or burntArea)
+  final FireDataDisplayType displayType;
+
+  /// Hotspot source data (when displayType == hotspot)
+  final Hotspot? hotspot;
+
+  /// BurntArea source data (when displayType == burntArea)
+  final BurntArea? burntArea;
+
   const FireDetailsBottomSheet({
     super.key,
     this.incident,
@@ -64,7 +87,80 @@ class FireDetailsBottomSheet extends StatelessWidget {
     this.onRetry,
     this.isLoading = false,
     this.errorMessage,
+    this.displayType = FireDataDisplayType.incident,
+    this.hotspot,
+    this.burntArea,
   });
+
+  /// Factory constructor for displaying a Hotspot
+  ///
+  /// Converts Hotspot to FireIncident for display and sets displayType.
+  factory FireDetailsBottomSheet.fromHotspot({
+    Key? key,
+    required Hotspot hotspot,
+    LatLng? userLocation,
+    VoidCallback? onClose,
+    VoidCallback? onRetry,
+  }) {
+    // Convert Hotspot to FireIncident for rendering
+    final incident = FireIncident(
+      id: hotspot.id,
+      location: hotspot.location,
+      source: DataSource.effis,
+      freshness: Freshness.live,
+      timestamp: hotspot.detectedAt,
+      intensity: hotspot.intensity,
+      detectedAt: hotspot.detectedAt,
+      sensorSource: 'VIIRS',
+      confidence: hotspot.confidence,
+      frp: hotspot.frp,
+    );
+
+    return FireDetailsBottomSheet(
+      key: key,
+      incident: incident,
+      userLocation: userLocation,
+      onClose: onClose,
+      onRetry: onRetry,
+      displayType: FireDataDisplayType.hotspot,
+      hotspot: hotspot,
+    );
+  }
+
+  /// Factory constructor for displaying a BurntArea
+  ///
+  /// Converts BurntArea to FireIncident for display and sets displayType.
+  factory FireDetailsBottomSheet.fromBurntArea({
+    Key? key,
+    required BurntArea burntArea,
+    LatLng? userLocation,
+    VoidCallback? onClose,
+    VoidCallback? onRetry,
+  }) {
+    // Convert BurntArea to FireIncident for rendering
+    final incident = FireIncident(
+      id: burntArea.id,
+      location: burntArea.centroid,
+      source: DataSource.effis,
+      freshness: Freshness.live,
+      timestamp: burntArea.fireDate,
+      intensity: burntArea.intensity,
+      detectedAt: burntArea.fireDate,
+      sensorSource: 'MODIS',
+      areaHectares: burntArea.areaHectares,
+      boundaryPoints: burntArea.boundaryPoints,
+    );
+
+    return FireDetailsBottomSheet(
+      key: key,
+      incident: incident,
+      userLocation: userLocation,
+      onClose: onClose,
+      onRetry: onRetry,
+      displayType: FireDataDisplayType.burntArea,
+      burntArea: burntArea,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -203,10 +299,26 @@ class FireDetailsBottomSheet extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Educational label for hotspot/burntArea types
+        if (displayType != FireDataDisplayType.incident)
+          _buildEducationalLabel(context),
+
         // Data source and demo chips
         _buildChips(inc),
 
         const SizedBox(height: 20),
+
+        // Simplification notice for burnt areas
+        if (displayType == FireDataDisplayType.burntArea &&
+            burntArea != null &&
+            burntArea!.isSimplified)
+          _buildSimplificationNotice(context),
+
+        // Land cover breakdown for burnt areas
+        if (displayType == FireDataDisplayType.burntArea &&
+            burntArea?.landCoverBreakdown != null &&
+            burntArea!.landCoverBreakdown!.isNotEmpty)
+          _buildLandCoverSection(context),
 
         // Location section
         _InfoSection(
@@ -312,9 +424,13 @@ class FireDetailsBottomSheet extends StatelessWidget {
               context: context,
               icon: Icons.access_time,
               label: 'Detected',
-              value: _formatDateTime(inc.detectedAt ?? inc.timestamp),
-              semanticLabel:
-                  'Detected at ${_formatDateTime(inc.detectedAt ?? inc.timestamp)}',
+              // Use relative time for hotspots, absolute for others
+              value: displayType == FireDataDisplayType.hotspot
+                  ? _formatRelativeTime(inc.detectedAt ?? inc.timestamp)
+                  : _formatDateTime(inc.detectedAt ?? inc.timestamp),
+              semanticLabel: displayType == FireDataDisplayType.hotspot
+                  ? _formatRelativeTime(inc.detectedAt ?? inc.timestamp)
+                  : 'Detected at ${_formatDateTime(inc.detectedAt ?? inc.timestamp)}',
             ),
             _buildDetailRow(
               context: context,
@@ -539,6 +655,237 @@ class FireDetailsBottomSheet extends StatelessWidget {
         return 'Cached';
       case DataSource.mock:
         return 'MOCK';
+    }
+  }
+
+  /// Build educational label for hotspot or burnt area types
+  Widget _buildEducationalLabel(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final (icon, title, description) = switch (displayType) {
+      FireDataDisplayType.hotspot => (
+          Icons.local_fire_department,
+          'Active Hotspot',
+          'Satellite-detected thermal anomaly indicating possible active fire.',
+        ),
+      FireDataDisplayType.burntArea => (
+          Icons.layers,
+          'Verified Burnt Area',
+          'MODIS satellite-confirmed area affected by fire this season.',
+        ),
+      FireDataDisplayType.incident => (
+          Icons.info_outline,
+          '',
+          '',
+        ),
+    };
+
+    if (title.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Semantics(
+        label: '$title. $description',
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(12),
+            border:
+                Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: colorScheme.primary, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      description,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Build simplification notice for burnt areas
+  Widget _buildSimplificationNotice(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final originalCount = burntArea?.originalPointCount ?? 0;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Semantics(
+        label: 'Polygon simplified from $originalCount points for display',
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.compress,
+                size: 16,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Simplified boundary (from $originalCount points)',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Build land cover breakdown section for burnt areas
+  Widget _buildLandCoverSection(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final breakdown = burntArea!.landCoverBreakdown!;
+
+    // Sort by percentage descending
+    final sortedEntries = breakdown.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: _InfoSection(
+        title: 'Land Cover Affected',
+        icon: Icons.terrain,
+        children: [
+          for (final entry in sortedEntries)
+            _buildLandCoverBar(
+              context: context,
+              label: _formatLandCoverLabel(entry.key),
+              percentage: entry.value,
+              color: _getLandCoverColor(entry.key, colorScheme),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLandCoverBar({
+    required BuildContext context,
+    required String label,
+    required double percentage,
+    required Color color,
+  }) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Semantics(
+        label: '$label: ${(percentage * 100).toStringAsFixed(0)} percent',
+        child: Row(
+          children: [
+            SizedBox(
+              width: 80,
+              child: Text(
+                label,
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: percentage,
+                  backgroundColor: color.withValues(alpha: 0.2),
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                  minHeight: 12,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 40,
+              child: Text(
+                '${(percentage * 100).toStringAsFixed(0)}%',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.right,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatLandCoverLabel(String key) {
+    return switch (key.toLowerCase()) {
+      'forest' => 'Forest',
+      'shrubland' => 'Shrubland',
+      'grassland' => 'Grassland',
+      'agriculture' => 'Agriculture',
+      'wetland' => 'Wetland',
+      'urban' => 'Urban',
+      'other' => 'Other',
+      _ => key.substring(0, 1).toUpperCase() + key.substring(1),
+    };
+  }
+
+  Color _getLandCoverColor(String key, ColorScheme colorScheme) {
+    return switch (key.toLowerCase()) {
+      'forest' => Colors.green.shade700,
+      'shrubland' => Colors.orange.shade600,
+      'grassland' => Colors.lightGreen.shade500,
+      'agriculture' => Colors.amber.shade600,
+      'wetland' => Colors.blue.shade400,
+      'urban' => Colors.grey.shade600,
+      _ => colorScheme.primary,
+    };
+  }
+
+  /// Format relative time for hotspot detection
+  String _formatRelativeTime(DateTime detectedAt) {
+    final now = DateTime.now().toUtc();
+    final difference = now.difference(detectedAt);
+
+    if (difference.inMinutes < 60) {
+      final minutes = difference.inMinutes;
+      return 'Detected $minutes ${minutes == 1 ? 'minute' : 'minutes'} ago';
+    } else if (difference.inHours < 24) {
+      final hours = difference.inHours;
+      return 'Detected $hours ${hours == 1 ? 'hour' : 'hours'} ago';
+    } else if (difference.inDays < 7) {
+      final days = difference.inDays;
+      return 'Detected $days ${days == 1 ? 'day' : 'days'} ago';
+    } else {
+      return 'Detected on ${_formatDateTime(detectedAt)}';
     }
   }
 }

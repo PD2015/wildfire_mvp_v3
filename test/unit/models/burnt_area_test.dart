@@ -58,9 +58,9 @@ void main() {
         expect(
           () => BurntArea.validated(
             id: 'test',
-            boundaryPoints: [
-              const LatLng(55.0, -3.0),
-              const LatLng(55.1, -3.1),
+            boundaryPoints: const [
+              LatLng(55.0, -3.0),
+              LatLng(55.1, -3.1),
             ],
             areaHectares: 50.0,
             fireDate: testFireDate,
@@ -100,11 +100,11 @@ void main() {
     group('centroid', () {
       test('calculates average of boundary points', () {
         final burntArea = BurntArea.test(
-          boundaryPoints: [
-            const LatLng(55.0, -3.0),
-            const LatLng(56.0, -3.0),
-            const LatLng(56.0, -4.0),
-            const LatLng(55.0, -4.0),
+          boundaryPoints: const [
+            LatLng(55.0, -3.0),
+            LatLng(56.0, -3.0),
+            LatLng(56.0, -4.0),
+            LatLng(55.0, -4.0),
           ],
         );
 
@@ -300,7 +300,7 @@ void main() {
           areaHectares: 75.0,
           fireDate: testFireDate,
           seasonYear: 2025,
-          landCoverBreakdown: {'forest': 0.5, 'shrubland': 0.5},
+          landCoverBreakdown: const {'forest': 0.5, 'shrubland': 0.5},
         );
 
         final json = original.toJson();

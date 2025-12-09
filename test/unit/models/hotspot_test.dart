@@ -139,7 +139,7 @@ void main() {
       });
 
       test('parses confidence string values', () {
-        final lowConfidence = Hotspot.fromJson({
+        final lowConfidence = Hotspot.fromJson(const {
           'id': 'test',
           'properties': {
             'latitude': 55.0,
@@ -152,7 +152,7 @@ void main() {
         });
         expect(lowConfidence.confidence, equals(25.0));
 
-        final highConfidence = Hotspot.fromJson({
+        final highConfidence = Hotspot.fromJson(const {
           'id': 'test2',
           'properties': {
             'latitude': 55.0,
