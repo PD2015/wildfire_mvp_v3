@@ -1,0 +1,69 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "viirs_mock_001",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-3.8, 57.2]
+      },
+      "properties": {
+        "acq_date": "2025-12-10",
+        "acq_time": "1345",
+        "frp": 55.0,
+        "confidence": "high",
+        "latitude": 57.2,
+        "longitude": -3.8
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "viirs_mock_002",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-3.85, 57.15]
+      },
+      "properties": {
+        "acq_date": "2025-12-10",
+        "acq_time": "1330",
+        "frp": 35.5,
+        "confidence": "nominal",
+        "latitude": 57.15,
+        "longitude": -3.85
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "viirs_mock_003",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-3.1883, 55.9533]
+      },
+      "properties": {
+        "acq_date": "2025-12-10",
+        "acq_time": "1200",
+        "frp": 8.5,
+        "confidence": "low",
+        "latitude": 55.9533,
+        "longitude": -3.1883
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "viirs_mock_004",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-4.2518, 55.8642]
+      },
+      "properties": {
+        "acq_date": "2025-12-10",
+        "acq_time": "1115",
+        "frp": 25.0,
+        "confidence": "nominal",
+        "latitude": 55.8642,
+        "longitude": -4.2518
+      }
+    }
+  ]
+}

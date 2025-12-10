@@ -1,0 +1,125 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "modis_ba_mock_2025_001",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-3.82, 57.22],
+          [-3.78, 57.22],
+          [-3.78, 57.18],
+          [-3.82, 57.18],
+          [-3.82, 57.22]
+        ]]
+      },
+      "properties": {
+        "area_ha": 85.5,
+        "firedate": "2025-07-15",
+        "year": 2025,
+        "lc_forest": 0.45,
+        "lc_shrub": 0.30,
+        "lc_grass": 0.15,
+        "lc_agri": 0.05,
+        "lc_other": 0.05
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "modis_ba_mock_2025_002",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-3.95, 57.12],
+          [-3.88, 57.12],
+          [-3.88, 57.08],
+          [-3.95, 57.08],
+          [-3.95, 57.12]
+        ]]
+      },
+      "properties": {
+        "area_ha": 150.2,
+        "firedate": "2025-08-20",
+        "year": 2025,
+        "lc_forest": 0.60,
+        "lc_shrub": 0.20,
+        "lc_grass": 0.10,
+        "lc_agri": 0.05,
+        "lc_other": 0.05
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "modis_ba_mock_2025_003",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-3.22, 55.98],
+          [-3.15, 55.98],
+          [-3.15, 55.92],
+          [-3.22, 55.92],
+          [-3.22, 55.98]
+        ]]
+      },
+      "properties": {
+        "area_ha": 45.7,
+        "firedate": "2025-06-10",
+        "year": 2025,
+        "lc_forest": 0.30,
+        "lc_shrub": 0.40,
+        "lc_grass": 0.20,
+        "lc_agri": 0.05,
+        "lc_other": 0.05
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "modis_ba_mock_2024_001",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-4.30, 55.90],
+          [-4.20, 55.90],
+          [-4.20, 55.82],
+          [-4.30, 55.82],
+          [-4.30, 55.90]
+        ]]
+      },
+      "properties": {
+        "area_ha": 220.0,
+        "firedate": "2024-07-25",
+        "year": 2024,
+        "lc_forest": 0.55,
+        "lc_shrub": 0.25,
+        "lc_grass": 0.10,
+        "lc_agri": 0.05,
+        "lc_other": 0.05
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "modis_ba_mock_2024_002",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-3.70, 57.05],
+          [-3.60, 57.05],
+          [-3.60, 56.98],
+          [-3.70, 56.98],
+          [-3.70, 57.05]
+        ]]
+      },
+      "properties": {
+        "area_ha": 180.5,
+        "firedate": "2024-08-15",
+        "year": 2024,
+        "lc_forest": 0.50,
+        "lc_shrub": 0.30,
+        "lc_grass": 0.15,
+        "lc_agri": 0.00,
+        "lc_other": 0.05
+      }
+    }
+  ]
+}

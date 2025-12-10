@@ -12,6 +12,8 @@ import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/gwis_hotspot_service.dart';
 import 'package:wildfire_mvp_v3/services/effis_burnt_area_service.dart';
+import 'package:wildfire_mvp_v3/services/mock_gwis_hotspot_service.dart';
+import 'package:wildfire_mvp_v3/services/mock_effis_burnt_area_service.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/features/map/utils/hotspot_clusterer.dart';
 import 'package:wildfire_mvp_v3/config/feature_flags.dart';
@@ -20,12 +22,20 @@ import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 ///
 /// Orchestrates location resolution, fire data fetching, and risk assessment.
 /// Extended with fire data mode support for 021-live-fire-data feature.
+///
+/// **Fallback Architecture**: When live services (GWIS, EFFIS) fail, the controller
+/// automatically falls back to mock services that load from local JSON files.
+/// The `isUsingMockData` flag indicates when mock data is being displayed.
 class MapController extends ChangeNotifier {
   final LocationResolver _locationResolver;
   final FireLocationService _fireLocationService;
   final FireRiskService _fireRiskService;
   final GwisHotspotService? _hotspotService;
   final EffisBurntAreaService? _burntAreaService;
+
+  // Fallback mock services (always available)
+  late final MockGwisHotspotService _mockHotspotService;
+  late final MockEffisBurntAreaService _mockBurntAreaService;
 
   MapState _state = const MapLoading();
 
@@ -81,7 +91,11 @@ class MapController extends ChangeNotifier {
         _fireLocationService = fireLocationService,
         _fireRiskService = fireRiskService,
         _hotspotService = hotspotService,
-        _burntAreaService = burntAreaService;
+        _burntAreaService = burntAreaService {
+    // Initialize mock services as fallbacks
+    _mockHotspotService = MockGwisHotspotService();
+    _mockBurntAreaService = MockEffisBurntAreaService();
+  }
 
   /// Get test region coordinates based on TEST_REGION environment variable
   static LatLng _getTestRegionCenter() {
@@ -368,12 +382,10 @@ class MapController extends ChangeNotifier {
   }
 
   /// Fetch hotspots from GWIS service for current viewport
+  ///
+  /// **Fallback**: If live GWIS fails or service is null, falls back to mock data.
   Future<void> _fetchHotspotsForCurrentBounds() async {
     if (_currentBounds == null) return;
-    if (_hotspotService == null) {
-      debugPrint('🗺️ MapController: Hotspot service not available');
-      return;
-    }
 
     debugPrint(
       '🗺️ MapController: Fetching hotspots for bounds '
@@ -382,26 +394,60 @@ class MapController extends ChangeNotifier {
       'filter: ${_hotspotTimeFilter.name}',
     );
 
-    final result = await _hotspotService!.getHotspots(
+    // Try live service first if available
+    if (_hotspotService != null) {
+      final result = await _hotspotService!.getHotspots(
+        bounds: _currentBounds!,
+        timeFilter: _hotspotTimeFilter,
+      );
+
+      final success = result.fold(
+        (error) {
+          debugPrint(
+            '🗺️ MapController: Live GWIS failed: ${error.message}, falling back to mock',
+          );
+          return false;
+        },
+        (hotspots) {
+          debugPrint(
+            '🗺️ MapController: Loaded ${hotspots.length} hotspots from live GWIS',
+          );
+          _hotspots = hotspots;
+          _isUsingMockData = false;
+          _reclusterHotspots();
+          return true;
+        },
+      );
+
+      if (success) {
+        notifyListeners();
+        return;
+      }
+    } else {
+      debugPrint(
+          '🗺️ MapController: Hotspot service not available, using mock');
+    }
+
+    // Fallback to mock service
+    final mockResult = await _mockHotspotService.getHotspots(
       bounds: _currentBounds!,
       timeFilter: _hotspotTimeFilter,
     );
 
-    result.fold(
+    mockResult.fold(
       (error) {
         debugPrint(
-          '🗺️ MapController: Error fetching hotspots: ${error.message}',
+          '🗺️ MapController: Mock hotspot service also failed: ${error.message}',
         );
+        _hotspots = [];
         _isUsingMockData = true;
       },
       (hotspots) {
         debugPrint(
-          '🗺️ MapController: Loaded ${hotspots.length} hotspots',
+          '🗺️ MapController: Loaded ${hotspots.length} hotspots from mock',
         );
         _hotspots = hotspots;
-        _isUsingMockData = false;
-
-        // Recluster based on current zoom
+        _isUsingMockData = true;
         _reclusterHotspots();
       },
     );
@@ -410,12 +456,10 @@ class MapController extends ChangeNotifier {
   }
 
   /// Fetch burnt areas from EFFIS service for current viewport
+  ///
+  /// **Fallback**: If live EFFIS fails or service is null, falls back to mock data.
   Future<void> _fetchBurntAreasForCurrentBounds() async {
     if (_currentBounds == null) return;
-    if (_burntAreaService == null) {
-      debugPrint('🗺️ MapController: Burnt area service not available');
-      return;
-    }
 
     debugPrint(
       '🗺️ MapController: Fetching burnt areas for bounds '
@@ -424,24 +468,59 @@ class MapController extends ChangeNotifier {
       'filter: ${_burntAreaSeasonFilter.name}',
     );
 
-    final result = await _burntAreaService!.getBurntAreas(
+    // Try live service first if available
+    if (_burntAreaService != null) {
+      final result = await _burntAreaService!.getBurntAreas(
+        bounds: _currentBounds!,
+        seasonFilter: _burntAreaSeasonFilter,
+      );
+
+      final success = result.fold(
+        (error) {
+          debugPrint(
+            '🗺️ MapController: Live EFFIS failed: ${error.message}, falling back to mock',
+          );
+          return false;
+        },
+        (areas) {
+          debugPrint(
+            '🗺️ MapController: Loaded ${areas.length} burnt areas from live EFFIS',
+          );
+          _burntAreas = areas;
+          _isUsingMockData = false;
+          return true;
+        },
+      );
+
+      if (success) {
+        notifyListeners();
+        return;
+      }
+    } else {
+      debugPrint(
+          '🗺️ MapController: Burnt area service not available, using mock');
+    }
+
+    // Fallback to mock service
+    final mockResult = await _mockBurntAreaService.getBurntAreas(
       bounds: _currentBounds!,
       seasonFilter: _burntAreaSeasonFilter,
     );
 
-    result.fold(
+    mockResult.fold(
       (error) {
         debugPrint(
-          '🗺️ MapController: Error fetching burnt areas: ${error.message}',
+          '🗺️ MapController: Mock burnt area service also failed: ${error.message}',
         );
+        _burntAreas = [];
         _isUsingMockData = true;
       },
       (areas) {
         debugPrint(
-          '🗺️ MapController: Loaded ${areas.length} burnt areas',
+          '🗺️ MapController: Loaded ${areas.length} burnt areas from mock',
         );
         _burntAreas = areas;
-        _isUsingMockData = false;
+        _isUsingMockData = true;
       },
     );
 

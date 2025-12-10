@@ -14,7 +14,10 @@ import 'package:wildfire_mvp_v3/models/fire_data_mode.dart';
 // T-V2: RiskCheckButton temporarily disabled
 // import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
+import 'package:wildfire_mvp_v3/models/hotspot.dart';
+import 'package:wildfire_mvp_v3/models/burnt_area.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
+import 'package:wildfire_mvp_v3/services/models/fire_risk.dart'; // For DataSource, Freshness
 import 'package:wildfire_mvp_v3/utils/debounced_viewport_loader.dart';
 import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet.dart';
 
@@ -85,8 +88,9 @@ class _MapScreenState extends State<MapScreen> {
       final state = _controller.state;
       if (state is MapSuccess) {
         // Update markers and polygons based on current fire data mode
-        _updateMarkersForMode(state);
-        _updatePolygonsForMode(state);
+        // Uses controller's hotspots/burntAreas collections (live data flow)
+        _updateMarkersForMode();
+        _updatePolygonsForMode();
 
         // Center on user GPS location once when data first loads
         if (!_hasCenteredOnUser && _mapController != null) {
@@ -159,56 +163,47 @@ class _MapScreenState extends State<MapScreen> {
 
   /// Update markers based on current fire data mode
   ///
-  /// In Hotspots mode: shows fire markers as pins (no polygons displayed)
-  /// In Burnt Areas mode: shows centroid pins until zoom is high enough for polygons
-  void _updateMarkersForMode(MapSuccess state) {
+  /// In Hotspots mode: renders markers from controller.hotspots (List<Hotspot>)
+  /// In Burnt Areas mode: renders centroid markers from controller.burntAreas (List<BurntArea>)
+  void _updateMarkersForMode() {
     if (_controller.fireDataMode == FireDataMode.hotspots) {
-      // Hotspots mode: filter to only hotspot incidents
-      final hotspotIncidents =
-          state.incidents.where((i) => i.fireType == FireType.hotspot).toList();
-      _updateHotspotMarkers(hotspotIncidents);
+      // Hotspots mode: use controller's hotspots list (live data flow)
+      _updateHotspotMarkers(_controller.hotspots);
     } else {
-      // Burnt Areas mode: filter to only burnt area incidents, then by season
-      final currentYear = _controller.burntAreaSeasonFilter.year;
-      final burntAreaIncidents = state.incidents
-          .where((i) =>
-              i.fireType == FireType.burntArea &&
-              (i.seasonYear == null || i.seasonYear == currentYear))
-          .toList();
-      _updateBurntAreaMarkers(burntAreaIncidents);
+      // Burnt Areas mode: use controller's burntAreas list (live data flow)
+      _updateBurntAreaMarkersFromModel(_controller.burntAreas);
     }
   }
 
-  /// Update markers for hotspots mode
-  /// Shows all fire incidents as pin markers
-  void _updateHotspotMarkers(List<FireIncident> incidents) {
+  /// Update markers for hotspots mode from Hotspot models
+  /// Shows all hotspots as pin markers with intensity based on FRP
+  void _updateHotspotMarkers(List<Hotspot> hotspots) {
     debugPrint(
-      '🔥 Hotspots mode: ${incidents.length} incidents, zoom=$_currentZoom',
+      '🔥 Hotspots mode: ${hotspots.length} hotspots, zoom=$_currentZoom',
     );
 
-    if (incidents.isEmpty) {
+    if (hotspots.isEmpty) {
       _markers = {};
-      debugPrint('🔥 Hotspots mode: no incidents, markers cleared');
+      debugPrint('🔥 Hotspots mode: no hotspots, markers cleared');
       return;
     }
 
-    _markers = incidents.map((incident) {
+    _markers = hotspots.map((hotspot) {
       return Marker(
-        markerId: MarkerId('hotspot_${incident.id}'),
+        markerId: MarkerId('hotspot_${hotspot.id}'),
         position: LatLng(
-          incident.location.latitude,
-          incident.location.longitude,
+          hotspot.location.latitude,
+          hotspot.location.longitude,
         ),
-        icon: _getMarkerIcon(incident.intensity),
+        icon: _getMarkerIcon(hotspot.intensity),
         anchor: const Offset(0.5, 1.0),
         infoWindow: InfoWindow(
-          title: incident.description ?? 'Active Fire',
-          snippet: _buildHotspotSnippet(incident),
+          title: 'Active Fire',
+          snippet: _buildHotspotSnippetFromModel(hotspot),
         ),
         onTap: () {
-          debugPrint(
-              '🔥 Hotspot tapped: ${incident.id} (${incident.intensity})');
-          _showFireDetails(incident);
+          debugPrint('🔥 Hotspot tapped: ${hotspot.id} (${hotspot.intensity})');
+          _showHotspotDetails(hotspot);
         },
       );
     }).toSet();
@@ -216,36 +211,23 @@ class _MapScreenState extends State<MapScreen> {
     debugPrint('🔥 Hotspots mode: created ${_markers.length} markers');
   }
 
-  /// Build info window snippet for hotspot marker
-  String _buildHotspotSnippet(FireIncident incident) {
+  /// Build info window snippet for hotspot marker from Hotspot model
+  String _buildHotspotSnippetFromModel(Hotspot hotspot) {
     final parts = <String>[];
-
-    if (incident.frp != null) {
-      parts.add('FRP: ${incident.frp!.toStringAsFixed(1)} MW');
-    }
-
-    parts.add(_formatIntensity(incident.intensity));
-
-    if (incident.detectedAt != null) {
-      parts.add('Detected: ${_formatFreshness(incident.detectedAt!)}');
-    }
-
+    parts.add('FRP: ${hotspot.frp.toStringAsFixed(1)} MW');
+    parts.add(_formatIntensity(hotspot.intensity));
+    parts.add('Detected: ${_formatFreshness(hotspot.detectedAt)}');
     return parts.join(' • ');
   }
 
-  /// Update markers for burnt areas mode
+  /// Update markers for burnt areas mode from BurntArea models
   /// Shows centroid pins when zoom is too low to see polygons
-  void _updateBurntAreaMarkers(List<FireIncident> incidents) {
+  void _updateBurntAreaMarkersFromModel(List<BurntArea> burntAreas) {
     final showPolygons = _shouldShowPolygons();
 
-    // Filter to only incidents that have polygon boundaries
-    final incidentsWithBoundaries = incidents
-        .where((i) => i.boundaryPoints != null && i.boundaryPoints!.length >= 3)
-        .toList();
-
     debugPrint(
-      '🔶 Burnt Areas mode: ${incidentsWithBoundaries.length}/${incidents.length} '
-      'incidents with boundaries, zoom=$_currentZoom, showPolygons=$showPolygons',
+      '🔶 Burnt Areas mode: ${burntAreas.length} areas, '
+      'zoom=$_currentZoom, showPolygons=$showPolygons',
     );
 
     // If polygons are visible, don't show markers (avoid duplicate displays)
@@ -256,22 +238,20 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     // Show centroid markers when polygons aren't visible
-    _markers = incidentsWithBoundaries.map((incident) {
+    _markers = burntAreas.map((area) {
+      final centroid = area.centroid;
       return Marker(
-        markerId: MarkerId('burnt_area_${incident.id}'),
-        position: LatLng(
-          incident.location.latitude,
-          incident.location.longitude,
-        ),
-        icon: _getMarkerIcon(incident.intensity),
+        markerId: MarkerId('burnt_area_${area.id}'),
+        position: LatLng(centroid.latitude, centroid.longitude),
+        icon: _getMarkerIcon('high'), // All burnt areas use red marker
         anchor: const Offset(0.5, 1.0),
         infoWindow: InfoWindow(
-          title: incident.description ?? 'Burnt Area',
-          snippet: _buildBurntAreaSnippet(incident),
+          title: 'Burnt Area',
+          snippet: _buildBurntAreaSnippetFromModel(area),
         ),
         onTap: () {
-          debugPrint('🔶 Burnt area marker tapped: ${incident.id}');
-          _showFireDetails(incident);
+          debugPrint('🔶 Burnt area marker tapped: ${area.id}');
+          _showBurntAreaDetails(area);
         },
       );
     }).toSet();
@@ -280,21 +260,68 @@ class _MapScreenState extends State<MapScreen> {
         '🔶 Burnt Areas mode: created ${_markers.length} centroid markers');
   }
 
-  /// Build info window snippet for burnt area marker
-  String _buildBurntAreaSnippet(FireIncident incident) {
+  /// Build info window snippet for burnt area marker from BurntArea model
+  String _buildBurntAreaSnippetFromModel(BurntArea area) {
     final parts = <String>[];
-
-    if (incident.areaHectares != null) {
-      parts.add('${incident.areaHectares!.toStringAsFixed(1)} ha');
-    }
-
-    parts.add(_formatIntensity(incident.intensity));
-
+    parts.add('${area.areaHectares.toStringAsFixed(1)} ha');
+    parts.add('Fire date: ${_formatDate(area.fireDate)}');
     return parts.join(' • ');
   }
 
-  /// Show fire details in bottom sheet
-  void _showFireDetails(FireIncident incident) {
+  /// Format date as short string (e.g., "15 Jul 2025")
+  String _formatDate(DateTime date) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+
+  /// Show hotspot details in bottom sheet (converts Hotspot to FireIncident for display)
+  void _showHotspotDetails(Hotspot hotspot) {
+    // Convert Hotspot to FireIncident for the bottom sheet
+    final incident = FireIncident(
+      id: hotspot.id,
+      location: hotspot.location,
+      source: DataSource.effis,
+      freshness: Freshness.live,
+      timestamp: hotspot.detectedAt,
+      intensity: hotspot.intensity,
+      detectedAt: hotspot.detectedAt,
+      sensorSource: 'VIIRS',
+      confidence: hotspot.confidence,
+      frp: hotspot.frp,
+    );
+    setState(() {
+      _selectedIncident = incident;
+      _isBottomSheetVisible = true;
+    });
+  }
+
+  /// Show burnt area details in bottom sheet (converts BurntArea to FireIncident for display)
+  void _showBurntAreaDetails(BurntArea area) {
+    // Convert BurntArea to FireIncident for the bottom sheet
+    final incident = FireIncident(
+      id: area.id,
+      location: area.centroid,
+      source: DataSource.effis,
+      freshness: Freshness.live,
+      timestamp: area.fireDate,
+      intensity: 'high', // All burnt areas show as high (red)
+      areaHectares: area.areaHectares,
+      boundaryPoints: area.boundaryPoints,
+      description: 'Burnt Area - ${area.areaHectares.toStringAsFixed(1)} ha',
+    );
     setState(() {
       _selectedIncident = incident;
       _isBottomSheetVisible = true;
@@ -338,9 +365,9 @@ class _MapScreenState extends State<MapScreen> {
 
   /// Update polygon overlays based on current fire data mode
   ///
-  /// In Burnt Areas mode: shows polygons from incidents with boundary data
+  /// In Burnt Areas mode: shows polygons from controller.burntAreas (List<BurntArea>)
   /// In Hotspots mode: no polygons (markers shown instead)
-  void _updatePolygonsForMode(MapSuccess state) {
+  void _updatePolygonsForMode() {
     // In Hotspots mode, don't show polygons
     if (_controller.fireDataMode == FireDataMode.hotspots) {
       _polygons = {};
@@ -355,39 +382,30 @@ class _MapScreenState extends State<MapScreen> {
       return;
     }
 
-    // Filter by fire type and season
-    final currentYear = _controller.burntAreaSeasonFilter.year;
-    final incidentsWithBoundaries = state.incidents
-        .where((i) =>
-            i.fireType == FireType.burntArea &&
-            (i.seasonYear == null || i.seasonYear == currentYear) &&
-            i.boundaryPoints != null &&
-            i.boundaryPoints!.length >= 3)
-        .toList();
+    // Use controller's burntAreas list (live data flow)
+    final burntAreas = _controller.burntAreas;
 
-    _polygons = incidentsWithBoundaries.map((incident) {
-      final points = incident.boundaryPoints!
+    _polygons = burntAreas.map((area) {
+      final points = area.boundaryPoints
           .map((p) => LatLng(p.latitude, p.longitude))
           .toList();
 
       return Polygon(
-        polygonId: PolygonId('polygon_${incident.id}'),
+        polygonId: PolygonId('polygon_${area.id}'),
         points: points,
-        fillColor: PolygonStyleHelper.getFillColor(incident.intensity),
-        strokeColor: PolygonStyleHelper.getStrokeColor(incident.intensity),
+        fillColor: PolygonStyleHelper.burntAreaFillColor,
+        strokeColor: PolygonStyleHelper.burntAreaStrokeColor,
         strokeWidth: PolygonStyleHelper.strokeWidth,
         consumeTapEvents: true,
         onTap: () {
-          debugPrint(
-              '🔶 Polygon tapped: ${incident.description ?? incident.id}');
-          _showFireDetails(incident);
+          debugPrint('🔶 Polygon tapped: ${area.id}');
+          _showBurntAreaDetails(area);
         },
       );
     }).toSet();
 
     debugPrint(
-        '🔶 Updated ${_polygons.length} polygons from ${incidentsWithBoundaries.length} '
-        'incidents with boundaries (year: $currentYear)');
+        '🔶 Updated ${_polygons.length} polygons from ${burntAreas.length} burnt areas');
   }
 
   /// Check if polygons should be visible based on zoom level and toggle
@@ -409,11 +427,8 @@ class _MapScreenState extends State<MapScreen> {
     // Rebuild polygons if visibility threshold crossed (only in Burnt Areas mode)
     final nowShowingPolygons = _shouldShowPolygons();
     if (wasShowingPolygons != nowShowingPolygons) {
-      final state = _controller.state;
-      if (state is MapSuccess) {
-        _updatePolygonsForMode(state);
-        setState(() {});
-      }
+      _updatePolygonsForMode();
+      setState(() {});
     }
 
     // Also notify viewport loader
@@ -727,11 +742,8 @@ class _MapScreenState extends State<MapScreen> {
                 onModeChanged: (mode) {
                   _controller.setFireDataMode(mode);
                   // Immediately update markers/polygons for new mode
-                  final state = _controller.state;
-                  if (state is MapSuccess) {
-                    _updateMarkersForMode(state);
-                    _updatePolygonsForMode(state);
-                  }
+                  _updateMarkersForMode();
+                  _updatePolygonsForMode();
                   setState(() {
                     // Sync local polygon visibility with mode
                     _showPolygons = mode == FireDataMode.burntAreas;
