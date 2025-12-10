@@ -17,7 +17,6 @@ import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/hotspot.dart';
 import 'package:wildfire_mvp_v3/models/burnt_area.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
-import 'package:wildfire_mvp_v3/services/models/fire_risk.dart'; // For DataSource, Freshness
 import 'package:wildfire_mvp_v3/utils/debounced_viewport_loader.dart';
 import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet.dart';
 
@@ -46,6 +45,8 @@ class _MapScreenState extends State<MapScreen> {
   Set<Polygon> _polygons = {};
   late MapController _controller;
   FireIncident? _selectedIncident;
+  Hotspot? _selectedHotspot; // Track selected hotspot for native display
+  BurntArea? _selectedBurntArea; // Track selected burnt area for native display
   bool _isBottomSheetVisible = false;
   bool _showPolygons = true; // Toggle for polygon visibility
   double _currentZoom = 8.0; // Track zoom for polygon visibility
@@ -287,43 +288,22 @@ class _MapScreenState extends State<MapScreen> {
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
-  /// Show hotspot details in bottom sheet (converts Hotspot to FireIncident for display)
+  /// Show hotspot details in bottom sheet using native Hotspot data
   void _showHotspotDetails(Hotspot hotspot) {
-    // Convert Hotspot to FireIncident for the bottom sheet
-    final incident = FireIncident(
-      id: hotspot.id,
-      location: hotspot.location,
-      source: DataSource.effis,
-      freshness: Freshness.live,
-      timestamp: hotspot.detectedAt,
-      intensity: hotspot.intensity,
-      detectedAt: hotspot.detectedAt,
-      sensorSource: 'VIIRS',
-      confidence: hotspot.confidence,
-      frp: hotspot.frp,
-    );
     setState(() {
-      _selectedIncident = incident;
+      _selectedHotspot = hotspot;
+      _selectedBurntArea = null;
+      _selectedIncident = null; // Clear legacy field
       _isBottomSheetVisible = true;
     });
   }
 
-  /// Show burnt area details in bottom sheet (converts BurntArea to FireIncident for display)
+  /// Show burnt area details in bottom sheet using native BurntArea data
   void _showBurntAreaDetails(BurntArea area) {
-    // Convert BurntArea to FireIncident for the bottom sheet
-    final incident = FireIncident(
-      id: area.id,
-      location: area.centroid,
-      source: DataSource.effis,
-      freshness: Freshness.live,
-      timestamp: area.fireDate,
-      intensity: 'high', // All burnt areas show as high (red)
-      areaHectares: area.areaHectares,
-      boundaryPoints: area.boundaryPoints,
-      description: 'Burnt Area - ${area.areaHectares.toStringAsFixed(1)} ha',
-    );
     setState(() {
-      _selectedIncident = incident;
+      _selectedBurntArea = area;
+      _selectedHotspot = null;
+      _selectedIncident = null; // Clear legacy field
       _isBottomSheetVisible = true;
     });
   }
@@ -355,6 +335,50 @@ class _MapScreenState extends State<MapScreen> {
     } else {
       return '${age.inDays}d ago';
     }
+  }
+
+  /// Build the appropriate bottom sheet based on selected data type
+  Widget _buildBottomSheet() {
+    final userLocation = _controller.userGpsLocation;
+
+    void closeSheet() {
+      setState(() {
+        _isBottomSheetVisible = false;
+        _selectedHotspot = null;
+        _selectedBurntArea = null;
+        _selectedIncident = null;
+      });
+    }
+
+    // Hotspot selected - use native Hotspot display
+    if (_selectedHotspot != null) {
+      return FireDetailsBottomSheet.fromHotspot(
+        hotspot: _selectedHotspot!,
+        userLocation: userLocation,
+        onClose: closeSheet,
+      );
+    }
+
+    // BurntArea selected - use native BurntArea display
+    if (_selectedBurntArea != null) {
+      return FireDetailsBottomSheet.fromBurntArea(
+        burntArea: _selectedBurntArea!,
+        userLocation: userLocation,
+        onClose: closeSheet,
+      );
+    }
+
+    // Legacy FireIncident fallback
+    if (_selectedIncident != null) {
+      return FireDetailsBottomSheet(
+        incident: _selectedIncident!,
+        userLocation: userLocation,
+        onClose: closeSheet,
+      );
+    }
+
+    // Should never reach here due to condition in build()
+    return const SizedBox.shrink();
   }
 
   BitmapDescriptor _getMarkerIcon(String intensity) {
@@ -517,13 +541,18 @@ class _MapScreenState extends State<MapScreen> {
             MapSuccess() => _buildMapView(state),
             MapError() => _buildErrorView(state),
           },
-          // Fire details bottom sheet overlay
-          if (_isBottomSheetVisible && _selectedIncident != null)
+          // Fire details bottom sheet overlay - supports Hotspot, BurntArea, or legacy FireIncident
+          if (_isBottomSheetVisible &&
+              (_selectedHotspot != null ||
+                  _selectedBurntArea != null ||
+                  _selectedIncident != null))
             Positioned.fill(
               child: GestureDetector(
                 onTap: () {
                   setState(() {
                     _isBottomSheetVisible = false;
+                    _selectedHotspot = null;
+                    _selectedBurntArea = null;
                     _selectedIncident = null;
                   });
                 },
@@ -534,17 +563,7 @@ class _MapScreenState extends State<MapScreen> {
                       .withValues(alpha: 0.5),
                   child: GestureDetector(
                     onTap: () {}, // Prevent tap from closing when tapping sheet
-                    child: FireDetailsBottomSheet(
-                      incident: _selectedIncident!,
-                      userLocation: _controller
-                          .userGpsLocation, // Use actual GPS location, not viewport center
-                      onClose: () {
-                        setState(() {
-                          _isBottomSheetVisible = false;
-                          _selectedIncident = null;
-                        });
-                      },
-                    ),
+                    child: _buildBottomSheet(),
                   ),
                 ),
               ),
