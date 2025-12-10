@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'content/legal_content.dart';
 import 'controllers/home_controller.dart';
 import 'screens/home_screen.dart';
+import 'screens/about_screen.dart';
+import 'screens/legal_document_screen.dart';
 import 'features/map/screens/map_screen.dart';
 import 'features/map/controllers/map_controller.dart';
 import 'features/report/screens/report_fire_screen.dart';
@@ -91,6 +94,43 @@ class WildFireApp extends StatelessWidget {
             locationResolver: locationResolver,
           );
         },
+      ),
+
+      // About and legal routes (no bottom nav)
+      GoRoute(
+        path: '/about',
+        name: 'about',
+        builder: (context, state) => const AboutScreen(),
+        routes: [
+          GoRoute(
+            path: 'terms',
+            name: 'terms',
+            builder: (context, state) => LegalDocumentScreen(
+              document: LegalContent.termsOfService,
+            ),
+          ),
+          GoRoute(
+            path: 'privacy',
+            name: 'privacy',
+            builder: (context, state) => LegalDocumentScreen(
+              document: LegalContent.privacyPolicy,
+            ),
+          ),
+          GoRoute(
+            path: 'disclaimer',
+            name: 'disclaimer',
+            builder: (context, state) => LegalDocumentScreen(
+              document: LegalContent.emergencyDisclaimer,
+            ),
+          ),
+          GoRoute(
+            path: 'data-sources',
+            name: 'data-sources',
+            builder: (context, state) => LegalDocumentScreen(
+              document: LegalContent.dataSources,
+            ),
+          ),
+        ],
       ),
 
       // Main app shell with bottom navigation
