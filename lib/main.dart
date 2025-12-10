@@ -96,11 +96,13 @@ class ServiceContainer {
   final FireLocationService fireLocationService;
   final What3wordsService? what3wordsService;
   final GeocodingService? geocodingService;
+  final SharedPreferences prefs;
 
   ServiceContainer({
     required this.locationResolver,
     required this.fireRiskService,
     required this.fireLocationService,
+    required this.prefs,
     this.what3wordsService,
     this.geocodingService,
   });
@@ -108,6 +110,10 @@ class ServiceContainer {
 
 /// Initialize all services with proper dependency wiring
 Future<ServiceContainer> _initializeServices() async {
+  // Initialize SharedPreferences for onboarding/consent storage
+  final prefs = await SharedPreferences.getInstance();
+  debugPrint('✅ SharedPreferences initialized');
+
   // Initialize location resolver (A4)
   final LocationResolver locationResolver = LocationResolverImpl();
 
@@ -148,7 +154,7 @@ Future<ServiceContainer> _initializeServices() async {
   );
 
   // Initialize cache service for fire incidents (T018)
-  final prefs = await SharedPreferences.getInstance();
+  // Note: SharedPreferences already initialized at top of function
   final FireIncidentCache fireIncidentCache = FireIncidentCacheImpl(
     prefs: prefs,
   );
@@ -196,6 +202,7 @@ Future<ServiceContainer> _initializeServices() async {
     locationResolver: locationResolver,
     fireRiskService: fireRiskService,
     fireLocationService: fireLocationService,
+    prefs: prefs,
     what3wordsService: what3wordsService,
     geocodingService: geocodingService,
   );
@@ -245,6 +252,7 @@ class _WildFireAppRootState extends State<WildFireAppRoot>
       locationResolver: widget.services.locationResolver,
       fireLocationService: widget.services.fireLocationService,
       fireRiskService: widget.services.fireRiskService,
+      prefs: widget.services.prefs,
       what3wordsService: widget.services.what3wordsService,
       geocodingService: widget.services.geocodingService,
     );

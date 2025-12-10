@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'content/legal_content.dart';
 import 'controllers/home_controller.dart';
+import 'models/consent_record.dart';
 import 'screens/home_screen.dart';
 import 'screens/about_screen.dart';
 import 'screens/legal_document_screen.dart';
 import 'features/map/screens/map_screen.dart';
 import 'features/map/controllers/map_controller.dart';
+import 'features/onboarding/screens/onboarding_screen.dart';
 import 'features/report/screens/report_fire_screen.dart';
 import 'features/report/controllers/report_fire_controller.dart';
 import 'features/location_picker/screens/location_picker_screen.dart';
@@ -19,6 +22,8 @@ import 'services/location_resolver.dart';
 import 'services/location_state_manager.dart';
 import 'services/fire_location_service.dart';
 import 'services/fire_risk_service.dart';
+import 'services/onboarding_prefs.dart';
+import 'services/onboarding_prefs_impl.dart';
 import 'theme/wildfire_a11y_theme.dart';
 import 'widgets/bottom_nav.dart';
 
@@ -38,6 +43,7 @@ class WildFireApp extends StatelessWidget {
   final LocationResolver locationResolver;
   final FireLocationService fireLocationService;
   final FireRiskService fireRiskService;
+  final SharedPreferences prefs;
 
   /// Shared location state manager for Report Fire screen
   /// Lazy-initialized to avoid unnecessary work on app startup
@@ -46,6 +52,9 @@ class WildFireApp extends StatelessWidget {
   /// Report fire controller for location helper state
   /// Created lazily to avoid unnecessary initialization
   late final ReportFireController _reportFireController;
+
+  /// Onboarding preferences service
+  late final OnboardingPrefsService _onboardingPrefsService;
 
   /// Optional geocoding services for location picker
   /// If null, LocationPickerScreen will create new instances with FeatureFlags defaults
@@ -58,6 +67,7 @@ class WildFireApp extends StatelessWidget {
     required this.locationResolver,
     required this.fireLocationService,
     required this.fireRiskService,
+    required this.prefs,
     this.what3wordsService,
     this.geocodingService,
   }) {
@@ -72,11 +82,53 @@ class WildFireApp extends StatelessWidget {
     _reportFireController = ReportFireController(
       locationStateManager: _reportLocationStateManager,
     );
+
+    // Create onboarding preferences service
+    _onboardingPrefsService = OnboardingPrefsImpl(prefs);
+  }
+
+  /// Check if onboarding is required using synchronous prefs access
+  bool _isOnboardingRequired() {
+    final version = prefs.getInt(OnboardingConfig.keyOnboardingVersion) ?? 0;
+    return version < OnboardingConfig.currentOnboardingVersion;
   }
 
   /// Router configuration with go_router and bottom navigation
   late final GoRouter _router = GoRouter(
+    // Redirect logic for onboarding
+    redirect: (context, state) {
+      final isOnboarding = state.uri.path == '/onboarding';
+      final isAboutPath = state.uri.path.startsWith('/about');
+      final needsOnboarding = _isOnboardingRequired();
+
+      // If onboarding is complete and user is on /onboarding, redirect to home
+      if (!needsOnboarding && isOnboarding) {
+        return '/';
+      }
+
+      // If onboarding is needed and user is NOT on /onboarding or /about/*,
+      // redirect to onboarding
+      if (needsOnboarding && !isOnboarding && !isAboutPath) {
+        return '/onboarding';
+      }
+
+      // No redirect needed
+      return null;
+    },
     routes: [
+      // Onboarding screen (no bottom nav, shown before main app)
+      GoRoute(
+        path: '/onboarding',
+        name: 'onboarding',
+        builder: (context, state) => OnboardingScreen(
+          prefsService: _onboardingPrefsService,
+          onComplete: () {
+            // Navigate to home after onboarding completes
+            context.go('/');
+          },
+        ),
+      ),
+
       // Full-screen location picker (no bottom nav)
       GoRoute(
         path: '/location-picker',
