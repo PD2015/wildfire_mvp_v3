@@ -6,6 +6,20 @@
 
 ---
 
+## Clarifications
+
+### Session 2025-12-10
+
+| Question | Decision | Rationale |
+|----------|----------|-----------|
+| **P1 Legal Routes scope** | Include in this plan | Implement legal routes first as Phase 1A, then onboarding as Phase 1B |
+| **Hero images/illustrations** | Create placeholder assets | Page 1 should include hero image or attractive background to match Option B style |
+| **Location permission flow** | Use existing `LocationResolver.getLatLon()` | Already handles permission dialog internally with proper fallbacks |
+| **App logo asset** | Use existing `assets/icons/app_icon.png` | Same asset used for splash screen |
+| **Async router redirect** | Pre-load prefs in `main.dart` | Pass to router for synchronous redirect; matches existing composition root pattern |
+
+---
+
 ## Goal
 
 Add a first-launch onboarding flow to the WildFire app that:
