@@ -145,7 +145,7 @@ Implement as one `OnboardingScreen` with 4 pages inside a `PageView`.
   - "Explore satellite-detected hotspots."
   - "Plan ahead for days with higher risk."
   - "Pick a location with accurate coordinates to help reporting."
-  - "Learn about Wildfires and their prevention"
+  - "Learn about wildfires and their prevention." *(references existing RiskGuidanceCard + planned educational expansion)*
 
 **Buttons:**
 - Primary: "Continue"
@@ -320,7 +320,11 @@ Future<ConsentRecord?> getConsentRecord() async {
 ### Future Work (out of scope for 022)
 - Use `notification_radius_km` to calculate and display "X active fires within Y km" in risk banner
 - Push notifications when new fires detected within radius
-- "Learn about Wildfires" educational content section
+- **Educational content expansion**: Extend beyond existing `RiskGuidanceCard` (which shows risk-level-specific guidance from SFRS/Ready.Scot) to include:
+  - Wildfire causes and prevention
+  - Scottish wildfire ecology
+  - Land manager resources
+  - Seasonal awareness content
 
 ---
 
