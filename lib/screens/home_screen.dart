@@ -92,12 +92,63 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     // Additional info based on state
                     _buildStateInfo(),
+
+                    const SizedBox(height: 24.0),
+
+                    // Disclaimer footer
+                    _buildDisclaimerFooter(),
                   ],
                 ),
               ),
             ),
           );
         },
+      ),
+    );
+  }
+
+  /// Builds the disclaimer footer with emergency info and about link
+  ///
+  /// Displays legal disclaimer that this app is for information only
+  /// and provides emergency contact guidance. Links to About page.
+  Widget _buildDisclaimerFooter() {
+    return Semantics(
+      container: true,
+      label: 'App disclaimer and about link',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Column(
+          children: [
+            // Emergency disclaimer text
+            Text(
+              'For information only. Dial 999 in an emergency.',
+              key: const Key('disclaimer_text'),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8.0),
+            // About this app link
+            TextButton(
+              key: const Key('about_link'),
+              onPressed: () => context.push('/about'),
+              style: TextButton.styleFrom(
+                minimumSize: const Size(44.0, 44.0), // C3: Accessibility
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+              ),
+              child: Text(
+                'About this app',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
