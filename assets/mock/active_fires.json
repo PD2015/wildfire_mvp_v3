@@ -3,214 +3,168 @@
   "features": [
     {
       "type": "Feature",
-      "id": "mock_fire_001",
+      "id": "mock_hotspot_001",
       "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              -3.1920,
-              55.9510
-            ],
-            [
-              -3.1900,
-              55.9520
-            ],
-            [
-              -3.1870,
-              55.9530
-            ],
-            [
-              -3.1850,
-              55.9545
-            ],
-            [
-              -3.1860,
-              55.9555
-            ],
-            [
-              -3.1885,
-              55.9560
-            ],
-            [
-              -3.1910,
-              55.9550
-            ],
-            [
-              -3.1925,
-              55.9535
-            ],
-            [
-              -3.1920,
-              55.9510
-            ]
-          ]
-        ]
+        "type": "Point",
+        "coordinates": [-3.1883, 55.9533]
       },
       "properties": {
-        "id": "mock_fire_001",
+        "id": "mock_hotspot_001",
         "source": "mock",
         "freshness": "mock",
+        "fire_type": "hotspot",
+        "year": 2025,
         "timestamp": "2025-10-19T14:30:00Z",
         "detected_at": "2025-10-19T14:00:00Z",
         "last_update": "2025-10-19T14:30:00Z",
         "intensity": "moderate",
-        "description": "Edinburgh - Holyrood Park",
-        "areaHectares": 12.5,
+        "description": "Edinburgh - Arthur's Seat Hotspot",
         "sensor_source": "VIIRS",
+        "confidence": 85.0,
+        "frp": 35.5
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "mock_hotspot_002",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-4.2518, 55.8642]
+      },
+      "properties": {
+        "id": "mock_hotspot_002",
+        "source": "mock",
+        "freshness": "mock",
+        "fire_type": "hotspot",
+        "year": 2025,
+        "timestamp": "2025-10-19T10:15:00Z",
+        "detected_at": "2025-10-19T09:45:00Z",
+        "last_update": "2025-10-19T10:15:00Z",
+        "intensity": "low",
+        "description": "Glasgow - Campsie Fells Hotspot",
+        "sensor_source": "VIIRS",
+        "confidence": 72.0,
+        "frp": 8.5
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "mock_hotspot_003",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-3.8, 57.2]
+      },
+      "properties": {
+        "id": "mock_hotspot_003",
+        "source": "mock",
+        "freshness": "mock",
+        "fire_type": "hotspot",
+        "year": 2025,
+        "timestamp": "2025-10-19T08:00:00Z",
+        "detected_at": "2025-10-19T07:30:00Z",
+        "last_update": "2025-10-19T08:00:00Z",
+        "intensity": "high",
+        "description": "Aviemore - Cairngorms Active Hotspot",
+        "sensor_source": "VIIRS",
+        "confidence": 95.0,
+        "frp": 55.0
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "mock_hotspot_004",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-3.85, 57.15]
+      },
+      "properties": {
+        "id": "mock_hotspot_004",
+        "source": "mock",
+        "freshness": "mock",
+        "fire_type": "hotspot",
+        "year": 2025,
+        "timestamp": "2025-10-19T16:45:00Z",
+        "detected_at": "2025-10-19T16:30:00Z",
+        "last_update": "2025-10-19T16:45:00Z",
+        "intensity": "moderate",
+        "description": "Cairngorms - Glenmore Hotspot",
+        "sensor_source": "VIIRS",
+        "confidence": 78.0,
+        "frp": 45.0
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "mock_ba_2025_001",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-3.1920, 55.9510],
+            [-3.1900, 55.9520],
+            [-3.1870, 55.9530],
+            [-3.1850, 55.9545],
+            [-3.1860, 55.9555],
+            [-3.1885, 55.9560],
+            [-3.1910, 55.9550],
+            [-3.1925, 55.9535],
+            [-3.1920, 55.9510]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mock_ba_2025_001",
+        "source": "mock",
+        "freshness": "mock",
+        "fire_type": "burnt_area",
+        "year": 2025,
+        "timestamp": "2025-04-15T14:30:00Z",
+        "detected_at": "2025-04-15T14:00:00Z",
+        "last_update": "2025-04-15T14:30:00Z",
+        "intensity": "low",
+        "description": "Edinburgh - Holyrood Park (This Season)",
+        "areaHectares": 12.5,
+        "sensor_source": "MODIS",
         "confidence": 87.5,
         "frp": 142.3
       }
     },
     {
       "type": "Feature",
-      "id": "mock_fire_002",
+      "id": "mock_ba_2025_002",
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
-            [
-              -4.2580,
-              55.8600
-            ],
-            [
-              -4.2550,
-              55.8615
-            ],
-            [
-              -4.2500,
-              55.8630
-            ],
-            [
-              -4.2460,
-              55.8640
-            ],
-            [
-              -4.2450,
-              55.8660
-            ],
-            [
-              -4.2470,
-              55.8680
-            ],
-            [
-              -4.2520,
-              55.8685
-            ],
-            [
-              -4.2570,
-              55.8670
-            ],
-            [
-              -4.2590,
-              55.8645
-            ],
-            [
-              -4.2585,
-              55.8620
-            ],
-            [
-              -4.2580,
-              55.8600
-            ]
+            [-4.2580, 55.8600],
+            [-4.2550, 55.8615],
+            [-4.2500, 55.8630],
+            [-4.2460, 55.8640],
+            [-4.2450, 55.8660],
+            [-4.2470, 55.8680],
+            [-4.2520, 55.8685],
+            [-4.2570, 55.8670],
+            [-4.2590, 55.8645],
+            [-4.2585, 55.8620],
+            [-4.2580, 55.8600]
           ]
         ]
       },
       "properties": {
-        "id": "mock_fire_002",
+        "id": "mock_ba_2025_002",
         "source": "mock",
         "freshness": "mock",
-        "timestamp": "2025-10-19T10:15:00Z",
-        "detected_at": "2025-10-19T09:45:00Z",
-        "last_update": "2025-10-19T10:15:00Z",
-        "intensity": "high",
-        "description": "Glasgow - Campsie Fells",
+        "fire_type": "burnt_area",
+        "year": 2025,
+        "timestamp": "2025-05-20T10:15:00Z",
+        "detected_at": "2025-05-20T09:45:00Z",
+        "last_update": "2025-05-20T10:15:00Z",
+        "intensity": "moderate",
+        "description": "Glasgow - Campsie Fells (This Season)",
         "areaHectares": 28.3,
         "sensor_source": "MODIS",
         "confidence": 92.8,
         "frp": 287.6
-      }
-    },
-    {
-      "type": "Feature",
-      "id": "mock_fire_003",
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [
-              -3.8050,
-              57.1970
-            ],
-            [
-              -3.8020,
-              57.1985
-            ],
-            [
-              -3.7970,
-              57.2000
-            ],
-            [
-              -3.7960,
-              57.2020
-            ],
-            [
-              -3.7980,
-              57.2035
-            ],
-            [
-              -3.8030,
-              57.2030
-            ],
-            [
-              -3.8060,
-              57.2010
-            ],
-            [
-              -3.8050,
-              57.1970
-            ]
-          ]
-        ]
-      },
-      "properties": {
-        "id": "mock_fire_003",
-        "source": "mock",
-        "freshness": "mock",
-        "timestamp": "2025-10-19T08:00:00Z",
-        "detected_at": "2025-10-19T07:30:00Z",
-        "last_update": "2025-10-19T08:00:00Z",
-        "intensity": "low",
-        "description": "Aviemore - Cairngorms",
-        "areaHectares": 5.7,
-        "sensor_source": "VIIRS",
-        "confidence": 68.4,
-        "frp": 95.2
-      }
-    },
-    {
-      "type": "Feature",
-      "id": "mock_fire_004",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -4.0285,
-          56.1165
-        ]
-      },
-      "properties": {
-        "id": "mock_fire_004",
-        "source": "mock",
-        "freshness": "mock",
-        "timestamp": "2025-10-19T16:45:00Z",
-        "detected_at": "2025-10-19T16:30:00Z",
-        "last_update": "2025-10-19T16:45:00Z",
-        "intensity": "low",
-        "description": "Stirling - Touch Hills (marker only)",
-        "areaHectares": 2.1,
-        "sensor_source": "VIIRS",
-        "confidence": 55.0,
-        "frp": 45.8
       }
     },
     {
@@ -331,27 +285,123 @@
         "effis_id": "273772",
         "source": "effis",
         "freshness": "historical",
+        "fire_type": "burnt_area",
+        "year": 2025,
         "timestamp": "2025-06-28T11:53:00Z",
         "detected_at": "2025-06-28T11:53:00Z",
         "last_update": "2025-07-09T00:00:00Z",
         "intensity": "high",
-        "description": "Dava Moor Wildfire 2025 - Scotland's Largest Recorded Wildfire",
+        "description": "Dava Moor Wildfire 2025 - Scotland's Largest (This Season)",
         "areaHectares": 9809.46,
         "sensor_source": "MODIS",
         "confidence": 95.0,
-        "frp": 3200.0,
-        "province": "Inverness & Nairn and Moray, Badenoch & Strathspey",
-        "commune": "West Moray",
-        "land_cover": {
-          "other_natural": 93.24,
-          "transitional_woodland": 4.24,
-          "other": 2.52
-        },
-        "notes": "Real EFFIS data (ID 273772). Main Dava Moor fire detected 28 June 2025. Polygon simplified from 18,621 points to 103 using RDP algorithm. Full data in assets/mock/scotland_fire_273772.json",
-        "wikipedia": "https://en.wikipedia.org/wiki/Dava_wildfire",
-        "swf_source": "https://www.scottishwildfireforum.co.uk/newspost/swf-statement-on-morayshire-wildfires",
-        "polygon_status": "simplified from real EFFIS WFS data (ms:modis.ba.poly.season layer)",
-        "center_coordinates": "57.43°N 3.72°W"
+        "frp": 3200.0
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "mock_ba_2024_001",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-4.5000, 56.0000],
+            [-4.4900, 56.0100],
+            [-4.4700, 56.0150],
+            [-4.4500, 56.0100],
+            [-4.4450, 55.9950],
+            [-4.4600, 55.9850],
+            [-4.4800, 55.9900],
+            [-4.5000, 56.0000]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mock_ba_2024_001",
+        "source": "mock",
+        "freshness": "mock",
+        "fire_type": "burnt_area",
+        "year": 2024,
+        "timestamp": "2024-05-12T14:00:00Z",
+        "detected_at": "2024-05-12T12:00:00Z",
+        "last_update": "2024-05-12T14:00:00Z",
+        "intensity": "moderate",
+        "description": "Loch Lomond - Ben More (Last Season 2024)",
+        "areaHectares": 180.0,
+        "sensor_source": "MODIS",
+        "confidence": 88.5,
+        "frp": 450.0
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "mock_ba_2024_002",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-5.1000, 56.5000],
+            [-5.0800, 56.5150],
+            [-5.0500, 56.5200],
+            [-5.0200, 56.5100],
+            [-5.0100, 56.4900],
+            [-5.0300, 56.4750],
+            [-5.0600, 56.4700],
+            [-5.0900, 56.4850],
+            [-5.1000, 56.5000]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mock_ba_2024_002",
+        "source": "mock",
+        "freshness": "mock",
+        "fire_type": "burnt_area",
+        "year": 2024,
+        "timestamp": "2024-07-25T09:00:00Z",
+        "detected_at": "2024-07-25T08:00:00Z",
+        "last_update": "2024-07-25T09:00:00Z",
+        "intensity": "high",
+        "description": "Fort William - Glen Nevis (Last Season 2024)",
+        "areaHectares": 320.0,
+        "sensor_source": "MODIS",
+        "confidence": 94.0,
+        "frp": 680.0
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "mock_ba_2025_003",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-3.8050, 57.1970],
+            [-3.8020, 57.1985],
+            [-3.7970, 57.2000],
+            [-3.7960, 57.2020],
+            [-3.7980, 57.2035],
+            [-3.8030, 57.2030],
+            [-3.8060, 57.2010],
+            [-3.8050, 57.1970]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "mock_ba_2025_003",
+        "source": "mock",
+        "freshness": "mock",
+        "fire_type": "burnt_area",
+        "year": 2025,
+        "timestamp": "2025-08-10T08:00:00Z",
+        "detected_at": "2025-08-10T07:30:00Z",
+        "last_update": "2025-08-10T08:00:00Z",
+        "intensity": "low",
+        "description": "Aviemore - Cairngorms Small Burn (This Season)",
+        "areaHectares": 5.7,
+        "sensor_source": "MODIS",
+        "confidence": 68.4,
+        "frp": 95.2
       }
     }
   ]

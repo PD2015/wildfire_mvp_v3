@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 import 'controllers/home_controller.dart';
 import 'screens/home_screen.dart';
 import 'features/map/screens/map_screen.dart';
@@ -16,6 +17,8 @@ import 'services/location_resolver.dart';
 import 'services/location_state_manager.dart';
 import 'services/fire_location_service.dart';
 import 'services/fire_risk_service.dart';
+import 'services/gwis_hotspot_service_impl.dart';
+import 'services/effis_burnt_area_service_impl.dart';
 import 'theme/wildfire_a11y_theme.dart';
 import 'widgets/bottom_nav.dart';
 
@@ -116,11 +119,22 @@ class WildFireApp extends StatelessWidget {
             path: '/map',
             name: 'map',
             builder: (context, state) {
-              // Create MapController with required services
+              // Create HTTP client for fire data services
+              final httpClient = http.Client();
+
+              // Create live fire data services (GWIS hotspots, EFFIS burnt areas)
+              final hotspotService =
+                  GwisHotspotServiceImpl(httpClient: httpClient);
+              final burntAreaService =
+                  EffisBurntAreaServiceImpl(httpClient: httpClient);
+
+              // Create MapController with all services including live fire data
               final mapController = MapController(
                 locationResolver: locationResolver,
                 fireLocationService: fireLocationService,
                 fireRiskService: fireRiskService,
+                hotspotService: hotspotService,
+                burntAreaService: burntAreaService,
               );
               return MapScreen(controller: mapController);
             },
