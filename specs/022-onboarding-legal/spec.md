@@ -1,8 +1,8 @@
-# Spec: A16 – Onboarding & Legal Integration
+# Spec: 022 – Onboarding & Legal Integration
 
 **Status:** Ready for Implementation  
 **Created:** 2025-12-09  
-**Last Updated:** 2025-12-09
+**Last Updated:** 2025-12-10
 
 ---
 
@@ -12,18 +12,18 @@ Add a first-launch onboarding flow to the WildFire app that:
 
 - Introduces what the app is and is not
 - Shows a short emergency disclaimer and links to full legal docs
-- Lets the user choose a preferred notification distance from fires (stored for future use)
+- Lets the user choose a preferred notification distance from fires (stored for future use; also to be used for calculating number of active fires in risk banner — see Future Work)
 - Requires explicit consent to terms before proceeding
 - Marks onboarding as complete so it's skipped on subsequent launches
 - Supports version migration when legal terms are updated
 
-**Style**: Use the existing WildFire theme (Material 3) with "Option B" flavour – full-bleed background colour/illustration and a central card for content.
+**Style**: Use the existing WildFire theme (Material 3) with "Option B" flavour (see Appendix) – full-bleed background colour/illustration and a central card for content.
 
 ---
 
 ## Prerequisites
 
-Before implementing A16, the following must be completed:
+Before implementing 022, the following must be completed:
 
 ### P1: Legal Routes (separate task)
 Create in-app legal screens:
@@ -112,7 +112,7 @@ Implement as one `OnboardingScreen` with 4 pages inside a `PageView`.
 
 **Structure:**
 - **Background**: Scaffold with `BrandPalette.forest900` or `colorScheme.surface`
-- **Top**: App logo / pin icon and "WildFire" title
+- **Top**: App logo / pin icon and "WildFire Tracker" title
 - **Middle**: Card with rounded corners (12-24px), elevation or soft shadow
 - **Bottom**:
   - Primary button ("Continue" / "Get started")
@@ -136,7 +136,7 @@ Implement as one `OnboardingScreen` with 4 pages inside a `PageView`.
 **Purpose**: Friendly intro + scope
 
 **Content:**
-- **Title**: "Welcome to the Scottish Wildfire Tracker"
+- **Title**: "Welcome to the Wildfire Tracker"
 - **Body**:
   - "This app helps you stay aware of wildfire risk and recent fire activity across Scotland."
   - "Data is based on environmental models and satellite detections and may be delayed or incomplete."
@@ -145,6 +145,7 @@ Implement as one `OnboardingScreen` with 4 pages inside a `PageView`.
   - "Explore satellite-detected hotspots."
   - "Plan ahead for days with higher risk."
   - "Pick a location with accurate coordinates to help reporting."
+  - "Learn about Wildfires and their prevention"
 
 **Buttons:**
 - Primary: "Continue"
@@ -157,13 +158,13 @@ Implement as one `OnboardingScreen` with 4 pages inside a `PageView`.
 
 **Content:**
 
-> WildFire provides general wildfire-risk information and satellite-detected hotspots.
+> WildFire Tracker provides general wildfire-risk information and satellite-detected hotspots.
 > This app is not a real-time emergency alert system.
 > If you see fire or believe life or property is at risk, call 999 immediately.
 > For non-emergency fire concerns, call 101.
 
 **Layout:**
-- Warning icon (amber/red from RiskPalette)
+- Warning icon (amber from theme palette)
 - Bold emphasis on 999 and 101
 - Link: "View full Terms & Privacy" → `context.push('/about')`
 
@@ -316,6 +317,11 @@ Future<ConsentRecord?> getConsentRecord() async {
 - **Do not** allow skipping legal checkboxes on Page 4
 - Respect existing privacy rules (use `LocationUtils.logRedact()` for debug logs)
 
+### Future Work (out of scope for 022)
+- Use `notification_radius_km` to calculate and display "X active fires within Y km" in risk banner
+- Push notifications when new fires detected within radius
+- "Learn about Wildfires" educational content section
+
 ---
 
 ## 9. Version Migration
@@ -403,3 +409,46 @@ Includes:
 - Privacy Policy
 - Emergency & Accuracy Disclaimer
 - Data Sources & Attribution
+
+---
+
+## Appendix: Option B Style Reference
+
+**Option B — 5-Screen Guided Story + Interaction**
+
+A more "designed" experience suitable for app-store wow factor.
+
+### Screen 1 — Why this app exists
+- Hero image of Scottish hills
+- "Scotland's wildfire seasons are becoming more unpredictable…"
+- Sets emotional context, purpose
+
+### Screen 2 — What the app gives you
+Icons for:
+- Today's risk level
+- Active fires nearby
+- Map tools
+- Offline/cached fallback
+
+### Screen 3 — How the data works
+- Simple animation or visual sequence of fallback chain
+- A map blur showing radius of location rounding
+
+### Screen 4 — Your role
+- "You help by using this responsibly."
+- Not a reporting tool for emergencies (but can help you gather coordinates)
+
+### Screen 5 — Permissions + Legal
+- Location permission
+- Notifications preference
+- Legal disclaimer acknowledgment
+- "Get Started" button
+
+**Pros:**
+- Premium feel
+- Builds trust
+- Helps avoid future user misunderstanding
+
+**Cons:**
+- More design overhead
+- Slightly more friction for the user
