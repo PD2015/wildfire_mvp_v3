@@ -615,59 +615,98 @@ class _MapScreenState extends State<MapScreen> {
                     child: Column(
                       children: [
                         Text(
-                          '${state.incidents.length} Active Fires',
+                          _controller.fireDataMode == FireDataMode.hotspots
+                              ? '${_controller.fireDataCount} Active Hotspots'
+                              : '${_controller.fireDataCount} Burnt Areas',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Data source: ${state.freshness.name.toUpperCase()}',
+                          'Data source: ${_controller.dataFreshness.name.toUpperCase()}',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
-                        if (state.incidents.isNotEmpty) ...[
+                        if (_controller.hasFireData) ...[
                           const SizedBox(height: 16),
                           const Divider(),
                           const SizedBox(height: 8),
-                          ...state.incidents.take(5).map(
-                                (incident) => Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 4,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.local_fire_department,
-                                        color: incident.intensity == 'high'
-                                            ? Theme.of(context)
-                                                .colorScheme
-                                                .error
-                                            : incident.intensity == 'moderate'
-                                                ? Theme.of(context)
-                                                    .colorScheme
-                                                    .tertiary
-                                                : Theme.of(context)
-                                                    .colorScheme
-                                                    .primary,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          incident.description ??
-                                              'Fire Incident',
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodyMedium,
+                          // Show fire data summary based on current mode
+                          if (_controller.fireDataMode == FireDataMode.hotspots)
+                            ..._controller.hotspots.take(5).map(
+                                  (hotspot) => Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 4,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.local_fire_department,
+                                          color: hotspot.intensity == 'high'
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .error
+                                              : hotspot.intensity == 'moderate'
+                                                  ? Theme.of(context)
+                                                      .colorScheme
+                                                      .tertiary
+                                                  : Theme.of(context)
+                                                      .colorScheme
+                                                      .primary,
+                                          size: 20,
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Hotspot: FRP ${hotspot.frp.toStringAsFixed(1)} MW',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                          else
+                            ..._controller.burntAreas.take(5).map(
+                                  (area) => Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 4,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.terrain,
+                                          color: area.intensity == 'high'
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .error
+                                              : area.intensity == 'moderate'
+                                                  ? Theme.of(context)
+                                                      .colorScheme
+                                                      .tertiary
+                                                  : Theme.of(context)
+                                                      .colorScheme
+                                                      .primary,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Burnt Area: ${area.areaHectares.toStringAsFixed(1)} ha',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                          if (state.incidents.length > 5)
+                          if (_controller.fireDataCount > 5)
                             Padding(
                               padding: const EdgeInsets.only(top: 8),
                               child: Text(
-                                '+ ${state.incidents.length - 5} more',
+                                '+ ${_controller.fireDataCount - 5} more',
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ),
@@ -691,11 +730,14 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _buildMapView(MapSuccess state) {
+    final dataLabel = _controller.fireDataMode == FireDataMode.hotspots
+        ? '${_controller.fireDataCount} hotspots'
+        : '${_controller.fireDataCount} burnt areas';
     return Stack(
       children: [
         Semantics(
           key: const ValueKey('map_semantics'),
-          label: 'Map showing ${state.incidents.length} fire incidents',
+          label: 'Map showing $dataLabel',
           child: GoogleMap(
             key: const ValueKey('wildfire_map'),
             onMapCreated: _onMapCreated,
@@ -728,24 +770,24 @@ class _MapScreenState extends State<MapScreen> {
             onCameraIdle: _viewportLoader.onCameraIdle,
           ),
         ),
-        // Source chip positioned at top-left - only show when there are fires
-        // When no fires, the empty state card already shows the data source
-        if (state.incidents.isNotEmpty)
+        // Source chip positioned at top-left - only show when there is fire data
+        // When no fire data, the empty state card already shows the data source
+        if (_controller.hasFireData)
           Positioned(
             top: 16,
             left: 16,
             child: MapSourceChip(
-              source: state.freshness,
-              lastUpdated: state.lastUpdated,
+              source: _controller.dataFreshness,
+              lastUpdated: _controller.lastUpdated,
             ),
           ),
-        // Timestamp chip positioned at bottom-left - only show when there are fires
-        if (state.incidents.isNotEmpty)
+        // Timestamp chip positioned at bottom-left - only show when there is fire data
+        if (_controller.hasFireData)
           Positioned(
             bottom: 16,
             left: 16,
             child: IncidentsTimestampChip(
-              lastUpdated: state.lastUpdated,
+              lastUpdated: _controller.lastUpdated,
             ),
           ),
         // Map controls positioned at top-right (fire data mode, filters, map type, GPS)
@@ -835,8 +877,8 @@ class _MapScreenState extends State<MapScreen> {
             ],
           ),
         ),
-        // Empty state message if no fires - mode-specific messaging
-        if (state.incidents.isEmpty)
+        // Empty state message if no fire data - mode-specific messaging
+        if (!_controller.hasFireData)
           Center(
             child: Card(
               margin: const EdgeInsets.all(24),
@@ -867,7 +909,7 @@ class _MapScreenState extends State<MapScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Data source: ${state.freshness.name.toUpperCase()}',
+                      'Data source: ${_controller.dataFreshness.name.toUpperCase()}',
                       style: Theme.of(
                         context,
                       ).textTheme.bodySmall?.copyWith(

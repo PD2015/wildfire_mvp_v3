@@ -4,13 +4,13 @@ import 'package:dartz/dartz.dart';
 import 'package:wildfire_mvp_v3/models/api_error.dart';
 import 'package:wildfire_mvp_v3/models/burnt_area.dart';
 import 'package:wildfire_mvp_v3/models/fire_data_mode.dart';
-import 'package:wildfire_mvp_v3/models/fire_incident.dart';
+
 import 'package:wildfire_mvp_v3/models/hotspot.dart';
 import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
-import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
+
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/services/gwis_hotspot_service.dart';
 import 'package:wildfire_mvp_v3/services/effis_burnt_area_service.dart';
@@ -51,14 +51,6 @@ class _MockLocationResolver implements LocationResolver {
 }
 
 /// Mock fire location service
-class _MockFireLocationService implements FireLocationService {
-  @override
-  Future<Either<ApiError, List<FireIncident>>> getActiveFires(
-    LatLngBounds bounds,
-  ) async {
-    return const Right([]);
-  }
-}
 
 /// Mock fire risk service
 class _MockFireRiskService implements FireRiskService {
@@ -188,7 +180,6 @@ void main() {
 
       controller = MapController(
         locationResolver: _MockLocationResolver(),
-        fireLocationService: _MockFireLocationService(),
         fireRiskService: _MockFireRiskService(),
         hotspotService: mockGwisService,
         burntAreaService: mockBurntAreaService,

@@ -243,7 +243,6 @@ void main() {
         // Create MapController with mocked services
         final controller = MapController(
           locationResolver: mockLocationResolver,
-          fireLocationService: mockFireLocationService,
           fireRiskService: mockFireRiskService,
         );
 
@@ -294,7 +293,6 @@ void main() {
 
         final controller = MapController(
           locationResolver: mockLocationResolver,
-          fireLocationService: mockFireLocationService,
           fireRiskService: mockFireRiskService,
         );
 
@@ -341,7 +339,6 @@ void main() {
 
         final controller = MapController(
           locationResolver: mockLocationResolver,
-          fireLocationService: mockFireLocationService,
           fireRiskService: mockFireRiskService,
         );
 
@@ -386,7 +383,6 @@ void main() {
 
         final controller = MapController(
           locationResolver: mockLocationResolver,
-          fireLocationService: mockFireLocationService,
           fireRiskService: mockFireRiskService,
         );
 
@@ -435,7 +431,6 @@ void main() {
 
         final controller = MapController(
           locationResolver: mockLocationResolver,
-          fireLocationService: mockFireLocationService,
           fireRiskService: mockFireRiskService,
         );
 
@@ -481,7 +476,6 @@ void main() {
 
         final controller = MapController(
           locationResolver: mockLocationResolver,
-          fireLocationService: mockFireLocationService,
           fireRiskService: mockFireRiskService,
         );
 
@@ -530,7 +524,6 @@ void main() {
         for (int i = 0; i < 3; i++) {
           final controller = MapController(
             locationResolver: mockLocationResolver,
-            fireLocationService: mockFireLocationService,
             fireRiskService: mockFireRiskService,
           );
 
@@ -596,7 +589,6 @@ void main() {
 
         final controller = MapController(
           locationResolver: mockLocationResolver,
-          fireLocationService: mockFireLocationService,
           fireRiskService: mockFireRiskService,
         );
 

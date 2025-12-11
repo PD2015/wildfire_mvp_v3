@@ -15,7 +15,6 @@ import 'features/location_picker/services/geocoding_service.dart';
 import 'features/location_picker/services/geocoding_service_impl.dart';
 import 'services/location_resolver.dart';
 import 'services/location_state_manager.dart';
-import 'services/fire_location_service.dart';
 import 'services/fire_risk_service.dart';
 import 'services/gwis_hotspot_service_impl.dart';
 import 'services/effis_burnt_area_service_impl.dart';
@@ -36,7 +35,6 @@ class WildFireApp extends StatelessWidget {
   /// Home controller with injected services
   final HomeController homeController;
   final LocationResolver locationResolver;
-  final FireLocationService fireLocationService;
   final FireRiskService fireRiskService;
 
   /// Shared location state manager for Report Fire screen
@@ -56,7 +54,6 @@ class WildFireApp extends StatelessWidget {
     super.key,
     required this.homeController,
     required this.locationResolver,
-    required this.fireLocationService,
     required this.fireRiskService,
     this.what3wordsService,
     this.geocodingService,
@@ -131,7 +128,6 @@ class WildFireApp extends StatelessWidget {
               // Create MapController with all services including live fire data
               final mapController = MapController(
                 locationResolver: locationResolver,
-                fireLocationService: fireLocationService,
                 fireRiskService: fireRiskService,
                 hotspotService: hotspotService,
                 burntAreaService: burntAreaService,

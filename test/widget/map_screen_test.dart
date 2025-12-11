@@ -11,11 +11,9 @@ import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/fire_data_mode.dart';
 import 'package:wildfire_mvp_v3/models/api_error.dart';
-import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
-import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:dartz/dartz.dart';
 
@@ -30,7 +28,6 @@ class MockMapController extends MapController {
   })  : _mockFireDataMode = fireDataMode,
         super(
           locationResolver: _NoOpLocationResolver(),
-          fireLocationService: _NoOpFireLocationService(),
           fireRiskService: _NoOpFireRiskService(),
         );
 
@@ -83,16 +80,6 @@ class _NoOpLocationResolver implements LocationResolver {
 
   @override
   Future<(LatLng, String?)?> loadCachedManualLocation() async => null;
-}
-
-/// No-op FireLocationService for testing
-class _NoOpFireLocationService implements FireLocationService {
-  @override
-  Future<Either<ApiError, List<FireIncident>>> getActiveFires(
-    LatLngBounds bounds,
-  ) async {
-    return const Right([]); // Empty list
-  }
 }
 
 /// No-op FireRiskService for testing

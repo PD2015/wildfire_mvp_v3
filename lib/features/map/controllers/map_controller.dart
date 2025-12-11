@@ -7,7 +7,6 @@ import 'package:wildfire_mvp_v3/models/fire_data_mode.dart';
 import 'package:wildfire_mvp_v3/models/hotspot.dart';
 import 'package:wildfire_mvp_v3/models/burnt_area.dart';
 import 'package:wildfire_mvp_v3/models/hotspot_cluster.dart';
-import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/gwis_hotspot_service.dart';
@@ -28,7 +27,6 @@ import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 /// The `isUsingMockData` flag indicates when mock data is being displayed.
 class MapController extends ChangeNotifier {
   final LocationResolver _locationResolver;
-  final FireLocationService _fireLocationService;
   final FireRiskService _fireRiskService;
   final GwisHotspotService? _hotspotService;
   final EffisBurntAreaService? _burntAreaService;
@@ -63,7 +61,35 @@ class MapController extends ChangeNotifier {
   // Whether live data is available or using mock fallback
   bool _isUsingMockData = false;
 
+  // Timestamp of last successful data fetch
+  DateTime _lastUpdated = DateTime.now();
+
   MapState get state => _state;
+
+  /// Whether there is fire data to display (mode-aware)
+  bool get hasFireData {
+    if (_fireDataMode == FireDataMode.hotspots) {
+      return _hotspots.isNotEmpty || _clusters.isNotEmpty;
+    } else {
+      return _burntAreas.isNotEmpty;
+    }
+  }
+
+  /// Count of fire data items currently displayed
+  int get fireDataCount {
+    if (_fireDataMode == FireDataMode.hotspots) {
+      return _hotspots.length;
+    } else {
+      return _burntAreas.length;
+    }
+  }
+
+  /// Get freshness based on mock data flag
+  Freshness get dataFreshness =>
+      _isUsingMockData ? Freshness.mock : Freshness.live;
+
+  /// Get last updated timestamp for current data
+  DateTime get lastUpdated => _lastUpdated;
 
   /// Get user's actual GPS location (for distance calculations)
   /// Returns null if GPS was unavailable during initialization
@@ -83,12 +109,10 @@ class MapController extends ChangeNotifier {
 
   MapController({
     required LocationResolver locationResolver,
-    required FireLocationService fireLocationService,
     required FireRiskService fireRiskService,
     GwisHotspotService? hotspotService,
     EffisBurntAreaService? burntAreaService,
   })  : _locationResolver = locationResolver,
-        _fireLocationService = fireLocationService,
         _fireRiskService = fireRiskService,
         _hotspotService = hotspotService,
         _burntAreaService = burntAreaService {
@@ -190,43 +214,23 @@ class MapController extends ChangeNotifier {
         ),
       );
 
-      // Step 3: Fetch fire incidents
-      debugPrint(
-        '🗺️ MapController: Fetching fires for bounds: SW(${mapBounds.southwest.latitude},${mapBounds.southwest.longitude}) NE(${mapBounds.northeast.latitude},${mapBounds.northeast.longitude})',
-      );
-      final firesResult = await _fireLocationService.getActiveFires(mapBounds);
+      // Store bounds and set initial success state
+      _currentBounds = mapBounds;
+      _lastUpdated = DateTime.now();
 
-      firesResult.fold(
-        (error) {
-          debugPrint(
-            '🗺️ MapController: Error loading fires: ${error.message}',
-          );
-          _state = MapError(
-            message: 'Failed to load fire data: ${error.message}',
-            lastKnownLocation: centerLocation,
-          );
-        },
-        (incidents) {
-          debugPrint(
-            '🗺️ MapController: Loaded ${incidents.length} fire incidents',
-          );
-          if (incidents.isNotEmpty) {
-            debugPrint(
-              '🗺️ MapController: First incident: ${incidents.first.description} at ${incidents.first.location.latitude},${incidents.first.location.longitude}',
-            );
-            debugPrint(
-              '🗺️ MapController: Freshness: ${incidents.first.freshness}, Source: ${incidents.first.source}',
-            );
-          }
-          _state = MapSuccess(
-            incidents: incidents,
-            centerLocation: centerLocation,
-            freshness:
-                incidents.isEmpty ? Freshness.live : incidents.first.freshness,
-            lastUpdated: DateTime.now(),
-          );
-        },
+      // Set success state with empty incidents (fire data comes from hotspots/burntAreas)
+      _state = MapSuccess(
+        incidents: const [], // Legacy field - no longer used for display
+        centerLocation: centerLocation,
+        freshness: Freshness.live, // Will be overridden by dataFreshness getter
+        lastUpdated: _lastUpdated,
       );
+
+      // Step 3: Fetch fire data for current mode (hotspots or burnt areas)
+      debugPrint(
+        '🗺️ MapController: Fetching fire data for bounds: SW(${mapBounds.southwest.latitude},${mapBounds.southwest.longitude}) NE(${mapBounds.northeast.latitude},${mapBounds.northeast.longitude})',
+      );
+      _fetchDataForCurrentMode();
 
       notifyListeners();
     } catch (e) {
@@ -246,35 +250,28 @@ class MapController extends ChangeNotifier {
     // Just fetch data in background and update markers when ready
 
     try {
-      final firesResult = await _fireLocationService.getActiveFires(
-        visibleBounds,
-      );
+      // Update last updated timestamp
+      _lastUpdated = DateTime.now();
 
-      firesResult.fold(
-        (error) {
-          // Preserve previous data if available
-          if (previousState is MapSuccess) {
-            _state = MapError(
-              message: 'Failed to refresh: ${error.message}',
-              cachedIncidents: previousState.incidents,
-              lastKnownLocation: previousState.centerLocation,
-            );
-          } else {
-            _state = MapError(message: 'Failed to refresh: ${error.message}');
-          }
-        },
-        (incidents) {
-          _state = MapSuccess(
-            incidents: incidents,
-            centerLocation: visibleBounds.center,
-            freshness:
-                incidents.isEmpty ? Freshness.live : incidents.first.freshness,
-            lastUpdated: DateTime.now(),
-          );
-        },
-      );
+      // Keep success state with current center
+      if (previousState is MapSuccess) {
+        _state = MapSuccess(
+          incidents: const [], // Legacy field - no longer used for display
+          centerLocation: visibleBounds.center,
+          freshness:
+              Freshness.live, // Will be overridden by dataFreshness getter
+          lastUpdated: _lastUpdated,
+        );
+      } else {
+        _state = MapSuccess(
+          incidents: const [],
+          centerLocation: visibleBounds.center,
+          freshness: Freshness.live,
+          lastUpdated: _lastUpdated,
+        );
+      }
 
-      // Also fetch mode-specific data (hotspots or burnt areas)
+      // Fetch mode-specific data (hotspots or burnt areas)
       _fetchDataForCurrentMode();
 
       notifyListeners();

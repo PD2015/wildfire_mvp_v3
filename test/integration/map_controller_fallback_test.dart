@@ -94,7 +94,6 @@ void main() {
 
         controller = MapController(
           locationResolver: mockLocationResolver,
-          fireLocationService: mockFireLocationService,
           fireRiskService: mockFireRiskService,
           hotspotService: mockHotspotService,
           burntAreaService: mockBurntAreaService,
@@ -123,7 +122,6 @@ void main() {
 
         controller = MapController(
           locationResolver: mockLocationResolver,
-          fireLocationService: mockFireLocationService,
           fireRiskService: mockFireRiskService,
           hotspotService: mockHotspotService,
           burntAreaService: mockBurntAreaService,
@@ -142,7 +140,6 @@ void main() {
       test('falls back to mock when hotspot service is null', () async {
         controller = MapController(
           locationResolver: mockLocationResolver,
-          fireLocationService: mockFireLocationService,
           fireRiskService: mockFireRiskService,
           hotspotService: null, // No live service
           burntAreaService: null,
@@ -182,7 +179,6 @@ void main() {
 
         controller = MapController(
           locationResolver: mockLocationResolver,
-          fireLocationService: mockFireLocationService,
           fireRiskService: mockFireRiskService,
           hotspotService: mockHotspotService,
           burntAreaService: mockBurntAreaService,
@@ -214,7 +210,6 @@ void main() {
 
         controller = MapController(
           locationResolver: mockLocationResolver,
-          fireLocationService: mockFireLocationService,
           fireRiskService: mockFireRiskService,
           hotspotService: mockHotspotService,
           burntAreaService: mockBurntAreaService,
@@ -235,7 +230,6 @@ void main() {
       test('falls back to mock when burnt area service is null', () async {
         controller = MapController(
           locationResolver: mockLocationResolver,
-          fireLocationService: mockFireLocationService,
           fireRiskService: mockFireRiskService,
           hotspotService: null,
           burntAreaService: null, // No live service
@@ -276,7 +270,6 @@ void main() {
 
         controller = MapController(
           locationResolver: mockLocationResolver,
-          fireLocationService: mockFireLocationService,
           fireRiskService: mockFireRiskService,
           hotspotService: mockHotspotService,
           burntAreaService: mockBurntAreaService,
@@ -323,7 +316,6 @@ void main() {
 
         controller = MapController(
           locationResolver: mockLocationResolver,
-          fireLocationService: mockFireLocationService,
           fireRiskService: mockFireRiskService,
           hotspotService: mockHotspotService,
           burntAreaService: mockBurntAreaService,
