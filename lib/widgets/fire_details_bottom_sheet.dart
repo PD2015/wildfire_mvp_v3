@@ -394,13 +394,17 @@ class FireDetailsBottomSheet extends StatelessWidget {
                 semanticLabel:
                     'Fire radiative power: ${inc.frp!.toStringAsFixed(0)} megawatts',
               ),
-            _buildDetailRow(
-              context: context,
-              icon: Icons.warning_amber,
-              label: 'Risk level',
-              value: _formatIntensity(inc.intensity),
-              semanticLabel: 'Risk level: ${_formatIntensity(inc.intensity)}',
-            ),
+            // Only show intensity for hotspots where it's derived from FRP
+            // Burnt areas don't have an intensity/risk field in the API
+            if (displayType == FireDataDisplayType.hotspot)
+              _buildDetailRow(
+                context: context,
+                icon: Icons.whatshot,
+                label: 'Fire intensity',
+                value: _formatIntensity(inc.intensity),
+                semanticLabel:
+                    'Fire intensity: ${_formatIntensity(inc.intensity)}',
+              ),
             if (inc.confidence != null)
               _buildDetailRow(
                 context: context,
