@@ -95,19 +95,21 @@ class FireDetailsBottomSheet extends StatelessWidget {
   /// Factory constructor for displaying a Hotspot
   ///
   /// Converts Hotspot to FireIncident for display and sets displayType.
+  /// The [freshness] parameter indicates whether data is live or mock.
   factory FireDetailsBottomSheet.fromHotspot({
     Key? key,
     required Hotspot hotspot,
     LatLng? userLocation,
     VoidCallback? onClose,
     VoidCallback? onRetry,
+    Freshness freshness = Freshness.live,
   }) {
     // Convert Hotspot to FireIncident for rendering
     final incident = FireIncident(
       id: hotspot.id,
       location: hotspot.location,
       source: DataSource.effis,
-      freshness: Freshness.live,
+      freshness: freshness,
       timestamp: hotspot.detectedAt,
       intensity: hotspot.intensity,
       detectedAt: hotspot.detectedAt,
@@ -130,19 +132,21 @@ class FireDetailsBottomSheet extends StatelessWidget {
   /// Factory constructor for displaying a BurntArea
   ///
   /// Converts BurntArea to FireIncident for display and sets displayType.
+  /// The [freshness] parameter indicates whether data is live or mock.
   factory FireDetailsBottomSheet.fromBurntArea({
     Key? key,
     required BurntArea burntArea,
     LatLng? userLocation,
     VoidCallback? onClose,
     VoidCallback? onRetry,
+    Freshness freshness = Freshness.live,
   }) {
     // Convert BurntArea to FireIncident for rendering
     final incident = FireIncident(
       id: burntArea.id,
       location: burntArea.centroid,
       source: DataSource.effis,
-      freshness: Freshness.live,
+      freshness: freshness,
       timestamp: burntArea.fireDate,
       intensity: burntArea.intensity,
       detectedAt: burntArea.fireDate,

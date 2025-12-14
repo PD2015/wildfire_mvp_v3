@@ -477,6 +477,7 @@ class _MapScreenState extends State<MapScreen> {
         hotspot: _selectedHotspot!,
         userLocation: userLocation,
         onClose: closeSheet,
+        freshness: _controller.dataFreshness,
       );
     }
 
@@ -486,6 +487,7 @@ class _MapScreenState extends State<MapScreen> {
         burntArea: _selectedBurntArea!,
         userLocation: userLocation,
         onClose: closeSheet,
+        freshness: _controller.dataFreshness,
       );
     }
 
