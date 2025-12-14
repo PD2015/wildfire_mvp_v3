@@ -3,9 +3,11 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
+import 'package:wildfire_mvp_v3/features/map/utils/hotspot_clusterer.dart';
 import 'package:wildfire_mvp_v3/features/map/utils/hotspot_style_helper.dart';
 import 'package:wildfire_mvp_v3/features/map/utils/marker_icon_helper.dart';
 import 'package:wildfire_mvp_v3/features/map/utils/polygon_style_helper.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/hotspot_cluster_marker.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/hotspot_square_builder.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/incidents_timestamp_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
@@ -17,6 +19,7 @@ import 'package:wildfire_mvp_v3/models/fire_data_mode.dart';
 // import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/hotspot.dart';
+import 'package:wildfire_mvp_v3/models/hotspot_cluster.dart';
 import 'package:wildfire_mvp_v3/models/burnt_area.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
 import 'package:wildfire_mvp_v3/utils/debounced_viewport_loader.dart';
@@ -180,11 +183,14 @@ class _MapScreenState extends State<MapScreen> {
 
   /// Update markers for hotspots mode from Hotspot models
   ///
-  /// Shows flame pin markers at all zoom levels.
-  /// At zoom >= 8, 375m satellite footprint polygons are also shown behind pins.
+  /// Display rules based on zoom level:
+  /// - Zoom < 8: Cluster badges only (grouped hotspots)
+  /// - Zoom 8-12: Flame pin markers + 375m satellite footprint squares
+  /// - Zoom >= 12: Satellite footprint squares only (pins hidden for clarity)
   void _updateHotspotMarkers(List<Hotspot> hotspots) {
     debugPrint(
-      '🔥 Hotspots mode: ${hotspots.length} hotspots, zoom=$_currentZoom',
+      '🔥 Hotspots mode: ${hotspots.length} hotspots, zoom=$_currentZoom, '
+      'shouldShowClusters=${_controller.shouldShowClusters}',
     );
 
     if (hotspots.isEmpty) {
@@ -193,7 +199,116 @@ class _MapScreenState extends State<MapScreen> {
       return;
     }
 
-    // Always show flame pin markers for tapping
+    // Check if we should show clusters (zoom < 10) or individual markers
+    if (_controller.shouldShowClusters) {
+      // Low zoom: show cluster markers instead of individual pins
+      _updateClusterMarkers();
+    } else {
+      // High zoom: show individual flame pin markers
+      _updateIndividualHotspotMarkers(hotspots);
+    }
+  }
+
+  /// Update markers to show cluster badges (zoom < 10)
+  ///
+  /// Single-item clusters (count=1) are shown as flame pins instead of badges
+  /// since a "cluster of 1" doesn't make visual sense.
+  Future<void> _updateClusterMarkers() async {
+    final clusters = _controller.clusters;
+
+    if (clusters.isEmpty) {
+      _markers = {};
+      debugPrint('🔥 Cluster mode: no clusters, markers cleared');
+      return;
+    }
+
+    // Separate multi-hotspot clusters from single hotspots
+    final multiClusters = clusters.where((c) => c.count > 1).toList();
+    final singleClusters = clusters.where((c) => c.count == 1).toList();
+
+    debugPrint(
+      '🔥 Cluster mode: ${multiClusters.length} multi-clusters, '
+      '${singleClusters.length} single hotspots',
+    );
+
+    // Build cluster badges for multi-hotspot clusters
+    final clusterMarkers = await HotspotClusterMarker.buildMarkers(
+      clusters: multiClusters,
+      onTap: (cluster) {
+        debugPrint(
+          '🔥 Cluster tapped: ${cluster.count} hotspots, '
+          'zooming to fit bounds',
+        );
+        _zoomToClusterBounds(cluster);
+      },
+    );
+
+    // Build flame pin markers for single hotspots
+    final singleMarkers = singleClusters.map((cluster) {
+      final hotspot = cluster.hotspots.first;
+      return Marker(
+        markerId: MarkerId('hotspot_${hotspot.id}'),
+        position: LatLng(
+          hotspot.location.latitude,
+          hotspot.location.longitude,
+        ),
+        icon: MarkerIconHelper.getIcon(hotspot.intensity),
+        anchor: const Offset(0.5, 1.0),
+        infoWindow: InfoWindow(
+          title: 'Active Fire',
+          snippet: _buildHotspotSnippetFromModel(hotspot),
+        ),
+        onTap: () {
+          debugPrint('🔥 Hotspot tapped: ${hotspot.id} (${hotspot.intensity})');
+          _showHotspotDetails(hotspot);
+        },
+      );
+    }).toSet();
+
+    // Combine both marker types
+    _markers = {...clusterMarkers, ...singleMarkers};
+
+    debugPrint(
+      '🔥 Cluster mode: ${clusterMarkers.length} cluster badges + '
+      '${singleMarkers.length} flame pins = ${_markers.length} total',
+    );
+    setState(() {});
+  }
+
+  /// Zoom map to fit all hotspots in a cluster
+  void _zoomToClusterBounds(HotspotCluster cluster) {
+    if (_mapController == null) return;
+
+    // Get bounds from cluster and zoom to fit
+    final bounds = cluster.bounds;
+    _mapController!.animateCamera(
+      CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest:
+              LatLng(bounds.southwest.latitude, bounds.southwest.longitude),
+          northeast:
+              LatLng(bounds.northeast.latitude, bounds.northeast.longitude),
+        ),
+        50.0, // padding
+      ),
+    );
+  }
+
+  /// Update markers to show individual flame pins (zoom 8-12)
+  ///
+  /// At zoom >= 12: satellite footprint squares are large enough to see clearly,
+  /// so we hide pin markers to reduce visual clutter (squares only).
+  void _updateIndividualHotspotMarkers(List<Hotspot> hotspots) {
+    // At zoom >= 12, hide pins - only satellite squares are shown
+    if (_currentZoom >= HotspotClusterer.maxClusterZoom) {
+      _markers = {};
+      debugPrint(
+        '🔥 High zoom (${_currentZoom.toStringAsFixed(1)}): '
+        'pins hidden, showing satellite squares only',
+      );
+      return;
+    }
+
     _markers = hotspots.map((hotspot) {
       return Marker(
         markerId: MarkerId('hotspot_${hotspot.id}'),
@@ -214,7 +329,7 @@ class _MapScreenState extends State<MapScreen> {
       );
     }).toSet();
 
-    debugPrint('🔥 Hotspots mode: created ${_markers.length} markers');
+    debugPrint('🔥 Individual mode: created ${_markers.length} pin markers');
   }
 
   /// Build info window snippet for hotspot marker from Hotspot model
@@ -474,11 +589,25 @@ class _MapScreenState extends State<MapScreen> {
     final wasShowingPolygons = _shouldShowPolygons();
     final wasShowingHotspotSquares =
         _currentZoom >= HotspotStyleHelper.minZoomForSquares;
+    final wasShowingClusters = _controller.shouldShowClusters;
 
     _currentZoom = newZoom;
 
     // Update controller zoom for clustering decisions
     _controller.updateZoom(newZoom);
+
+    final nowShowingClusters = _controller.shouldShowClusters;
+
+    // Check if we crossed the cluster threshold (zoom 10)
+    // This determines whether to show cluster badges vs individual pins
+    if (wasShowingClusters != nowShowingClusters &&
+        _controller.fireDataMode == FireDataMode.hotspots) {
+      debugPrint(
+        '🔥 Cluster threshold crossed: ${nowShowingClusters ? "showing clusters" : "showing individual pins"}',
+      );
+      _updateMarkersForMode();
+      setState(() {});
+    }
 
     // Check if we crossed the hotspot square threshold (zoom 8)
     final nowShowingHotspotSquares =

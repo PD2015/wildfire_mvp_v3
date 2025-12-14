@@ -538,39 +538,46 @@ class MapController extends ChangeNotifier {
 
   /// Update current zoom level and recluster hotspots if needed
   ///
-  /// Hotspots are clustered at zoom < 10, shown individually at zoom >= 10.
+  /// Clustering radius is zoom-aware (like Mapbox Supercluster):
+  /// - At low zoom, clusters cover larger geographic areas
+  /// - At high zoom (>= 12), shows individual hotspots
+  /// - Reclusters when zoom changes significantly (by 0.5 or more)
   void updateZoom(double zoom) {
     final previousZoom = _currentZoom;
     _currentZoom = zoom;
 
-    // Check if we crossed the clustering threshold (zoom 10)
-    const clusterThreshold = 10.0;
-    final wasAboveThreshold = previousZoom >= clusterThreshold;
-    final isAboveThreshold = zoom >= clusterThreshold;
+    // Debug: log zoom level changes
+    debugPrint(
+        '🔍 Zoom: ${zoom.toStringAsFixed(1)} (clusters: ${zoom < HotspotClusterer.maxClusterZoom ? "ON" : "OFF"})');
 
-    if (wasAboveThreshold != isAboveThreshold) {
+    // Recluster if zoom changed significantly (0.5 zoom levels)
+    // This balances responsiveness with performance
+    if ((zoom - previousZoom).abs() >= 0.5) {
       _reclusterHotspots();
     }
   }
 
   /// Recluster hotspots based on current zoom level
+  ///
+  /// Uses zoom-aware clustering where the radius in pixels stays constant
+  /// but the geographic coverage changes with zoom level.
   void _reclusterHotspots() {
     if (_fireDataMode != FireDataMode.hotspots) return;
 
-    if (_currentZoom >= 10.0) {
-      // High zoom: no clustering, show individual hotspots
-      _clusters = [];
-    } else {
-      // Low zoom: cluster hotspots
-      _clusters = HotspotClusterer.cluster(_hotspots);
-    }
+    // Always cluster with zoom-aware radius
+    // HotspotClusterer handles maxClusterZoom internally (zoom >= 12 = no clustering)
+    _clusters = HotspotClusterer.cluster(_hotspots, zoom: _currentZoom);
 
     notifyListeners();
   }
 
-  /// Whether to show individual hotspots or clusters based on zoom
+  /// Whether to show clusters or individual hotspots based on zoom
+  ///
+  /// At zoom < 12: show cluster badges (for multi-hotspot clusters) and pins (for singles)
+  /// At zoom >= 12: show individual flame pins only
   bool get shouldShowClusters =>
-      _fireDataMode == FireDataMode.hotspots && _currentZoom < 10.0;
+      _fireDataMode == FireDataMode.hotspots &&
+      _currentZoom < HotspotClusterer.maxClusterZoom;
 
   @override
   void dispose() {
