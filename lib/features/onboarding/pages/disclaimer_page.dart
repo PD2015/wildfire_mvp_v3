@@ -83,7 +83,7 @@ class DisclaimerPage extends StatelessWidget {
             const SizedBox(height: 16),
 
             // Disclaimer text
-            OnboardingCard(
+            const OnboardingCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -92,23 +92,23 @@ class DisclaimerPage extends StatelessWidget {
                     text:
                         'WildFire provides general wildfire-risk information and satellite-detected hotspots.',
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   _DisclaimerItem(
                     icon: Icons.warning_amber,
                     text: 'This app is not a real-time emergency alert system.',
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   _DisclaimerItem(
                     icon: Icons.phone,
                     text:
                         'If you see fire or believe life or property is at risk, call 999 immediately.',
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   _DisclaimerItem(
                     icon: Icons.phone_outlined,
                     text: 'For non-emergency fire concerns, call 101.',
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   _DisclaimerItem(
                     icon: Icons.satellite_alt,
                     text:
