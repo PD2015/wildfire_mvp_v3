@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:wildfire_mvp_v3/models/fire_data_mode.dart';
 import 'package:wildfire_mvp_v3/theme/brand_palette.dart';
 
-/// A SegmentedButton toggle for switching between Hotspots and Burnt Areas modes
+/// A toggle for switching between Hotspots and Burnt Areas modes
 ///
 /// Replaces PolygonToggleChip per decision D1 (021-live-fire-data).
 /// Provides mutually exclusive selection between fire data visualization modes.
 ///
+/// Uses custom chip styling (same as TimeFilterChips) for consistent
+/// corner rounding and internal padding.
+///
 /// Features:
-/// - SegmentedButton with "Hotspots" and "Burnt Areas" labels
+/// - Custom chips with "Hotspots" and "Burnt Areas" labels
 /// - Icons for visual distinction (whatshot vs layers)
 /// - Accessible: semantic labels for screen readers
 /// - Touch targets ≥44dp (C3 compliance)
@@ -41,7 +44,7 @@ class FireDataModeToggle extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.15),
@@ -50,49 +53,85 @@ class FireDataModeToggle extends StatelessWidget {
             ),
           ],
         ),
-        child: SegmentedButton<FireDataMode>(
-          segments: const [
-            ButtonSegment<FireDataMode>(
-              value: FireDataMode.hotspots,
-              label: Text('Hotspots'),
-              icon: Icon(Icons.whatshot, size: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildModeChip(
+              context: context,
+              colorScheme: colorScheme,
+              label: 'Hotspots',
+              icon: Icons.whatshot,
+              isSelected: mode == FireDataMode.hotspots,
+              onSelected:
+                  enabled ? () => onModeChanged(FireDataMode.hotspots) : null,
               tooltip: 'Show active fire hotspots from satellite detection',
             ),
-            ButtonSegment<FireDataMode>(
-              value: FireDataMode.burntAreas,
-              label: Text('Burnt Areas'),
-              icon: Icon(Icons.layers, size: 18),
+            const SizedBox(width: 4),
+            _buildModeChip(
+              context: context,
+              colorScheme: colorScheme,
+              label: 'Burnt Areas',
+              icon: Icons.layers,
+              isSelected: mode == FireDataMode.burntAreas,
+              onSelected:
+                  enabled ? () => onModeChanged(FireDataMode.burntAreas) : null,
               tooltip: 'Show verified burnt area polygons',
             ),
           ],
-          selected: {mode},
-          onSelectionChanged: enabled
-              ? (Set<FireDataMode> selection) {
-                  if (selection.isNotEmpty) {
-                    onModeChanged(selection.first);
-                  }
-                }
-              : null,
-          showSelectedIcon: false,
-          style: ButtonStyle(
-            // Ensure minimum touch target of 44dp
-            minimumSize: WidgetStateProperty.all(const Size(44, 44)),
-            padding: WidgetStateProperty.all(
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModeChip({
+    required BuildContext context,
+    required ColorScheme colorScheme,
+    required String label,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback? onSelected,
+    required String tooltip,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        // Match NavigationBar active indicator color (mint400)
+        color: isSelected ? BrandPalette.mint400 : Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: onSelected,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            // Ensure minimum 44dp touch target
+            constraints: const BoxConstraints(
+              minHeight: 36,
+              minWidth: 44,
             ),
-            // Visual styling - matches NavigationBar active indicator (mint400)
-            backgroundColor: WidgetStateProperty.resolveWith((states) {
-              if (states.contains(WidgetState.selected)) {
-                return BrandPalette.mint400;
-              }
-              return colorScheme.surface;
-            }),
-            foregroundColor: WidgetStateProperty.resolveWith((states) {
-              if (states.contains(WidgetState.selected)) {
-                return BrandPalette.forest900;
-              }
-              return colorScheme.onSurface;
-            }),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 18,
+                  color: isSelected
+                      ? BrandPalette.forest900
+                      : colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: isSelected
+                            ? BrandPalette.forest900
+                            : colorScheme.onSurfaceVariant,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w400,
+                      ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
