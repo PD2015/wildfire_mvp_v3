@@ -84,15 +84,37 @@ class DisclaimerPage extends StatelessWidget {
 
             // Disclaimer text
             OnboardingCard(
-              child: Text(
-                'This app provides informational data only and should '
-                'not be used for emergency decisions. Fire data may be '
-                'delayed or incomplete. Always follow official guidance '
-                'from emergency services.',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _DisclaimerItem(
+                    icon: Icons.info_outline,
+                    text:
+                        'WildFire provides general wildfire-risk information and satellite-detected hotspots.',
+                  ),
+                  const SizedBox(height: 12),
+                  _DisclaimerItem(
+                    icon: Icons.warning_amber,
+                    text: 'This app is not a real-time emergency alert system.',
+                  ),
+                  const SizedBox(height: 12),
+                  _DisclaimerItem(
+                    icon: Icons.phone,
+                    text:
+                        'If you see fire or believe life or property is at risk, call 999 immediately.',
+                  ),
+                  const SizedBox(height: 12),
+                  _DisclaimerItem(
+                    icon: Icons.phone_outlined,
+                    text: 'For non-emergency fire concerns, call 101.',
+                  ),
+                  const SizedBox(height: 12),
+                  _DisclaimerItem(
+                    icon: Icons.satellite_alt,
+                    text:
+                        'Satellite detections can include non-wildfire heat sources and may miss some fires.',
+                  ),
+                ],
               ),
             ),
 
@@ -146,7 +168,7 @@ class _EmergencyNumber extends StatelessWidget {
             number,
             style: theme.textTheme.headlineLarge?.copyWith(
               fontWeight: FontWeight.bold,
-              color: theme.colorScheme.error,
+              color: theme.colorScheme.onErrorContainer,
             ),
           ),
           Text(
@@ -157,6 +179,43 @@ class _EmergencyNumber extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// A single disclaimer item with icon and text.
+/// Matches the style of _FeatureItem in WelcomePage.
+class _DisclaimerItem extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _DisclaimerItem({
+    required this.icon,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          icon,
+          size: 24,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

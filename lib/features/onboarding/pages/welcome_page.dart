@@ -74,6 +74,17 @@ class WelcomePage extends StatelessWidget {
                     icon: Icons.notifications_outlined,
                     text: 'Get alerts about nearby fire activity',
                   ),
+                  SizedBox(height: 12),
+                  _FeatureItem(
+                    icon: Icons.explore_outlined,
+                    text: 'Plan ahead for days with higher wildfire risk',
+                  ),
+                  SizedBox(height: 12),
+                  _FeatureItem(
+                    icon: Icons.place_outlined,
+                    text:
+                        'Use accurate coordinates to help when reporting a fire',
+                  ),
                 ],
               ),
             ),
@@ -86,7 +97,7 @@ class WelcomePage extends StatelessWidget {
               height: 56, // 56dp for comfortable touch target
               child: FilledButton(
                 onPressed: onContinue,
-                child: const Text('Get Started'),
+                child: const Text('Continue'),
               ),
             ),
             const SizedBox(height: 16),
