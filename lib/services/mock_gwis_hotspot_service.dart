@@ -12,9 +12,22 @@ import 'gwis_hotspot_service.dart';
 /// Loads hotspot data from assets/mock/hotspots.json.
 /// Used when live GWIS API is unavailable or for testing.
 ///
+/// Mirrors the live service behavior:
+/// - HotspotTimeFilter.today → returns hotspots from last 24 hours
+/// - HotspotTimeFilter.thisWeek → returns hotspots from last 7 days
+///
+/// Mock data dates are interpreted relative to current date to simulate
+/// the GWIS viirs.hs.today and viirs.hs.week layer behavior.
+///
 /// Part of 021-live-fire-data feature implementation.
 class MockGwisHotspotService implements GwisHotspotService {
   List<Hotspot>? _cachedHotspots;
+
+  /// Injectable clock for testing - defaults to DateTime.now()
+  final DateTime Function() _clock;
+
+  MockGwisHotspotService({DateTime Function()? clock})
+      : _clock = clock ?? (() => DateTime.now());
 
   /// Load and parse mock hotspot data from assets
   Future<List<Hotspot>> _loadMockData() async {
@@ -48,11 +61,24 @@ class MockGwisHotspotService implements GwisHotspotService {
     int maxRetries = 3,
   }) async {
     final allHotspots = await _loadMockData();
+    final now = _clock();
 
     // Filter by bounding box
-    final filtered = allHotspots.where((hotspot) {
+    var filtered = allHotspots.where((hotspot) {
       return bounds.contains(hotspot.location);
     }).toList();
+
+    // Filter by time - mirrors GWIS layer behavior:
+    // viirs.hs.today = last 24 hours
+    // viirs.hs.week = last 7 days
+    switch (timeFilter) {
+      case HotspotTimeFilter.today:
+        final cutoff = now.subtract(const Duration(hours: 24));
+        filtered = filtered.where((h) => h.detectedAt.isAfter(cutoff)).toList();
+      case HotspotTimeFilter.thisWeek:
+        final cutoff = now.subtract(const Duration(days: 7));
+        filtered = filtered.where((h) => h.detectedAt.isAfter(cutoff)).toList();
+    }
 
     // Always return Right (mock service never fails)
     return Right(filtered);

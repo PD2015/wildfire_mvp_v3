@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
+import 'package:wildfire_mvp_v3/features/map/utils/hotspot_style_helper.dart';
 import 'package:wildfire_mvp_v3/features/map/utils/marker_icon_helper.dart';
 import 'package:wildfire_mvp_v3/features/map/utils/polygon_style_helper.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/hotspot_square_builder.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/incidents_timestamp_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/fire_data_mode_toggle.dart';
@@ -177,7 +179,9 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   /// Update markers for hotspots mode from Hotspot models
-  /// Shows all hotspots as pin markers with intensity based on FRP
+  ///
+  /// Shows flame pin markers at all zoom levels.
+  /// At zoom >= 8, 375m satellite footprint polygons are also shown behind pins.
   void _updateHotspotMarkers(List<Hotspot> hotspots) {
     debugPrint(
       '🔥 Hotspots mode: ${hotspots.length} hotspots, zoom=$_currentZoom',
@@ -189,6 +193,7 @@ class _MapScreenState extends State<MapScreen> {
       return;
     }
 
+    // Always show flame pin markers for tapping
     _markers = hotspots.map((hotspot) {
       return Marker(
         markerId: MarkerId('hotspot_${hotspot.id}'),
@@ -196,7 +201,7 @@ class _MapScreenState extends State<MapScreen> {
           hotspot.location.latitude,
           hotspot.location.longitude,
         ),
-        icon: _getMarkerIcon(hotspot.intensity),
+        icon: MarkerIconHelper.getIcon(hotspot.intensity),
         anchor: const Offset(0.5, 1.0),
         infoWindow: InfoWindow(
           title: 'Active Fire',
@@ -244,7 +249,8 @@ class _MapScreenState extends State<MapScreen> {
       return Marker(
         markerId: MarkerId('burnt_area_${area.id}'),
         position: LatLng(centroid.latitude, centroid.longitude),
-        icon: _getMarkerIcon('high'), // All burnt areas use red marker
+        icon:
+            MarkerIconHelper.getIcon('high'), // All burnt areas use red marker
         anchor: const Offset(0.5, 1.0),
         infoWindow: InfoWindow(
           title: 'Burnt Area',
@@ -381,21 +387,14 @@ class _MapScreenState extends State<MapScreen> {
     return const SizedBox.shrink();
   }
 
-  BitmapDescriptor _getMarkerIcon(String intensity) {
-    // Use custom flame icons from MarkerIconHelper
-    // Falls back to hue-based markers if icons not yet initialized
-    return MarkerIconHelper.getIcon(intensity);
-  }
-
   /// Update polygon overlays based on current fire data mode
   ///
   /// In Burnt Areas mode: shows polygons from controller.burntAreas (List<BurntArea>)
-  /// In Hotspots mode: no polygons (markers shown instead)
+  /// In Hotspots mode: shows 375m × 375m satellite footprint squares at high zoom
   void _updatePolygonsForMode() {
-    // In Hotspots mode, don't show polygons
+    // Hotspots mode: show 375m satellite footprint squares at high zoom
     if (_controller.fireDataMode == FireDataMode.hotspots) {
-      _polygons = {};
-      debugPrint('🔶 Hotspots mode: polygons cleared');
+      _updateHotspotPolygons();
       return;
     }
 
@@ -432,6 +431,37 @@ class _MapScreenState extends State<MapScreen> {
         '🔶 Updated ${_polygons.length} polygons from ${burntAreas.length} burnt areas');
   }
 
+  /// Update polygon overlays for hotspots mode
+  ///
+  /// At zoom >= 8: Shows 375m × 375m satellite footprint squares
+  /// At zoom < 8: No polygons (pin markers only for overview)
+  void _updateHotspotPolygons() {
+    // Check minimum zoom for squares (too small at low zoom)
+    if (_currentZoom < HotspotStyleHelper.minZoomForSquares) {
+      _polygons = {};
+      debugPrint(
+        '🔥 Hotspots mode: zoom $_currentZoom < ${HotspotStyleHelper.minZoomForSquares}, '
+        'using markers only',
+      );
+      return;
+    }
+
+    // Build 375m satellite footprint squares
+    final hotspots = _controller.hotspots;
+    _polygons = HotspotSquareBuilder.buildPolygons(
+      hotspots: hotspots,
+      onTap: (hotspot) {
+        debugPrint('🔥 Hotspot square tapped: ${hotspot.id}');
+        _showHotspotDetails(hotspot);
+      },
+    );
+
+    debugPrint(
+      '🔥 Hotspots mode: created ${_polygons.length} satellite footprint squares '
+      '(375m × 375m) at zoom $_currentZoom',
+    );
+  }
+
   /// Check if polygons should be visible based on zoom level and toggle
   bool _shouldShowPolygons() {
     return _showPolygons &&
@@ -442,15 +472,30 @@ class _MapScreenState extends State<MapScreen> {
   void _onCameraMove(CameraPosition position) {
     final newZoom = position.zoom;
     final wasShowingPolygons = _shouldShowPolygons();
+    final wasShowingHotspotSquares =
+        _currentZoom >= HotspotStyleHelper.minZoomForSquares;
 
     _currentZoom = newZoom;
 
     // Update controller zoom for clustering decisions
     _controller.updateZoom(newZoom);
 
-    // Rebuild polygons if visibility threshold crossed (only in Burnt Areas mode)
+    // Check if we crossed the hotspot square threshold (zoom 8)
+    final nowShowingHotspotSquares =
+        newZoom >= HotspotStyleHelper.minZoomForSquares;
+    if (wasShowingHotspotSquares != nowShowingHotspotSquares &&
+        _controller.fireDataMode == FireDataMode.hotspots) {
+      debugPrint(
+        '🔥 Hotspot square threshold crossed: ${nowShowingHotspotSquares ? "showing 375m squares" : "hiding squares"}',
+      );
+      _updatePolygonsForMode();
+      setState(() {});
+    }
+
+    // Rebuild polygons if visibility threshold crossed (Burnt Areas mode)
     final nowShowingPolygons = _shouldShowPolygons();
-    if (wasShowingPolygons != nowShowingPolygons) {
+    if (wasShowingPolygons != nowShowingPolygons &&
+        _controller.fireDataMode == FireDataMode.burntAreas) {
       _updatePolygonsForMode();
       setState(() {});
     }

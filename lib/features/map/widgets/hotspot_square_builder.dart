@@ -1,3 +1,5 @@
+import 'dart:math' show cos;
+
 import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmap;
 import 'package:wildfire_mvp_v3/features/map/utils/hotspot_style_helper.dart';
@@ -64,19 +66,29 @@ class HotspotSquareBuilder {
   /// Calculate the 4 corner vertices for a square centered on location
   ///
   /// Creates a square approximately matching the VIIRS pixel size (~375m).
+  /// Applies latitude correction so squares appear square on the map
+  /// (longitude degrees are smaller at higher latitudes).
   static List<gmap.LatLng> _calculateSquareVertices(LatLng center) {
-    const halfSize = HotspotStyleHelper.squareSizeDegrees / 2;
+    const halfSizeLat = HotspotStyleHelper.squareSizeDegrees / 2;
+
+    // Apply latitude correction: longitude degrees are smaller at higher latitudes
+    // cos(lat) gives the ratio of longitude distance to latitude distance
+    // At 57°N (Scotland), cos(57°) ≈ 0.545, so we need ~1.8x more longitude degrees
+    final latRadians = center.latitude * 3.14159265359 / 180.0;
+    final cosLat = cos(latRadians);
+    final lonCorrection = cosLat.abs() > 0.01 ? 1.0 / cosLat : 1.0;
+    final halfSizeLon = halfSizeLat * lonCorrection;
 
     // Calculate corners (clockwise from southwest)
     return [
       gmap.LatLng(
-          center.latitude - halfSize, center.longitude - halfSize), // SW
+          center.latitude - halfSizeLat, center.longitude - halfSizeLon), // SW
       gmap.LatLng(
-          center.latitude + halfSize, center.longitude - halfSize), // NW
+          center.latitude + halfSizeLat, center.longitude - halfSizeLon), // NW
       gmap.LatLng(
-          center.latitude + halfSize, center.longitude + halfSize), // NE
+          center.latitude + halfSizeLat, center.longitude + halfSizeLon), // NE
       gmap.LatLng(
-          center.latitude - halfSize, center.longitude + halfSize), // SE
+          center.latitude - halfSizeLat, center.longitude + halfSizeLon), // SE
     ];
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:dartz/dartz.dart';
+import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart' as bounds;
@@ -15,7 +16,6 @@ import 'package:wildfire_mvp_v3/services/mock_gwis_hotspot_service.dart';
 import 'package:wildfire_mvp_v3/services/mock_effis_burnt_area_service.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/features/map/utils/hotspot_clusterer.dart';
-import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 
 /// MapController manages state for MapScreen
 ///
@@ -388,11 +388,12 @@ class MapController extends ChangeNotifier {
       '🗺️ MapController: Fetching hotspots for bounds '
       'SW(${_currentBounds!.southwest.latitude.toStringAsFixed(2)},${_currentBounds!.southwest.longitude.toStringAsFixed(2)}) '
       'NE(${_currentBounds!.northeast.latitude.toStringAsFixed(2)},${_currentBounds!.northeast.longitude.toStringAsFixed(2)}) '
-      'filter: ${_hotspotTimeFilter.name}',
+      'filter: ${_hotspotTimeFilter.name} '
+      'useLiveData: ${FeatureFlags.mapLiveData}',
     );
 
-    // Try live service first if available
-    if (_hotspotService != null) {
+    // Try live service first if available AND live data is enabled
+    if (FeatureFlags.mapLiveData && _hotspotService != null) {
       final result = await _hotspotService!.getHotspots(
         bounds: _currentBounds!,
         timeFilter: _hotspotTimeFilter,
@@ -421,8 +422,13 @@ class MapController extends ChangeNotifier {
         return;
       }
     } else {
-      debugPrint(
-          '🗺️ MapController: Hotspot service not available, using mock');
+      if (!FeatureFlags.mapLiveData) {
+        debugPrint(
+            '🗺️ MapController: MAP_LIVE_DATA=false, using mock hotspots');
+      } else {
+        debugPrint(
+            '🗺️ MapController: Hotspot service not available, using mock');
+      }
     }
 
     // Fallback to mock service
@@ -462,11 +468,12 @@ class MapController extends ChangeNotifier {
       '🗺️ MapController: Fetching burnt areas for bounds '
       'SW(${_currentBounds!.southwest.latitude.toStringAsFixed(2)},${_currentBounds!.southwest.longitude.toStringAsFixed(2)}) '
       'NE(${_currentBounds!.northeast.latitude.toStringAsFixed(2)},${_currentBounds!.northeast.longitude.toStringAsFixed(2)}) '
-      'filter: ${_burntAreaSeasonFilter.name}',
+      'filter: ${_burntAreaSeasonFilter.name} '
+      'useLiveData: ${FeatureFlags.mapLiveData}',
     );
 
-    // Try live service first if available
-    if (_burntAreaService != null) {
+    // Try live service first if available AND live data is enabled
+    if (FeatureFlags.mapLiveData && _burntAreaService != null) {
       final result = await _burntAreaService!.getBurntAreas(
         bounds: _currentBounds!,
         seasonFilter: _burntAreaSeasonFilter,
@@ -494,8 +501,13 @@ class MapController extends ChangeNotifier {
         return;
       }
     } else {
-      debugPrint(
-          '🗺️ MapController: Burnt area service not available, using mock');
+      if (!FeatureFlags.mapLiveData) {
+        debugPrint(
+            '🗺️ MapController: MAP_LIVE_DATA=false, using mock burnt areas');
+      } else {
+        debugPrint(
+            '🗺️ MapController: Burnt area service not available, using mock');
+      }
     }
 
     // Fallback to mock service

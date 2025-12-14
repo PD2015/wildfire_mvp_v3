@@ -12,9 +12,19 @@ import 'effis_burnt_area_service.dart';
 /// Loads burnt area data from assets/mock/burnt_areas.json.
 /// Used when live EFFIS API is unavailable or for testing.
 ///
+/// Mirrors the live service behavior:
+/// - BurntAreaSeasonFilter.thisSeason → returns burnt areas from current year
+/// - BurntAreaSeasonFilter.lastSeason → returns burnt areas from previous year
+///
 /// Part of 021-live-fire-data feature implementation.
 class MockEffisBurntAreaService implements EffisBurntAreaService {
   List<BurntArea>? _cachedBurntAreas;
+
+  /// Injectable clock for testing - defaults to DateTime.now()
+  final DateTime Function() _clock;
+
+  MockEffisBurntAreaService({DateTime Function()? clock})
+      : _clock = clock ?? (() => DateTime.now());
 
   /// Load and parse mock burnt area data from assets
   Future<List<BurntArea>> _loadMockData() async {
@@ -48,9 +58,16 @@ class MockEffisBurntAreaService implements EffisBurntAreaService {
     int maxRetries = 3,
   }) async {
     final allBurntAreas = await _loadMockData();
+    final now = _clock();
 
-    // Filter by bounding box and season year
-    final targetYear = seasonFilter.year;
+    // Calculate target year based on current time (mirrors live service)
+    // Live service uses seasonFilter.year which is based on DateTime.now()
+    final targetYear = switch (seasonFilter) {
+      BurntAreaSeasonFilter.thisSeason => now.year,
+      BurntAreaSeasonFilter.lastSeason => now.year - 1,
+    };
+
+    // Filter by bounding box and season year (mirrors EFFIS WFS CQL_FILTER=year=YYYY)
     final filtered = allBurntAreas.where((area) {
       // Check if centroid is within bounds
       final inBounds = bounds.contains(area.centroid);
