@@ -80,28 +80,30 @@ class MapSourceChip extends StatelessWidget {
     if (isDemoMode) {
       // High-contrast amber chip for visibility against map (T-V1)
       // Same styling for both light and dark themes
+      // Compact sizing to avoid overlap with FireDataModeToggle
       return Semantics(
         label: 'Demo Data - For testing purposes only',
         child: Chip(
+          visualDensity: VisualDensity.compact,
           avatar: const Icon(
             Icons.science_outlined,
-            size: 20,
+            size: 16,
             color: Color(0xFF111111), // BrandPalette.onLightHigh
           ),
           label: Text(
             'DEMO DATA',
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: const Color(0xFF111111), // BrandPalette.onLightHigh
-                  letterSpacing: 1.2,
+                  letterSpacing: 1.0,
                 ),
           ),
           backgroundColor: const Color(0xFFF5A623), // BrandPalette.amber500
           side: const BorderSide(
             color: Color(0xFFE59414), // BrandPalette.amber600 (darker border)
-            width: 2,
+            width: 1.5,
           ),
-          elevation: 6,
+          elevation: 4,
           shadowColor:
               Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),
         ),
