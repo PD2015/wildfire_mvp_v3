@@ -14,6 +14,7 @@ import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/fire_data_mode_toggle.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/time_filter_chips.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_type_selector.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/map_zoom_controls.dart';
 import 'package:wildfire_mvp_v3/models/fire_data_mode.dart';
 // T-V2: RiskCheckButton temporarily disabled
 // import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
@@ -680,6 +681,18 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  /// Zoom in by 1 level
+  Future<void> _zoomIn() async {
+    if (_mapController == null) return;
+    await _mapController!.animateCamera(CameraUpdate.zoomIn());
+  }
+
+  /// Zoom out by 1 level
+  Future<void> _zoomOut() async {
+    if (_mapController == null) return;
+    await _mapController!.animateCamera(CameraUpdate.zoomOut());
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = _controller.state;
@@ -926,7 +939,8 @@ class _MapScreenState extends State<MapScreen> {
             polygons: _polygons, // Burnt area polygon overlays
             mapType: _currentMapType,
             myLocationEnabled: true, // Show blue dot for user location
-            zoomControlsEnabled: true,
+            zoomControlsEnabled:
+                false, // Disabled - using custom controls for theme consistency
             zoomGesturesEnabled: true, // Enable pinch-to-zoom
             scrollGesturesEnabled: true,
             tiltGesturesEnabled: true,
@@ -1049,6 +1063,12 @@ class _MapScreenState extends State<MapScreen> {
                     ),
                   ),
                 ),
+              ),
+              const SizedBox(height: 8),
+              // Custom zoom controls - themed to match other map buttons
+              MapZoomControls(
+                onZoomIn: _zoomIn,
+                onZoomOut: _zoomOut,
               ),
             ],
           ),
