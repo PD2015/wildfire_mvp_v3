@@ -444,10 +444,10 @@ class FireDetailsBottomSheet extends StatelessWidget {
               context: context,
               icon: Icons.source,
               label: 'Data source',
-              // Show accurate data source based on display type
-              value: _formatDataSourceForType(inc.source),
+              // Show accurate data source based on display type and freshness
+              value: _formatDataSourceForType(inc.source, inc.freshness),
               semanticLabel:
-                  'Data source: ${_formatDataSourceForType(inc.source)}',
+                  'Data source: ${_formatDataSourceForType(inc.source, inc.freshness)}',
             ),
             _buildDetailRow(
               context: context,
@@ -659,16 +659,22 @@ class FireDetailsBottomSheet extends StatelessWidget {
   ///
   /// Hotspots come from GWIS WMS (VIIRS layer)
   /// Burnt areas come from EFFIS WFS (MODIS layer)
-  String _formatDataSourceForType(DataSource source) {
+  String _formatDataSourceForType(DataSource source, Freshness freshness) {
     // For hotspots, the actual source is GWIS (not EFFIS)
+    // Check freshness for mock detection since source is always effis from factory
     if (displayType == FireDataDisplayType.hotspot) {
-      if (source == DataSource.mock) return 'Demo Data';
+      if (source == DataSource.mock || freshness == Freshness.mock) {
+        return 'Demo Data';
+      }
       return 'GWIS (EC JRC)'; // Global Wildfire Information System
     }
 
     // For burnt areas, it's genuinely EFFIS
+    // Check freshness for mock detection since source is always effis from factory
     if (displayType == FireDataDisplayType.burntArea) {
-      if (source == DataSource.mock) return 'Demo Data';
+      if (source == DataSource.mock || freshness == Freshness.mock) {
+        return 'Demo Data';
+      }
       return 'EFFIS (EC JRC)'; // European Forest Fire Information System
     }
 

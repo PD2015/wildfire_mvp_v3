@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wildfire_mvp_v3/models/burnt_area.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
+import 'package:wildfire_mvp_v3/models/hotspot.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet.dart';
@@ -393,6 +395,8 @@ void main() {
               body: FireDetailsBottomSheet(
                 incident: testIncident,
                 userLocation: testUserLocation,
+                displayType: FireDataDisplayType
+                    .hotspot, // Shows all fields including intensity
                 onClose: () {},
               ),
             ),
@@ -408,7 +412,7 @@ void main() {
         expect(find.text('2.5 hectares (ha)'), findsOneWidget);
         expect(find.text('Fire power (FRP)'), findsOneWidget);
         expect(find.text('121 MW'), findsOneWidget); // FRP value (rounded)
-        expect(find.text('Risk level'), findsOneWidget);
+        expect(find.text('Fire intensity'), findsOneWidget);
         expect(find.text('Moderate'), findsOneWidget);
         expect(find.text('Detection confidence'), findsOneWidget);
         expect(find.text('85%'), findsOneWidget);
@@ -854,7 +858,7 @@ void main() {
           expect(find.text('CACHED'), findsOneWidget);
         });
 
-        testWidgets('displays MOCK chip for demo data', (tester) async {
+        testWidgets('displays DEMO DATA chip for mock data', (tester) async {
           final mockIncident = FireIncident(
             id: 'MOCK001',
             location: const LatLng(55.95, -3.19),
@@ -878,8 +882,8 @@ void main() {
 
           await tester.pumpAndSettle();
 
-          // Verify MOCK chip is displayed
-          expect(find.text('MOCK'), findsOneWidget);
+          // Verify DEMO DATA chip is displayed (MapSourceChip uses uppercase)
+          expect(find.text('DEMO DATA'), findsOneWidget);
         });
 
         testWidgets('chip displays incident timestamp', (tester) async {
@@ -1109,7 +1113,8 @@ void main() {
           expect(find.text('SEPA'), findsOneWidget);
         });
 
-        testWidgets('displays MOCK as data source', (tester) async {
+        testWidgets('displays Demo Data as data source for mock',
+            (tester) async {
           final mockIncident = FireIncident(
             id: 'MOCK001',
             location: const LatLng(55.95, -3.19),
@@ -1134,7 +1139,212 @@ void main() {
           await tester.pumpAndSettle();
 
           expect(find.text('Data source'), findsOneWidget);
-          expect(find.text('MOCK'), findsOneWidget);
+          expect(find.text('Demo Data'), findsOneWidget);
+        });
+      });
+    });
+
+    group('Factory Constructors', () {
+      const testUserLocation = LatLng(55.9533, -3.1883);
+
+      group('fromHotspot', () {
+        testWidgets('creates bottom sheet from Hotspot with live freshness',
+            (tester) async {
+          final hotspot = Hotspot(
+            id: 'HS001',
+            location: const LatLng(55.95, -3.19),
+            detectedAt: DateTime(2025, 12, 14, 10, 30),
+            frp: 150.0,
+            confidence: 90.0,
+          );
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: FireDetailsBottomSheet.fromHotspot(
+                  hotspot: hotspot,
+                  userLocation: testUserLocation,
+                  onClose: () {},
+                  freshness: Freshness.live,
+                ),
+              ),
+            ),
+          );
+
+          await tester.pumpAndSettle();
+
+          // Should display as hotspot type
+          expect(find.text('Active Hotspot'), findsOneWidget);
+          // Should show live data source
+          expect(find.text('GWIS (EC JRC)'), findsOneWidget);
+        });
+
+        testWidgets('creates bottom sheet from Hotspot with mock freshness',
+            (tester) async {
+          final hotspot = Hotspot(
+            id: 'HS002',
+            location: const LatLng(55.95, -3.19),
+            detectedAt: DateTime(2025, 12, 14, 10, 30),
+            frp: 150.0,
+            confidence: 90.0,
+          );
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: FireDetailsBottomSheet.fromHotspot(
+                  hotspot: hotspot,
+                  userLocation: testUserLocation,
+                  onClose: () {},
+                  freshness: Freshness.mock,
+                ),
+              ),
+            ),
+          );
+
+          await tester.pumpAndSettle();
+
+          // Should display as hotspot type
+          expect(find.text('Active Hotspot'), findsOneWidget);
+          // Should show demo data source when mock
+          expect(find.text('Demo Data'), findsOneWidget);
+        });
+
+        testWidgets('defaults to live freshness when not specified',
+            (tester) async {
+          final hotspot = Hotspot(
+            id: 'HS003',
+            location: const LatLng(55.95, -3.19),
+            detectedAt: DateTime(2025, 12, 14, 10, 30),
+            frp: 150.0,
+            confidence: 90.0,
+          );
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: FireDetailsBottomSheet.fromHotspot(
+                  hotspot: hotspot,
+                  userLocation: testUserLocation,
+                  onClose: () {},
+                  // freshness not specified - should default to live
+                ),
+              ),
+            ),
+          );
+
+          await tester.pumpAndSettle();
+
+          // Should show live data source (default)
+          expect(find.text('GWIS (EC JRC)'), findsOneWidget);
+        });
+      });
+
+      group('fromBurntArea', () {
+        testWidgets('creates bottom sheet from BurntArea with live freshness',
+            (tester) async {
+          final burntArea = BurntArea(
+            id: 'BA001',
+            boundaryPoints: const [
+              LatLng(55.94, -3.20),
+              LatLng(55.96, -3.20),
+              LatLng(55.96, -3.18),
+              LatLng(55.94, -3.18),
+            ],
+            fireDate: DateTime(2025, 12, 10),
+            areaHectares: 25.0,
+            seasonYear: 2025,
+          );
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: FireDetailsBottomSheet.fromBurntArea(
+                  burntArea: burntArea,
+                  userLocation: testUserLocation,
+                  onClose: () {},
+                  freshness: Freshness.live,
+                ),
+              ),
+            ),
+          );
+
+          await tester.pumpAndSettle();
+
+          // Should display as burnt area type
+          expect(find.text('Verified Burnt Area'), findsOneWidget);
+          // Should show live data source
+          expect(find.text('EFFIS (EC JRC)'), findsOneWidget);
+        });
+
+        testWidgets('creates bottom sheet from BurntArea with mock freshness',
+            (tester) async {
+          final burntArea = BurntArea(
+            id: 'BA002',
+            boundaryPoints: const [
+              LatLng(55.94, -3.20),
+              LatLng(55.96, -3.20),
+              LatLng(55.96, -3.18),
+              LatLng(55.94, -3.18),
+            ],
+            fireDate: DateTime(2025, 12, 10),
+            areaHectares: 25.0,
+            seasonYear: 2025,
+          );
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: FireDetailsBottomSheet.fromBurntArea(
+                  burntArea: burntArea,
+                  userLocation: testUserLocation,
+                  onClose: () {},
+                  freshness: Freshness.mock,
+                ),
+              ),
+            ),
+          );
+
+          await tester.pumpAndSettle();
+
+          // Should display as burnt area type
+          expect(find.text('Verified Burnt Area'), findsOneWidget);
+          // Should show demo data source when mock
+          expect(find.text('Demo Data'), findsOneWidget);
+        });
+
+        testWidgets('defaults to live freshness when not specified',
+            (tester) async {
+          final burntArea = BurntArea(
+            id: 'BA003',
+            boundaryPoints: const [
+              LatLng(55.94, -3.20),
+              LatLng(55.96, -3.20),
+              LatLng(55.96, -3.18),
+              LatLng(55.94, -3.18),
+            ],
+            fireDate: DateTime(2025, 12, 10),
+            areaHectares: 25.0,
+            seasonYear: 2025,
+          );
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: FireDetailsBottomSheet.fromBurntArea(
+                  burntArea: burntArea,
+                  userLocation: testUserLocation,
+                  onClose: () {},
+                  // freshness not specified - should default to live
+                ),
+              ),
+            ),
+          );
+
+          await tester.pumpAndSettle();
+
+          // Should show live data source (default)
+          expect(find.text('EFFIS (EC JRC)'), findsOneWidget);
         });
       });
     });
