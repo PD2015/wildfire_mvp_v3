@@ -119,25 +119,82 @@ Real-time active fire hotspots are **only available via WMS GetFeatureInfo**, no
 |--------|--------|-------|
 | FWI WMS Data | ⚠️ Partial | Historical only (Mar-Sep 2024), no current data |
 | WFS Fire Incidents | ❌ Broken | Oracle database connection failure |
-| Documentation | ❌ Outdated | No longer referenced in official docs |
 
-**Error observed on WFS:**
+---
+
+## Implementation Fix Plan (GwisHotspotServiceImpl)
+
+> **Issue**: Service uses WFS which returns 502 for hotspots. Must migrate to WMS GetFeatureInfo.
+
+### Current Implementation (BROKEN)
+
+```dart
+// lib/services/gwis_hotspot_service_impl.dart
+String _buildWfsUrl(LatLngBounds bounds, HotspotTimeFilter timeFilter) {
+  return '$_baseUrl?'
+      'service=WFS&'           // ❌ GWIS doesn't support WFS for hotspots
+      'version=2.0.0&'
+      'request=GetFeature&'
+      'typeName=${timeFilter.gwisLayerName}&'
+      'outputFormat=application/json&'
+      'srsName=EPSG:4326&'
+      'bbox=${sw.longitude},${sw.latitude},${ne.longitude},${ne.latitude},EPSG:4326';
+}
 ```
-msOracleSpatialLayerOpen(): OracleSpatial error. 
-Cannot create OCI Handlers. Connection failure.
+
+### Required Fix
+
+Rewrite to use WMS GetFeatureInfo:
+
+```dart
+String _buildWmsUrl(LatLngBounds bounds, HotspotTimeFilter timeFilter) {
+  final sw = bounds.southwest;
+  final ne = bounds.northeast;
+  
+  return '$_baseUrl?'
+      'SERVICE=WMS&'
+      'VERSION=1.3.0&'
+      'REQUEST=GetFeatureInfo&'
+      'LAYERS=${timeFilter.gwisLayerName}&'
+      'QUERY_LAYERS=${timeFilter.gwisLayerName}&'
+      'CRS=EPSG:4326&'
+      'BBOX=${sw.latitude},${sw.longitude},${ne.latitude},${ne.longitude}&'
+      'WIDTH=256&'
+      'HEIGHT=256&'
+      'I=128&'
+      'J=128&'
+      'INFO_FORMAT=application/vnd.ogc.gml&'
+      'STYLES=&'
+      'FEATURE_COUNT=100';  // Limit results
+}
 ```
 
-### Current Endpoint (OFFLINE as of 2025-12-16)
+### Key Challenges
 
-**Base URL:** `https://maps.effis.emergency.copernicus.eu/`
+1. **WMS GetFeatureInfo is point-based**: Designed for clicking on a map, not viewport queries
+   - Returns features at a specific pixel (I,J) in the rendered image
+   - May need multiple queries or WMTS tiles approach for full viewport coverage
 
-| Aspect | Status (Dec 9) | Status (Dec 16) | Notes |
-|--------|----------------|-----------------|-------|
-| FWI WMS Data | ✅ Live | ❌ DOWN | Endpoint unreachable |
-| WFS Fire Incidents | ✅ Working | ❌ DOWN | Endpoint unreachable |
-| Documentation | ✅ Official | ✅ Official | https://forest-fire.emergency.copernicus.eu |
+2. **Response format**: GML instead of GeoJSON
+   - Need to parse GML response format
+   - Update `_parseResponse` method to handle GML structure
 
-**Official documentation:** https://forest-fire.emergency.copernicus.eu/downloads-instructions
+3. **Viewport coverage strategy options**:
+   - **Option A**: Grid of GetFeatureInfo queries across viewport (many requests)
+   - **Option B**: Use WMTS tiles + UTFGrid for feature detection
+   - **Option C**: Accept limitation - only show fires in center of viewport
+
+### Files to Modify
+
+1. `lib/services/gwis_hotspot_service_impl.dart` - Main fix
+2. `lib/models/hotspot.dart` - May need `fromGml()` factory
+3. `test/unit/services/gwis_hotspot_service_test.dart` - Update tests
+
+### Estimated Effort
+
+- **Simple fix** (Option C - center query only): 2-4 hours
+- **Full fix** (Option A - grid queries): 4-8 hours
+- **Optimal fix** (Option B - WMTS): 8-16 hours (requires research)
 
 ---
 
