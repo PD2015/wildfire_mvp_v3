@@ -5,12 +5,12 @@ import '../models/api_error.dart';
 import '../models/hotspot.dart';
 import '../models/lat_lng_bounds.dart';
 import '../models/fire_data_mode.dart';
-import 'gwis_hotspot_service.dart';
+import 'hotspot_service.dart';
 
-/// Mock implementation of GwisHotspotService for development and fallback
+/// Mock implementation of HotspotService for development and fallback.
 ///
 /// Loads hotspot data from assets/mock/hotspots.json.
-/// Used when live GWIS API is unavailable or for testing.
+/// Used when live APIs (FIRMS, GWIS) are unavailable or for testing.
 ///
 /// Mirrors the live service behavior:
 /// - HotspotTimeFilter.today → returns hotspots from last 24 hours
@@ -20,14 +20,17 @@ import 'gwis_hotspot_service.dart';
 /// the GWIS viirs.hs.today and viirs.hs.week layer behavior.
 ///
 /// Part of 021-live-fire-data feature implementation.
-class MockGwisHotspotService implements GwisHotspotService {
+class MockHotspotService implements HotspotService {
   List<Hotspot>? _cachedHotspots;
 
   /// Injectable clock for testing - defaults to DateTime.now()
   final DateTime Function() _clock;
 
-  MockGwisHotspotService({DateTime Function()? clock})
+  MockHotspotService({DateTime Function()? clock})
       : _clock = clock ?? (() => DateTime.now());
+
+  @override
+  String get serviceName => 'Mock';
 
   /// Load and parse mock hotspot data from assets
   Future<List<Hotspot>> _loadMockData() async {
@@ -84,3 +87,7 @@ class MockGwisHotspotService implements GwisHotspotService {
     return Right(filtered);
   }
 }
+
+/// Backwards-compatible type alias for existing code.
+/// @deprecated Use [MockHotspotService] instead.
+typedef MockGwisHotspotService = MockHotspotService;

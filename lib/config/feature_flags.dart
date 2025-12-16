@@ -72,6 +72,25 @@ class FeatureFlags {
     defaultValue: 'ms:modis.ba.poly',
   );
 
+  /// NASA FIRMS API key for hotspot data
+  ///
+  /// Get free MAP_KEY from: https://firms.modaps.eosdis.nasa.gov/api/map_key/
+  /// This key enables faster REST API access to VIIRS hotspot data.
+  /// If empty, the app will use GWIS WMS as primary source instead.
+  ///
+  /// Usage:
+  /// ```bash
+  /// flutter run --dart-define=FIRMS_API_KEY=your_map_key_here
+  /// flutter run --dart-define-from-file=env/dev.env.json
+  /// ```
+  static const String firmsApiKey = String.fromEnvironment(
+    'FIRMS_API_KEY',
+    defaultValue: '',
+  );
+
+  /// Whether FIRMS API is configured and should be used as primary hotspot source
+  static bool get hasFirmsKey => firmsApiKey.isNotEmpty;
+
   /// Google Maps API key for Android
   /// Must be set via --dart-define-from-file=env/dev.env.json
   static const String googleMapsApiKeyAndroid = String.fromEnvironment(

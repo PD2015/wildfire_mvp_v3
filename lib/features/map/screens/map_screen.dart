@@ -273,7 +273,7 @@ class _MapScreenState extends State<MapScreen> {
       '🔥 Cluster mode: ${clusterMarkers.length} cluster badges + '
       '${singleMarkers.length} flame pins = ${_markers.length} total',
     );
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   /// Zoom map to fit all hotspots in a cluster

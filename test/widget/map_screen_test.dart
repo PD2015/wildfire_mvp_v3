@@ -17,6 +17,8 @@ import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:dartz/dartz.dart';
 
+import '../helpers/mock_hotspot_orchestrator.dart';
+
 /// Mock MapController for widget testing with controllable state
 class MockMapController extends MapController {
   MapState _mockState;
@@ -29,6 +31,7 @@ class MockMapController extends MapController {
         super(
           locationResolver: _NoOpLocationResolver(),
           fireRiskService: _NoOpFireRiskService(),
+          hotspotOrchestrator: MockHotspotOrchestrator(),
         );
 
   @override

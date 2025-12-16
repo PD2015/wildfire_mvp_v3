@@ -18,6 +18,8 @@ import 'package:wildfire_mvp_v3/services/effis_burnt_area_service.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 
+import '../../helpers/mock_hotspot_orchestrator.dart';
+
 /// T040: Integration test for GWIS Hotspot service → MapController data flow
 ///
 /// Tests the complete data flow from GWIS service through MapController
@@ -159,7 +161,7 @@ void main() {
       controller = MapController(
         locationResolver: _MockLocationResolver(),
         fireRiskService: _MockFireRiskService(),
-        hotspotService: mockGwisService,
+        hotspotOrchestrator: MockHotspotOrchestrator(),
         burntAreaService: mockBurntAreaService,
       );
     });
@@ -199,13 +201,13 @@ void main() {
     });
 
     group('Zoom-based clustering', () {
-      test('shouldShowClusters is true when zoom < 10 in hotspots mode', () {
+      test('shouldShowClusters is true when zoom < 12 in hotspots mode', () {
         controller.updateZoom(8.0);
         expect(controller.shouldShowClusters, isTrue);
       });
 
-      test('shouldShowClusters is false when zoom >= 10 in hotspots mode', () {
-        controller.updateZoom(10.0);
+      test('shouldShowClusters is false when zoom >= 12 in hotspots mode', () {
+        controller.updateZoom(12.0);
         expect(controller.shouldShowClusters, isFalse);
       });
 
@@ -222,18 +224,18 @@ void main() {
         controller.addListener(() => notifyCount++);
 
         // Cross from below to above threshold
-        controller.updateZoom(10.0);
+        controller.updateZoom(12.0);
         expect(notifyCount, equals(1),
             reason: 'Should notify when crossing threshold');
 
-        // Stay above threshold
-        controller.updateZoom(11.0);
-        expect(notifyCount, equals(1),
-            reason: 'Should not notify when staying above');
+        // Stay above threshold - still notifies because zoom changed significantly
+        controller.updateZoom(13.0);
+        expect(notifyCount, equals(2),
+            reason: 'Should notify on significant zoom change');
 
         // Cross from above to below threshold
-        controller.updateZoom(9.0);
-        expect(notifyCount, equals(2),
+        controller.updateZoom(11.0);
+        expect(notifyCount, equals(3),
             reason: 'Should notify when crossing back');
       });
     });
@@ -243,20 +245,37 @@ void main() {
         // First, ensure we have hotspots
         await controller.initialize();
 
+        // Wait for initial fetch to complete
+        await Future.delayed(const Duration(milliseconds: 200));
+
         // Switch mode
         controller.setFireDataMode(FireDataMode.burntAreas);
 
         // Hotspots should be cleared
         expect(controller.hotspots, isEmpty);
         expect(controller.clusters, isEmpty);
+
+        // Wait for any async burnt area fetch to complete before tearDown
+        await Future.delayed(const Duration(milliseconds: 300));
       });
 
       test('switching back to hotspots clears burnt areas', () async {
         await controller.initialize();
+
+        // Wait for initial fetch to complete
+        await Future.delayed(const Duration(milliseconds: 200));
+
         controller.setFireDataMode(FireDataMode.burntAreas);
+
+        // Wait for burnt area fetch
+        await Future.delayed(const Duration(milliseconds: 200));
+
         controller.setFireDataMode(FireDataMode.hotspots);
 
         expect(controller.burntAreas, isEmpty);
+
+        // Wait for any async hotspot fetch to complete before tearDown
+        await Future.delayed(const Duration(milliseconds: 300));
       });
     });
 

@@ -12,6 +12,8 @@ import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
 
+import '../../helpers/mock_hotspot_orchestrator.dart';
+
 /// Mock LocationResolver for controlled testing
 class MockLocationResolver implements LocationResolver {
   Either<LocationError, ResolvedLocation>? _getLatLonResult;
@@ -161,14 +163,17 @@ void main() {
   group('MapController', () {
     late MockLocationResolver mockLocationResolver;
     late MockFireRiskService mockFireRiskService;
+    late MockHotspotOrchestrator mockHotspotOrchestrator;
     late MapController controller;
 
     setUp(() {
       mockLocationResolver = MockLocationResolver();
       mockFireRiskService = MockFireRiskService();
+      mockHotspotOrchestrator = MockHotspotOrchestrator();
       controller = MapController(
         locationResolver: mockLocationResolver,
         fireRiskService: mockFireRiskService,
+        hotspotOrchestrator: mockHotspotOrchestrator,
       );
     });
 
@@ -181,6 +186,7 @@ void main() {
       }
       mockLocationResolver.reset();
       mockFireRiskService.reset();
+      mockHotspotOrchestrator.reset();
     });
 
     group('Constructor', () {
@@ -192,6 +198,7 @@ void main() {
         final customController = MapController(
           locationResolver: mockLocationResolver,
           fireRiskService: mockFireRiskService,
+          hotspotOrchestrator: mockHotspotOrchestrator,
         );
         expect(customController, isNotNull);
         expect(customController.state, isA<MapLoading>());

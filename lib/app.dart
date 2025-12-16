@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
+import 'config/feature_flags.dart';
 import 'controllers/home_controller.dart';
 import 'screens/home_screen.dart';
 import 'features/map/screens/map_screen.dart';
@@ -16,7 +17,10 @@ import 'features/location_picker/services/geocoding_service_impl.dart';
 import 'services/location_resolver.dart';
 import 'services/location_state_manager.dart';
 import 'services/fire_risk_service.dart';
-import 'services/gwis_hotspot_service_impl.dart';
+import 'services/hotspot_service_orchestrator.dart';
+import 'services/firms_hotspot_service.dart';
+import 'services/gwis_wms_hotspot_service.dart';
+import 'services/mock_gwis_hotspot_service.dart';
 import 'services/effis_burnt_area_service_impl.dart';
 import 'theme/wildfire_a11y_theme.dart';
 import 'widgets/bottom_nav.dart';
@@ -119,17 +123,33 @@ class WildFireApp extends StatelessWidget {
               // Create HTTP client for fire data services
               final httpClient = http.Client();
 
-              // Create live fire data services (GWIS hotspots, EFFIS burnt areas)
-              final hotspotService =
-                  GwisHotspotServiceImpl(httpClient: httpClient);
+              // Create hotspot services for orchestrator fallback chain
+              // FIRMS is primary (if API key available), GWIS WMS is fallback
+              final firmsService = FeatureFlags.hasFirmsKey
+                  ? FirmsHotspotService(
+                      apiKey: FeatureFlags.firmsApiKey,
+                      httpClient: httpClient,
+                    )
+                  : null;
+              final gwisService = GwisWmsHotspotService(httpClient: httpClient);
+              final mockService = MockHotspotService();
+
+              // Create orchestrator: FIRMS → GWIS WMS → Mock
+              final hotspotOrchestrator = HotspotServiceOrchestrator(
+                firmsService: firmsService,
+                gwisService: gwisService,
+                mockService: mockService,
+              );
+
+              // Burnt area service (EFFIS WFS - working)
               final burntAreaService =
                   EffisBurntAreaServiceImpl(httpClient: httpClient);
 
-              // Create MapController with all services including live fire data
+              // Create MapController with orchestrator
               final mapController = MapController(
                 locationResolver: locationResolver,
                 fireRiskService: fireRiskService,
-                hotspotService: hotspotService,
+                hotspotOrchestrator: hotspotOrchestrator,
                 burntAreaService: burntAreaService,
               );
               return MapScreen(controller: mapController);

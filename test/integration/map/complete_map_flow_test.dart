@@ -17,6 +17,8 @@ import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 
+import '../../helpers/mock_hotspot_orchestrator.dart';
+
 /// T034: End-to-end integration test for complete map flow
 ///
 /// Tests the full interaction chain:
@@ -244,6 +246,7 @@ void main() {
         final controller = MapController(
           locationResolver: mockLocationResolver,
           fireRiskService: mockFireRiskService,
+          hotspotOrchestrator: MockHotspotOrchestrator(),
         );
 
         // Act: Build MapScreen
@@ -294,6 +297,7 @@ void main() {
         final controller = MapController(
           locationResolver: mockLocationResolver,
           fireRiskService: mockFireRiskService,
+          hotspotOrchestrator: MockHotspotOrchestrator(),
         );
 
         // Act: Build and initialize
@@ -340,6 +344,7 @@ void main() {
         final controller = MapController(
           locationResolver: mockLocationResolver,
           fireRiskService: mockFireRiskService,
+          hotspotOrchestrator: MockHotspotOrchestrator(),
         );
 
         // Act: Build MapScreen
@@ -384,6 +389,7 @@ void main() {
         final controller = MapController(
           locationResolver: mockLocationResolver,
           fireRiskService: mockFireRiskService,
+          hotspotOrchestrator: MockHotspotOrchestrator(),
         );
 
         // Act: Build MapScreen
@@ -432,6 +438,7 @@ void main() {
         final controller = MapController(
           locationResolver: mockLocationResolver,
           fireRiskService: mockFireRiskService,
+          hotspotOrchestrator: MockHotspotOrchestrator(),
         );
 
         // Act: Build and initialize
@@ -477,6 +484,7 @@ void main() {
         final controller = MapController(
           locationResolver: mockLocationResolver,
           fireRiskService: mockFireRiskService,
+          hotspotOrchestrator: MockHotspotOrchestrator(),
         );
 
         // Act: Build MapScreen
@@ -525,6 +533,7 @@ void main() {
           final controller = MapController(
             locationResolver: mockLocationResolver,
             fireRiskService: mockFireRiskService,
+            hotspotOrchestrator: MockHotspotOrchestrator(),
           );
 
           await tester.pumpWidget(
@@ -590,6 +599,7 @@ void main() {
         final controller = MapController(
           locationResolver: mockLocationResolver,
           fireRiskService: mockFireRiskService,
+          hotspotOrchestrator: MockHotspotOrchestrator(),
         );
 
         // Act: Build MapScreen

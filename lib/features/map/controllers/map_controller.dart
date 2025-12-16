@@ -10,10 +10,10 @@ import 'package:wildfire_mvp_v3/models/burnt_area.dart';
 import 'package:wildfire_mvp_v3/models/hotspot_cluster.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
-import 'package:wildfire_mvp_v3/services/gwis_hotspot_service.dart';
+import 'package:wildfire_mvp_v3/services/hotspot_service_orchestrator.dart';
 import 'package:wildfire_mvp_v3/services/effis_burnt_area_service.dart';
-import 'package:wildfire_mvp_v3/services/mock_gwis_hotspot_service.dart';
 import 'package:wildfire_mvp_v3/services/mock_effis_burnt_area_service.dart';
+import 'package:wildfire_mvp_v3/services/mock_gwis_hotspot_service.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/features/map/utils/hotspot_clusterer.dart';
 
@@ -22,18 +22,18 @@ import 'package:wildfire_mvp_v3/features/map/utils/hotspot_clusterer.dart';
 /// Orchestrates location resolution, fire data fetching, and risk assessment.
 /// Extended with fire data mode support for 021-live-fire-data feature.
 ///
-/// **Fallback Architecture**: When live services (GWIS, EFFIS) fail, the controller
-/// automatically falls back to mock services that load from local JSON files.
-/// The `isUsingMockData` flag indicates when mock data is being displayed.
+/// **Fallback Architecture**: Uses HotspotServiceOrchestrator which automatically
+/// falls back through: FIRMS (primary) → GWIS WMS (fallback) → Mock (offline).
+/// The `hotspotDataSource` indicates which service provided the current data.
 class MapController extends ChangeNotifier {
   final LocationResolver _locationResolver;
   final FireRiskService _fireRiskService;
-  final GwisHotspotService? _hotspotService;
+  final HotspotServiceOrchestrator _hotspotOrchestrator;
   final EffisBurntAreaService? _burntAreaService;
 
-  // Fallback mock services (always available)
-  late final MockGwisHotspotService _mockHotspotService;
+  // Fallback mock services (always available for MAP_LIVE_DATA=false)
   late final MockEffisBurntAreaService _mockBurntAreaService;
+  late final MockHotspotService _mockHotspotService;
 
   MapState _state = const MapLoading();
 
@@ -60,6 +60,9 @@ class MapController extends ChangeNotifier {
 
   // Whether live data is available or using mock fallback
   bool _isUsingMockData = false;
+
+  // Which service provided the hotspot data (FIRMS, GWIS, or Mock)
+  HotspotDataSource _hotspotDataSource = HotspotDataSource.mock;
 
   // Whether the app is offline (live API failed with MAP_LIVE_DATA=true)
   // When offline, no data is shown rather than falling back to mock
@@ -122,18 +125,21 @@ class MapController extends ChangeNotifier {
   List<HotspotCluster> get clusters => _clusters;
   bool get isUsingMockData => _isUsingMockData;
 
+  /// Which service provided the current hotspot data
+  HotspotDataSource get hotspotDataSource => _hotspotDataSource;
+
   MapController({
     required LocationResolver locationResolver,
     required FireRiskService fireRiskService,
-    GwisHotspotService? hotspotService,
+    required HotspotServiceOrchestrator hotspotOrchestrator,
     EffisBurntAreaService? burntAreaService,
   })  : _locationResolver = locationResolver,
         _fireRiskService = fireRiskService,
-        _hotspotService = hotspotService,
+        _hotspotOrchestrator = hotspotOrchestrator,
         _burntAreaService = burntAreaService {
-    // Initialize mock services as fallbacks
-    _mockHotspotService = MockGwisHotspotService();
+    // Initialize mock services for MAP_LIVE_DATA=false direct use
     _mockBurntAreaService = MockEffisBurntAreaService();
+    _mockHotspotService = MockHotspotService();
   }
 
   /// Get test region coordinates based on TEST_REGION environment variable
@@ -393,9 +399,11 @@ class MapController extends ChangeNotifier {
     }
   }
 
-  /// Fetch hotspots from GWIS service for current viewport
+  /// Fetch hotspots for current viewport
   ///
-  /// **Fallback**: If live GWIS fails or service is null, falls back to mock data.
+  /// **Behavior based on MAP_LIVE_DATA flag:**
+  /// - `MAP_LIVE_DATA=false`: Skip live APIs, use mock data directly (demo mode)
+  /// - `MAP_LIVE_DATA=true`: Try FIRMS → GWIS WMS → show offline state if all fail
   Future<void> _fetchHotspotsForCurrentBounds() async {
     if (_currentBounds == null) return;
 
@@ -407,82 +415,52 @@ class MapController extends ChangeNotifier {
       'useLiveData: ${FeatureFlags.mapLiveData}',
     );
 
-    // Try live service first if available AND live data is enabled
-    if (FeatureFlags.mapLiveData && _hotspotService != null) {
-      final result = await _hotspotService!.getHotspots(
+    // MAP_LIVE_DATA=false: Skip all live APIs, use mock data directly
+    if (!FeatureFlags.mapLiveData) {
+      debugPrint('🗺️ MapController: MAP_LIVE_DATA=false, using mock hotspots');
+      final mockResult = await _mockHotspotService.getHotspots(
         bounds: _currentBounds!,
         timeFilter: _hotspotTimeFilter,
       );
 
-      final success = result.fold(
-        (error) {
-          debugPrint(
-            '🗺️ MapController: Live GWIS failed: ${error.message}, falling back to mock',
-          );
-          return false;
-        },
-        (hotspots) {
-          debugPrint(
-            '🗺️ MapController: Loaded ${hotspots.length} hotspots from live GWIS',
-          );
-          _hotspots = hotspots;
-          _isUsingMockData = false;
-          _isOffline = false;
-          _reclusterHotspots();
-          return true;
-        },
-      );
+      _hotspots = mockResult.getOrElse(() => []);
+      _hotspotDataSource = HotspotDataSource.mock;
+      _isUsingMockData = true;
+      _isOffline = false;
 
-      if (success) {
-        notifyListeners();
-        return;
-      }
-    } else {
-      if (!FeatureFlags.mapLiveData) {
-        debugPrint(
-            '🗺️ MapController: MAP_LIVE_DATA=false, using mock hotspots');
-      } else {
-        debugPrint(
-            '🗺️ MapController: Hotspot service not available, using mock');
-      }
+      debugPrint(
+        '🗺️ MapController: Loaded ${_hotspots.length} hotspots from mock',
+      );
+      _reclusterHotspots();
+      notifyListeners();
+      return;
     }
 
-    // Fallback behavior depends on MAP_LIVE_DATA flag
-    if (FeatureFlags.mapLiveData) {
-      // Option C: When live data expected but API failed, show empty state
-      // Don't fall back to mock - that would be misleading for safety-critical app
+    // MAP_LIVE_DATA=true: Use orchestrator for live API fallback chain
+    final result = await _hotspotOrchestrator.getHotspots(
+      bounds: _currentBounds!,
+      timeFilter: _hotspotTimeFilter,
+    );
+
+    _hotspots = result.hotspots;
+    _hotspotDataSource = result.source;
+    _isUsingMockData = result.isMockData;
+    _isOffline = false;
+
+    // If all live APIs failed (fell back to mock), show offline state instead
+    if (result.isMockData) {
       debugPrint(
-        '🗺️ MapController: Live API failed, showing offline state (no mock fallback)',
+        '🗺️ MapController: All live APIs failed, showing offline state',
       );
       _hotspots = [];
       _clusters = [];
       _isOffline = true;
       _isUsingMockData = false;
     } else {
-      // Demo mode: Fall back to mock service for development/testing
-      final mockResult = await _mockHotspotService.getHotspots(
-        bounds: _currentBounds!,
-        timeFilter: _hotspotTimeFilter,
+      debugPrint(
+        '🗺️ MapController: Loaded ${result.hotspots.length} hotspots from ${result.source.displayName}',
       );
-
-      mockResult.fold(
-        (error) {
-          debugPrint(
-            '🗺️ MapController: Mock hotspot service also failed: ${error.message}',
-          );
-          _hotspots = [];
-          _isUsingMockData = true;
-        },
-        (hotspots) {
-          debugPrint(
-            '🗺️ MapController: Loaded ${hotspots.length} hotspots from mock',
-          );
-          _hotspots = hotspots;
-          _isUsingMockData = true;
-          _isOffline = false;
-          _reclusterHotspots();
-        },
-      );
+      _reclusterHotspots();
     }
 
     notifyListeners();

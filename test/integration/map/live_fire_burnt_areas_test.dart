@@ -4,18 +4,17 @@ import 'package:dartz/dartz.dart';
 import 'package:wildfire_mvp_v3/models/api_error.dart';
 import 'package:wildfire_mvp_v3/models/burnt_area.dart';
 import 'package:wildfire_mvp_v3/models/fire_data_mode.dart';
-
-import 'package:wildfire_mvp_v3/models/hotspot.dart';
 import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
 
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
-import 'package:wildfire_mvp_v3/services/gwis_hotspot_service.dart';
 import 'package:wildfire_mvp_v3/services/effis_burnt_area_service.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
+
+import '../../helpers/mock_hotspot_orchestrator.dart';
 
 /// T041: Integration test for EFFIS Burnt Area service → MapController data flow
 ///
@@ -67,19 +66,6 @@ class _MockFireRiskService implements FireRiskService {
   }
 }
 
-/// Mock GWIS hotspot service (not used in burnt area tests)
-class _MockGwisService implements GwisHotspotService {
-  @override
-  Future<Either<ApiError, List<Hotspot>>> getHotspots({
-    required LatLngBounds bounds,
-    required HotspotTimeFilter timeFilter,
-    Duration timeout = const Duration(seconds: 8),
-    int maxRetries = 3,
-  }) async {
-    return const Right([]);
-  }
-}
-
 /// Controllable mock EFFIS burnt area service for testing
 class ControllableMockBurntAreaService implements EffisBurntAreaService {
   final List<BurntArea> _burntAreas;
@@ -124,7 +110,6 @@ void main() {
 
   group('EFFIS Burnt Area Integration Tests (T041)', () {
     late MapController controller;
-    late _MockGwisService mockGwisService;
     late ControllableMockBurntAreaService mockBurntAreaService;
 
     // Test burnt area with polygon boundary
@@ -173,7 +158,6 @@ void main() {
     ];
 
     setUp(() {
-      mockGwisService = _MockGwisService();
       mockBurntAreaService = ControllableMockBurntAreaService(
         burntAreas: testBurntAreas,
       );
@@ -181,7 +165,7 @@ void main() {
       controller = MapController(
         locationResolver: _MockLocationResolver(),
         fireRiskService: _MockFireRiskService(),
-        hotspotService: mockGwisService,
+        hotspotOrchestrator: MockHotspotOrchestrator(),
         burntAreaService: mockBurntAreaService,
       );
     });
@@ -322,10 +306,17 @@ void main() {
     group('Mode switching', () {
       test('switching to burnt areas mode clears hotspots', () async {
         await controller.initialize();
+
+        // Wait for initial fetch to complete
+        await Future.delayed(const Duration(milliseconds: 200));
+
         controller.setFireDataMode(FireDataMode.burntAreas);
 
         expect(controller.hotspots, isEmpty);
         expect(controller.clusters, isEmpty);
+
+        // Wait for any async burnt area fetch to complete before tearDown
+        await Future.delayed(const Duration(milliseconds: 300));
       });
 
       test('switching from hotspots to burnt areas changes mode', () {

@@ -9,6 +9,8 @@ import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
 
+import '../../helpers/mock_hotspot_orchestrator.dart';
+
 /// Mock LocationResolver for fire data mode tests
 class _MockLocationResolver implements LocationResolver {
   @override
@@ -62,6 +64,7 @@ void main() {
       controller = MapController(
         locationResolver: mockLocationResolver,
         fireRiskService: mockFireRiskService,
+        hotspotOrchestrator: MockHotspotOrchestrator(),
       );
     });
 
