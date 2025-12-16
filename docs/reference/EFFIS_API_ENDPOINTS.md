@@ -1,7 +1,7 @@
 ---
 title: EFFIS API Endpoints Reference
 status: active
-last_updated: 2025-12-09
+last_updated: 2025-12-16
 category: reference
 subcategory: api
 related:
@@ -10,6 +10,11 @@ related:
   - ../../lib/models/fire_incident.dart
   - ../../test/fixtures/scotland_fire_273772_fixture.dart
 changelog:
+  - 2025-12-16: CRITICAL - Copernicus endpoint (maps.effis.emergency.copernicus.eu) completely unreachable (100% packet loss)
+  - 2025-12-16: Legacy JRC endpoint (ies-ows.jrc.ec.europa.eu) partially working - WMS FWI returns data for historical dates only (Mar-Sep 2024)
+  - 2025-12-16: Legacy JRC WFS still broken (Oracle database connection failure)
+  - 2025-12-16: No working endpoint currently available for real-time hotspot data
+  - 2025-12-16: Updated status tables to reflect current outage situation
   - 2025-12-09: Added hotspot data lifecycle section (time windows, archive retention, historical access)
   - 2025-12-09: Added hotspot pixel limitations section explaining why area estimation from hotspots is inaccurate
   - 2025-12-09: Documented Scotland Wildfire Tracker (Strathclyde) as alternative data source with analysis
@@ -27,33 +32,102 @@ This document describes the EFFIS (European Forest Fire Information System) and 
 
 ## Executive Summary
 
-As of December 2025, EFFIS has migrated from the legacy JRC endpoint to a new Copernicus emergency endpoint. Applications must update to use the new endpoint for live data access.
+> ⚠️ **OUTAGE ALERT (2025-12-16)**: The Copernicus endpoint (`maps.effis.emergency.copernicus.eu`) is currently **completely unreachable** (100% packet loss). The legacy JRC endpoint has partial functionality. See [Current Outage Status](#current-outage-status-2025-12-16) for details.
 
-| Service | Legacy Endpoint (DEPRECATED) | Current Endpoint (USE THIS) |
-|---------|------------------------------|----------------------------|
-| **GWIS (FWI)** | `ies-ows.jrc.ec.europa.eu/gwis` | `maps.effis.emergency.copernicus.eu/gwis` |
-| **EFFIS (Fires)** | `ies-ows.jrc.ec.europa.eu/effis` | `maps.effis.emergency.copernicus.eu/effis` |
+As of December 2025, EFFIS has migrated from the legacy JRC endpoint to a new Copernicus emergency endpoint. However, service availability has been intermittent.
+
+| Service | Legacy Endpoint | Current Endpoint | Status (Dec 16) |
+|---------|-----------------|------------------|-----------------|
+| **GWIS (FWI)** | `ies-ows.jrc.ec.europa.eu/gwis` | `maps.effis.emergency.copernicus.eu/gwis` | ⚠️ Legacy: partial, Current: DOWN |
+| **EFFIS (Fires)** | `ies-ows.jrc.ec.europa.eu/effis` | `maps.effis.emergency.copernicus.eu/effis` | ❌ Both broken/down |
 
 ### ⚠️ Important: Hotspot Data Requires GWIS Endpoint
 
 Real-time active fire hotspots are **only available via the GWIS endpoint**, not the EFFIS endpoint:
 
-| Data Type | Endpoint | Layer Example | Status |
-|-----------|----------|---------------|--------|
-| **Real-time Hotspots** | `/gwis` | `viirs.hs.today` | ✅ Current (Dec 2025) |
-| **Historical Hotspots** | `/effis` | `viirs.hs` | ❌ Stale (Oct 2021) |
-| **Burnt Areas** | `/effis` | `modis.ba.poly.season` | ✅ Current |
-| **FWI Data** | `/gwis` | `nasa_geos5.query` | ✅ Current |
+| Data Type | Endpoint | Layer Example | Status (Dec 9) | Status (Dec 16) |
+|-----------|----------|---------------|----------------|-----------------|
+| **Real-time Hotspots** | `/gwis` | `viirs.hs.today` | ✅ Working | ❌ Endpoint DOWN |
+| **Historical Hotspots** | `/effis` | `viirs.hs` | ❌ Stale (Oct 2021) | ❌ Stale |
+| **Burnt Areas** | `/effis` | `modis.ba.poly.season` | ✅ Working | ❌ Endpoint DOWN |
+| **FWI Data** | `/gwis` | `nasa_geos5.query` | ✅ Working | ⚠️ Legacy only (historical) |
+
+---
+
+## Current Outage Status (2025-12-16)
+
+### Copernicus Endpoint: COMPLETELY DOWN
+
+**Domain:** `maps.effis.emergency.copernicus.eu`
+**Status:** ❌ **100% packet loss** - service unreachable
+
+```bash
+# Test performed 2025-12-16 15:20 UTC
+$ ping -c 2 maps.effis.emergency.copernicus.eu
+PING maps.effis.emergency.copernicus.eu (54.220.121.101): 56 data bytes
+Request timeout for icmp_seq 0
+--- 2 packets transmitted, 0 packets received, 100.0% packet loss
+```
+
+All services on this endpoint (WMS, WFS, WMTS) are unavailable.
+
+### Legacy JRC Endpoint: PARTIAL FUNCTIONALITY
+
+**Domain:** `ies-ows.jrc.ec.europa.eu`
+
+| Service | Status | Notes |
+|---------|--------|-------|
+| FWI WMS (`/gwis`) | ⚠️ **Historical Only** | Returns data for Mar-Sep 2024; no 2025 data |
+| Fire WFS (`/effis`) | ❌ **Broken** | Oracle database connection failure |
+
+**Working FWI query (historical data only):**
+```bash
+# Returns FWI=0.39 for Scotland in August 2024
+curl "https://ies-ows.jrc.ec.europa.eu/gwis?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=nasa_geos5.fwi&QUERY_LAYERS=nasa_geos5.fwi&CRS=EPSG:4326&BBOX=57.1,-3.9,57.3,-3.7&WIDTH=256&HEIGHT=256&I=128&J=128&INFO_FORMAT=text/html&STYLES=&TIME=2024-08-15"
+```
+
+**FWI data availability (tested 2025-12-16):**
+| Date | Result |
+|------|--------|
+| 2025-12-16 | ❌ No data |
+| 2025-12-01 | ❌ No data |
+| 2025-08-15 | ❌ No data |
+| 2024-12-15 | ❌ No data |
+| 2024-10-15 | ❌ No data |
+| 2024-08-15 | ✅ FWI=0.39 |
+| 2024-06-15 | ✅ FWI=0.04 |
+| 2024-04-15 | ✅ FWI=0.61 |
+| 2024-02-15 | ❌ No data |
+
+**Conclusion:** FWI data only available for fire season (approximately March-September 2024).
+
+### Impact on Application
+
+With both endpoints having issues:
+1. **Hotspot data**: No live source available → app falls back to mock data
+2. **Burnt area data**: No live source available → app falls back to mock data  
+3. **FWI data**: Only historical (2024 fire season) available via legacy endpoint
+
+### Recommended Actions
+
+1. **Short-term**: Continue using mock/demo data mode
+2. **Monitor**: Check endpoint status periodically (may be temporary infrastructure issue)
+3. **Alternative sources to investigate**:
+   - NASA FIRMS API (requires free registration): https://firms.modaps.eosdis.nasa.gov/api/
+   - Copernicus Emergency Management Service direct contact
+   - Scotland-specific: Scottish Wildfire Tracker (Strathclyde University)
+
+---
 
 ## Endpoint Comparison
 
-### Legacy Endpoint (DEPRECATED)
+### Legacy Endpoint (DEPRECATED but partially functional)
 
 **Base URL:** `https://ies-ows.jrc.ec.europa.eu/`
 
 | Aspect | Status | Notes |
 |--------|--------|-------|
-| FWI WMS Data | ❌ Stale | Last data: January 31, 2025 (~10 month gap) |
+| FWI WMS Data | ⚠️ Partial | Historical only (Mar-Sep 2024), no current data |
 | WFS Fire Incidents | ❌ Broken | Oracle database connection failure |
 | Documentation | ❌ Outdated | No longer referenced in official docs |
 
@@ -63,15 +137,15 @@ msOracleSpatialLayerOpen(): OracleSpatial error.
 Cannot create OCI Handlers. Connection failure.
 ```
 
-### Current Endpoint (ACTIVE)
+### Current Endpoint (OFFLINE as of 2025-12-16)
 
 **Base URL:** `https://maps.effis.emergency.copernicus.eu/`
 
-| Aspect | Status | Notes |
-|--------|--------|-------|
-| FWI WMS Data | ✅ Live | Current date data available |
-| WFS Fire Incidents | ✅ Working | Active fire hotspots and burnt areas |
-| Documentation | ✅ Official | Referenced at forest-fire.emergency.copernicus.eu |
+| Aspect | Status (Dec 9) | Status (Dec 16) | Notes |
+|--------|----------------|-----------------|-------|
+| FWI WMS Data | ✅ Live | ❌ DOWN | Endpoint unreachable |
+| WFS Fire Incidents | ✅ Working | ❌ DOWN | Endpoint unreachable |
+| Documentation | ✅ Official | ✅ Official | https://forest-fire.emergency.copernicus.eu |
 
 **Official documentation:** https://forest-fire.emergency.copernicus.eu/downloads-instructions
 
