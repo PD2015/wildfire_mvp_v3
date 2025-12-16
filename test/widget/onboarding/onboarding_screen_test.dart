@@ -63,7 +63,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('Get Started'));
+      await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
       expect(find.text('Important Safety Information'), findsOneWidget);
@@ -79,7 +79,7 @@ void main() {
       );
 
       // Navigate through pages with scroll support
-      await scrollAndTap(tester, 'Get Started');
+      await scrollAndTap(tester, 'Continue');
       await scrollAndTap(tester, 'I Understand');
 
       expect(find.text('Your Privacy Matters'), findsOneWidget);
@@ -95,7 +95,7 @@ void main() {
       );
 
       // Navigate through pages with scroll support
-      await scrollAndTap(tester, 'Get Started');
+      await scrollAndTap(tester, 'Continue');
       await scrollAndTap(tester, 'I Understand');
       await scrollAndTap(tester, 'Continue');
 
@@ -115,7 +115,7 @@ void main() {
       expect(find.bySemanticsLabel('Page 1 of 4'), findsOneWidget);
 
       // Navigate to next page with scroll support
-      await scrollAndTap(tester, 'Get Started');
+      await scrollAndTap(tester, 'Continue');
 
       // Verify page indicator updated
       expect(find.bySemanticsLabel('Page 2 of 4'), findsOneWidget);
@@ -134,18 +134,21 @@ void main() {
       );
 
       // Navigate through all pages with scroll support
-      await scrollAndTap(tester, 'Get Started');
+      await scrollAndTap(tester, 'Continue');
       await scrollAndTap(tester, 'I Understand');
       await scrollAndTap(tester, 'Continue');
 
-      // Scroll to and accept terms checkbox
+      // Scroll to and accept both checkboxes (disclaimer + terms)
       await tester.scrollUntilVisible(
-        find.byType(Checkbox),
+        find.byKey(const Key('disclaimer_checkbox')),
         50,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byType(Checkbox));
+      await tester.tap(find.byKey(const Key('disclaimer_checkbox')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('terms_checkbox')));
       await tester.pumpAndSettle();
 
       await scrollAndTap(tester, 'Complete Setup');
@@ -163,18 +166,21 @@ void main() {
       );
 
       // Navigate through all pages with scroll support
-      await scrollAndTap(tester, 'Get Started');
+      await scrollAndTap(tester, 'Continue');
       await scrollAndTap(tester, 'I Understand');
       await scrollAndTap(tester, 'Continue');
 
-      // Scroll to and accept terms checkbox
+      // Scroll to and accept both checkboxes (disclaimer + terms)
       await tester.scrollUntilVisible(
-        find.byType(Checkbox),
+        find.byKey(const Key('disclaimer_checkbox')),
         50,
         scrollable: find.byType(Scrollable).first,
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byType(Checkbox));
+      await tester.tap(find.byKey(const Key('disclaimer_checkbox')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('terms_checkbox')));
       await tester.pumpAndSettle();
 
       await scrollAndTap(tester, 'Complete Setup');
@@ -196,17 +202,21 @@ void main() {
       );
 
       // Navigate through all pages with scroll support
-      await scrollAndTap(tester, 'Get Started');
+      await scrollAndTap(tester, 'Continue');
       await scrollAndTap(tester, 'I Understand');
       await scrollAndTap(tester, 'Continue');
 
-      // Scroll to and accept terms (checkbox is near Complete Setup button)
+      // Scroll to and accept both checkboxes (disclaimer + terms)
       await tester.scrollUntilVisible(
-        find.byType(Checkbox),
+        find.byKey(const Key('disclaimer_checkbox')),
         50,
         scrollable: find.byType(Scrollable).first,
       );
-      await tester.tap(find.byType(Checkbox));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('disclaimer_checkbox')));
+      await tester.pump();
+
+      await tester.tap(find.byKey(const Key('terms_checkbox')));
       await tester.pump();
 
       // Complete onboarding (uses default radius of 10)

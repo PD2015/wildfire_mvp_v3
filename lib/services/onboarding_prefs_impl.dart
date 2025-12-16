@@ -108,6 +108,10 @@ class OnboardingPrefsImpl implements OnboardingPrefsService {
         OnboardingConfig.keyTermsTimestamp,
         now.millisecondsSinceEpoch,
       ),
+      _prefs.setInt(
+        OnboardingConfig.keyDisclaimerTimestamp,
+        now.millisecondsSinceEpoch,
+      ),
       _prefs.setInt(OnboardingConfig.keyNotificationRadius, radiusKm),
     ]);
   }

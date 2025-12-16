@@ -24,6 +24,8 @@ class OnboardingConfig {
   static const String keyOnboardingVersion = 'onboarding_version';
   static const String keyTermsVersion = 'terms_accepted_version';
   static const String keyTermsTimestamp = 'terms_accepted_timestamp';
+  static const String keyDisclaimerTimestamp =
+      'disclaimer_acknowledged_timestamp';
   static const String keyNotificationRadius = 'notification_radius_km';
 }
 

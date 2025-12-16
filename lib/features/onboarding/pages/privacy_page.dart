@@ -74,6 +74,12 @@ class PrivacyPage extends StatelessWidget {
                   ),
                   SizedBox(height: 8),
                   _PrivacyItem(
+                    text:
+                        'We use approximate, privacy-safe coordinates when caching data.',
+                    isPositive: true,
+                  ),
+                  SizedBox(height: 8),
+                  _PrivacyItem(
                     text: 'Your notification preferences',
                     isPositive: true,
                   ),

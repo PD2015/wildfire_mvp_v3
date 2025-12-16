@@ -24,6 +24,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SetupPage(
+              disclaimerAcknowledged: true,
+              onDisclaimerChanged: (_) {},
               initialRadius: 10,
               termsAccepted: false,
               onRadiusChanged: (_) {},
@@ -42,6 +44,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SetupPage(
+              disclaimerAcknowledged: true,
+              onDisclaimerChanged: (_) {},
               initialRadius: 10,
               termsAccepted: false,
               onRadiusChanged: (_) {},
@@ -61,6 +65,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SetupPage(
+              disclaimerAcknowledged: true,
+              onDisclaimerChanged: (_) {},
               initialRadius: 10,
               termsAccepted: false,
               onRadiusChanged: (_) {},
@@ -83,6 +89,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SetupPage(
+              disclaimerAcknowledged: true,
+              onDisclaimerChanged: (_) {},
               initialRadius: 10,
               termsAccepted: false,
               onRadiusChanged: (radius) => selectedRadius = radius,
@@ -93,8 +101,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('25km'));
-      await tester.pump();
+      await scrollAndTap(tester, '25km');
 
       expect(selectedRadius, 25);
     });
@@ -104,6 +111,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SetupPage(
+              disclaimerAcknowledged: true,
+              onDisclaimerChanged: (_) {},
               initialRadius: 10,
               termsAccepted: false,
               onRadiusChanged: (_) {},
@@ -114,18 +123,21 @@ void main() {
         ),
       );
 
-      expect(find.byType(CheckboxListTile), findsOneWidget);
+      expect(find.byType(CheckboxListTile), findsNWidgets(2));
       expect(find.text('Terms of Service'), findsOneWidget);
       expect(find.text('Privacy Policy'), findsOneWidget);
     });
 
-    testWidgets('calls onTermsChanged when checkbox toggled', (tester) async {
+    testWidgets('calls onTermsChanged when terms checkbox toggled',
+        (tester) async {
       bool? accepted;
 
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: SetupPage(
+              disclaimerAcknowledged: true,
+              onDisclaimerChanged: (_) {},
               initialRadius: 10,
               termsAccepted: false,
               onRadiusChanged: (_) {},
@@ -136,18 +148,52 @@ void main() {
         ),
       );
 
-      // Scroll to checkbox first since it may be off-screen
+      // Scroll to terms checkbox first since it may be off-screen
       final scrollableFinder = find.byType(Scrollable).first;
       await tester.scrollUntilVisible(
-        find.byType(Checkbox),
+        find.byKey(const Key('terms_checkbox')),
         50,
         scrollable: scrollableFinder,
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byType(Checkbox));
+      await tester.tap(find.byKey(const Key('terms_checkbox')));
       await tester.pumpAndSettle();
 
       expect(accepted, isTrue);
+    });
+
+    testWidgets('calls onDisclaimerChanged when disclaimer checkbox toggled',
+        (tester) async {
+      bool? acknowledged;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SetupPage(
+              disclaimerAcknowledged: false,
+              onDisclaimerChanged: (value) => acknowledged = value,
+              initialRadius: 10,
+              termsAccepted: false,
+              onRadiusChanged: (_) {},
+              onTermsChanged: (_) {},
+              onComplete: () {},
+            ),
+          ),
+        ),
+      );
+
+      // Scroll to disclaimer checkbox first since it may be off-screen
+      final scrollableFinder = find.byType(Scrollable).first;
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('disclaimer_checkbox')),
+        50,
+        scrollable: scrollableFinder,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('disclaimer_checkbox')));
+      await tester.pumpAndSettle();
+
+      expect(acknowledged, isTrue);
     });
 
     testWidgets('displays version info', (tester) async {
@@ -155,6 +201,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SetupPage(
+              disclaimerAcknowledged: true,
+              onDisclaimerChanged: (_) {},
               initialRadius: 10,
               termsAccepted: false,
               onRadiusChanged: (_) {},
@@ -177,6 +225,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SetupPage(
+              disclaimerAcknowledged: true,
+              onDisclaimerChanged: (_) {},
               initialRadius: 10,
               termsAccepted: false,
               onRadiusChanged: (_) {},
@@ -194,11 +244,14 @@ void main() {
       expect(button.onPressed, isNull);
     });
 
-    testWidgets('Complete button enabled when terms accepted', (tester) async {
+    testWidgets('Complete button enabled when both checkboxes checked',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: SetupPage(
+              disclaimerAcknowledged: true,
+              onDisclaimerChanged: (_) {},
               initialRadius: 10,
               termsAccepted: true,
               onRadiusChanged: (_) {},
@@ -216,6 +269,31 @@ void main() {
       expect(button.onPressed, isNotNull);
     });
 
+    testWidgets('Complete button disabled when disclaimer not acknowledged',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SetupPage(
+              disclaimerAcknowledged: false,
+              onDisclaimerChanged: (_) {},
+              initialRadius: 10,
+              termsAccepted: true, // Terms accepted but disclaimer not
+              onRadiusChanged: (_) {},
+              onTermsChanged: (_) {},
+              onComplete: () {},
+            ),
+          ),
+        ),
+      );
+
+      final button = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Complete Setup'),
+      );
+
+      expect(button.onPressed, isNull);
+    });
+
     testWidgets('calls onComplete when button tapped with terms accepted',
         (tester) async {
       var called = false;
@@ -224,6 +302,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SetupPage(
+              disclaimerAcknowledged: true,
+              onDisclaimerChanged: (_) {},
               initialRadius: 10,
               termsAccepted: true,
               onRadiusChanged: (_) {},
@@ -244,6 +324,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SetupPage(
+              disclaimerAcknowledged: true,
+              onDisclaimerChanged: (_) {},
               initialRadius: 10,
               termsAccepted: false,
               onRadiusChanged: (_) {},
@@ -255,16 +337,20 @@ void main() {
       );
 
       expect(
-        find.text('Please accept the terms to continue'),
+        find.text(
+            'Please acknowledge the disclaimer and accept the terms to continue'),
         findsOneWidget,
       );
     });
 
-    testWidgets('hides helper text when terms accepted', (tester) async {
+    testWidgets('hides helper text when both checkboxes checked',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: SetupPage(
+              disclaimerAcknowledged: true,
+              onDisclaimerChanged: (_) {},
               initialRadius: 10,
               termsAccepted: true,
               onRadiusChanged: (_) {},
@@ -276,7 +362,8 @@ void main() {
       );
 
       expect(
-        find.text('Please accept the terms to continue'),
+        find.text(
+            'Please acknowledge the disclaimer and accept the terms to continue'),
         findsNothing,
       );
     });
@@ -288,6 +375,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SetupPage(
+              disclaimerAcknowledged: true,
+              onDisclaimerChanged: (_) {},
               initialRadius: 10,
               termsAccepted: false,
               onRadiusChanged: (_) {},
@@ -311,6 +400,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SetupPage(
+              disclaimerAcknowledged: true,
+              onDisclaimerChanged: (_) {},
               initialRadius: 10,
               termsAccepted: false,
               onRadiusChanged: (_) {},
@@ -332,6 +423,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SetupPage(
+              disclaimerAcknowledged: true,
+              onDisclaimerChanged: (_) {},
               initialRadius: 0,
               termsAccepted: false,
               onRadiusChanged: (_) {},
@@ -353,6 +446,8 @@ void main() {
         MaterialApp(
           home: Scaffold(
             body: SetupPage(
+              disclaimerAcknowledged: true,
+              onDisclaimerChanged: (_) {},
               initialRadius: 25,
               termsAccepted: false,
               onRadiusChanged: (_) {},

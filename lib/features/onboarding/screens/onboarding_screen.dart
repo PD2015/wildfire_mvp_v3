@@ -40,6 +40,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   // Setup page state
   int _selectedRadius = OnboardingConfig.defaultRadiusKm;
+  bool _disclaimerAcknowledged = false;
   bool _termsAccepted = false;
 
   @override
@@ -113,9 +114,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   // Page 4: Setup
                   SetupPage(
                     initialRadius: _selectedRadius,
+                    disclaimerAcknowledged: _disclaimerAcknowledged,
                     termsAccepted: _termsAccepted,
                     onRadiusChanged: (radius) {
                       setState(() => _selectedRadius = radius);
+                    },
+                    onDisclaimerChanged: (acknowledged) {
+                      setState(() => _disclaimerAcknowledged = acknowledged);
                     },
                     onTermsChanged: (accepted) {
                       setState(() => _termsAccepted = accepted);
