@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:wildfire_mvp_v3/content/legal_content.dart';
 
 // TODO: Add flutter_markdown dependency for proper markdown rendering
-// TODO: Parse markdown headers into styled titleMedium widgets with dividers
 // TODO: Add max width constraint (~700px) for tablets/web
 // TODO: Style inline version/date as secondary text to reduce visual repetition
 // TODO: Add consistent doc-type iconography to AppBar per document type
@@ -88,10 +87,9 @@ class LegalDocumentScreen extends StatelessWidget {
     );
   }
 
-  /// Build content widgets, highlighting emergency disclaimers with callout boxes.
+  /// Build content widgets with section headers, emergency callouts, and body text.
   List<Widget> _buildContentWithCallouts(BuildContext context, String content) {
     final theme = Theme.of(context);
-    final strippedContent = _stripMarkdownHeaders(content);
 
     // Patterns that indicate emergency/safety critical content
     final emergencyPatterns = [
@@ -102,7 +100,7 @@ class LegalDocumentScreen extends StatelessWidget {
       'emergency-warning tool',
     ];
 
-    final lines = strippedContent.split('\n');
+    final lines = content.split('\n');
     final widgets = <Widget>[];
     final currentParagraph = StringBuffer();
 
@@ -110,11 +108,13 @@ class LegalDocumentScreen extends StatelessWidget {
       if (currentParagraph.isNotEmpty) {
         final text = currentParagraph.toString().trim();
         if (text.isNotEmpty) {
+          // Remove markdown bold markers
+          final cleanText = text.replaceAll('**', '');
           widgets.add(
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: SelectableText(
-                text,
+                cleanText,
                 style: theme.textTheme.bodyMedium?.copyWith(height: 1.6),
               ),
             ),
@@ -125,20 +125,48 @@ class LegalDocumentScreen extends StatelessWidget {
     }
 
     for (final line in lines) {
-      // Check if this line contains emergency content
-      final isEmergencyContent = emergencyPatterns.any(
-        (pattern) => line.toLowerCase().contains(pattern.toLowerCase()),
-      );
+      final trimmedLine = line.trim();
 
-      if (isEmergencyContent && line.trim().isNotEmpty) {
-        // Flush any pending paragraph
+      // Skip horizontal rules
+      if (trimmedLine == '---') {
+        flushParagraph();
+        continue;
+      }
+
+      // Check for markdown headers (## or #)
+      if (trimmedLine.startsWith('#')) {
         flushParagraph();
 
-        // Add emergency callout
-        widgets.add(
-          _EmergencyCallout(text: line.trim()),
-        );
-      } else if (line.trim().isEmpty) {
+        // Extract header text and level
+        final headerMatch = RegExp(r'^(#+)\s*(.+)$').firstMatch(trimmedLine);
+        if (headerMatch != null) {
+          final level = headerMatch.group(1)!.length;
+          final headerText = headerMatch.group(2)!.replaceAll('**', '').trim();
+
+          // Skip the main title (# Header) as it's in the AppBar
+          if (level == 1) continue;
+
+          widgets.add(
+            _SectionHeader(
+              text: headerText,
+              isSubsection: level > 2,
+            ),
+          );
+        }
+        continue;
+      }
+
+      // Check if this line contains emergency content
+      final isEmergencyContent = emergencyPatterns.any(
+        (pattern) => trimmedLine.toLowerCase().contains(pattern.toLowerCase()),
+      );
+
+      if (isEmergencyContent && trimmedLine.isNotEmpty) {
+        flushParagraph();
+        // Remove markdown bold markers from emergency text
+        final cleanText = trimmedLine.replaceAll('**', '');
+        widgets.add(_EmergencyCallout(text: cleanText));
+      } else if (trimmedLine.isEmpty) {
         // Empty line = paragraph break
         flushParagraph();
       } else {
@@ -146,7 +174,7 @@ class LegalDocumentScreen extends StatelessWidget {
         if (currentParagraph.isNotEmpty) {
           currentParagraph.write(' ');
         }
-        currentParagraph.write(line.trim());
+        currentParagraph.write(trimmedLine);
       }
     }
 
@@ -174,24 +202,53 @@ class LegalDocumentScreen extends StatelessWidget {
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
+}
 
-  /// Strip markdown headers (# symbols) for plain text display.
-  /// A more sophisticated implementation could use a Markdown widget.
-  String _stripMarkdownHeaders(String content) {
-    return content
-        .split('\n')
-        .map((line) {
-          // Remove leading # characters from headers
-          if (line.startsWith('#')) {
-            return line.replaceFirst(RegExp(r'^#+\s*'), '');
-          }
-          // Remove ** for bold (keep text)
-          return line.replaceAll('**', '');
-          // Remove --- horizontal rules
-        })
-        .where((line) => line.trim() != '---')
-        .join('\n')
-        .trim();
+/// Section header with visual hierarchy for legal documents.
+///
+/// Displays section titles with proper typography and a subtle divider
+/// to create clear document structure.
+class _SectionHeader extends StatelessWidget {
+  final String text;
+  final bool isSubsection;
+
+  const _SectionHeader({
+    required this.text,
+    this.isSubsection = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: EdgeInsets.only(
+        top: isSubsection ? 16 : 24,
+        bottom: 8,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            text,
+            style: isSubsection
+                ? theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  )
+                : theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+          ),
+          const SizedBox(height: 8),
+          Divider(
+            thickness: isSubsection ? 0.5 : 0.8,
+            color: theme.colorScheme.onSurface.withValues(
+              alpha: isSubsection ? 0.06 : 0.1,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
