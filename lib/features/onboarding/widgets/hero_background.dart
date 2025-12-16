@@ -29,9 +29,9 @@ class HeroBackground extends StatelessWidget {
     Color(0xFF0C3B35), // forest800
     Color(0xFF0F4A43), // forest700 with mint tint */
 
-            Color(0xFF052A23),
-            Color(0x332C1A0F), // low-opacity ember glow
-            Color(0xFF071F1B),
+            const Color(0xFF052A23),
+            const Color(0x332C1A0F), // low-opacity ember glow
+            const Color(0xFF071F1B),
           ]
         : [
             const Color(0xFFFF6B35), // Bright orange
