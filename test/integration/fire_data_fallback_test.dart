@@ -19,11 +19,17 @@ import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 /// T042: Integration test for fire data fallback behavior (Decision D5)
 ///
 /// Tests that:
-/// - GWIS service failure → mock data flag set
-/// - EFFIS burnt area service failure → mock data flag set
-/// - Controller remains functional when services fail
-/// - Retry behavior recovers when service becomes available
-/// - Mode switching resets mock data flag appropriately
+/// - When MAP_LIVE_DATA=false (default): Mock data is used directly
+/// - When MAP_LIVE_DATA=true: Live service is called, failure sets isOffline=true
+/// - Controller remains functional regardless of service state
+/// - Mode switching and filter changes work correctly
+///
+/// NOTE: These tests run with MAP_LIVE_DATA=false (compile-time default).
+/// The live service fallback to mock has been replaced with Option C:
+/// - When MAP_LIVE_DATA=false: Always use mock (no live service calls)
+/// - When MAP_LIVE_DATA=true: Try live, set isOffline=true on failure (no mock fallback)
+///
+/// The tests below verify behavior in demo mode (MAP_LIVE_DATA=false).
 
 // =============================================================================
 // Mock Services
@@ -206,7 +212,8 @@ void main() {
         );
       });
 
-      test('sets isUsingMockData = true when GWIS fails', () async {
+      test('uses mock data directly when MAP_LIVE_DATA=false (default)',
+          () async {
         await controller.initialize();
         expect(controller.state, isA<MapSuccess>());
 
@@ -217,9 +224,11 @@ void main() {
         // Allow async fetch to complete
         await Future.delayed(const Duration(milliseconds: 100));
 
+        // With MAP_LIVE_DATA=false, mock data is used directly
+        // Live service is NOT called (Option C behavior)
         expect(controller.isUsingMockData, isTrue);
-        // Note: callCount is >= 1 because initialize() also triggers a fetch
-        expect(failingService.callCount, greaterThanOrEqualTo(1));
+        // Live service should NOT be called when MAP_LIVE_DATA=false
+        expect(failingService.callCount, equals(0));
       });
 
       test('controller remains functional after GWIS failure', () async {
@@ -245,10 +254,12 @@ void main() {
         );
       });
 
-      test('retains previous data on failure when cache exists', () async {
-        // Create a service that succeeds first, then fails
+      test('mock data used consistently regardless of service capability',
+          () async {
+        // With MAP_LIVE_DATA=false, even a "succeeding" live service is not called
+        // Mock data is used directly
         final flakeyService = _FlakeyGwisService(failUntil: 0);
-        // First call succeeds (failUntil = 0 means never fail)
+        // Service would succeed if called, but it won't be called
 
         final controller2 = MapController(
           locationResolver: _MockLocationResolver(),
@@ -263,10 +274,10 @@ void main() {
 
         await Future.delayed(const Duration(milliseconds: 100));
 
-        // First fetch should succeed
-        expect(controller2.isUsingMockData, isFalse);
-        expect(controller2.hotspots.length, equals(1));
-        expect(controller2.hotspots.first.id, equals('recovered-1'));
+        // With MAP_LIVE_DATA=false, mock is always used
+        expect(controller2.isUsingMockData, isTrue);
+        // Live service NOT called
+        expect(flakeyService.callCount, equals(0));
       });
     });
 
@@ -284,7 +295,8 @@ void main() {
         );
       });
 
-      test('sets isUsingMockData = true when EFFIS fails', () async {
+      test('uses mock data directly for EFFIS when MAP_LIVE_DATA=false',
+          () async {
         await controller.initialize();
         expect(controller.state, isA<MapSuccess>());
 
@@ -294,8 +306,10 @@ void main() {
 
         await Future.delayed(const Duration(milliseconds: 100));
 
+        // With MAP_LIVE_DATA=false, mock data is used directly
         expect(controller.isUsingMockData, isTrue);
-        expect(failingService.callCount, greaterThanOrEqualTo(1));
+        // Live service should NOT be called when MAP_LIVE_DATA=false
+        expect(failingService.callCount, equals(0));
       });
 
       test('controller remains functional after EFFIS failure', () async {
@@ -322,13 +336,16 @@ void main() {
       });
     });
 
-    group('Both Services Failing', () {
-      test('map continues to function when both services fail', () async {
+    group('Both Services Not Called (MAP_LIVE_DATA=false)', () {
+      test('map uses mock data directly when MAP_LIVE_DATA=false', () async {
+        final gwisService = _FailingGwisService();
+        final burntService = _FailingBurntAreaService();
+
         final controller = MapController(
           locationResolver: _MockLocationResolver(),
           fireRiskService: _MockFireRiskService(),
-          hotspotService: _FailingGwisService(),
-          burntAreaService: _FailingBurntAreaService(),
+          hotspotService: gwisService,
+          burntAreaService: burntService,
         );
 
         await controller.initialize();
@@ -339,8 +356,10 @@ void main() {
         controller.updateBounds(testBounds);
         await Future.delayed(const Duration(milliseconds: 100));
 
+        // Mock data used directly, live services not called
         expect(controller.isUsingMockData, isTrue);
         expect(controller.state, isA<MapSuccess>());
+        expect(gwisService.callCount, equals(0));
 
         // Try burnt areas mode
         controller.setFireDataMode(FireDataMode.burntAreas);
@@ -349,11 +368,12 @@ void main() {
 
         expect(controller.isUsingMockData, isTrue);
         expect(controller.state, isA<MapSuccess>());
+        expect(burntService.callCount, equals(0));
       });
     });
 
-    group('Retry Behavior', () {
-      test('bounds update retries live data after failure', () async {
+    group('Mock Data Consistency (MAP_LIVE_DATA=false)', () {
+      test('mock data is used consistently across bounds updates', () async {
         final flakeyService = _FlakeyGwisService(failUntil: 1);
 
         final controller = MapController(
@@ -369,22 +389,22 @@ void main() {
 
         await Future.delayed(const Duration(milliseconds: 100));
 
-        // First call fails
-        expect(flakeyService.callCount, greaterThanOrEqualTo(1));
+        // With MAP_LIVE_DATA=false, mock is used directly
         expect(controller.isUsingMockData, isTrue);
+        // Live service NOT called
+        expect(flakeyService.callCount, equals(0));
 
-        // Simulate map pan/zoom to trigger retry
+        // Simulate map pan/zoom
         controller.updateBounds(testBounds);
 
         await Future.delayed(const Duration(milliseconds: 100));
 
-        // Second call succeeds
-        expect(flakeyService.callCount, greaterThan(1));
-        expect(controller.isUsingMockData, isFalse);
-        expect(controller.hotspots.length, equals(1));
+        // Still using mock, service still not called
+        expect(flakeyService.callCount, equals(0));
+        expect(controller.isUsingMockData, isTrue);
       });
 
-      test('retry recovers burnt area data after temporary failure', () async {
+      test('mock burnt area data used consistently', () async {
         final flakeyService = _FlakeyBurntAreaService(failUntil: 1);
 
         final controller = MapController(
@@ -400,23 +420,25 @@ void main() {
 
         await Future.delayed(const Duration(milliseconds: 100));
 
-        // First call fails
+        // With MAP_LIVE_DATA=false, mock is used directly
         expect(controller.isUsingMockData, isTrue);
+        // Live service NOT called
+        expect(flakeyService.callCount, equals(0));
 
-        // Trigger retry via bounds update (simulates map pan/zoom)
+        // Trigger another fetch via bounds update
         controller.updateBounds(testBounds);
 
         await Future.delayed(const Duration(milliseconds: 100));
 
-        // Second call succeeds
-        expect(controller.isUsingMockData, isFalse);
-        expect(controller.burntAreas.length, equals(1));
-        expect(controller.burntAreas.first.id, equals('recovered-ba-1'));
+        // Still using mock
+        expect(controller.isUsingMockData, isTrue);
+        expect(flakeyService.callCount, equals(0));
       });
     });
 
-    group('Error Message Handling', () {
-      test('network timeout error sets mock data flag', () async {
+    group('Error Message Handling (MAP_LIVE_DATA=false)', () {
+      test('mock data used regardless of error type when MAP_LIVE_DATA=false',
+          () async {
         final service = _FailingGwisService(
           errorMessage: 'Network timeout after 10000ms',
         );
@@ -480,10 +502,11 @@ void main() {
       });
     });
 
-    group('Mode Switching After Failure', () {
-      test('switching mode resets mock data flag if new service succeeds',
+    group('Mode Switching (MAP_LIVE_DATA=false)', () {
+      test('mock data flag remains true in all modes when MAP_LIVE_DATA=false',
           () async {
-        // Hotspot service fails, burnt area service succeeds
+        // Even with one "succeeding" service, MAP_LIVE_DATA=false means
+        // mock data is always used and live services are not called
         final hotspotService = _FailingGwisService();
         final burntAreaService = _FlakeyBurntAreaService(failUntil: 0);
 
@@ -496,24 +519,24 @@ void main() {
 
         await controller.initialize();
 
-        // Start in hotspots mode - fails
+        // Hotspots mode - mock used directly
         controller.setFireDataMode(FireDataMode.hotspots);
         controller.updateBounds(testBounds);
         await Future.delayed(const Duration(milliseconds: 100));
 
         expect(controller.isUsingMockData, isTrue);
+        expect(hotspotService.callCount, equals(0)); // Not called
 
-        // Switch to burnt areas mode - succeeds
+        // Burnt areas mode - mock used directly (live service not called)
         controller.setFireDataMode(FireDataMode.burntAreas);
         controller.updateBounds(testBounds);
         await Future.delayed(const Duration(milliseconds: 100));
 
-        expect(controller.isUsingMockData, isFalse);
-        expect(controller.burntAreas.length, equals(1));
+        expect(controller.isUsingMockData, isTrue);
+        expect(burntAreaService.callCount, equals(0)); // Not called
       });
 
-      test('switching back to failed service shows mock data flag again',
-          () async {
+      test('mode switching works correctly with mock data', () async {
         final hotspotService = _FailingGwisService();
         final burntAreaService = _FlakeyBurntAreaService(failUntil: 0);
 
@@ -525,29 +548,28 @@ void main() {
         );
 
         await controller.initialize();
-        // Wait for any pending async operations from initialize()
         await Future.delayed(const Duration(milliseconds: 200));
 
-        // Start in burnt areas mode - succeeds
+        // Start in burnt areas mode
         controller.setFireDataMode(FireDataMode.burntAreas);
         controller.updateBounds(testBounds);
         await Future.delayed(const Duration(milliseconds: 200));
 
-        // After switching to burnt areas with working service, flag should be false
-        // (Note: race condition with initialize() hotspots fetch may affect this)
-        expect(controller.burntAreas.isNotEmpty, isTrue);
+        // Mock data loaded for burnt areas
+        expect(controller.isUsingMockData, isTrue);
 
-        // Switch to hotspots mode - fails
+        // Switch to hotspots mode
         controller.setFireDataMode(FireDataMode.hotspots);
         controller.updateBounds(testBounds);
         await Future.delayed(const Duration(milliseconds: 200));
 
+        // Still using mock data
         expect(controller.isUsingMockData, isTrue);
       });
     });
 
-    group('Filter Changes After Failure', () {
-      test('changing filter retries live data', () async {
+    group('Filter Changes (MAP_LIVE_DATA=false)', () {
+      test('filter changes work with mock data', () async {
         final flakeyService = _FlakeyGwisService(failUntil: 1);
 
         final controller = MapController(
@@ -563,19 +585,18 @@ void main() {
 
         await Future.delayed(const Duration(milliseconds: 100));
 
-        // First call fails
+        // Mock data used (live service not called)
         expect(controller.isUsingMockData, isTrue);
-        expect(flakeyService.callCount, greaterThanOrEqualTo(1));
+        expect(flakeyService.callCount, equals(0));
 
-        // Change filter triggers retry
+        // Change filter
         controller.setHotspotTimeFilter(HotspotTimeFilter.thisWeek);
 
         await Future.delayed(const Duration(milliseconds: 100));
 
-        // Second call succeeds
-        expect(controller.isUsingMockData, isFalse);
-        // callCount is >= 2 because initialize() also triggers fetches
-        expect(flakeyService.callCount, greaterThanOrEqualTo(2));
+        // Still using mock data (live service still not called)
+        expect(controller.isUsingMockData, isTrue);
+        expect(flakeyService.callCount, equals(0));
       });
     });
   });

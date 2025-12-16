@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
-import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 
 /// MapSourceChip displays the data source and freshness indicator
 ///
 /// Shows where the fire data is coming from (EFFIS/SEPA/Cache/Mock)
-/// and when it was last updated. Displays prominent "Demo Data" chip
-/// when MAP_LIVE_DATA=false for user transparency (T019, C4).
+/// and when it was last updated. Displays prominent indicator chips:
+/// - "DEMO DATA" when MAP_LIVE_DATA=false (deliberate demo mode)
+/// - "OFFLINE" when MAP_LIVE_DATA=true but API failed
+/// - "LIVE" when successfully fetching live data
 ///
 /// Constitutional compliance:
 /// - C3: Accessible with semantic labels and ≥44dp touch targets
@@ -15,11 +16,13 @@ import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 class MapSourceChip extends StatelessWidget {
   final Freshness source;
   final DateTime lastUpdated;
+  final bool isOffline;
 
   const MapSourceChip({
     super.key,
     required this.source,
     required this.lastUpdated,
+    this.isOffline = false,
   });
 
   IconData _getSourceIcon() {
@@ -73,11 +76,46 @@ class MapSourceChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Show prominent "Demo Data" chip when using mock data in development mode
-    final bool isDemoMode =
-        !FeatureFlags.mapLiveData && source == Freshness.mock;
+    // Show prominent warning chip in three scenarios:
+    // 1. Offline: MAP_LIVE_DATA=true but API failed (no data available)
+    // 2. Demo mode: MAP_LIVE_DATA=false (deliberate testing mode with mock data)
+    // 3. Mock data: source == Freshness.mock (legacy, shouldn't happen with Option C)
 
-    if (isDemoMode) {
+    // Offline state: Live mode enabled but API failed - no data shown
+    if (isOffline) {
+      return Semantics(
+        label:
+            'Offline - Unable to fetch live fire data. Tap retry to try again.',
+        child: Chip(
+          visualDensity: VisualDensity.compact,
+          avatar: const Icon(
+            Icons.cloud_off,
+            size: 16,
+            color: Color(0xFF111111), // BrandPalette.onLightHigh
+          ),
+          label: Text(
+            'OFFLINE',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF111111), // BrandPalette.onLightHigh
+                  letterSpacing: 1.0,
+                ),
+          ),
+          backgroundColor: const Color(0xFFF5A623), // BrandPalette.amber500
+          side: const BorderSide(
+            color: Color(0xFFE59414), // BrandPalette.amber600 (darker border)
+            width: 1.5,
+          ),
+          elevation: 4,
+          shadowColor:
+              Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),
+        ),
+      );
+    }
+
+    // Demo mode: MAP_LIVE_DATA=false - showing mock data for testing
+    final bool isUsingMockData = source == Freshness.mock;
+    if (isUsingMockData) {
       // High-contrast amber chip for visibility against map (T-V1)
       // Same styling for both light and dark themes
       // Compact sizing to avoid overlap with FireDataModeToggle

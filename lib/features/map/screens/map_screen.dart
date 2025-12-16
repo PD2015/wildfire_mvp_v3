@@ -960,15 +960,17 @@ class _MapScreenState extends State<MapScreen> {
             onCameraIdle: _viewportLoader.onCameraIdle,
           ),
         ),
-        // Source chip positioned at top-left - only show when there is fire data
-        // When no fire data, the empty state card already shows the data source
-        if (_controller.hasFireData)
+        // Source chip positioned at top-left
+        // Show when there is fire data OR when offline (to indicate offline status)
+        // When no fire data and not offline, the empty state card shows the data source
+        if (_controller.hasFireData || _controller.isOffline)
           Positioned(
             top: 16,
             left: 16,
             child: MapSourceChip(
               source: _controller.dataFreshness,
               lastUpdated: _controller.lastUpdated,
+              isOffline: _controller.isOffline,
             ),
           ),
         // Timestamp chip positioned at bottom-left - only show when there is fire data
@@ -1074,6 +1076,7 @@ class _MapScreenState extends State<MapScreen> {
           ),
         ),
         // Empty state message if no fire data - mode-specific messaging
+        // Different UX for offline (API failure) vs normal empty state
         if (!_controller.hasFireData)
           Center(
             child: Card(
@@ -1081,63 +1084,120 @@ class _MapScreenState extends State<MapScreen> {
               elevation: 2,
               child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.check_circle_outline,
-                      size: 48,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      _getEmptyStateTitle(),
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _getEmptyStateDescription(),
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Data source: ${_controller.dataFreshness.name.toUpperCase()}',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    // Hint to try other mode
-                    TextButton(
-                      onPressed: () {
-                        final newMode =
-                            _controller.fireDataMode == FireDataMode.hotspots
-                                ? FireDataMode.burntAreas
-                                : FireDataMode.hotspots;
-                        _controller.setFireDataMode(newMode);
-                        setState(() {
-                          _showPolygons = newMode == FireDataMode.burntAreas;
-                        });
-                      },
-                      child: Text(
-                        _getEmptyStateHint(),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                      ),
-                    ),
-                  ],
-                ),
+                child: _controller.isOffline
+                    ? _buildOfflineEmptyState(context)
+                    : _buildNormalEmptyState(context),
               ),
             ),
           ),
+      ],
+    );
+  }
+
+  /// Build offline empty state - shown when API fails with MAP_LIVE_DATA=true
+  ///
+  /// Option C: Don't show mock data when live data was expected -
+  /// that could be misleading for a safety-critical fire app.
+  Widget _buildOfflineEmptyState(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.cloud_off,
+          size: 48,
+          color: Theme.of(context).colorScheme.error,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Unable to Load Fire Data',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Could not connect to fire monitoring services. '
+          'Check your internet connection and try again.',
+          style: Theme.of(context).textTheme.bodyMedium,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton.icon(
+          onPressed: () {
+            // Re-initialize to retry API calls
+            _controller.initialize();
+          },
+          icon: const Icon(Icons.refresh),
+          label: const Text('Retry'),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(120, 48), // C3: ≥44dp touch target
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Fire data will appear once connection is restored',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  /// Build normal empty state - shown when no fire data but API succeeded
+  Widget _buildNormalEmptyState(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.check_circle_outline,
+          size: 48,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          _getEmptyStateTitle(),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          _getEmptyStateDescription(),
+          style: Theme.of(context).textTheme.bodyMedium,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Data source: ${_controller.dataFreshness.name.toUpperCase()}',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        // Hint to try other mode
+        TextButton(
+          onPressed: () {
+            final newMode = _controller.fireDataMode == FireDataMode.hotspots
+                ? FireDataMode.burntAreas
+                : FireDataMode.hotspots;
+            _controller.setFireDataMode(newMode);
+            setState(() {
+              _showPolygons = newMode == FireDataMode.burntAreas;
+            });
+          },
+          child: Text(
+            _getEmptyStateHint(),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+          ),
+        ),
       ],
     );
   }

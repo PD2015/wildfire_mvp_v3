@@ -61,6 +61,10 @@ class MapController extends ChangeNotifier {
   // Whether live data is available or using mock fallback
   bool _isUsingMockData = false;
 
+  // Whether the app is offline (live API failed with MAP_LIVE_DATA=true)
+  // When offline, no data is shown rather than falling back to mock
+  bool _isOffline = false;
+
   // Timestamp of last successful data fetch
   DateTime _lastUpdated = DateTime.now();
 
@@ -84,9 +88,20 @@ class MapController extends ChangeNotifier {
     }
   }
 
-  /// Get freshness based on mock data flag
-  Freshness get dataFreshness =>
-      _isUsingMockData ? Freshness.mock : Freshness.live;
+  /// Get freshness based on mock data flag and offline state
+  ///
+  /// Returns:
+  /// - Freshness.live: Live API data successfully fetched
+  /// - Freshness.mock: Deliberate demo mode (MAP_LIVE_DATA=false)
+  /// - Freshness.cached: Future - cached live data when offline
+  Freshness get dataFreshness {
+    if (_isOffline) return Freshness.cached; // Indicates offline state
+    if (_isUsingMockData) return Freshness.mock;
+    return Freshness.live;
+  }
+
+  /// Whether the app is offline (live API failed with MAP_LIVE_DATA=true)
+  bool get isOffline => _isOffline;
 
   /// Get last updated timestamp for current data
   DateTime get lastUpdated => _lastUpdated;
@@ -412,6 +427,7 @@ class MapController extends ChangeNotifier {
           );
           _hotspots = hotspots;
           _isUsingMockData = false;
+          _isOffline = false;
           _reclusterHotspots();
           return true;
         },
@@ -431,29 +447,43 @@ class MapController extends ChangeNotifier {
       }
     }
 
-    // Fallback to mock service
-    final mockResult = await _mockHotspotService.getHotspots(
-      bounds: _currentBounds!,
-      timeFilter: _hotspotTimeFilter,
-    );
+    // Fallback behavior depends on MAP_LIVE_DATA flag
+    if (FeatureFlags.mapLiveData) {
+      // Option C: When live data expected but API failed, show empty state
+      // Don't fall back to mock - that would be misleading for safety-critical app
+      debugPrint(
+        '🗺️ MapController: Live API failed, showing offline state (no mock fallback)',
+      );
+      _hotspots = [];
+      _clusters = [];
+      _isOffline = true;
+      _isUsingMockData = false;
+    } else {
+      // Demo mode: Fall back to mock service for development/testing
+      final mockResult = await _mockHotspotService.getHotspots(
+        bounds: _currentBounds!,
+        timeFilter: _hotspotTimeFilter,
+      );
 
-    mockResult.fold(
-      (error) {
-        debugPrint(
-          '🗺️ MapController: Mock hotspot service also failed: ${error.message}',
-        );
-        _hotspots = [];
-        _isUsingMockData = true;
-      },
-      (hotspots) {
-        debugPrint(
-          '🗺️ MapController: Loaded ${hotspots.length} hotspots from mock',
-        );
-        _hotspots = hotspots;
-        _isUsingMockData = true;
-        _reclusterHotspots();
-      },
-    );
+      mockResult.fold(
+        (error) {
+          debugPrint(
+            '🗺️ MapController: Mock hotspot service also failed: ${error.message}',
+          );
+          _hotspots = [];
+          _isUsingMockData = true;
+        },
+        (hotspots) {
+          debugPrint(
+            '🗺️ MapController: Loaded ${hotspots.length} hotspots from mock',
+          );
+          _hotspots = hotspots;
+          _isUsingMockData = true;
+          _isOffline = false;
+          _reclusterHotspots();
+        },
+      );
+    }
 
     notifyListeners();
   }
@@ -492,6 +522,7 @@ class MapController extends ChangeNotifier {
           );
           _burntAreas = areas;
           _isUsingMockData = false;
+          _isOffline = false;
           return true;
         },
       );
@@ -510,28 +541,41 @@ class MapController extends ChangeNotifier {
       }
     }
 
-    // Fallback to mock service
-    final mockResult = await _mockBurntAreaService.getBurntAreas(
-      bounds: _currentBounds!,
-      seasonFilter: _burntAreaSeasonFilter,
-    );
+    // Fallback behavior depends on MAP_LIVE_DATA flag
+    if (FeatureFlags.mapLiveData) {
+      // Option C: When live data expected but API failed, show offline state
+      // Don't fall back to mock - that would be misleading for safety-critical app
+      debugPrint(
+        '🗺️ MapController: Live API failed, showing offline state (no mock fallback)',
+      );
+      _burntAreas = [];
+      _isOffline = true;
+      _isUsingMockData = false;
+    } else {
+      // Demo mode: Fall back to mock service for development/testing
+      final mockResult = await _mockBurntAreaService.getBurntAreas(
+        bounds: _currentBounds!,
+        seasonFilter: _burntAreaSeasonFilter,
+      );
 
-    mockResult.fold(
-      (error) {
-        debugPrint(
-          '🗺️ MapController: Mock burnt area service also failed: ${error.message}',
-        );
-        _burntAreas = [];
-        _isUsingMockData = true;
-      },
-      (areas) {
-        debugPrint(
-          '🗺️ MapController: Loaded ${areas.length} burnt areas from mock',
-        );
-        _burntAreas = areas;
-        _isUsingMockData = true;
-      },
-    );
+      mockResult.fold(
+        (error) {
+          debugPrint(
+            '🗺️ MapController: Mock burnt area service also failed: ${error.message}',
+          );
+          _burntAreas = [];
+          _isUsingMockData = true;
+        },
+        (areas) {
+          debugPrint(
+            '🗺️ MapController: Loaded ${areas.length} burnt areas from mock',
+          );
+          _burntAreas = areas;
+          _isUsingMockData = true;
+          _isOffline = false;
+        },
+      );
+    }
 
     notifyListeners();
   }
