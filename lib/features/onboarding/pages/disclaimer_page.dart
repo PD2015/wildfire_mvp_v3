@@ -10,11 +10,15 @@ class DisclaimerPage extends StatelessWidget {
   /// Callback when user taps continue.
   final VoidCallback onContinue;
 
+  /// Callback when user taps back.
+  final VoidCallback? onBack;
+
   /// Callback to view full terms of service.
   final VoidCallback? onViewTerms;
 
   const DisclaimerPage({
     required this.onContinue,
+    this.onBack,
     this.onViewTerms,
     super.key,
   });
@@ -129,14 +133,32 @@ class DisclaimerPage extends StatelessWidget {
               const SizedBox(height: 8),
             ],
 
-            // Continue button
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: FilledButton(
-                onPressed: onContinue,
-                child: const Text('I Understand'),
-              ),
+            // Navigation buttons
+            Row(
+              children: [
+                // Back button
+                if (onBack != null)
+                  Expanded(
+                    child: SizedBox(
+                      height: 56,
+                      child: OutlinedButton(
+                        onPressed: onBack,
+                        child: const Text('Back'),
+                      ),
+                    ),
+                  ),
+                if (onBack != null) const SizedBox(width: 16),
+                // Continue button
+                Expanded(
+                  child: SizedBox(
+                    height: 56,
+                    child: FilledButton(
+                      onPressed: onContinue,
+                      child: const Text('I Understand'),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
           ],

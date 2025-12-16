@@ -63,6 +63,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
+  void _previousPage() {
+    if (_currentPage > 0) {
+      _goToPage(_currentPage - 1);
+    }
+  }
+
   void _navigateToTerms() {
     context.push('/about/terms');
   }
@@ -102,12 +108,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   // Page 2: Disclaimer
                   DisclaimerPage(
                     onContinue: _nextPage,
+                    onBack: _previousPage,
                     onViewTerms: _navigateToTerms,
                   ),
 
                   // Page 3: Privacy
                   PrivacyPage(
                     onContinue: _nextPage,
+                    onBack: _previousPage,
                     onViewPrivacy: _navigateToPrivacy,
                   ),
 
@@ -126,6 +134,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       setState(() => _termsAccepted = accepted);
                     },
                     onComplete: _completeOnboarding,
+                    onBack: _previousPage,
                     onViewTerms: _navigateToTerms,
                     onViewPrivacy: _navigateToPrivacy,
                   ),

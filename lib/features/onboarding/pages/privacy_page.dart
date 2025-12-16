@@ -10,11 +10,15 @@ class PrivacyPage extends StatelessWidget {
   /// Callback when user taps continue.
   final VoidCallback onContinue;
 
+  /// Callback when user taps back.
+  final VoidCallback? onBack;
+
   /// Callback to view full privacy policy.
   final VoidCallback? onViewPrivacy;
 
   const PrivacyPage({
     required this.onContinue,
+    this.onBack,
     this.onViewPrivacy,
     super.key,
   });
@@ -125,14 +129,32 @@ class PrivacyPage extends StatelessWidget {
               const SizedBox(height: 8),
             ],
 
-            // Continue button
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: FilledButton(
-                onPressed: onContinue,
-                child: const Text('Continue'),
-              ),
+            // Navigation buttons
+            Row(
+              children: [
+                // Back button
+                if (onBack != null)
+                  Expanded(
+                    child: SizedBox(
+                      height: 56,
+                      child: OutlinedButton(
+                        onPressed: onBack,
+                        child: const Text('Back'),
+                      ),
+                    ),
+                  ),
+                if (onBack != null) const SizedBox(width: 16),
+                // Continue button
+                Expanded(
+                  child: SizedBox(
+                    height: 56,
+                    child: FilledButton(
+                      onPressed: onContinue,
+                      child: const Text('Continue'),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
           ],

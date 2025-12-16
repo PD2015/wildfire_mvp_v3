@@ -34,6 +34,9 @@ class SetupPage extends StatefulWidget {
   /// Callback when user completes setup.
   final VoidCallback onComplete;
 
+  /// Callback when user taps back.
+  final VoidCallback? onBack;
+
   /// Callback to view terms.
   final VoidCallback? onViewTerms;
 
@@ -48,6 +51,7 @@ class SetupPage extends StatefulWidget {
     required this.onDisclaimerChanged,
     required this.onTermsChanged,
     required this.onComplete,
+    this.onBack,
     this.onViewTerms,
     this.onViewPrivacy,
     super.key,
@@ -256,14 +260,32 @@ class _SetupPageState extends State<SetupPage> {
             ),
             const SizedBox(height: 32),
 
-            // Complete button
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: FilledButton(
-                onPressed: _canComplete ? widget.onComplete : null,
-                child: const Text('Complete Setup'),
-              ),
+            // Navigation buttons
+            Row(
+              children: [
+                // Back button
+                if (widget.onBack != null)
+                  Expanded(
+                    child: SizedBox(
+                      height: 56,
+                      child: OutlinedButton(
+                        onPressed: widget.onBack,
+                        child: const Text('Back'),
+                      ),
+                    ),
+                  ),
+                if (widget.onBack != null) const SizedBox(width: 16),
+                // Complete button
+                Expanded(
+                  child: SizedBox(
+                    height: 56,
+                    child: FilledButton(
+                      onPressed: _canComplete ? widget.onComplete : null,
+                      child: const Text('Complete Setup'),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
 
