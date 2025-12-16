@@ -122,6 +122,17 @@ class OnboardingPrefsImpl implements OnboardingPrefsService {
     await _prefs.setInt(OnboardingConfig.keyNotificationRadius, radiusKm);
   }
 
+  @override
+  Future<void> resetOnboarding() async {
+    await Future.wait([
+      _prefs.remove(OnboardingConfig.keyOnboardingVersion),
+      _prefs.remove(OnboardingConfig.keyTermsVersion),
+      _prefs.remove(OnboardingConfig.keyTermsTimestamp),
+      _prefs.remove(OnboardingConfig.keyDisclaimerTimestamp),
+      _prefs.remove(OnboardingConfig.keyNotificationRadius),
+    ]);
+  }
+
   // ─────────────────────────────────────────────────────────────
   // Private Helpers
   // ─────────────────────────────────────────────────────────────

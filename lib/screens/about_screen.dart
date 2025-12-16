@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:wildfire_mvp_v3/content/legal_content.dart';
+import 'package:wildfire_mvp_v3/services/onboarding_prefs_impl.dart';
 
 /// About screen hub linking to legal documents.
 ///
@@ -142,6 +145,46 @@ class AboutScreen extends StatelessWidget {
                 style: theme.textTheme.bodySmall,
               ),
             ),
+
+            // Developer section (debug only)
+            if (kDebugMode) ...[
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Text(
+                  'Developer',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: theme.colorScheme.error,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.refresh,
+                  color: theme.colorScheme.error,
+                ),
+                title: const Text('Reset Onboarding'),
+                subtitle: const Text('Clear preferences and restart flow'),
+                onTap: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  final service = OnboardingPrefsImpl(prefs);
+                  await service.resetOnboarding();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'Onboarding reset. Restart app or navigate to /onboarding'),
+                      ),
+                    );
+                    context.go('/onboarding');
+                  }
+                },
+              ),
+            ],
 
             // Footer
             const SizedBox(height: 24),

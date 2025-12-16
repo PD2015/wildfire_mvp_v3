@@ -90,4 +90,10 @@ abstract class OnboardingPrefsService {
   /// Throws:
   /// - [ArgumentError] if radiusKm not in [OnboardingConfig.validRadiusOptions]
   Future<void> updateNotificationRadius({required int radiusKm});
+
+  /// Reset all onboarding preferences (debug only).
+  ///
+  /// Clears all stored preferences to allow re-testing
+  /// the onboarding flow. Only use in development.
+  Future<void> resetOnboarding();
 }
