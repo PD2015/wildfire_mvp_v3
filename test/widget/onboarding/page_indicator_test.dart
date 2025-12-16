@@ -52,7 +52,7 @@ void main() {
       expect(inactiveCon?.maxWidth, 8);
     });
 
-    testWidgets('has accessibility label', (tester) async {
+    testWidgets('has accessibility label with page title', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -67,12 +67,14 @@ void main() {
       // Check semantics are present by looking for Row containing dots
       expect(find.byType(PageIndicator), findsOneWidget);
 
-      // Find semantics node with the label
-      final semanticsFinder = find.bySemanticsLabel('Page 2 of 4');
+      // Find semantics node with descriptive label (uses defaultOnboardingTitles)
+      final semanticsFinder =
+          find.bySemanticsLabel('Step 2 of 4: Safety information');
       expect(semanticsFinder, findsOneWidget);
     });
 
-    testWidgets('updates when currentPage changes', (tester) async {
+    testWidgets('updates accessibility label when currentPage changes',
+        (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -84,10 +86,10 @@ void main() {
         ),
       );
 
-      // Verify first page label
-      expect(find.bySemanticsLabel('Page 1 of 4'), findsOneWidget);
+      // Verify first page label (Welcome)
+      expect(find.bySemanticsLabel('Step 1 of 4: Welcome'), findsOneWidget);
 
-      // Change to page 3
+      // Change to page 3 (Privacy)
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -101,8 +103,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Verify third page label
-      expect(find.bySemanticsLabel('Page 3 of 4'), findsOneWidget);
+      // Verify third page label (Privacy)
+      expect(find.bySemanticsLabel('Step 3 of 4: Privacy'), findsOneWidget);
     });
 
     testWidgets('works with single page', (tester) async {
@@ -118,6 +120,43 @@ void main() {
       );
 
       expect(find.byType(AnimatedContainer), findsOneWidget);
+    });
+
+    testWidgets('uses custom page titles when provided', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: PageIndicator(
+              currentPage: 1,
+              totalPages: 3,
+              pageTitles: ['First', 'Second', 'Third'],
+            ),
+          ),
+        ),
+      );
+
+      // Find semantics node with custom label
+      final semanticsFinder = find.bySemanticsLabel('Step 2 of 3: Second');
+      expect(semanticsFinder, findsOneWidget);
+    });
+
+    testWidgets('falls back gracefully when page index exceeds titles',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: PageIndicator(
+              currentPage: 5,
+              totalPages: 6,
+              pageTitles: ['Only', 'Two'], // Only 2 titles for 6 pages
+            ),
+          ),
+        ),
+      );
+
+      // Should fall back to simple format without title
+      final semanticsFinder = find.bySemanticsLabel('Step 6 of 6');
+      expect(semanticsFinder, findsOneWidget);
     });
   });
 }

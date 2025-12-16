@@ -11,18 +11,41 @@ class PageIndicator extends StatelessWidget {
   /// Total number of pages.
   final int totalPages;
 
+  /// Page titles for accessibility (optional).
+  /// If provided, screen readers will announce "Step X of Y: [title]".
+  final List<String>? pageTitles;
+
   const PageIndicator({
     required this.currentPage,
     required this.totalPages,
+    this.pageTitles,
     super.key,
   });
+
+  /// Default page titles for onboarding flow.
+  static const List<String> defaultOnboardingTitles = [
+    'Welcome',
+    'Safety information',
+    'Privacy',
+    'Setup',
+  ];
+
+  String _getAccessibilityLabel() {
+    final titles = pageTitles ?? defaultOnboardingTitles;
+    final pageNumber = currentPage + 1;
+
+    if (currentPage < titles.length) {
+      return 'Step $pageNumber of $totalPages: ${titles[currentPage]}';
+    }
+    return 'Step $pageNumber of $totalPages';
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Semantics(
-      label: 'Page ${currentPage + 1} of $totalPages',
+      label: _getAccessibilityLabel(),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(totalPages, (index) {
