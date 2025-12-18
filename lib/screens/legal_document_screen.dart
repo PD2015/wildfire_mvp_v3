@@ -4,13 +4,11 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:wildfire_mvp_v3/content/legal_content.dart';
 
-// TODO: Add collapsible table of contents for longer documents
-
 /// Screen for displaying a full legal document.
 ///
 /// Shows a scrollable view of the document content with the title in the AppBar.
 /// Used for Terms of Service, Privacy Policy, Disclaimer, and Data Sources.
-class LegalDocumentScreen extends StatelessWidget {
+class LegalDocumentScreen extends StatefulWidget {
   /// The legal document to display.
   final LegalDocument document;
 
@@ -18,6 +16,54 @@ class LegalDocumentScreen extends StatelessWidget {
     required this.document,
     super.key,
   });
+
+  @override
+  State<LegalDocumentScreen> createState() => _LegalDocumentScreenState();
+}
+
+class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
+  bool _isTocExpanded = false;
+  late final List<_TocEntry> _tocEntries;
+  final ScrollController _scrollController = ScrollController();
+  final Map<String, GlobalKey> _sectionKeys = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _tocEntries = _extractTocEntries(widget.document.content);
+    // Create keys for each section
+    for (final entry in _tocEntries) {
+      _sectionKeys[entry.id] = GlobalKey();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  /// Extract table of contents entries from markdown content.
+  List<_TocEntry> _extractTocEntries(String content) {
+    final entries = <_TocEntry>[];
+    final lines = content.split('\n');
+
+    for (final line in lines) {
+      final trimmed = line.trim();
+      // Match ## headers (level 2) - skip # main title
+      if (trimmed.startsWith('## ')) {
+        final title = trimmed.substring(3).replaceAll('**', '').trim();
+        final id = title.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+        entries.add(_TocEntry(title: title, id: id, level: 2));
+      } else if (trimmed.startsWith('### ')) {
+        final title = trimmed.substring(4).replaceAll('**', '').trim();
+        final id = title.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+        entries.add(_TocEntry(title: title, id: id, level: 3));
+      }
+    }
+
+    return entries;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,13 +75,13 @@ class LegalDocumentScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              _getDocumentIcon(document.id),
+              _getDocumentIcon(widget.document.id),
               size: 20,
             ),
             const SizedBox(width: 8),
             Flexible(
               child: Text(
-                document.title,
+                widget.document.title,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -47,6 +93,7 @@ class LegalDocumentScreen extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 700),
             child: SingleChildScrollView(
+              controller: _scrollController,
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,8 +118,8 @@ class LegalDocumentScreen extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Version ${document.version} • '
-                          'Effective ${_formatDate(document.effectiveDate)}',
+                          'Version ${widget.document.version} • '
+                          'Effective ${_formatDate(widget.document.effectiveDate)}',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -80,11 +127,16 @@ class LegalDocumentScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+
+                  // Table of contents (collapsible)
+                  if (_tocEntries.length >= 3) _buildTableOfContents(theme),
+
+                  const SizedBox(height: 16),
 
                   // Document content using Markdown renderer
                   MarkdownBody(
-                    data: _preprocessContent(document.content),
+                    data: _preprocessContent(widget.document.content),
                     selectable: true,
                     onTapLink: (text, href, title) {
                       if (href != null) {
@@ -101,7 +153,7 @@ class LegalDocumentScreen extends StatelessWidget {
                   const SizedBox(height: 32),
                   Center(
                     child: Text(
-                      'Last updated: ${_formatDate(document.effectiveDate)}',
+                      'Last updated: ${_formatDate(widget.document.effectiveDate)}',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color:
                             theme.colorScheme.onSurface.withValues(alpha: 0.6),
@@ -113,6 +165,129 @@ class LegalDocumentScreen extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Build collapsible table of contents widget.
+  Widget _buildTableOfContents(ThemeData theme) {
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header (always visible, tappable)
+          InkWell(
+            onTap: () => setState(() => _isTocExpanded = !_isTocExpanded),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.list_outlined,
+                    size: 18,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Contents',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  Icon(
+                    _isTocExpanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Expandable content
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Padding(
+              padding: const EdgeInsets.only(
+                left: 12,
+                right: 12,
+                bottom: 12,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Divider(
+                    height: 1,
+                    color:
+                        theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(height: 8),
+                  ..._tocEntries.map(
+                    (entry) => _buildTocItem(entry, theme),
+                  ),
+                ],
+              ),
+            ),
+            crossFadeState: _isTocExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build individual TOC item.
+  Widget _buildTocItem(_TocEntry entry, ThemeData theme) {
+    return InkWell(
+      onTap: () {
+        // Close TOC after selection
+        setState(() => _isTocExpanded = false);
+        // Note: Scrolling to section would require section keys in the markdown
+        // For now, just collapse the TOC
+      },
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: entry.level == 3 ? 16.0 : 0.0,
+          top: 6,
+          bottom: 6,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: entry.level == 3 ? 0.4 : 0.6,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                entry.title,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight:
+                      entry.level == 2 ? FontWeight.w500 : FontWeight.normal,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -335,4 +510,17 @@ class _EmergencyCalloutBuilder extends MarkdownElementBuilder {
       },
     );
   }
+}
+
+/// Entry in the table of contents.
+class _TocEntry {
+  final String title;
+  final String id;
+  final int level;
+
+  const _TocEntry({
+    required this.title,
+    required this.id,
+    required this.level,
+  });
 }
