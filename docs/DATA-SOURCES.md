@@ -7,9 +7,12 @@ subcategory: apis
 related:
   - guides/setup/google-maps.md
   - reference/test-regions.md
+  - reference/EFFIS_API_ENDPOINTS.md
 ---
 
 # WildFire Prototype — Data Sources
+
+> 📚 **See Also**: For detailed EFFIS/GWIS endpoint specifications, layer lists, and curl examples, see [EFFIS API Endpoints Reference](reference/EFFIS_API_ENDPOINTS.md).
 
 ## EFFIS (European Forest Fire Information System) 🎉 BREAKTHROUGH COMPLETE 2025-10-04
 - **Service**: WMS `GetFeatureInfo` for Fire Weather Index (FWI)

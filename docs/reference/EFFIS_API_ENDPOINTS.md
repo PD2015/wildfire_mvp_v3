@@ -1,7 +1,7 @@
 ---
 title: EFFIS API Endpoints Reference
 status: active
-last_updated: 2025-12-16
+last_updated: 2025-12-18
 category: reference
 subcategory: api
 related:
@@ -10,6 +10,8 @@ related:
   - ../../lib/models/fire_incident.dart
   - ../../test/fixtures/scotland_fire_273772_fixture.dart
 changelog:
+  - 2025-12-18: 🔍 EFFIS Burnt Areas investigation - JRC endpoint deprecated, Copernicus working, no UK data in 2025
+  - 2025-12-18: Added ms:modis.ba.poly.lastseason layer, documented WFS 1.1.0 vs 2.0.0 issues
   - 2025-12-16: 🐛 ROOT CAUSE FOUND - GwisHotspotServiceImpl incorrectly uses WFS instead of WMS. Hotspots require WMS GetFeatureInfo, not WFS GetFeature!
   - 2025-12-16: Verified endpoints ARE working - WMS returns live hotspot data, WFS returns 502 (not supported for hotspots)
   - 2025-12-16: Added "Correct Service Types" section documenting WMS vs WFS requirements per layer
@@ -305,18 +307,29 @@ https://maps.effis.emergency.copernicus.eu/gwis
 | `ms:modis.ba.point` | MODIS burnt area centroids | Points | ✅ Current |
 | `ms:effis.nrt.ba.poly` | Near-real-time burnt areas | Polygons | ✅ Current |
 | `ms:effis.nrt.ba.point` | NRT burnt area centroids | Points | ✅ Current |
-| `ms:modis.ba.poly.season` | Seasonal burnt areas (current fire season) | Polygons | ✅ Current |
+| `ms:modis.ba.poly.season` | Current fire season burnt areas | Polygons | ✅ Current |
+| `ms:modis.ba.poly.lastseason` | Previous fire season burnt areas | Polygons | ✅ Current |
+
+> ⚠️ **UK Data Gap (2025-12-18)**: No UK burnt area data exists in EFFIS for the 2025 fire season. The API works correctly - queries return empty results because no fires have been recorded for the UK region. Data exists for France, Italy, Portugal, Greece, and other Mediterranean countries.
+
+### WFS Version Compatibility
+
+| WFS Version | Status | Notes |
+|-------------|--------|-------|
+| **1.1.0** | ✅ Recommended | Works reliably |
+| 2.0.0 | ⚠️ Issues | CQL_FILTER can cause 502 errors |
+| 1.0.0 | ⚠️ Untested | May work |
 
 ### WFS GetFeature Request
 
 ```
 https://maps.effis.emergency.copernicus.eu/effis
   ?SERVICE=WFS
-  &VERSION=2.0.0
+  &VERSION=1.1.0
   &REQUEST=GetFeature
-  &TYPENAME=ms:modis.ba.poly
-  &OUTPUTFORMAT=GML3
-  &COUNT=100
+  &TYPENAME=ms:modis.ba.poly.season
+  &OUTPUTFORMAT=json
+  &MAXFEATURES=100
 ```
 
 **Supported output formats:**
