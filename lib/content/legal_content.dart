@@ -95,10 +95,10 @@ class LegalContent {
   // ─────────────────────────────────────────────────────────────
 
   static const String _termsContent = '''
-# WildFire App — Terms of Service
+# WildFire — Terms of Service
 
-**Version:** 1.0
-**Effective Date:** 10 December 2025
+**Version:** 1.0  
+**Effective Date:** 18 December 2025
 **Operator:** Independent Developer ("we", "us", "our")
 
 ---
@@ -147,9 +147,8 @@ You must comply with applicable local laws when using the App. The App is intend
 
 ## 5. Data Sources
 
-WildFire uses third-party data sources including, where available:
-- Copernicus Emergency Management Service – EFFIS
-- SEPA wildfire-related datasets
+WildFire uses third-party data sources including:
+- Copernicus Emergency Management Service – EFFIS (European Forest Fire Information System)
 - Local device location (when permitted by the user)
 - Cached data
 - Mock data when live services are unavailable
@@ -210,10 +209,10 @@ If you have questions regarding these Terms, please use the app's feedback featu
 ''';
 
   static const String _privacyContent = '''
-# WildFire App — Privacy Policy
+# WildFire — Privacy Policy
 
-**Version:** 1.0
-**Effective Date:** 10 December 2025
+**Version:** 1.0  
+**Effective Date:** 18 December 2025
 **Operator:** Independent Developer ("we", "us", "our")
 
 ---
@@ -300,7 +299,7 @@ You may revoke permission at any time through device settings.
 
 We share **no personal data** with third parties.
 
-Environmental data sources such as EFFIS or SEPA do **not** receive any personal information from us.
+Environmental data sources such as EFFIS do **not** receive any personal information from us.
 
 ---
 
@@ -344,10 +343,10 @@ For privacy-related queries, please use the app's feedback feature.
 ''';
 
   static const String _disclaimerContent = '''
-# WildFire App — Emergency & Accuracy Disclaimer
+# WildFire — Emergency & Accuracy Disclaimer
 
-**Version:** 1.0
-**Effective Date:** 10 December 2025
+**Version:** 1.0  
+**Effective Date:** 18 December 2025
 
 ---
 
@@ -409,10 +408,10 @@ To the fullest extent permitted by law, the App operator disclaims all liability
 ''';
 
   static const String _dataSourcesContent = '''
-# WildFire App — Data Sources & Attribution
+# WildFire — Data Sources & Attribution
 
-**Version:** 1.0
-**Effective Date:** 10 December 2025
+**Version:** 1.0  
+**Effective Date:** 18 December 2025
 
 ---
 
@@ -435,14 +434,6 @@ Wildfire-risk forecasts and satellite-detected fire activity may be sourced from
 > Data may be delayed or incomplete.
 
 EFFIS data is provided without warranty and may include false positives or false negatives.
-
----
-
-### SEPA — Scottish Environment Protection Agency
-
-Where available, the App may use relevant wildfire-related or environmental datasets provided by SEPA.
-
-SEPA does not endorse or validate the App, and data availability may vary.
 
 ---
 
@@ -479,7 +470,7 @@ Factors affecting accuracy include:
 
 ## 6. No Endorsement
 
-EFFIS, SEPA, and any other listed providers do **not** endorse this App.
+EFFIS and any other listed data providers do **not** endorse this App.
 
 They provide data under their own terms and licences, without warranty.
 ''';
