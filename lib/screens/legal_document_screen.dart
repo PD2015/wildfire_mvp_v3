@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:wildfire_mvp_v3/content/legal_content.dart';
 
-// TODO: Add flutter_markdown dependency for proper markdown rendering
 // TODO: Add max width constraint (~700px) for tablets/web
 // TODO: Style inline version/date as secondary text to reduce visual repetition
 // TODO: Add consistent doc-type iconography to AppBar per document type
@@ -66,8 +67,20 @@ class LegalDocumentScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Document content with emergency callouts
-              ..._buildContentWithCallouts(context, document.content),
+              // Document content using Markdown renderer
+              MarkdownBody(
+                data: _preprocessContent(document.content),
+                selectable: true,
+                onTapLink: (text, href, title) {
+                  if (href != null) {
+                    launchUrl(Uri.parse(href));
+                  }
+                },
+                styleSheet: _buildMarkdownStyleSheet(context),
+                builders: {
+                  'blockquote': _EmergencyCalloutBuilder(),
+                },
+              ),
 
               // Footer with last updated
               const SizedBox(height: 32),
@@ -87,101 +100,121 @@ class LegalDocumentScreen extends StatelessWidget {
     );
   }
 
-  /// Build content widgets with section headers, emergency callouts, and body text.
-  List<Widget> _buildContentWithCallouts(BuildContext context, String content) {
-    final theme = Theme.of(context);
+  /// Preprocess markdown content to convert emergency sections to blockquotes.
+  ///
+  /// This allows us to use a custom builder to render them as callouts.
+  String _preprocessContent(String content) {
+    // Remove the main title (# Header) as it's shown in AppBar
+    final lines = content.split('\n');
+    final processedLines = <String>[];
+    var skipNextEmpty = false;
 
     // Patterns that indicate emergency/safety critical content
     final emergencyPatterns = [
       'not an emergency',
-      'not rely on this App',
-      'Call 999',
+      'not rely on this app',
+      'call 999',
       'life-safety system',
       'emergency-warning tool',
     ];
 
-    final lines = content.split('\n');
-    final widgets = <Widget>[];
-    final currentParagraph = StringBuffer();
-
-    void flushParagraph() {
-      if (currentParagraph.isNotEmpty) {
-        final text = currentParagraph.toString().trim();
-        if (text.isNotEmpty) {
-          // Remove markdown bold markers
-          final cleanText = text.replaceAll('**', '');
-          widgets.add(
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: SelectableText(
-                cleanText,
-                style: theme.textTheme.bodyMedium?.copyWith(height: 1.6),
-              ),
-            ),
-          );
-        }
-        currentParagraph.clear();
-      }
-    }
-
     for (final line in lines) {
       final trimmedLine = line.trim();
 
-      // Skip horizontal rules
-      if (trimmedLine == '---') {
-        flushParagraph();
+      // Skip main title
+      if (trimmedLine.startsWith('# ') && !trimmedLine.startsWith('## ')) {
+        skipNextEmpty = true;
         continue;
       }
 
-      // Check for markdown headers (## or #)
-      if (trimmedLine.startsWith('#')) {
-        flushParagraph();
-
-        // Extract header text and level
-        final headerMatch = RegExp(r'^(#+)\s*(.+)$').firstMatch(trimmedLine);
-        if (headerMatch != null) {
-          final level = headerMatch.group(1)!.length;
-          final headerText = headerMatch.group(2)!.replaceAll('**', '').trim();
-
-          // Skip the main title (# Header) as it's in the AppBar
-          if (level == 1) continue;
-
-          widgets.add(
-            _SectionHeader(
-              text: headerText,
-              isSubsection: level > 2,
-            ),
-          );
-        }
+      // Skip empty line after title
+      if (skipNextEmpty && trimmedLine.isEmpty) {
+        skipNextEmpty = false;
         continue;
       }
+      skipNextEmpty = false;
 
-      // Check if this line contains emergency content
+      // Convert emergency content to blockquote for custom rendering
       final isEmergencyContent = emergencyPatterns.any(
-        (pattern) => trimmedLine.toLowerCase().contains(pattern.toLowerCase()),
+        (pattern) => trimmedLine.toLowerCase().contains(pattern),
       );
 
       if (isEmergencyContent && trimmedLine.isNotEmpty) {
-        flushParagraph();
-        // Remove markdown bold markers from emergency text
-        final cleanText = trimmedLine.replaceAll('**', '');
-        widgets.add(_EmergencyCallout(text: cleanText));
-      } else if (trimmedLine.isEmpty) {
-        // Empty line = paragraph break
-        flushParagraph();
+        processedLines.add('> $trimmedLine');
       } else {
-        // Accumulate paragraph content
-        if (currentParagraph.isNotEmpty) {
-          currentParagraph.write(' ');
-        }
-        currentParagraph.write(trimmedLine);
+        processedLines.add(line);
       }
     }
 
-    // Flush any remaining content
-    flushParagraph();
+    return processedLines.join('\n');
+  }
 
-    return widgets;
+  /// Build custom MarkdownStyleSheet matching app theme.
+  MarkdownStyleSheet _buildMarkdownStyleSheet(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return MarkdownStyleSheet(
+      // Headers
+      h1: theme.textTheme.headlineSmall?.copyWith(
+        fontWeight: FontWeight.w600,
+      ),
+      h2: theme.textTheme.titleLarge?.copyWith(
+        fontWeight: FontWeight.w600,
+      ),
+      h3: theme.textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+      ),
+      h4: theme.textTheme.titleSmall?.copyWith(
+        fontWeight: FontWeight.w600,
+      ),
+      // Body text
+      p: theme.textTheme.bodyMedium?.copyWith(
+        height: 1.6,
+      ),
+      // Strong/bold
+      strong: theme.textTheme.bodyMedium?.copyWith(
+        fontWeight: FontWeight.w600,
+        height: 1.6,
+      ),
+      // Lists
+      listBullet: theme.textTheme.bodyMedium?.copyWith(
+        height: 1.6,
+      ),
+      // Links
+      a: theme.textTheme.bodyMedium?.copyWith(
+        color: theme.colorScheme.primary,
+        decoration: TextDecoration.underline,
+        height: 1.6,
+      ),
+      // Horizontal rule
+      horizontalRuleDecoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.1),
+            width: 0.8,
+          ),
+        ),
+      ),
+      // Spacing
+      h2Padding: const EdgeInsets.only(top: 24, bottom: 8),
+      h3Padding: const EdgeInsets.only(top: 16, bottom: 8),
+      pPadding: const EdgeInsets.only(bottom: 12),
+      listIndent: 24,
+      listBulletPadding: const EdgeInsets.only(right: 8),
+      // Blockquote (for emergency callouts - styled via builder)
+      blockquoteDecoration: BoxDecoration(
+        color: isDark ? const Color(0xFF3D2E1F) : const Color(0xFFFFF3E0),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark
+              ? const Color(0xFFFFB74D).withValues(alpha: 0.3)
+              : const Color(0xFFE65100).withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      blockquotePadding: const EdgeInsets.all(12),
+    );
   }
 
   /// Format date for display (e.g., "10 December 2025").
@@ -204,89 +237,27 @@ class LegalDocumentScreen extends StatelessWidget {
   }
 }
 
-/// Section header with visual hierarchy for legal documents.
+/// Custom builder for emergency callout blockquotes.
 ///
-/// Displays section titles with proper typography and a subtle divider
-/// to create clear document structure.
-class _SectionHeader extends StatelessWidget {
-  final String text;
-  final bool isSubsection;
-
-  const _SectionHeader({
-    required this.text,
-    this.isSubsection = false,
-  });
-
+/// Adds warning icon to blockquotes that contain emergency content.
+class _EmergencyCalloutBuilder extends MarkdownElementBuilder {
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: EdgeInsets.only(
-        top: isSubsection ? 16 : 24,
-        bottom: 8,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            text,
-            style: isSubsection
-                ? theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  )
-                : theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-          ),
-          const SizedBox(height: 8),
-          Divider(
-            thickness: isSubsection ? 0.5 : 0.8,
-            color: theme.colorScheme.onSurface.withValues(
-              alpha: isSubsection ? 0.06 : 0.1,
-            ),
-          ),
-        ],
-      ),
-    );
+  Widget? visitElementAfter(element, preferredStyle) {
+    return null;
   }
-}
-
-/// Callout box for emergency/safety-critical content.
-///
-/// Displays text in an amber-toned container with warning icon
-/// to make critical safety information impossible to miss.
-class _EmergencyCallout extends StatelessWidget {
-  final String text;
-
-  const _EmergencyCallout({required this.text});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+  Widget visitText(text, preferredStyle) {
+    return Builder(
+      builder: (context) {
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
 
-    // Amber/warning tone that's softer than error red
-    final backgroundColor = isDark
-        ? const Color(0xFF3D2E1F) // Dark amber
-        : const Color(0xFFFFF3E0); // Light amber (orange.shade50 equivalent)
-    final iconColor = isDark
-        ? const Color(0xFFFFB74D) // Amber 300
-        : const Color(0xFFE65100); // Deep orange 900
+        final iconColor = isDark
+            ? const Color(0xFFFFB74D) // Amber 300
+            : const Color(0xFFE65100); // Deep orange 900
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: iconColor.withValues(alpha: 0.3),
-            width: 1,
-          ),
-        ),
-        child: Row(
+        return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
@@ -296,8 +267,8 @@ class _EmergencyCallout extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: SelectableText(
-                text,
+              child: Text(
+                text.text,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   height: 1.5,
                   fontWeight: FontWeight.w500,
@@ -305,8 +276,8 @@ class _EmergencyCallout extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 }
