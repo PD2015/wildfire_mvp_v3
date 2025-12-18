@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:wildfire_mvp_v3/content/legal_content.dart';
 
-// TODO: Add max width constraint (~700px) for tablets/web
 // TODO: Style inline version/date as secondary text to reduce visual repetition
 // TODO: Add consistent doc-type iconography to AppBar per document type
 // TODO: Add collapsible table of contents for longer documents
@@ -31,69 +30,75 @@ class LegalDocumentScreen extends StatelessWidget {
         title: Text(document.title),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Version and date info
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      size: 16,
-                      color: theme.colorScheme.onSurfaceVariant,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 700),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Version and date info
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Version ${document.version} • '
-                      'Effective ${_formatDate(document.effectiveDate)}',
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Version ${document.version} • '
+                          'Effective ${_formatDate(document.effectiveDate)}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Document content using Markdown renderer
+                  MarkdownBody(
+                    data: _preprocessContent(document.content),
+                    selectable: true,
+                    onTapLink: (text, href, title) {
+                      if (href != null) {
+                        launchUrl(Uri.parse(href));
+                      }
+                    },
+                    styleSheet: _buildMarkdownStyleSheet(context),
+                    builders: {
+                      'blockquote': _EmergencyCalloutBuilder(),
+                    },
+                  ),
+
+                  // Footer with last updated
+                  const SizedBox(height: 32),
+                  Center(
+                    child: Text(
+                      'Last updated: ${_formatDate(document.effectiveDate)}',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                        color:
+                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Document content using Markdown renderer
-              MarkdownBody(
-                data: _preprocessContent(document.content),
-                selectable: true,
-                onTapLink: (text, href, title) {
-                  if (href != null) {
-                    launchUrl(Uri.parse(href));
-                  }
-                },
-                styleSheet: _buildMarkdownStyleSheet(context),
-                builders: {
-                  'blockquote': _EmergencyCalloutBuilder(),
-                },
-              ),
-
-              // Footer with last updated
-              const SizedBox(height: 32),
-              Center(
-                child: Text(
-                  'Last updated: ${_formatDate(document.effectiveDate)}',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
-                ),
+                  const SizedBox(height: 16),
+                ],
               ),
-              const SizedBox(height: 16),
-            ],
+            ),
           ),
         ),
       ),
