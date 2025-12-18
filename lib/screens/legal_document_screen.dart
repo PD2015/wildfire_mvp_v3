@@ -24,17 +24,14 @@ class LegalDocumentScreen extends StatefulWidget {
 class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
   bool _isTocExpanded = false;
   late final List<_TocEntry> _tocEntries;
+  late final List<_ContentSection> _contentSections;
   final ScrollController _scrollController = ScrollController();
-  final Map<String, GlobalKey> _sectionKeys = {};
 
   @override
   void initState() {
     super.initState();
     _tocEntries = _extractTocEntries(widget.document.content);
-    // Create keys for each section
-    for (final entry in _tocEntries) {
-      _sectionKeys[entry.id] = GlobalKey();
-    }
+    _contentSections = _splitIntoSections(widget.document.content);
   }
 
   @override
@@ -63,6 +60,74 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
     }
 
     return entries;
+  }
+
+  /// Split content into sections for individual rendering with keys.
+  List<_ContentSection> _splitIntoSections(String content) {
+    final sections = <_ContentSection>[];
+    final lines = content.split('\n');
+    final currentContent = StringBuffer();
+    String? currentSectionId;
+    var isFirstSection = true;
+
+    for (final line in lines) {
+      final trimmed = line.trim();
+
+      // Check for section headers (## or ###)
+      final isLevel2Header = trimmed.startsWith('## ');
+      final isLevel3Header = trimmed.startsWith('### ');
+
+      if (isLevel2Header || isLevel3Header) {
+        // Save previous section
+        if (currentContent.isNotEmpty || !isFirstSection) {
+          sections.add(_ContentSection(
+            id: currentSectionId,
+            content: currentContent.toString(),
+            key: GlobalKey(),
+          ));
+          currentContent.clear();
+        }
+        isFirstSection = false;
+
+        // Start new section
+        final headerText = isLevel2Header
+            ? trimmed.substring(3).replaceAll('**', '').trim()
+            : trimmed.substring(4).replaceAll('**', '').trim();
+        currentSectionId =
+            headerText.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+      }
+
+      currentContent.writeln(line);
+    }
+
+    // Add final section
+    if (currentContent.isNotEmpty) {
+      sections.add(_ContentSection(
+        id: currentSectionId,
+        content: currentContent.toString(),
+        key: GlobalKey(),
+      ));
+    }
+
+    return sections;
+  }
+
+  /// Scroll to a section by its ID.
+  void _scrollToSection(String sectionId) {
+    final section = _contentSections.firstWhere(
+      (s) => s.id == sectionId,
+      orElse: () => _contentSections.first,
+    );
+
+    final context = section.key.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+      );
+    }
   }
 
   @override
@@ -134,19 +199,24 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
 
                   const SizedBox(height: 16),
 
-                  // Document content using Markdown renderer
-                  MarkdownBody(
-                    data: _preprocessContent(widget.document.content),
-                    selectable: true,
-                    onTapLink: (text, href, title) {
-                      if (href != null) {
-                        launchUrl(Uri.parse(href));
-                      }
-                    },
-                    styleSheet: _buildMarkdownStyleSheet(context),
-                    builders: {
-                      'blockquote': _EmergencyCalloutBuilder(),
-                    },
+                  // Document content - rendered as sections for scroll navigation
+                  ..._contentSections.map(
+                    (section) => Container(
+                      key: section.key,
+                      child: MarkdownBody(
+                        data: _preprocessContent(section.content),
+                        selectable: true,
+                        onTapLink: (text, href, title) {
+                          if (href != null) {
+                            launchUrl(Uri.parse(href));
+                          }
+                        },
+                        styleSheet: _buildMarkdownStyleSheet(context),
+                        builders: {
+                          'blockquote': _EmergencyCalloutBuilder(),
+                        },
+                      ),
+                    ),
                   ),
 
                   // Footer with last updated
@@ -252,10 +322,12 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
   Widget _buildTocItem(_TocEntry entry, ThemeData theme) {
     return InkWell(
       onTap: () {
-        // Close TOC after selection
+        // Close TOC and scroll to section
         setState(() => _isTocExpanded = false);
-        // Note: Scrolling to section would require section keys in the markdown
-        // For now, just collapse the TOC
+        // Small delay to let TOC collapse animation start
+        Future.delayed(const Duration(milliseconds: 100), () {
+          _scrollToSection(entry.id);
+        });
       },
       borderRadius: BorderRadius.circular(4),
       child: Padding(
@@ -522,5 +594,18 @@ class _TocEntry {
     required this.title,
     required this.id,
     required this.level,
+  });
+}
+
+/// A section of content with a global key for scroll navigation.
+class _ContentSection {
+  final String? id;
+  final String content;
+  final GlobalKey key;
+
+  _ContentSection({
+    required this.id,
+    required this.content,
+    required this.key,
   });
 }
