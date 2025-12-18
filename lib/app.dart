@@ -22,6 +22,7 @@ import 'services/firms_hotspot_service.dart';
 import 'services/gwis_wms_hotspot_service.dart';
 import 'services/mock_gwis_hotspot_service.dart';
 import 'services/effis_burnt_area_service_impl.dart';
+import 'services/cached_burnt_area_service.dart';
 import 'theme/wildfire_a11y_theme.dart';
 import 'widgets/bottom_nav.dart';
 
@@ -141,9 +142,13 @@ class WildFireApp extends StatelessWidget {
                 mockService: mockService,
               );
 
-              // Burnt area service (EFFIS WFS - working)
-              final burntAreaService =
+              // Burnt area service with caching for historical data
+              // 2024 data is bundled as asset, 2025+ fetched live
+              final liveService =
                   EffisBurntAreaServiceImpl(httpClient: httpClient);
+              final burntAreaService = CachedBurntAreaService(
+                liveService: liveService,
+              );
 
               // Create MapController with orchestrator
               final mapController = MapController(

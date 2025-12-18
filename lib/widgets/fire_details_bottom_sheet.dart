@@ -440,6 +440,16 @@ class FireDetailsBottomSheet extends StatelessWidget {
                   ? _formatRelativeTime(inc.detectedAt ?? inc.timestamp)
                   : 'Detected at ${_formatDateTime(inc.detectedAt ?? inc.timestamp)}',
             ),
+            // Show fire season for burnt areas (helps verify correct season filter)
+            if (displayType == FireDataDisplayType.burntArea &&
+                burntArea != null)
+              _buildDetailRow(
+                context: context,
+                icon: Icons.calendar_month,
+                label: 'Fire season',
+                value: '${burntArea!.seasonYear}',
+                semanticLabel: 'Fire season: ${burntArea!.seasonYear}',
+              ),
             _buildDetailRow(
               context: context,
               icon: Icons.source,
@@ -632,7 +642,7 @@ class FireDetailsBottomSheet extends StatelessWidget {
       return 'Yesterday at $timeString UTC';
     }
 
-    // Otherwise show date
+    // Otherwise show date with year
     const months = [
       'Jan',
       'Feb',
@@ -648,7 +658,7 @@ class FireDetailsBottomSheet extends StatelessWidget {
       'Dec'
     ];
     final monthName = months[utcTime.month - 1];
-    return '${utcTime.day} $monthName at $timeString UTC';
+    return '${utcTime.day} $monthName ${utcTime.year} at $timeString UTC';
   }
 
   String _formatIntensity(String intensity) {

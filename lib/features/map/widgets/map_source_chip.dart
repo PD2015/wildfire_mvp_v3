@@ -69,8 +69,14 @@ class MapSourceChip extends StatelessWidget {
       return '${difference.inMinutes}m ago';
     } else if (difference.inHours < 24) {
       return '${difference.inHours}h ago';
-    } else {
+    } else if (difference.inDays < 30) {
       return '${difference.inDays}d ago';
+    } else if (difference.inDays < 365) {
+      final months = (difference.inDays / 30).floor();
+      return '$months ${months == 1 ? 'month' : 'months'} ago';
+    } else {
+      final years = (difference.inDays / 365).floor();
+      return '$years ${years == 1 ? 'year' : 'years'} ago';
     }
   }
 

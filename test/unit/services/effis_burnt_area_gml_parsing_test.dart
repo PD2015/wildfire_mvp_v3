@@ -1,8 +1,8 @@
-/// Unit tests for EFFIS burnt area GML3 parsing
-///
-/// Part of 021-live-fire-data feature implementation.
-/// Tests GML3 response parsing after discovery that JSON output
-/// fails silently with bbox filters on EFFIS WFS.
+// Unit tests for EFFIS burnt area GML3 parsing
+//
+// Part of 021-live-fire-data feature implementation.
+// Tests GML3 response parsing after discovery that JSON output
+// fails silently with bbox filters on EFFIS WFS.
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -209,7 +209,8 @@ void main() {
       expect(result.isLeft(), true);
     });
 
-    test('selects correct layer for season filter', () async {
+    test('uses same layer for all season filters (client-side filtering)',
+        () async {
       String? capturedUrl;
       final client = MockClient((request) async {
         capturedUrl = request.url.toString();
@@ -218,7 +219,7 @@ void main() {
 
       final service = EffisBurntAreaServiceImpl(httpClient: client);
 
-      // Test thisSeason - uses pre-filtered season layer
+      // Test thisSeason - uses generic poly layer (no season-specific layer exists in EFFIS)
       await service.getBurntAreas(
         bounds: const LatLngBounds(
           southwest: LatLng(57.0, -4.0),
@@ -226,10 +227,12 @@ void main() {
         ),
         seasonFilter: BurntAreaSeasonFilter.thisSeason,
       );
-      expect(capturedUrl, contains('modis.ba.poly.season'));
-      expect(capturedUrl, isNot(contains('CQL_FILTER')));
+      // Should use generic modis.ba.poly layer for all queries
+      expect(capturedUrl, contains('typeName=ms:modis.ba.poly'));
+      // Note: EFFIS doesn't have a modis.ba.poly.season layer
+      expect(capturedUrl, isNot(contains('modis.ba.poly.season')));
 
-      // Test lastSeason - uses generic layer + CQL filter for year
+      // Test lastSeason - also uses generic layer (client-side year filtering)
       await service.getBurntAreas(
         bounds: const LatLngBounds(
           southwest: LatLng(57.0, -4.0),
@@ -237,13 +240,49 @@ void main() {
         ),
         seasonFilter: BurntAreaSeasonFilter.lastSeason,
       );
-      // Should use generic modis.ba.poly layer with year filter
+      // Should use same generic modis.ba.poly layer
       expect(capturedUrl, contains('typeName=ms:modis.ba.poly'));
-      expect(capturedUrl, isNot(contains('modis.ba.poly.season')));
-      // Should include CQL filter for the previous year
-      expect(capturedUrl, contains('CQL_FILTER'));
-      final lastYear = BurntAreaSeasonFilter.lastSeason.year;
-      expect(capturedUrl, contains('$lastYear'));
+      // No CQL_FILTER - we rely on client-side year filtering
+      expect(capturedUrl, isNot(contains('CQL_FILTER')));
+    });
+
+    test('uses correct sort direction based on season filter', () async {
+      String? thisSeasoncapturedUrl;
+      String? lastSeasonCapturedUrl;
+
+      // Test thisSeason - should use DESCENDING sort (newest first)
+      final thisSeasonClient = MockClient((request) async {
+        thisSeasoncapturedUrl = request.url.toString();
+        return http.Response(_emptyGmlResponse, 200);
+      });
+      final thisSeasonService =
+          EffisBurntAreaServiceImpl(httpClient: thisSeasonClient);
+      await thisSeasonService.getBurntAreas(
+        bounds: const LatLngBounds(
+          southwest: LatLng(57.0, -4.0),
+          northeast: LatLng(58.0, -3.0),
+        ),
+        seasonFilter: BurntAreaSeasonFilter.thisSeason,
+      );
+      // thisSeason: Sort DESC - 2025 data comes first with maxFeatures
+      expect(thisSeasoncapturedUrl, contains('sortBy=FIREDATE+D'));
+
+      // Test lastSeason - should use ASCENDING sort (oldest first)
+      final lastSeasonClient = MockClient((request) async {
+        lastSeasonCapturedUrl = request.url.toString();
+        return http.Response(_emptyGmlResponse, 200);
+      });
+      final lastSeasonService =
+          EffisBurntAreaServiceImpl(httpClient: lastSeasonClient);
+      await lastSeasonService.getBurntAreas(
+        bounds: const LatLngBounds(
+          southwest: LatLng(57.0, -4.0),
+          northeast: LatLng(58.0, -3.0),
+        ),
+        seasonFilter: BurntAreaSeasonFilter.lastSeason,
+      );
+      // lastSeason: Sort ASC - 2024 data comes before 2025 with maxFeatures
+      expect(lastSeasonCapturedUrl, contains('sortBy=FIREDATE+A'));
     });
 
     test('parses coordinates correctly from posList', () async {

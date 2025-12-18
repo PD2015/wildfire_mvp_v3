@@ -39,6 +39,7 @@ flutter:
   assets:
     - assets/mock/
     - assets/icons/
+    - assets/cache/
 
 flutter_launcher_icons:
   android: true

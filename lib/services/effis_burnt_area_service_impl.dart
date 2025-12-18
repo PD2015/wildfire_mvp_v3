@@ -32,11 +32,11 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
   // Request GML3 format - JSON fails with bbox filters
   static const String _acceptHeader = 'application/xml,*/*;q=0.8';
 
-  /// WFS layer names for burnt area polygons
-  /// - Season layer: pre-filtered by EFFIS for current fire season
-  /// - Generic poly layer: used with CQL filter for historical data
-  static const String _currentSeasonLayer = 'ms:modis.ba.poly.season';
-  static const String _genericPolyLayer = 'ms:modis.ba.poly';
+  /// WFS layer name for burnt area polygons
+  /// Note: EFFIS does NOT have a pre-filtered season layer, so we use the
+  /// generic poly layer for all queries and apply client-side year filtering.
+  /// Available layers: modis.ba.poly (all), modis.ba.poly.today (today only)
+  static const String _polyLayer = 'ms:modis.ba.poly';
 
   final http.Client _httpClient;
   final Random _random;
@@ -107,7 +107,25 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
           // "Invalid media type: expected no more input"
           // Using bodyBytes bypasses the automatic encoding detection.
           final bodyString = utf8.decode(response.bodyBytes);
-          return _parseResponse(bodyString);
+          final parseResult = _parseResponse(bodyString);
+
+          // Apply client-side year filtering
+          // The CQL filter doesn't always work correctly, so we filter here
+          return parseResult.map((areas) {
+            final targetYear = seasonFilter.year;
+            final filtered = areas
+                .where((area) => area.fireDate.year == targetYear)
+                .toList();
+
+            if (filtered.length != areas.length) {
+              developer.log(
+                'EffisBurntAreaService: Filtered ${areas.length - filtered.length} areas from wrong year (kept ${filtered.length} from $targetYear)',
+                name: 'EffisBurntAreaService',
+              );
+            }
+
+            return filtered;
+          });
         }
 
         // Check if retriable error
@@ -177,6 +195,14 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
   /// [maxFeatures] limits the number of features returned to prevent
   /// large responses that timeout on mobile networks. The EFFIS server
   /// returns ~4KB per feature (GML polygon data).
+  ///
+  /// Note: EFFIS doesn't have pre-filtered season layers, so we fetch all
+  /// data and apply client-side year filtering after parsing.
+  ///
+  /// Sorting strategy (CRITICAL for maxFeatures to work correctly):
+  /// - thisSeason: Sort DESCENDING (D) - newest data first, 2025 data at top
+  /// - lastSeason: Sort ASCENDING (A) - oldest data first, 2024 data comes
+  ///   before 2025, so we find it within maxFeatures limit
   String _buildWfsUrl(
     LatLngBounds bounds,
     BurntAreaSeasonFilter seasonFilter, {
@@ -185,10 +211,17 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
     final sw = bounds.southwest;
     final ne = bounds.northeast;
 
-    // For current season: use pre-filtered season layer
-    // For last season: use generic layer + CQL filter on FIREDATE year
-    final isCurrentSeason = seasonFilter == BurntAreaSeasonFilter.thisSeason;
-    final layerName = isCurrentSeason ? _currentSeasonLayer : _genericPolyLayer;
+    // Use the generic poly layer for all queries
+    // Client-side filtering handles year selection after parsing
+    // Available layers: modis.ba.poly (all), modis.ba.poly.today (today only)
+
+    // CRITICAL: Sort direction depends on which season we want:
+    // - thisSeason (2025): Descending - newest first (2025 data at top)
+    // - lastSeason (2024): Ascending - oldest first (2024 comes before 2025)
+    // This ensures maxFeatures limit captures the target year's data
+    final sortDirection = seasonFilter == BurntAreaSeasonFilter.thisSeason
+        ? 'D' // Descending - newest first
+        : 'A'; // Ascending - oldest first
 
     // WFS 1.1.0 GetFeature request
     // CRITICAL: Use GML3 format - JSON fails silently with bbox filters!
@@ -196,17 +229,11 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
         'service=WFS&'
         'version=1.1.0&'
         'request=GetFeature&'
-        'typeName=$layerName&'
+        'typeName=$_polyLayer&'
         'outputFormat=GML3&'
         'srsName=EPSG:4326&'
+        'sortBy=FIREDATE+$sortDirection&'
         'bbox=${sw.latitude},${sw.longitude},${ne.latitude},${ne.longitude},EPSG:4326';
-
-    // Add CQL filter for last season (previous year)
-    if (!isCurrentSeason) {
-      final lastYear = seasonFilter.year;
-      // URL-encode the filter: FIREDATE LIKE '2024%'
-      url += '&CQL_FILTER=${Uri.encodeComponent("FIREDATE LIKE '$lastYear%'")}';
-    }
 
     // Add maxFeatures limit if specified (prevents mobile network timeouts)
     if (maxFeatures != null) {

@@ -71,6 +71,11 @@ class MapController extends ChangeNotifier {
   // Timestamp of last successful data fetch
   DateTime _lastUpdated = DateTime.now();
 
+  // Request counters for cancelling stale async requests
+  // When filter or mode changes, we increment these to invalidate in-flight requests
+  int _burntAreaRequestId = 0;
+  int _hotspotRequestId = 0;
+
   MapState get state => _state;
 
   /// Whether there is fire data to display (mode-aware)
@@ -352,12 +357,15 @@ class MapController extends ChangeNotifier {
   /// Set the hotspot time filter
   ///
   /// Only applicable when in hotspots mode. Triggers data refetch.
+  /// Clears existing data immediately to prevent showing stale data during fetch.
   void setHotspotTimeFilter(HotspotTimeFilter filter) {
     if (_hotspotTimeFilter == filter) return;
 
     _hotspotTimeFilter = filter;
-    // Refetch hotspots with new filter if in hotspots mode
+    // Clear existing data immediately to prevent showing stale data
     if (_fireDataMode == FireDataMode.hotspots) {
+      _hotspots = [];
+      _clusters = [];
       _fetchHotspotsForCurrentBounds();
     }
     notifyListeners();
@@ -366,12 +374,14 @@ class MapController extends ChangeNotifier {
   /// Set the burnt area season filter
   ///
   /// Only applicable when in burnt areas mode. Triggers data refetch.
+  /// Clears existing data immediately to prevent showing stale data during fetch.
   void setBurntAreaSeasonFilter(BurntAreaSeasonFilter filter) {
     if (_burntAreaSeasonFilter == filter) return;
 
     _burntAreaSeasonFilter = filter;
-    // Refetch burnt areas with new filter if in burnt areas mode
+    // Clear existing data immediately to prevent showing stale data
     if (_fireDataMode == FireDataMode.burntAreas) {
+      _burntAreas = [];
       _fetchBurntAreasForCurrentBounds();
     }
     notifyListeners();
@@ -404,8 +414,12 @@ class MapController extends ChangeNotifier {
   /// **Behavior based on MAP_LIVE_DATA flag:**
   /// - `MAP_LIVE_DATA=false`: Skip live APIs, use mock data directly (demo mode)
   /// - `MAP_LIVE_DATA=true`: Try FIRMS → GWIS WMS → show offline state if all fail
+  /// **Cancellation**: Uses request ID to discard stale results when filter changes.
   Future<void> _fetchHotspotsForCurrentBounds() async {
     if (_currentBounds == null) return;
+
+    // Increment request ID to invalidate any in-flight requests
+    final currentRequestId = ++_hotspotRequestId;
 
     debugPrint(
       '🗺️ MapController: Fetching hotspots for bounds '
@@ -422,6 +436,14 @@ class MapController extends ChangeNotifier {
         bounds: _currentBounds!,
         timeFilter: _hotspotTimeFilter,
       );
+
+      // Check if this request is still current
+      if (currentRequestId != _hotspotRequestId) {
+        debugPrint(
+          '🗺️ MapController: Discarding stale mock hotspot result (request $currentRequestId, current $_hotspotRequestId)',
+        );
+        return;
+      }
 
       _hotspots = mockResult.getOrElse(() => []);
       _hotspotDataSource = HotspotDataSource.mock;
@@ -441,6 +463,14 @@ class MapController extends ChangeNotifier {
       bounds: _currentBounds!,
       timeFilter: _hotspotTimeFilter,
     );
+
+    // Check if this request is still current
+    if (currentRequestId != _hotspotRequestId) {
+      debugPrint(
+        '🗺️ MapController: Discarding stale hotspot result (request $currentRequestId, current $_hotspotRequestId)',
+      );
+      return;
+    }
 
     _hotspots = result.hotspots;
     _hotspotDataSource = result.source;
@@ -469,8 +499,12 @@ class MapController extends ChangeNotifier {
   /// Fetch burnt areas from EFFIS service for current viewport
   ///
   /// **Fallback**: If live EFFIS fails or service is null, falls back to mock data.
+  /// **Cancellation**: Uses request ID to discard stale results when filter changes.
   Future<void> _fetchBurntAreasForCurrentBounds() async {
     if (_currentBounds == null) return;
+
+    // Increment request ID to invalidate any in-flight requests
+    final currentRequestId = ++_burntAreaRequestId;
 
     debugPrint(
       '🗺️ MapController: Fetching burnt areas for bounds '
@@ -482,14 +516,20 @@ class MapController extends ChangeNotifier {
 
     // Try live service first if available AND live data is enabled
     if (FeatureFlags.mapLiveData && _burntAreaService != null) {
-      // Use maxFeatures to prevent mobile network timeouts on large responses:
-      // - lastSeason: ALWAYS limit to 100 (historical data is larger, less time-critical)
-      // - thisSeason at low zoom (overview): limit to 100 (~400KB response)
-      // - thisSeason at high zoom (detail): no limit (smaller bbox = fewer features)
-      final int? maxFeatures =
-          _burntAreaSeasonFilter == BurntAreaSeasonFilter.lastSeason
-              ? 100
-              : (_currentZoom < 9.0 ? 100 : null);
+      // Determine maxFeatures limit based on zoom and filter
+      // Service now uses smart sorting: thisSeason=DESC, lastSeason=ASC
+      // - thisSeason: Results sorted by date DESC, newest first, 2025 at top
+      // - lastSeason: Results sorted by date ASC, oldest first, 2024 before 2025
+      // Both can use same maxFeatures since target data is near the start
+      // - High zoom (detail): no limit (smaller bbox = fewer features anyway)
+      final int? maxFeatures;
+      if (_currentZoom >= 9.0) {
+        // At high zoom, bbox is small enough that we don't need limits
+        maxFeatures = null;
+      } else {
+        // Both season filters: 500 is enough since sorting ensures target year is first
+        maxFeatures = 500;
+      }
 
       final result = await _burntAreaService!.getBurntAreas(
         bounds: _currentBounds!,
@@ -497,6 +537,14 @@ class MapController extends ChangeNotifier {
         maxFeatures: maxFeatures,
         timeout: const Duration(seconds: 15), // Longer timeout for polygon data
       );
+
+      // Check if this request is still current (not superseded by newer request)
+      if (currentRequestId != _burntAreaRequestId) {
+        debugPrint(
+          '🗺️ MapController: Discarding stale burnt area result (request $currentRequestId, current $_burntAreaRequestId)',
+        );
+        return;
+      }
 
       final success = result.fold(
         (error) {
@@ -530,6 +578,14 @@ class MapController extends ChangeNotifier {
       }
     }
 
+    // Check again if this request is still current before setting fallback state
+    if (currentRequestId != _burntAreaRequestId) {
+      debugPrint(
+        '🗺️ MapController: Discarding stale burnt area fallback (request $currentRequestId, current $_burntAreaRequestId)',
+      );
+      return;
+    }
+
     // Fallback behavior depends on MAP_LIVE_DATA flag
     if (FeatureFlags.mapLiveData) {
       // Option C: When live data expected but API failed, show offline state
@@ -546,6 +602,14 @@ class MapController extends ChangeNotifier {
         bounds: _currentBounds!,
         seasonFilter: _burntAreaSeasonFilter,
       );
+
+      // Check once more after mock fetch
+      if (currentRequestId != _burntAreaRequestId) {
+        debugPrint(
+          '🗺️ MapController: Discarding stale mock burnt area result (request $currentRequestId, current $_burntAreaRequestId)',
+        );
+        return;
+      }
 
       mockResult.fold(
         (error) {
