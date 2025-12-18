@@ -26,8 +26,10 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
   static const String _userAgent = 'WildFire/0.1 (prototype)';
   static const String _acceptHeader = 'application/json,*/*;q=0.8';
 
-  /// WFS layer name for burnt area polygons
-  static const String _layerName = 'modis.ba.poly';
+  /// WFS layer names for burnt area polygons
+  /// Season layers are pre-filtered by EFFIS - no CQL year filter needed
+  static const String _currentSeasonLayer = 'ms:modis.ba.poly.season';
+  static const String _lastSeasonLayer = 'ms:modis.ba.poly.lastseason';
 
   final http.Client _httpClient;
   final Random _random;
@@ -134,19 +136,23 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
   String _buildWfsUrl(LatLngBounds bounds, BurntAreaSeasonFilter seasonFilter) {
     final sw = bounds.southwest;
     final ne = bounds.northeast;
-    final year = seasonFilter.year;
 
-    // WFS GetFeature request with GeoJSON output and year filter
-    // CQL_FILTER for year filtering
+    // Select layer based on season filter
+    final layerName = seasonFilter == BurntAreaSeasonFilter.thisSeason
+        ? _currentSeasonLayer
+        : _lastSeasonLayer;
+
+    // WFS 1.1.0 GetFeature request
+    // Season layers are pre-filtered by EFFIS - no CQL_FILTER needed
+    // Note: JSON output may not work for all layers, but current testing shows it works
     return '$_baseUrl?'
         'service=WFS&'
-        'version=2.0.0&'
+        'version=1.1.0&'
         'request=GetFeature&'
-        'typeName=$_layerName&'
+        'typeName=$layerName&'
         'outputFormat=application/json&'
         'srsName=EPSG:4326&'
-        'bbox=${sw.longitude},${sw.latitude},${ne.longitude},${ne.latitude},EPSG:4326&'
-        'CQL_FILTER=year=$year';
+        'bbox=${sw.longitude},${sw.latitude},${ne.longitude},${ne.latitude},EPSG:4326';
   }
 
   /// Parse GeoJSON response to list of burnt areas

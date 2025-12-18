@@ -1,7 +1,7 @@
 ---
 title: Data Sources Reference
 status: active
-last_updated: 2025-10-30
+last_updated: 2025-12-18
 category: reference
 subcategory: apis
 related:
@@ -216,4 +216,150 @@ done
 - `specs/002-spec-a2-fireriskservice/` - Fire risk orchestration service
 - Constitution v1.0
 - EFFIS GetCapabilities: https://ies-ows.jrc.ec.europa.eu/gwis?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities
+
+---
+
+## 🔥 Live Fire Data Investigation (2025-12-18)
+
+### Overview
+
+Investigation into EFFIS Burnt Areas API failures during live data mode testing. The FIRMS hotspot service was working correctly, but EFFIS burnt areas returned "Connection closed while receiving data" errors.
+
+### Key Discoveries
+
+#### 1. JRC Endpoint is DEPRECATED/BROKEN
+
+**Endpoint**: `https://ies-ows.jrc.ec.europa.eu/effis`
+
+```bash
+# Returns database error
+curl -s "https://ies-ows.jrc.ec.europa.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=effis:ba.curryear&outputFormat=json&maxFeatures=1"
+# Response: {"type":"FeatureCollection","features":[]}
+# Or: Server returned HTTP response code: 500 / database error
+
+# Layer doesn't exist
+curl -s "https://ies-ows.jrc.ec.europa.eu/effis?service=WFS&request=GetCapabilities" | grep "ba.curryear"
+# Returns nothing - layer name is invalid
+```
+
+**Status**: ❌ Do not use. This endpoint is deprecated and returns database errors.
+
+#### 2. Copernicus Endpoint is WORKING
+
+**Endpoint**: `https://maps.effis.emergency.copernicus.eu/effis`
+
+```bash
+# Working WFS request for burnt areas
+curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.season&outputFormat=json&maxFeatures=5"
+# Returns actual burnt area polygons for current fire season
+```
+
+**Status**: ✅ WORKING - Returns burnt area data for France, Italy, Portugal, Greece, etc.
+
+#### 3. Correct Layer Names
+
+| Layer Name | Description | Status |
+|------------|-------------|--------|
+| `ms:modis.ba.poly.season` | Current fire season burnt areas | ✅ Working |
+| `ms:modis.ba.poly.lastseason` | Previous year burnt areas | ✅ Working |
+| `effis:ba.curryear` | (JRC) Current year | ❌ INVALID |
+| `ms:modis.ba.poly` | Generic (no season filter) | ⚠️ May work but unfiltered |
+
+#### 4. WFS Version Matters
+
+| WFS Version | Status | Notes |
+|-------------|--------|-------|
+| 1.1.0 | ✅ Working | Recommended |
+| 2.0.0 | ❌ 502 errors | Causes issues with CQL_FILTER |
+| 1.0.0 | ⚠️ Untested | May work |
+
+#### 5. CQL_FILTER Issues
+
+```bash
+# ❌ BROKEN - 'year' attribute doesn't exist on ms:modis.ba.poly.season
+curl "...&CQL_FILTER=year=2025"  # Returns 502 error
+
+# ✅ WORKING - Use season-specific layers instead
+# ms:modis.ba.poly.season already filters by current season
+# ms:modis.ba.poly.lastseason already filters by previous season
+```
+
+### Critical Finding: No UK Burnt Area Data in EFFIS
+
+**Tested bounding boxes**:
+```bash
+# Scotland bbox - NO DATA
+curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.season&outputFormat=json&bbox=54.5,-8.0,61.0,0.0"
+# Returns: {"type":"FeatureCollection","features":[]}
+
+# UK bbox - NO DATA  
+curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.season&outputFormat=json&bbox=49.0,-8.0,61.0,2.0"
+# Returns: {"type":"FeatureCollection","features":[]}
+
+# France bbox - HAS DATA ✅
+curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.season&outputFormat=json&bbox=41.0,-5.0,51.0,10.0&maxFeatures=5"
+# Returns: Actual burnt area polygons
+```
+
+**Conclusion**: The UK simply has **no burnt areas recorded in EFFIS for the 2025 fire season**. The API is working correctly - there's just no data for that region.
+
+### Implementation Fixes Applied
+
+#### Config Files Updated
+
+| File | Change |
+|------|--------|
+| `env/dev.env.json` | `EFFIS_BASE_URL` → Copernicus, `EFFIS_WFS_LAYER_ACTIVE` → `ms:modis.ba.poly.season` |
+| `env/dev.env.json.template` | Layer name update |
+| `env/prod.env.json.template` | Layer name update |
+| `env/ci.env.json` | Layer name update |
+| `lib/config/feature_flags.dart` | Default layer → `ms:modis.ba.poly.season` |
+
+#### Service Implementation Updated
+
+`lib/services/effis_burnt_area_service_impl.dart`:
+- Changed WFS version from 2.0.0 to 1.1.0
+- Removed invalid `CQL_FILTER=year=YYYY`
+- Added season layer selection based on `BurntAreaSeasonFilter`
+- Layer constants: `_currentSeasonLayer = 'ms:modis.ba.poly.season'`, `_lastSeasonLayer = 'ms:modis.ba.poly.lastseason'`
+
+### Working cURL Examples
+
+```bash
+# Get current season burnt areas (limited to 5 for testing)
+curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.season&outputFormat=json&maxFeatures=5"
+
+# Get burnt areas within a specific bbox (France)
+curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.season&outputFormat=json&bbox=41.0,-5.0,51.0,10.0&maxFeatures=10"
+
+# Get last season burnt areas
+curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.lastseason&outputFormat=json&maxFeatures=5"
+
+# Get capabilities to discover available layers
+curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&request=GetCapabilities" | grep -E "<Name>.*ba.*</Name>"
+```
+
+### Service Status Summary (2025-12-18)
+
+| Service | Endpoint | Status | Notes |
+|---------|----------|--------|-------|
+| NASA FIRMS Hotspots | firms.modaps.eosdis.nasa.gov | ✅ Working | Returns 0 for Scotland (no fires) |
+| GWIS WMS Fallback | ies-ows.jrc.ec.europa.eu/gwis | ✅ Working | Hotspot fallback |
+| EFFIS WFS Burnt Areas | maps.effis.emergency.copernicus.eu | ✅ Working | No UK data exists |
+| JRC WFS (legacy) | ies-ows.jrc.ec.europa.eu/effis | ❌ Broken | Database errors, deprecated |
+
+### Recommendations
+
+1. **Accept UK data gap**: EFFIS simply doesn't have UK burnt area data for 2025. This is a data coverage issue, not an API issue.
+
+2. **Consider alternative UK sources**: For UK-specific burnt area data, investigate:
+   - Natural Resources Wales fire data
+   - Scottish Fire and Rescue Service incident data
+   - Forestry Commission fire reports
+
+3. **Display appropriate messaging**: When no burnt area data exists for the current viewport, show "No burnt areas recorded for this region" rather than implying an error.
+
+4. **Test with European regions**: To verify burnt area visualization is working, test with France, Portugal, or Greece bounding boxes where data exists.
+
+---
 

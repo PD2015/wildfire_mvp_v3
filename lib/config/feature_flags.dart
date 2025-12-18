@@ -66,10 +66,10 @@ class FeatureFlags {
   );
 
   /// EFFIS WFS layer name for burnt areas
-  /// Default: ms:modis.ba.poly (MODIS burnt area polygons)
+  /// Default: ms:modis.ba.poly.season (MODIS burnt area polygons, current fire season)
   static const String effisWfsLayerActive = String.fromEnvironment(
     'EFFIS_WFS_LAYER_ACTIVE',
-    defaultValue: 'ms:modis.ba.poly',
+    defaultValue: 'ms:modis.ba.poly.season',
   );
 
   /// NASA FIRMS API key for hotspot data
