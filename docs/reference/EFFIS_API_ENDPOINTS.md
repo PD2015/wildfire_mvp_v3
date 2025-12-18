@@ -10,8 +10,9 @@ related:
   - ../../lib/models/fire_incident.dart
   - ../../test/fixtures/scotland_fire_273772_fixture.dart
 changelog:
-  - 2025-12-18: 🔍 EFFIS Burnt Areas investigation - JRC endpoint deprecated, Copernicus working, no UK data in 2025
-  - 2025-12-18: Added ms:modis.ba.poly.lastseason layer, documented WFS 1.1.0 vs 2.0.0 issues
+  - 2025-12-18: 🔍 EFFIS Burnt Areas investigation - JRC endpoint deprecated, Copernicus working, UK data CONFIRMED present
+  - 2025-12-18: Fire 273772 (9,809 ha, West Moray, June 2025) verified in ms:modis.ba.poly.season layer
+  - 2025-12-18: Added ms:modis.ba.poly.lastseason layer, documented WFS 1.1.0 vs 2.0.0 issues, GML3 output preferred
   - 2025-12-16: 🐛 ROOT CAUSE FOUND - GwisHotspotServiceImpl incorrectly uses WFS instead of WMS. Hotspots require WMS GetFeatureInfo, not WFS GetFeature!
   - 2025-12-16: Verified endpoints ARE working - WMS returns live hotspot data, WFS returns 502 (not supported for hotspots)
   - 2025-12-16: Added "Correct Service Types" section documenting WMS vs WFS requirements per layer
@@ -310,7 +311,7 @@ https://maps.effis.emergency.copernicus.eu/gwis
 | `ms:modis.ba.poly.season` | Current fire season burnt areas | Polygons | ✅ Current |
 | `ms:modis.ba.poly.lastseason` | Previous fire season burnt areas | Polygons | ✅ Current |
 
-> ⚠️ **UK Data Gap (2025-12-18)**: No UK burnt area data exists in EFFIS for the 2025 fire season. The API works correctly - queries return empty results because no fires have been recorded for the UK region. Data exists for France, Italy, Portugal, Greece, and other Mediterranean countries.
+> ✅ **UK Data Confirmed (2025-12-18)**: UK burnt area data IS available in EFFIS, including fire 273772 (9,809 ha, West Moray, June 28, 2025). Use GML3 output format for reliable results - JSON output may fail with bbox filters.
 
 ### WFS Version Compatibility
 

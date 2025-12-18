@@ -287,24 +287,21 @@ curl "...&CQL_FILTER=year=2025"  # Returns 502 error
 # ms:modis.ba.poly.lastseason already filters by previous season
 ```
 
-### Critical Finding: No UK Burnt Area Data in EFFIS
+### ✅ UK Burnt Area Data CONFIRMED Present (Updated 2025-12-18 13:00)
 
-**Tested bounding boxes**:
+**CORRECTION**: UK data IS available! Earlier tests with `outputFormat=json` failed, but `outputFormat=GML3` works:
+
 ```bash
-# Scotland bbox - NO DATA
-curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.season&outputFormat=json&bbox=54.5,-8.0,61.0,0.0"
-# Returns: {"type":"FeatureCollection","features":[]}
+# ✅ WORKING - GML3 output returns UK data including fire 273772 (9,809 ha)
+curl --http1.1 -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.season&outputFormat=GML3&maxFeatures=50&bbox=57.0,-4.0,58.0,-3.0,EPSG:4326"
 
-# UK bbox - NO DATA  
-curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.season&outputFormat=json&bbox=49.0,-8.0,61.0,2.0"
-# Returns: {"type":"FeatureCollection","features":[]}
-
-# France bbox - HAS DATA ✅
-curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.season&outputFormat=json&bbox=41.0,-5.0,51.0,10.0&maxFeatures=5"
-# Returns: Actual burnt area polygons
+# Verified UK fires present:
+# - Fire 273772: 2025-06-28, West Moray, 9,809 ha (largest UK fire in 2025)
+# - Fire 256973: 2025-02-07, Scottish Highlands, 16 ha
+# - Multiple fires: Feb 2025, Various UK locations
 ```
 
-**Conclusion**: The UK simply has **no burnt areas recorded in EFFIS for the 2025 fire season**. The API is working correctly - there's just no data for that region.
+**Root cause of earlier "no data" results**: JSON output format (`outputFormat=json`) fails silently with bbox filters on this endpoint. Use GML3 instead.
 
 ### Implementation Fixes Applied
 
@@ -325,18 +322,19 @@ curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.
 - Removed invalid `CQL_FILTER=year=YYYY`
 - Added season layer selection based on `BurntAreaSeasonFilter`
 - Layer constants: `_currentSeasonLayer = 'ms:modis.ba.poly.season'`, `_lastSeasonLayer = 'ms:modis.ba.poly.lastseason'`
+- **TODO**: Consider switching to GML3 output format for more reliable results
 
 ### Working cURL Examples
 
 ```bash
-# Get current season burnt areas (limited to 5 for testing)
-curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.season&outputFormat=json&maxFeatures=5"
+# ✅ RECOMMENDED: GML3 output (most reliable)
+curl --http1.1 -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.season&outputFormat=GML3&maxFeatures=5"
 
-# Get burnt areas within a specific bbox (France)
-curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.season&outputFormat=json&bbox=41.0,-5.0,51.0,10.0&maxFeatures=10"
+# Get UK fires (Scottish Highlands bbox)
+curl --http1.1 -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.season&outputFormat=GML3&maxFeatures=50&bbox=57.0,-4.0,58.0,-3.0,EPSG:4326"
 
 # Get last season burnt areas
-curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.lastseason&outputFormat=json&maxFeatures=5"
+curl --http1.1 -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.lastseason&outputFormat=GML3&maxFeatures=5"
 
 # Get capabilities to discover available layers
 curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&request=GetCapabilities" | grep -E "<Name>.*ba.*</Name>"
@@ -346,23 +344,23 @@ curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&request=Ge
 
 | Service | Endpoint | Status | Notes |
 |---------|----------|--------|-------|
-| NASA FIRMS Hotspots | firms.modaps.eosdis.nasa.gov | ✅ Working | Returns 0 for Scotland (no fires) |
+| NASA FIRMS Hotspots | firms.modaps.eosdis.nasa.gov | ✅ Working | Returns 0 for Scotland (no current fires) |
 | GWIS WMS Fallback | ies-ows.jrc.ec.europa.eu/gwis | ✅ Working | Hotspot fallback |
-| EFFIS WFS Burnt Areas | maps.effis.emergency.copernicus.eu | ✅ Working | No UK data exists |
+| EFFIS WFS Burnt Areas | maps.effis.emergency.copernicus.eu | ✅ Working | UK data available (use GML3) |
 | JRC WFS (legacy) | ies-ows.jrc.ec.europa.eu/effis | ❌ Broken | Database errors, deprecated |
 
 ### Recommendations
 
-1. **Accept UK data gap**: EFFIS simply doesn't have UK burnt area data for 2025. This is a data coverage issue, not an API issue.
+1. **Use GML3 output format**: JSON output may fail silently with bbox filters. GML3 is more reliable.
 
-2. **Consider alternative UK sources**: For UK-specific burnt area data, investigate:
-   - Natural Resources Wales fire data
-   - Scottish Fire and Rescue Service incident data
-   - Forestry Commission fire reports
+2. **Fire 273772 verified**: West Moray fire (9,809 ha, June 28, 2025) is the largest UK fire in 2025 season.
 
-3. **Display appropriate messaging**: When no burnt area data exists for the current viewport, show "No burnt areas recorded for this region" rather than implying an error.
+3. **GWIS NRT layers available**: For near-real-time burnt areas, also check:
+   - `nrt.ba.poly.season` - Current season NRT
+   - `nrt.ba.poly.today` - Last 24 hours
+   - `nrt.ba.poly.week` - Last 7 days
 
-4. **Test with European regions**: To verify burnt area visualization is working, test with France, Portugal, or Greece bounding boxes where data exists.
+4. **Consider GML parsing**: May need to update service to parse GML3 response format instead of JSON.
 
 ---
 
