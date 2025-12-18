@@ -119,13 +119,13 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
       orElse: () => _contentSections.first,
     );
 
-    final context = section.key.currentContext;
-    if (context != null) {
+    final keyContext = section.key.currentContext;
+    if (keyContext != null) {
+      // Use ensureVisible with explicit scroll controller context
       Scrollable.ensureVisible(
-        context,
+        keyContext,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
       );
     }
   }
@@ -201,7 +201,7 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
 
                   // Document content - rendered as sections for scroll navigation
                   ..._contentSections.map(
-                    (section) => Container(
+                    (section) => KeyedSubtree(
                       key: section.key,
                       child: MarkdownBody(
                         data: _preprocessContent(section.content),
