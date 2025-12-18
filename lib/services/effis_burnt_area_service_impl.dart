@@ -33,9 +33,10 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
   static const String _acceptHeader = 'application/xml,*/*;q=0.8';
 
   /// WFS layer names for burnt area polygons
-  /// Season layers are pre-filtered by EFFIS - no CQL year filter needed
+  /// - Season layer: pre-filtered by EFFIS for current fire season
+  /// - Generic poly layer: used with CQL filter for historical data
   static const String _currentSeasonLayer = 'ms:modis.ba.poly.season';
-  static const String _lastSeasonLayer = 'ms:modis.ba.poly.lastseason';
+  static const String _genericPolyLayer = 'ms:modis.ba.poly';
 
   final http.Client _httpClient;
   final Random _random;
@@ -184,15 +185,14 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
     final sw = bounds.southwest;
     final ne = bounds.northeast;
 
-    // Select layer based on season filter
-    final layerName = seasonFilter == BurntAreaSeasonFilter.thisSeason
-        ? _currentSeasonLayer
-        : _lastSeasonLayer;
+    // For current season: use pre-filtered season layer
+    // For last season: use generic layer + CQL filter on FIREDATE year
+    final isCurrentSeason = seasonFilter == BurntAreaSeasonFilter.thisSeason;
+    final layerName = isCurrentSeason ? _currentSeasonLayer : _genericPolyLayer;
 
     // WFS 1.1.0 GetFeature request
-    // Season layers are pre-filtered by EFFIS - no CQL_FILTER needed
     // CRITICAL: Use GML3 format - JSON fails silently with bbox filters!
-    final baseUrl = '$_baseUrl?'
+    var url = '$_baseUrl?'
         'service=WFS&'
         'version=1.1.0&'
         'request=GetFeature&'
@@ -201,11 +201,19 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
         'srsName=EPSG:4326&'
         'bbox=${sw.latitude},${sw.longitude},${ne.latitude},${ne.longitude},EPSG:4326';
 
+    // Add CQL filter for last season (previous year)
+    if (!isCurrentSeason) {
+      final lastYear = seasonFilter.year;
+      // URL-encode the filter: FIREDATE LIKE '2024%'
+      url += '&CQL_FILTER=${Uri.encodeComponent("FIREDATE LIKE '$lastYear%'")}';
+    }
+
     // Add maxFeatures limit if specified (prevents mobile network timeouts)
     if (maxFeatures != null) {
-      return '$baseUrl&maxFeatures=$maxFeatures';
+      url += '&maxFeatures=$maxFeatures';
     }
-    return baseUrl;
+
+    return url;
   }
 
   /// Parse GML3 response to list of burnt areas

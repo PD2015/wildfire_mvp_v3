@@ -218,7 +218,7 @@ void main() {
 
       final service = EffisBurntAreaServiceImpl(httpClient: client);
 
-      // Test thisSeason
+      // Test thisSeason - uses pre-filtered season layer
       await service.getBurntAreas(
         bounds: const LatLngBounds(
           southwest: LatLng(57.0, -4.0),
@@ -227,9 +227,9 @@ void main() {
         seasonFilter: BurntAreaSeasonFilter.thisSeason,
       );
       expect(capturedUrl, contains('modis.ba.poly.season'));
-      expect(capturedUrl, isNot(contains('lastseason')));
+      expect(capturedUrl, isNot(contains('CQL_FILTER')));
 
-      // Test lastSeason
+      // Test lastSeason - uses generic layer + CQL filter for year
       await service.getBurntAreas(
         bounds: const LatLngBounds(
           southwest: LatLng(57.0, -4.0),
@@ -237,7 +237,13 @@ void main() {
         ),
         seasonFilter: BurntAreaSeasonFilter.lastSeason,
       );
-      expect(capturedUrl, contains('modis.ba.poly.lastseason'));
+      // Should use generic modis.ba.poly layer with year filter
+      expect(capturedUrl, contains('typeName=ms:modis.ba.poly'));
+      expect(capturedUrl, isNot(contains('modis.ba.poly.season')));
+      // Should include CQL filter for the previous year
+      expect(capturedUrl, contains('CQL_FILTER'));
+      final lastYear = BurntAreaSeasonFilter.lastSeason.year;
+      expect(capturedUrl, contains('$lastYear'));
     });
 
     test('parses coordinates correctly from posList', () async {
