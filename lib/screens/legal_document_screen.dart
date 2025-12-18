@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:wildfire_mvp_v3/content/legal_content.dart';
 
-// TODO: Style inline version/date as secondary text to reduce visual repetition
 // TODO: Add consistent doc-type iconography to AppBar per document type
 // TODO: Add collapsible table of contents for longer documents
 
@@ -105,11 +104,12 @@ class LegalDocumentScreen extends StatelessWidget {
     );
   }
 
-  /// Preprocess markdown content to convert emergency sections to blockquotes.
+  /// Preprocess markdown content for display.
   ///
-  /// This allows us to use a custom builder to render them as callouts.
+  /// - Removes main title (shown in AppBar)
+  /// - Converts emergency content to blockquotes for callout styling
+  /// - Wraps inline metadata (Version/Date) in italics for secondary styling
   String _preprocessContent(String content) {
-    // Remove the main title (# Header) as it's shown in AppBar
     final lines = content.split('\n');
     final processedLines = <String>[];
     var skipNextEmpty = false;
@@ -121,6 +121,14 @@ class LegalDocumentScreen extends StatelessWidget {
       'call 999',
       'life-safety system',
       'emergency-warning tool',
+    ];
+
+    // Patterns for inline metadata (Version, Effective Date, Operator)
+    final metadataPatterns = [
+      RegExp(r'^\*\*Version:\*\*'),
+      RegExp(r'^\*\*Effective Date:\*\*'),
+      RegExp(r'^\*\*Operator:\*\*'),
+      RegExp(r'^\*\*Last Updated:\*\*'),
     ];
 
     for (final line in lines) {
@@ -144,8 +152,19 @@ class LegalDocumentScreen extends StatelessWidget {
         (pattern) => trimmedLine.toLowerCase().contains(pattern),
       );
 
+      // Check if line is inline metadata
+      final isMetadata = metadataPatterns.any(
+        (pattern) => pattern.hasMatch(trimmedLine),
+      );
+
       if (isEmergencyContent && trimmedLine.isNotEmpty) {
         processedLines.add('> $trimmedLine');
+      } else if (isMetadata) {
+        // Convert to italic for secondary styling
+        // Remove existing bold markers and wrap in italics
+        final cleanedLine =
+            trimmedLine.replaceAll('**', '').replaceFirst(': ', ': *');
+        processedLines.add('_$cleanedLine*_');
       } else {
         processedLines.add(line);
       }
@@ -180,6 +199,12 @@ class LegalDocumentScreen extends StatelessWidget {
       // Strong/bold
       strong: theme.textTheme.bodyMedium?.copyWith(
         fontWeight: FontWeight.w600,
+        height: 1.6,
+      ),
+      // Emphasis/italic - used for secondary metadata (Version, Date, etc.)
+      em: theme.textTheme.bodySmall?.copyWith(
+        fontStyle: FontStyle.normal, // Remove italic style
+        color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
         height: 1.6,
       ),
       // Lists
