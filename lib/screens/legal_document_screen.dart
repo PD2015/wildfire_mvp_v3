@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:wildfire_mvp_v3/content/legal_content.dart';
 
-// TODO: Add consistent doc-type iconography to AppBar per document type
 // TODO: Add collapsible table of contents for longer documents
 
 /// Screen for displaying a full legal document.
@@ -26,7 +25,22 @@ class LegalDocumentScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(document.title),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              _getDocumentIcon(document.id),
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                document.title,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
       body: SafeArea(
         child: Center(
@@ -102,6 +116,17 @@ class LegalDocumentScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Get icon for document type based on document ID.
+  IconData _getDocumentIcon(String documentId) {
+    return switch (documentId) {
+      'terms' => Icons.description_outlined, // Terms of Service
+      'privacy' => Icons.shield_outlined, // Privacy Policy
+      'disclaimer' => Icons.warning_amber_outlined, // Emergency Disclaimer
+      'data-sources' => Icons.storage_outlined, // Data Sources
+      _ => Icons.article_outlined, // Default fallback
+    };
   }
 
   /// Preprocess markdown content for display.
