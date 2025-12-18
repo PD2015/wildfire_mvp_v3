@@ -19,6 +19,9 @@
 - [x] Removed SEPA references (service not implemented)
 - [x] Consistent "WildFire" app name (not "WildFire App")
 - [x] Current effective dates (18 December 2025)
+- [x] Google Maps attribution added to Data Sources
+- [x] what3words attribution added to Data Sources
+- [x] Web localStorage clarification in Privacy Policy
 
 ---
 
@@ -26,20 +29,7 @@
 
 ### High Priority
 
-#### 1. Google Maps Attribution
-**Location:** Data Sources document  
-**Requirement:** Google ToS requires attribution for Maps usage  
-**Action:** Add section:
-```markdown
-### Google Maps Platform
-
-Map display and location services are provided by Google Maps Platform.
-
-**Attribution:**
-> © Google LLC. Google Maps is used under the Google Maps Platform Terms of Service.
-```
-
-#### 2. Developer Identity Disclosure
+#### 1. Developer Identity Disclosure
 **Location:** Terms of Service, Section 1 (Introduction)  
 **Current:** "Operated by an independent developer"  
 **Issue:** Too vague for legal purposes  
@@ -52,7 +42,7 @@ Map display and location services are provided by Google Maps Platform.
 
 ### Medium Priority
 
-#### 3. ICO Registration Statement
+#### 2. ICO Registration Statement
 **Location:** Privacy Policy, Section 10 (Contact)  
 **Requirement:** UK apps processing personal data should clarify ICO status  
 **Action:** Add:
@@ -63,38 +53,16 @@ Information Commissioner's Office is required. If you have concerns,
 you may contact the ICO at [ico.org.uk](https://ico.org.uk).
 ```
 
-#### 4. Web Platform Storage Clarification
-**Location:** Privacy Policy, Section 2e (No Analytics, No Tracking)  
-**Issue:** "No cookies" is accurate for native but web uses localStorage  
-**Action:** Clarify:
-```markdown
-**Note (Web Version):** The web version uses browser local storage for 
-essential caching functionality. This is required for the app to function 
-and does not involve tracking or third-party data sharing.
-```
-
 ---
 
 ### Low Priority (Consider Before Public Release)
 
-#### 5. Governing Law Review
+#### 3. Governing Law Review
 **Current:** England and Wales  
 **Consider:** Scottish law may be more appropriate for Scotland-focused app  
 **Decision needed:** Consult legal advice or keep England/Wales (simpler)
 
-#### 6. what3words Attribution (If Implemented)
-**Status:** Spec exists but implementation status unclear  
-**Action:** If what3words is active, add to Data Sources:
-```markdown
-### what3words
-
-Location display may use what3words addressing.
-
-**Attribution:**
-> what3words addresses are provided by what3words Limited.
-```
-
-#### 7. App Store Specific Requirements
+#### 4. App Store Specific Requirements
 **For iOS App Store:**
 - Privacy nutrition label will need completing
 - May need more specific data collection declarations

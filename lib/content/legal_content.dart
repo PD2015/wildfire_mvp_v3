@@ -269,6 +269,8 @@ The App does **not** use:
 - third-party behavioural tracking
 - cookies
 
+**Note (Web Version):** The web version uses browser local storage for essential caching functionality. This is required for the app to function and does not involve tracking or third-party data sharing.
+
 ---
 
 ## 3. What We Do Not Collect
@@ -434,6 +436,28 @@ Wildfire-risk forecasts and satellite-detected fire activity may be sourced from
 > Data may be delayed or incomplete.
 
 EFFIS data is provided without warranty and may include false positives or false negatives.
+
+---
+
+### Google Maps Platform
+
+Map display and location services are provided by **Google Maps Platform**.
+
+**Attribution:**
+> © Google LLC. Maps data © Google.
+
+Google Maps is used under the Google Maps Platform Terms of Service. Map tiles and geocoding are subject to Google's Privacy Policy.
+
+---
+
+### what3words
+
+The App may display **what3words** addresses for easy location sharing.
+
+**Attribution:**
+> what3words addresses are provided by what3words Limited.
+
+what3words is a registered trademark of what3words Limited. The service is used to convert coordinates to memorable three-word addresses.
 
 ---
 
