@@ -84,6 +84,7 @@ class _FailingBurntAreaService implements EffisBurntAreaService {
     required BurntAreaSeasonFilter seasonFilter,
     Duration timeout = const Duration(seconds: 10),
     int maxRetries = 3,
+    int? maxFeatures,
   }) async {
     callCount++;
     return Left(ApiError(message: 'Service unavailable: Server error'));

@@ -56,6 +56,7 @@ class MockEffisBurntAreaService implements EffisBurntAreaService {
     required BurntAreaSeasonFilter seasonFilter,
     Duration timeout = const Duration(seconds: 10),
     int maxRetries = 3,
+    int? maxFeatures,
   }) async {
     final allBurntAreas = await _loadMockData();
     final now = _clock();
@@ -68,13 +69,18 @@ class MockEffisBurntAreaService implements EffisBurntAreaService {
     };
 
     // Filter by bounding box and season year (mirrors EFFIS WFS CQL_FILTER=year=YYYY)
-    final filtered = allBurntAreas.where((area) {
+    var filtered = allBurntAreas.where((area) {
       // Check if centroid is within bounds
       final inBounds = bounds.contains(area.centroid);
       // Check if year matches filter
       final matchesYear = area.seasonYear == targetYear;
       return inBounds && matchesYear;
     }).toList();
+
+    // Apply maxFeatures limit if specified (mirrors WFS maxFeatures parameter)
+    if (maxFeatures != null && filtered.length > maxFeatures) {
+      filtered = filtered.take(maxFeatures).toList();
+    }
 
     // Always return Right (mock service never fails)
     return Right(filtered);

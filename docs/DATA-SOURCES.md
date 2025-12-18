@@ -322,7 +322,7 @@ curl --http1.1 -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&
 - Removed invalid `CQL_FILTER=year=YYYY`
 - Added season layer selection based on `BurntAreaSeasonFilter`
 - Layer constants: `_currentSeasonLayer = 'ms:modis.ba.poly.season'`, `_lastSeasonLayer = 'ms:modis.ba.poly.lastseason'`
-- **TODO**: Consider switching to GML3 output format for more reliable results
+- ✅ **DONE**: Switched to GML3 output format (commit c3ee6b4) - JSON fails silently with bbox filters
 
 ### Working cURL Examples
 

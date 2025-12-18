@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:math';
@@ -53,6 +54,7 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
     required BurntAreaSeasonFilter seasonFilter,
     Duration timeout = const Duration(seconds: 10),
     int maxRetries = 3,
+    int? maxFeatures,
   }) async {
     // Validate parameters
     if (timeout.inMilliseconds <= 0) {
@@ -60,6 +62,9 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
     }
     if (maxRetries < 0 || maxRetries > 10) {
       return Left(ApiError(message: 'maxRetries must be between 0 and 10'));
+    }
+    if (maxFeatures != null && (maxFeatures < 1 || maxFeatures > 2000)) {
+      return Left(ApiError(message: 'maxFeatures must be between 1 and 2000'));
     }
 
     final sw = bounds.southwest;
@@ -71,8 +76,8 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
       name: 'EffisBurntAreaService',
     );
 
-    // Build WFS URL
-    final url = _buildWfsUrl(bounds, seasonFilter);
+    // Build WFS URL with optional feature limit
+    final url = _buildWfsUrl(bounds, seasonFilter, maxFeatures: maxFeatures);
 
     developer.log(
       'EffisBurntAreaService: Request URL (domain only): ${Uri.parse(url).host}',
@@ -94,7 +99,14 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
         ).timeout(timeout);
 
         if (response.statusCode == 200) {
-          return _parseResponse(response.body);
+          // IMPORTANT: Use bodyBytes + utf8.decode instead of response.body
+          // The EFFIS server returns non-standard content-type header:
+          // "text/xml; subtype=gml/3.1.1; charset=UTF-8"
+          // The "/" in "gml/3.1.1" causes MediaType.parse() to fail with:
+          // "Invalid media type: expected no more input"
+          // Using bodyBytes bypasses the automatic encoding detection.
+          final bodyString = utf8.decode(response.bodyBytes);
+          return _parseResponse(bodyString);
         }
 
         // Check if retriable error
@@ -129,6 +141,28 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
           await _backoff(attempt);
           continue;
         }
+      } on http.ClientException catch (e) {
+        // Handle connection closed errors (large response, server timeout)
+        // and content-type parsing issues (EFFIS returns non-standard
+        // "text/xml; subtype=gml/3.1.1" which Dart's http parser rejects)
+        final message = e.message;
+        developer.log(
+          'EffisBurntAreaService: ClientException: $message',
+          name: 'EffisBurntAreaService',
+        );
+
+        // Connection closed is retriable (network instability, large payload)
+        if (message.contains('Connection closed')) {
+          lastError = ApiError(message: 'Connection interrupted: $message');
+          attempt++;
+          if (attempt <= maxRetries) {
+            await _backoff(attempt);
+            continue;
+          }
+        }
+
+        // Other ClientExceptions (e.g., media type parsing) are not retriable
+        return Left(ApiError(message: 'HTTP client error: $message'));
       } catch (e) {
         return Left(ApiError(message: 'Unexpected error: $e'));
       }
@@ -138,7 +172,15 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
   }
 
   /// Build WFS URL for burnt area query
-  String _buildWfsUrl(LatLngBounds bounds, BurntAreaSeasonFilter seasonFilter) {
+  ///
+  /// [maxFeatures] limits the number of features returned to prevent
+  /// large responses that timeout on mobile networks. The EFFIS server
+  /// returns ~4KB per feature (GML polygon data).
+  String _buildWfsUrl(
+    LatLngBounds bounds,
+    BurntAreaSeasonFilter seasonFilter, {
+    int? maxFeatures,
+  }) {
     final sw = bounds.southwest;
     final ne = bounds.northeast;
 
@@ -150,7 +192,7 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
     // WFS 1.1.0 GetFeature request
     // Season layers are pre-filtered by EFFIS - no CQL_FILTER needed
     // CRITICAL: Use GML3 format - JSON fails silently with bbox filters!
-    return '$_baseUrl?'
+    final baseUrl = '$_baseUrl?'
         'service=WFS&'
         'version=1.1.0&'
         'request=GetFeature&'
@@ -158,6 +200,12 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
         'outputFormat=GML3&'
         'srsName=EPSG:4326&'
         'bbox=${sw.latitude},${sw.longitude},${ne.latitude},${ne.longitude},EPSG:4326';
+
+    // Add maxFeatures limit if specified (prevents mobile network timeouts)
+    if (maxFeatures != null) {
+      return '$baseUrl&maxFeatures=$maxFeatures';
+    }
+    return baseUrl;
   }
 
   /// Parse GML3 response to list of burnt areas

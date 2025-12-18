@@ -482,9 +482,20 @@ class MapController extends ChangeNotifier {
 
     // Try live service first if available AND live data is enabled
     if (FeatureFlags.mapLiveData && _burntAreaService != null) {
+      // Use maxFeatures to prevent mobile network timeouts on large responses:
+      // - lastSeason: ALWAYS limit to 100 (historical data is larger, less time-critical)
+      // - thisSeason at low zoom (overview): limit to 100 (~400KB response)
+      // - thisSeason at high zoom (detail): no limit (smaller bbox = fewer features)
+      final int? maxFeatures =
+          _burntAreaSeasonFilter == BurntAreaSeasonFilter.lastSeason
+              ? 100
+              : (_currentZoom < 9.0 ? 100 : null);
+
       final result = await _burntAreaService!.getBurntAreas(
         bounds: _currentBounds!,
         seasonFilter: _burntAreaSeasonFilter,
+        maxFeatures: maxFeatures,
+        timeout: const Duration(seconds: 15), // Longer timeout for polygon data
       );
 
       final success = result.fold(

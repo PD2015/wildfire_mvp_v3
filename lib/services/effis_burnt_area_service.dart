@@ -41,6 +41,11 @@ abstract class EffisBurntAreaService {
   /// Privacy:
   /// - All coordinate logging limited to 2 decimal places (C2 compliance)
   ///
+  /// Response Size Management:
+  /// - maxFeatures parameter limits WFS response to prevent mobile network timeouts
+  /// - Recommended: 100 for overview zooms, null for detailed zooms
+  /// - Response scales ~4KB per feature (polygon GML data)
+  ///
   /// Example:
   /// ```dart
   /// final service = EffisBurntAreaServiceImpl(httpClient: http.Client());
@@ -50,6 +55,7 @@ abstract class EffisBurntAreaService {
   ///     northeast: LatLng(61.0, 0.0),
   ///   ),
   ///   seasonFilter: BurntAreaSeasonFilter.thisSeason,
+  ///   maxFeatures: 100, // Limit for mobile reliability
   /// );
   ///
   /// result.fold(
@@ -62,5 +68,6 @@ abstract class EffisBurntAreaService {
     required BurntAreaSeasonFilter seasonFilter,
     Duration timeout = const Duration(seconds: 10),
     int maxRetries = 3,
+    int? maxFeatures,
   });
 }
