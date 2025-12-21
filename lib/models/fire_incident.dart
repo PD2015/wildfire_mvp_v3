@@ -2,6 +2,17 @@ import 'package:equatable/equatable.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 
+/// Type of fire data for mode-based filtering
+///
+/// Used to distinguish hotspots from burnt areas in mock/cached data.
+enum FireType {
+  /// Active fire hotspot (VIIRS satellite detection)
+  hotspot,
+
+  /// Historical burnt area polygon (MODIS confirmed)
+  burntArea,
+}
+
 /// Fire incident data model for map markers and polygon overlays
 ///
 /// Represents active fire or burnt area incident from EFFIS WFS,
@@ -18,6 +29,12 @@ class FireIncident extends Equatable {
   final String intensity; // "low" | "moderate" | "high"
   final String? description;
   final double? areaHectares;
+
+  // Fire type for mode-based filtering (hotspot vs burnt area)
+  final FireType fireType;
+
+  // Season year for burnt area filtering (e.g., 2025, 2024)
+  final int? seasonYear;
 
   // Polygon boundary for burnt area visualization (Phase 1: A11)
   // null = point marker only, non-empty = render polygon overlay
@@ -39,6 +56,9 @@ class FireIncident extends Equatable {
     required this.freshness,
     required this.timestamp,
     required this.intensity,
+    this.fireType =
+        FireType.burntArea, // Default to burnt area for backward compatibility
+    this.seasonYear,
     DateTime? detectedAt,
     String? sensorSource,
     this.description,
@@ -60,6 +80,8 @@ class FireIncident extends Equatable {
     Freshness freshness = Freshness.live,
     DateTime? timestamp,
     String intensity = 'moderate',
+    FireType fireType = FireType.burntArea,
+    int? seasonYear,
     DateTime? detectedAt,
     String sensorSource = 'VIIRS',
     String? description,
@@ -77,6 +99,8 @@ class FireIncident extends Equatable {
       freshness: freshness,
       timestamp: timestamp ?? now,
       intensity: intensity,
+      fireType: fireType,
+      seasonYear: seasonYear,
       detectedAt: detectedAt ?? now,
       sensorSource: sensorSource,
       description: description,
@@ -228,12 +252,45 @@ class FireIncident extends Equatable {
     final areaHa =
         properties['area_ha'] as num? ?? properties['areaHectares'] as num?;
 
+    // Parse fire type - determines if hotspot or burnt area
+    // Points without boundaries are hotspots, polygons are burnt areas
+    FireType fireType;
+    if (properties.containsKey('fire_type')) {
+      final typeStr = properties['fire_type'].toString().toLowerCase();
+      fireType = typeStr == 'hotspot' ? FireType.hotspot : FireType.burntArea;
+    } else {
+      // Infer from geometry: points are hotspots, polygons are burnt areas
+      fireType = boundaryPoints != null ? FireType.burntArea : FireType.hotspot;
+    }
+
+    // Parse season year for burnt area filtering
+    int? seasonYear;
+    if (properties.containsKey('year')) {
+      seasonYear = properties['year'] as int?;
+    } else if (properties.containsKey('season_year')) {
+      seasonYear = properties['season_year'] as int?;
+    } else {
+      // Try to extract from timestamp/firedate
+      final dateStr = properties['timestamp']?.toString() ??
+          properties['firedate']?.toString();
+      if (dateStr != null) {
+        try {
+          seasonYear = DateTime.parse(dateStr).year;
+        } catch (_) {
+          // Fallback to current year
+          seasonYear = DateTime.now().year;
+        }
+      }
+    }
+
     return FireIncident(
       id: json['id']?.toString() ?? properties['fid']?.toString() ?? 'unknown',
       location: LatLng(lat, lon),
       boundaryPoints: boundaryPoints,
       source: DataSource.effis, // Will be overridden by service layer
       freshness: Freshness.live,
+      fireType: fireType,
+      seasonYear: seasonYear,
       timestamp: DateTime.parse(
         properties['timestamp']?.toString() ??
             properties['lastupdate']?.toString() ??
@@ -273,6 +330,8 @@ class FireIncident extends Equatable {
       'freshness': freshness.toString().split('.').last,
       'timestamp': timestamp.toIso8601String(),
       'intensity': intensity,
+      'fireType': fireType.toString().split('.').last,
+      'seasonYear': seasonYear,
       'description': description,
       'areaHectares': areaHectares,
       'boundaryPoints': boundaryPoints
@@ -302,6 +361,15 @@ class FireIncident extends Equatable {
           .toList();
     }
 
+    // Parse fireType with fallback
+    FireType fireType = FireType.burntArea;
+    if (json['fireType'] != null) {
+      final typeStr = json['fireType'].toString().toLowerCase();
+      fireType = typeStr == 'hotspot' ? FireType.hotspot : FireType.burntArea;
+    } else if (boundaryPoints == null) {
+      fireType = FireType.hotspot; // Infer from geometry
+    }
+
     return FireIncident(
       id: json['id'] as String,
       location: LatLng(
@@ -319,6 +387,8 @@ class FireIncident extends Equatable {
       ),
       timestamp: DateTime.parse(json['timestamp'] as String),
       intensity: json['intensity'] as String,
+      fireType: fireType,
+      seasonYear: json['seasonYear'] as int?,
       description: json['description'] as String?,
       areaHectares: json['areaHectares'] as double?,
       detectedAt: DateTime.parse(json['detectedAt'] as String).toUtc(),
@@ -339,6 +409,8 @@ class FireIncident extends Equatable {
     Freshness? freshness,
     DateTime? timestamp,
     String? intensity,
+    FireType? fireType,
+    int? seasonYear,
     String? description,
     double? areaHectares,
     List<LatLng>? boundaryPoints,
@@ -355,6 +427,8 @@ class FireIncident extends Equatable {
       freshness: freshness ?? this.freshness,
       timestamp: timestamp ?? this.timestamp,
       intensity: intensity ?? this.intensity,
+      fireType: fireType ?? this.fireType,
+      seasonYear: seasonYear ?? this.seasonYear,
       description: description ?? this.description,
       areaHectares: areaHectares ?? this.areaHectares,
       boundaryPoints: boundaryPoints ?? this.boundaryPoints,
@@ -374,6 +448,8 @@ class FireIncident extends Equatable {
         freshness,
         timestamp,
         intensity,
+        fireType,
+        seasonYear,
         description,
         areaHectares,
         boundaryPoints,

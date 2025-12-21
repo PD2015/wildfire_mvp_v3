@@ -31,30 +31,27 @@ import 'package:dartz/dartz.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/models/api_error.dart';
-import 'package:wildfire_mvp_v3/models/fire_incident.dart';
-import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
-import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
+
+import '../helpers/mock_hotspot_orchestrator.dart';
 
 void main() {
   group('Performance Tests - MapScreen', () {
     late MockLocationResolver mockLocationResolver;
-    late MockFireLocationService mockFireLocationService;
     late MockFireRiskService mockFireRiskService;
     late MapController mapController;
 
     setUp(() {
       mockLocationResolver = MockLocationResolver();
-      mockFireLocationService = MockFireLocationService();
       mockFireRiskService = MockFireRiskService();
 
       mapController = MapController(
         locationResolver: mockLocationResolver,
-        fireLocationService: mockFireLocationService,
         fireRiskService: mockFireRiskService,
+        hotspotOrchestrator: MockHotspotOrchestrator(),
       );
     });
 
@@ -163,48 +160,6 @@ class MockLocationResolver implements LocationResolver {
   @override
   Future<(LatLng, String?)?> loadCachedManualLocation() async {
     return null; // No cached location for performance tests
-  }
-}
-
-class MockFireLocationService implements FireLocationService {
-  List<FireIncident> _incidents = [
-    FireIncident(
-      id: 'mock_fire_001',
-      location: const LatLng(55.9533, -3.1883),
-      source: DataSource.mock,
-      freshness: Freshness.mock,
-      timestamp: DateTime.now(),
-      intensity: 'moderate',
-    ),
-    FireIncident(
-      id: 'mock_fire_002',
-      location: const LatLng(55.8642, -4.2518),
-      source: DataSource.mock,
-      freshness: Freshness.mock,
-      timestamp: DateTime.now(),
-      intensity: 'high',
-    ),
-    FireIncident(
-      id: 'mock_fire_003',
-      location: const LatLng(57.1497, -2.0943),
-      source: DataSource.mock,
-      freshness: Freshness.mock,
-      timestamp: DateTime.now(),
-      intensity: 'low',
-    ),
-  ];
-
-  void setIncidents(List<FireIncident> incidents) {
-    _incidents = incidents;
-  }
-
-  @override
-  Future<Either<ApiError, List<FireIncident>>> getActiveFires(
-    LatLngBounds bounds,
-  ) async {
-    // Simulate network delay (typical: 200-500ms for mock)
-    await Future.delayed(const Duration(milliseconds: 50));
-    return Right(_incidents);
   }
 }
 

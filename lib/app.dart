@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'config/feature_flags.dart';
 import 'content/legal_content.dart';
 import 'controllers/home_controller.dart';
 import 'models/consent_record.dart';
@@ -27,8 +29,13 @@ import 'features/help/screens/about_help_screen.dart';
 import 'features/help/content/help_content.dart';
 import 'services/location_resolver.dart';
 import 'services/location_state_manager.dart';
-import 'services/fire_location_service.dart';
 import 'services/fire_risk_service.dart';
+import 'services/hotspot_service_orchestrator.dart';
+import 'services/firms_hotspot_service.dart';
+import 'services/gwis_wms_hotspot_service.dart';
+import 'services/mock_gwis_hotspot_service.dart';
+import 'services/effis_burnt_area_service_impl.dart';
+import 'services/cached_burnt_area_service.dart';
 import 'services/onboarding_prefs.dart';
 import 'services/onboarding_prefs_impl.dart';
 import 'theme/wildfire_a11y_theme.dart';
@@ -48,7 +55,6 @@ class WildFireApp extends StatelessWidget {
   /// Home controller with injected services
   final HomeController homeController;
   final LocationResolver locationResolver;
-  final FireLocationService fireLocationService;
   final FireRiskService fireRiskService;
   final SharedPreferences prefs;
 
@@ -72,7 +78,6 @@ class WildFireApp extends StatelessWidget {
     super.key,
     required this.homeController,
     required this.locationResolver,
-    required this.fireLocationService,
     required this.fireRiskService,
     required this.prefs,
     this.what3wordsService,
@@ -367,11 +372,41 @@ class WildFireApp extends StatelessWidget {
             path: '/map',
             name: 'map',
             builder: (context, state) {
-              // Create MapController with required services
+              // Create HTTP client for fire data services
+              final httpClient = http.Client();
+
+              // Create hotspot services for orchestrator fallback chain
+              // FIRMS is primary (if API key available), GWIS WMS is fallback
+              final firmsService = FeatureFlags.hasFirmsKey
+                  ? FirmsHotspotService(
+                      apiKey: FeatureFlags.firmsApiKey,
+                      httpClient: httpClient,
+                    )
+                  : null;
+              final gwisService = GwisWmsHotspotService(httpClient: httpClient);
+              final mockService = MockHotspotService();
+
+              // Create orchestrator: FIRMS → GWIS WMS → Mock
+              final hotspotOrchestrator = HotspotServiceOrchestrator(
+                firmsService: firmsService,
+                gwisService: gwisService,
+                mockService: mockService,
+              );
+
+              // Burnt area service with caching for historical data
+              // 2024 data is bundled as asset, 2025+ fetched live
+              final liveService =
+                  EffisBurntAreaServiceImpl(httpClient: httpClient);
+              final burntAreaService = CachedBurntAreaService(
+                liveService: liveService,
+              );
+
+              // Create MapController with orchestrator
               final mapController = MapController(
                 locationResolver: locationResolver,
-                fireLocationService: fireLocationService,
                 fireRiskService: fireRiskService,
+                hotspotOrchestrator: hotspotOrchestrator,
+                burntAreaService: burntAreaService,
               );
               return MapScreen(controller: mapController);
             },

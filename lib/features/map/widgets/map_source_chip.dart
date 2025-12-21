@@ -1,12 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
-import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 
 /// MapSourceChip displays the data source and freshness indicator
 ///
 /// Shows where the fire data is coming from (EFFIS/SEPA/Cache/Mock)
-/// and when it was last updated. Displays prominent "Demo Data" chip
-/// when MAP_LIVE_DATA=false for user transparency (T019, C4).
+/// and when it was last updated. Displays prominent indicator chips:
+/// - "DEMO DATA" when in demo mode (tappable to switch to live)
+/// - "OFFLINE" when live mode enabled but API failed
+/// - "LIVE DATA" when successfully fetching live data (tappable to switch to demo)
+/// - "CACHED" when displaying cached data (distinct from live)
+///
+/// **Interactive Mode**: When `onTap` is provided, the chip becomes tappable
+/// allowing users to toggle between live and demo data modes. A small toggle
+/// icon appears to indicate interactivity.
+///
+/// **Styling**: Uses Material 3 ColorScheme tokens from theme:
+/// - Demo/Offline: tertiaryContainer (amber) for warning states
+/// - Live: primaryContainer (forest green) for active/healthy states
+/// - Cached: secondaryContainer (mint) for stale/cached states
 ///
 /// Constitutional compliance:
 /// - C3: Accessible with semantic labels and ≥44dp touch targets
@@ -15,136 +26,174 @@ import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 class MapSourceChip extends StatelessWidget {
   final Freshness source;
   final DateTime lastUpdated;
+  final bool isOffline;
+
+  /// Optional callback when chip is tapped (for live/demo toggle)
+  /// When provided, shows a toggle indicator on the chip
+  final VoidCallback? onTap;
 
   const MapSourceChip({
     super.key,
     required this.source,
     required this.lastUpdated,
+    this.isOffline = false,
+    this.onTap,
   });
-
-  IconData _getSourceIcon() {
-    switch (source) {
-      case Freshness.live:
-        return Icons.cloud_done;
-      case Freshness.cached:
-        return Icons.cached;
-      case Freshness.mock:
-        return Icons.science;
-    }
-  }
-
-  Color _getSourceColor(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    switch (source) {
-      case Freshness.live:
-        return colorScheme.primary;
-      case Freshness.cached:
-        return colorScheme.tertiary;
-      case Freshness.mock:
-        return colorScheme.secondary;
-    }
-  }
-
-  String _getSourceLabel() {
-    switch (source) {
-      case Freshness.live:
-        return 'LIVE';
-      case Freshness.cached:
-        return 'CACHED';
-      case Freshness.mock:
-        return 'MOCK';
-    }
-  }
-
-  String _formatTimestamp() {
-    final now = DateTime.now();
-    final difference = now.difference(lastUpdated);
-
-    if (difference.inMinutes < 1) {
-      return 'Just now';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
-    } else {
-      return '${difference.inDays}d ago';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    // Show prominent "Demo Data" chip when using mock data in development mode
-    final bool isDemoMode =
-        !FeatureFlags.mapLiveData && source == Freshness.mock;
+    final scheme = Theme.of(context).colorScheme;
 
-    if (isDemoMode) {
-      // High-contrast amber chip for visibility against map (T-V1)
-      // Same styling for both light and dark themes
+    // Show prominent warning chip in four scenarios:
+    // 1. Offline: Live mode but API failed (no data available)
+    // 2. Demo mode: Deliberate testing mode with mock data
+    // 3. Live mode: Successfully fetching live data
+    // 4. Cached mode: Displaying cached data (stale but valid)
+
+    // Offline state: Live mode enabled but API failed - no data shown
+    // Not tappable when offline (need retry, not mode switch)
+    if (isOffline) {
       return Semantics(
-        label: 'Demo Data - For testing purposes only',
+        label:
+            'Offline - Unable to fetch live fire data. Tap retry to try again.',
         child: Chip(
-          avatar: const Icon(
-            Icons.science_outlined,
-            size: 20,
-            color: Color(0xFF111111), // BrandPalette.onLightHigh
+          visualDensity: VisualDensity.compact,
+          avatar: Icon(
+            Icons.cloud_off,
+            size: 16,
+            color: scheme.onTertiaryContainer,
           ),
           label: Text(
-            'DEMO DATA',
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+            'OFFLINE',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF111111), // BrandPalette.onLightHigh
-                  letterSpacing: 1.2,
+                  color: scheme.onTertiaryContainer,
+                  letterSpacing: 1.0,
                 ),
           ),
-          backgroundColor: const Color(0xFFF5A623), // BrandPalette.amber500
-          side: const BorderSide(
-            color: Color(0xFFE59414), // BrandPalette.amber600 (darker border)
-            width: 2,
+          backgroundColor: scheme.tertiaryContainer,
+          side: BorderSide(
+            color: scheme.tertiary,
+            width: 1.5,
           ),
-          elevation: 6,
-          shadowColor:
-              Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),
+          elevation: 4,
+          shadowColor: scheme.shadow.withValues(alpha: 0.3),
         ),
       );
     }
 
-    // Standard source chip for live/cached data
-    final sourceColor = _getSourceColor(context);
-    return Semantics(
-      label: 'Data source: ${_getSourceLabel()}, updated ${_formatTimestamp()}',
-      child: Chip(
-        avatar: Icon(
-          _getSourceIcon(),
-          size: 16,
-          color: sourceColor,
-        ),
-        label: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              _getSourceLabel(),
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: sourceColor,
-                  ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              _formatTimestamp(),
-              style: Theme.of(
-                context,
-              ).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+    // Demo mode: Showing mock data for testing
+    if (source == Freshness.mock) {
+      return _buildTappableChip(
+        context: context,
+        label: 'DEMO DATA',
+        icon: Icons.science_outlined,
+        backgroundColor: scheme.tertiaryContainer,
+        borderColor: scheme.tertiary,
+        textColor: scheme.onTertiaryContainer,
+        semanticLabel: onTap != null
+            ? 'Demo Data mode - Tap to switch to Live Data'
+            : 'Demo Data - For testing purposes only',
+      );
+    }
+
+    // Cached mode: Displaying cached data (stale but valid)
+    if (source == Freshness.cached) {
+      return _buildTappableChip(
+        context: context,
+        label: 'CACHED',
+        icon: Icons.cached,
+        backgroundColor: scheme.secondaryContainer,
+        borderColor: scheme.secondary,
+        textColor: scheme.onSecondaryContainer,
+        semanticLabel: onTap != null
+            ? 'Cached Data mode - Tap to switch to Demo Data'
+            : 'Cached Data - Displaying previously fetched data',
+      );
+    }
+
+    // Live mode: Successfully fetching live data
+    return _buildTappableChip(
+      context: context,
+      label: 'LIVE DATA',
+      icon: Icons.cloud_done,
+      backgroundColor: scheme.primaryContainer,
+      borderColor: scheme.primary,
+      textColor: scheme.onPrimaryContainer,
+      semanticLabel: onTap != null
+          ? 'Live Data mode - Tap to switch to Demo Data'
+          : 'Live Data - Fetching real-time fire data',
+    );
+  }
+
+  /// Build a chip that can optionally be tapped to toggle data mode
+  Widget _buildTappableChip({
+    required BuildContext context,
+    required String label,
+    required IconData icon,
+    required Color backgroundColor,
+    required Color borderColor,
+    required Color textColor,
+    required String semanticLabel,
+  }) {
+    final chip = Chip(
+      visualDensity: VisualDensity.compact,
+      labelPadding: const EdgeInsets.only(left: 4, right: 2),
+      avatar: Icon(
+        icon,
+        size: 16,
+        color: textColor,
+      ),
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                  letterSpacing: 1.0,
+                ),
+          ),
+          // Show toggle icon when tappable
+          if (onTap != null) ...[
+            const SizedBox(width: 4),
+            Icon(
+              Icons.swap_horiz,
+              size: 14,
+              color: textColor.withValues(alpha: 0.7),
             ),
           ],
-        ),
-        backgroundColor: sourceColor.withValues(alpha: 0.1),
-        side: BorderSide(color: sourceColor, width: 1),
-        elevation: 4,
-        shadowColor:
-            Theme.of(context).colorScheme.shadow.withValues(alpha: 0.2),
+        ],
       ),
+      backgroundColor: backgroundColor,
+      side: BorderSide(
+        color: borderColor,
+        width: 1.5,
+      ),
+      elevation: 4,
+      shadowColor: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),
+    );
+
+    // Wrap in tappable widget if callback provided
+    if (onTap != null) {
+      return Semantics(
+        label: semanticLabel,
+        button: true,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(8),
+            child: chip,
+          ),
+        ),
+      );
+    }
+
+    return Semantics(
+      label: semanticLabel,
+      child: chip,
     );
   }
 }

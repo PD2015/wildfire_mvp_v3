@@ -1,0 +1,88 @@
+# Weekly Burnt Area Bundle Update
+# Fetches latest burnt area data from EFFIS and creates a PR for review
+#
+# Schedule: Every Monday at 6:00 AM UTC
+# Manual trigger: workflow_dispatch
+
+name: Update Burnt Area Bundles
+
+on:
+  schedule:
+    # Run every Monday at 6:00 AM UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force update even if data unchanged'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  EFFIS_BASE_URL: https://maps.effis.emergency.copernicus.eu/effis
+
+jobs:
+  update-bundles:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Fetch burnt area data
+        id: fetch
+        run: |
+          python scripts/fetch_burnt_areas.py
+        env:
+          CURRENT_YEAR: ${{ github.event.inputs.force_update == 'true' && 'force' || '' }}
+
+      - name: Check for changes
+        id: changes
+        run: |
+          git diff --quiet assets/cache/burnt_areas_*.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        if: steps.changes.outputs.changed == 'true' || github.event.inputs.force_update == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore(data): update burnt area bundles'
+          title: '🔥 Weekly Burnt Area Bundle Update'
+          body: |
+            ## Automated Burnt Area Bundle Update
+
+            This PR updates the burnt area data bundles from EFFIS.
+
+            ### Changes
+            - Updated `burnt_areas_${{ steps.fetch.outputs.current_year }}_uk.json`
+            - Updated `burnt_areas_${{ steps.fetch.outputs.previous_year }}_uk.json`
+
+            ### Data Source
+            - **API**: EFFIS WFS (maps.effis.emergency.copernicus.eu)
+            - **Format**: GML3 → JSON conversion
+            - **Region**: UK bounding box
+
+            ### Review Checklist
+            - [ ] Bundle files are valid JSON
+            - [ ] Feature counts are reasonable
+            - [ ] generatedAt timestamps are current
+
+            ---
+            *This PR was automatically created by the weekly burnt area update workflow.*
+          branch: chore/update-burnt-area-bundles
+          delete-branch: true
+          labels: |
+            automated
+            data-update

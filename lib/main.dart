@@ -15,11 +15,6 @@ import 'services/location_resolver_impl.dart';
 import 'services/contracts/service_contracts.dart' as contracts;
 import 'services/effis_service_impl.dart';
 import 'services/mock_service.dart';
-import 'services/fire_location_service.dart';
-import 'services/fire_location_service_impl.dart';
-import 'services/mock_fire_service.dart';
-import 'services/fire_incident_cache.dart';
-import 'services/cache/fire_incident_cache_impl.dart';
 
 // Location picker services (A15 - what3words and geocoding)
 import 'features/location_picker/services/what3words_service.dart';
@@ -93,7 +88,6 @@ void main() async {
 class ServiceContainer {
   final LocationResolver locationResolver;
   final FireRiskService fireRiskService;
-  final FireLocationService fireLocationService;
   final What3wordsService? what3wordsService;
   final GeocodingService? geocodingService;
   final SharedPreferences prefs;
@@ -101,7 +95,6 @@ class ServiceContainer {
   ServiceContainer({
     required this.locationResolver,
     required this.fireRiskService,
-    required this.fireLocationService,
     required this.prefs,
     this.what3wordsService,
     this.geocodingService,
@@ -153,20 +146,8 @@ Future<ServiceContainer> _initializeServices() async {
     // TODO: Add cache service when implemented
   );
 
-  // Initialize cache service for fire incidents (T018)
-  // Note: SharedPreferences already initialized at top of function
-  final FireIncidentCache fireIncidentCache = FireIncidentCacheImpl(
-    prefs: prefs,
-  );
-
-  // Initialize fire location service (A10 - EFFIS WFS + Cache + Mock fallback)
-  final mockFireService = MockFireService();
-  final FireLocationService fireLocationService = FireLocationServiceImpl(
-    effisService: effisServiceImpl,
-    cache: fireIncidentCache,
-    mockService: mockFireService,
-    // TODO: Add SEPA service when implemented (T017)
-  );
+  // NOTE: FireLocationService removed - MapController now uses GwisHotspotService
+  // and EffisBurntAreaService directly for fire data (021-live-fire-data refactor)
 
   // Initialize what3words service (A15 - optional, requires API key)
   What3wordsService? what3wordsService;
@@ -201,7 +182,6 @@ Future<ServiceContainer> _initializeServices() async {
   return ServiceContainer(
     locationResolver: locationResolver,
     fireRiskService: fireRiskService,
-    fireLocationService: fireLocationService,
     prefs: prefs,
     what3wordsService: what3wordsService,
     geocodingService: geocodingService,
@@ -250,7 +230,6 @@ class _WildFireAppRootState extends State<WildFireAppRoot>
     return WildFireApp(
       homeController: widget.homeController,
       locationResolver: widget.services.locationResolver,
-      fireLocationService: widget.services.fireLocationService,
       fireRiskService: widget.services.fireRiskService,
       prefs: widget.services.prefs,
       what3wordsService: widget.services.what3wordsService,

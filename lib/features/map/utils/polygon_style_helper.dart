@@ -3,13 +3,13 @@ import 'package:wildfire_mvp_v3/theme/risk_palette.dart';
 
 /// Helper utility for styling burnt area polygons on the map
 ///
-/// Provides consistent styling for polygon overlays based on fire intensity.
-/// Uses RiskPalette colors with opacity adjustments for fill vs stroke.
+/// Provides consistent styling for polygon overlays.
+/// All burnt areas are displayed in a single red color for clarity.
 ///
 /// Usage:
 /// ```dart
-/// final fillColor = PolygonStyleHelper.getFillColor('high');
-/// final strokeColor = PolygonStyleHelper.getStrokeColor('high');
+/// final fillColor = PolygonStyleHelper.burntAreaFillColor;
+/// final strokeColor = PolygonStyleHelper.burntAreaStrokeColor;
 /// ```
 class PolygonStyleHelper {
   /// Default fill opacity for polygon overlays (35% for map visibility)
@@ -21,35 +21,29 @@ class PolygonStyleHelper {
   /// Minimum zoom level to display polygons (too small at lower zooms)
   static const double minZoomForPolygons = 8.0;
 
+  /// Single red color for all burnt area fills (semi-transparent)
+  static Color get burntAreaFillColor =>
+      RiskPalette.veryHigh.withValues(alpha: fillOpacity);
+
+  /// Single red color for all burnt area strokes (opaque)
+  static Color get burntAreaStrokeColor => RiskPalette.veryHigh;
+
   /// Get the fill color for a given intensity level
   ///
-  /// Returns a semi-transparent color (35% opacity) for the polygon fill.
-  /// Falls back to gray for unknown intensities.
+  /// @deprecated Use [burntAreaFillColor] instead - all burnt areas now use single red color
+  /// Kept for backward compatibility during refactor.
   static Color getFillColor(String intensity) {
-    final baseColor = _getBaseColor(intensity);
-    return baseColor.withValues(alpha: fillOpacity);
+    // All burnt areas now use single red color (no intensity grading)
+    return burntAreaFillColor;
   }
 
   /// Get the stroke color for a given intensity level
   ///
-  /// Returns a fully opaque color for the polygon border.
-  /// Falls back to gray for unknown intensities.
+  /// @deprecated Use [burntAreaStrokeColor] instead - all burnt areas now use single red color
+  /// Kept for backward compatibility during refactor.
   static Color getStrokeColor(String intensity) {
-    return _getBaseColor(intensity);
-  }
-
-  /// Get the base color for intensity level using RiskPalette
-  static Color _getBaseColor(String intensity) {
-    switch (intensity.toLowerCase()) {
-      case 'high':
-        return RiskPalette.veryHigh; // Red
-      case 'moderate':
-        return RiskPalette.high; // Orange
-      case 'low':
-        return RiskPalette.low; // Green
-      default:
-        return RiskPalette.midGray; // Gray for unknown
-    }
+    // All burnt areas now use single red color (no intensity grading)
+    return burntAreaStrokeColor;
   }
 
   /// Check if polygons should be visible at the given zoom level

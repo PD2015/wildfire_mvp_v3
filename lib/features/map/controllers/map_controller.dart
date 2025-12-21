@@ -1,21 +1,39 @@
 import 'package:flutter/foundation.dart';
 import 'package:dartz/dartz.dart';
+import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart' as bounds;
-import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
+import 'package:wildfire_mvp_v3/models/fire_data_mode.dart';
+import 'package:wildfire_mvp_v3/models/hotspot.dart';
+import 'package:wildfire_mvp_v3/models/burnt_area.dart';
+import 'package:wildfire_mvp_v3/models/hotspot_cluster.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
+import 'package:wildfire_mvp_v3/services/hotspot_service_orchestrator.dart';
+import 'package:wildfire_mvp_v3/services/effis_burnt_area_service.dart';
+import 'package:wildfire_mvp_v3/services/mock_effis_burnt_area_service.dart';
+import 'package:wildfire_mvp_v3/services/mock_gwis_hotspot_service.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
-import 'package:wildfire_mvp_v3/config/feature_flags.dart';
+import 'package:wildfire_mvp_v3/features/map/utils/hotspot_clusterer.dart';
 
 /// MapController manages state for MapScreen
 ///
 /// Orchestrates location resolution, fire data fetching, and risk assessment.
+/// Extended with fire data mode support for 021-live-fire-data feature.
+///
+/// **Fallback Architecture**: Uses HotspotServiceOrchestrator which automatically
+/// falls back through: FIRMS (primary) → GWIS WMS (fallback) → Mock (offline).
+/// The `hotspotDataSource` indicates which service provided the current data.
 class MapController extends ChangeNotifier {
   final LocationResolver _locationResolver;
-  final FireLocationService _fireLocationService;
   final FireRiskService _fireRiskService;
+  final HotspotServiceOrchestrator _hotspotOrchestrator;
+  final EffisBurntAreaService? _burntAreaService;
+
+  // Fallback mock services (always available for MAP_LIVE_DATA=false)
+  late final MockEffisBurntAreaService _mockBurntAreaService;
+  late final MockHotspotService _mockHotspotService;
 
   MapState _state = const MapLoading();
 
@@ -26,7 +44,84 @@ class MapController extends ChangeNotifier {
   /// Whether a manual location is being used (from location picker)
   bool _isManualLocation = false;
 
+  // Fire data mode state (021-live-fire-data)
+  FireDataMode _fireDataMode = FireDataMode.hotspots;
+  HotspotTimeFilter _hotspotTimeFilter = HotspotTimeFilter.today;
+  BurntAreaSeasonFilter _burntAreaSeasonFilter =
+      BurntAreaSeasonFilter.thisSeason;
+
+  // Fire data collections
+  List<Hotspot> _hotspots = [];
+  List<BurntArea> _burntAreas = [];
+  List<HotspotCluster> _clusters = [];
+
+  // Zoom level for clustering decisions
+  double _currentZoom = 8.0;
+
+  // Whether live data is available or using mock fallback
+  bool _isUsingMockData = false;
+
+  // Which service provided the hotspot data (FIRMS, GWIS, or Mock)
+  HotspotDataSource _hotspotDataSource = HotspotDataSource.mock;
+
+  // Whether the app is offline (live API failed with MAP_LIVE_DATA=true)
+  // When offline, no data is shown rather than falling back to mock
+  bool _isOffline = false;
+
+  // Runtime toggle for live vs demo data mode
+  // Initialized from compile-time flag but can be toggled at runtime
+  // This allows testers to switch between live and demo data in the UI
+  bool _useLiveData = FeatureFlags.mapLiveData;
+
+  // Loading state for burnt area data fetches
+  // Used to show loading indicator in UI
+  bool _isFetchingBurntAreas = false;
+
+  // Timestamp of last successful data fetch
+  DateTime _lastUpdated = DateTime.now();
+
+  // Request counters for cancelling stale async requests
+  // When filter or mode changes, we increment these to invalidate in-flight requests
+  int _burntAreaRequestId = 0;
+  int _hotspotRequestId = 0;
+
   MapState get state => _state;
+
+  /// Whether there is fire data to display (mode-aware)
+  bool get hasFireData {
+    if (_fireDataMode == FireDataMode.hotspots) {
+      return _hotspots.isNotEmpty || _clusters.isNotEmpty;
+    } else {
+      return _burntAreas.isNotEmpty;
+    }
+  }
+
+  /// Count of fire data items currently displayed
+  int get fireDataCount {
+    if (_fireDataMode == FireDataMode.hotspots) {
+      return _hotspots.length;
+    } else {
+      return _burntAreas.length;
+    }
+  }
+
+  /// Get freshness based on mock data flag and offline state
+  ///
+  /// Returns:
+  /// - Freshness.live: Live API data successfully fetched
+  /// - Freshness.mock: Deliberate demo mode (MAP_LIVE_DATA=false)
+  /// - Freshness.cached: Future - cached live data when offline
+  Freshness get dataFreshness {
+    if (_isOffline) return Freshness.cached; // Indicates offline state
+    if (_isUsingMockData) return Freshness.mock;
+    return Freshness.live;
+  }
+
+  /// Whether the app is offline (live API failed with MAP_LIVE_DATA=true)
+  bool get isOffline => _isOffline;
+
+  /// Get last updated timestamp for current data
+  DateTime get lastUpdated => _lastUpdated;
 
   /// Get user's actual GPS location (for distance calculations)
   /// Returns null if GPS was unavailable during initialization
@@ -35,13 +130,59 @@ class MapController extends ChangeNotifier {
   /// Whether the current center is from a manual location selection
   bool get isManualLocation => _isManualLocation;
 
+  // Fire data mode getters
+  FireDataMode get fireDataMode => _fireDataMode;
+  HotspotTimeFilter get hotspotTimeFilter => _hotspotTimeFilter;
+  BurntAreaSeasonFilter get burntAreaSeasonFilter => _burntAreaSeasonFilter;
+  List<Hotspot> get hotspots => _hotspots;
+  List<BurntArea> get burntAreas => _burntAreas;
+  List<HotspotCluster> get clusters => _clusters;
+  bool get isUsingMockData => _isUsingMockData;
+
+  /// Whether burnt area data is currently being fetched
+  /// Used to show loading indicator in UI
+  bool get isFetchingBurntAreas => _isFetchingBurntAreas;
+
+  /// Which service provided the current hotspot data
+  HotspotDataSource get hotspotDataSource => _hotspotDataSource;
+
+  /// Whether live data mode is currently enabled
+  /// Can be toggled at runtime for testing purposes
+  bool get useLiveData => _useLiveData;
+
+  /// Toggle between live and demo data mode at runtime
+  /// Triggers a fresh data fetch with the new mode
+  void setUseLiveData(bool value) {
+    if (_useLiveData == value) return;
+    _useLiveData = value;
+    debugPrint(
+        '🗺️ MapController: Switched to ${value ? "LIVE" : "DEMO"} data mode');
+    // Clear current data and refresh with new mode
+    _hotspots = [];
+    _burntAreas = [];
+    _clusters = [];
+    _isOffline = false;
+    _isUsingMockData = !value;
+    notifyListeners();
+    // Fetch fresh data with new mode
+    if (_currentBounds != null) {
+      _fetchDataForCurrentMode();
+    }
+  }
+
   MapController({
     required LocationResolver locationResolver,
-    required FireLocationService fireLocationService,
     required FireRiskService fireRiskService,
+    required HotspotServiceOrchestrator hotspotOrchestrator,
+    EffisBurntAreaService? burntAreaService,
   })  : _locationResolver = locationResolver,
-        _fireLocationService = fireLocationService,
-        _fireRiskService = fireRiskService;
+        _fireRiskService = fireRiskService,
+        _hotspotOrchestrator = hotspotOrchestrator,
+        _burntAreaService = burntAreaService {
+    // Initialize mock services for MAP_LIVE_DATA=false direct use
+    _mockBurntAreaService = MockEffisBurntAreaService();
+    _mockHotspotService = MockHotspotService();
+  }
 
   /// Get test region coordinates based on TEST_REGION environment variable
   static LatLng _getTestRegionCenter() {
@@ -136,43 +277,23 @@ class MapController extends ChangeNotifier {
         ),
       );
 
-      // Step 3: Fetch fire incidents
-      debugPrint(
-        '🗺️ MapController: Fetching fires for bounds: SW(${mapBounds.southwest.latitude},${mapBounds.southwest.longitude}) NE(${mapBounds.northeast.latitude},${mapBounds.northeast.longitude})',
-      );
-      final firesResult = await _fireLocationService.getActiveFires(mapBounds);
+      // Store bounds and set initial success state
+      _currentBounds = mapBounds;
+      _lastUpdated = DateTime.now();
 
-      firesResult.fold(
-        (error) {
-          debugPrint(
-            '🗺️ MapController: Error loading fires: ${error.message}',
-          );
-          _state = MapError(
-            message: 'Failed to load fire data: ${error.message}',
-            lastKnownLocation: centerLocation,
-          );
-        },
-        (incidents) {
-          debugPrint(
-            '🗺️ MapController: Loaded ${incidents.length} fire incidents',
-          );
-          if (incidents.isNotEmpty) {
-            debugPrint(
-              '🗺️ MapController: First incident: ${incidents.first.description} at ${incidents.first.location.latitude},${incidents.first.location.longitude}',
-            );
-            debugPrint(
-              '🗺️ MapController: Freshness: ${incidents.first.freshness}, Source: ${incidents.first.source}',
-            );
-          }
-          _state = MapSuccess(
-            incidents: incidents,
-            centerLocation: centerLocation,
-            freshness:
-                incidents.isEmpty ? Freshness.live : incidents.first.freshness,
-            lastUpdated: DateTime.now(),
-          );
-        },
+      // Set success state with empty incidents (fire data comes from hotspots/burntAreas)
+      _state = MapSuccess(
+        incidents: const [], // Legacy field - no longer used for display
+        centerLocation: centerLocation,
+        freshness: Freshness.live, // Will be overridden by dataFreshness getter
+        lastUpdated: _lastUpdated,
       );
+
+      // Step 3: Fetch fire data for current mode (hotspots or burnt areas)
+      debugPrint(
+        '🗺️ MapController: Fetching fire data for bounds: SW(${mapBounds.southwest.latitude},${mapBounds.southwest.longitude}) NE(${mapBounds.northeast.latitude},${mapBounds.northeast.longitude})',
+      );
+      _fetchDataForCurrentMode();
 
       notifyListeners();
     } catch (e) {
@@ -185,37 +306,36 @@ class MapController extends ChangeNotifier {
   Future<void> refreshMapData(bounds.LatLngBounds visibleBounds) async {
     final previousState = _state;
 
+    // Store bounds for mode-specific data fetching
+    _currentBounds = visibleBounds;
+
     // DON'T set state to loading during viewport refresh - causes map widget unmount
     // Just fetch data in background and update markers when ready
 
     try {
-      final firesResult = await _fireLocationService.getActiveFires(
-        visibleBounds,
-      );
+      // Update last updated timestamp
+      _lastUpdated = DateTime.now();
 
-      firesResult.fold(
-        (error) {
-          // Preserve previous data if available
-          if (previousState is MapSuccess) {
-            _state = MapError(
-              message: 'Failed to refresh: ${error.message}',
-              cachedIncidents: previousState.incidents,
-              lastKnownLocation: previousState.centerLocation,
-            );
-          } else {
-            _state = MapError(message: 'Failed to refresh: ${error.message}');
-          }
-        },
-        (incidents) {
-          _state = MapSuccess(
-            incidents: incidents,
-            centerLocation: visibleBounds.center,
-            freshness:
-                incidents.isEmpty ? Freshness.live : incidents.first.freshness,
-            lastUpdated: DateTime.now(),
-          );
-        },
-      );
+      // Keep success state with current center
+      if (previousState is MapSuccess) {
+        _state = MapSuccess(
+          incidents: const [], // Legacy field - no longer used for display
+          centerLocation: visibleBounds.center,
+          freshness:
+              Freshness.live, // Will be overridden by dataFreshness getter
+          lastUpdated: _lastUpdated,
+        );
+      } else {
+        _state = MapSuccess(
+          incidents: const [],
+          centerLocation: visibleBounds.center,
+          freshness: Freshness.live,
+          lastUpdated: _lastUpdated,
+        );
+      }
+
+      // Fetch mode-specific data (hotspots or burnt areas)
+      _fetchDataForCurrentMode();
 
       notifyListeners();
     } catch (e) {
@@ -246,6 +366,360 @@ class MapController extends ChangeNotifier {
       return Left('Risk check error: $e');
     }
   }
+
+  // === Fire Data Mode Methods (021-live-fire-data) ===
+
+  /// Set the fire data display mode
+  ///
+  /// Clears data from the previous mode and triggers refetch for the new mode.
+  void setFireDataMode(FireDataMode mode) {
+    if (_fireDataMode == mode) return;
+
+    _fireDataMode = mode;
+
+    // Clear data from previous mode
+    if (mode == FireDataMode.hotspots) {
+      _burntAreas = [];
+    } else {
+      _hotspots = [];
+      _clusters = [];
+    }
+
+    // Fetch data for the new mode
+    _fetchDataForCurrentMode();
+
+    notifyListeners();
+  }
+
+  /// Set the hotspot time filter
+  ///
+  /// Only applicable when in hotspots mode. Triggers data refetch.
+  /// Clears existing data immediately to prevent showing stale data during fetch.
+  void setHotspotTimeFilter(HotspotTimeFilter filter) {
+    if (_hotspotTimeFilter == filter) return;
+
+    _hotspotTimeFilter = filter;
+    // Clear existing data immediately to prevent showing stale data
+    if (_fireDataMode == FireDataMode.hotspots) {
+      _hotspots = [];
+      _clusters = [];
+      _fetchHotspotsForCurrentBounds();
+    }
+    notifyListeners();
+  }
+
+  /// Set the burnt area season filter
+  ///
+  /// Only applicable when in burnt areas mode. Triggers data refetch.
+  /// Clears existing data immediately to prevent showing stale data during fetch.
+  void setBurntAreaSeasonFilter(BurntAreaSeasonFilter filter) {
+    if (_burntAreaSeasonFilter == filter) return;
+
+    _burntAreaSeasonFilter = filter;
+    // Clear existing data immediately to prevent showing stale data
+    if (_fireDataMode == FireDataMode.burntAreas) {
+      _burntAreas = [];
+      _fetchBurntAreasForCurrentBounds();
+    }
+    notifyListeners();
+  }
+
+  /// Current viewport bounds for data fetching
+  bounds.LatLngBounds? _currentBounds;
+
+  /// Update viewport bounds and fetch appropriate data
+  ///
+  /// Called when map viewport changes significantly.
+  void updateBounds(bounds.LatLngBounds newBounds) {
+    _currentBounds = newBounds;
+    _fetchDataForCurrentMode();
+  }
+
+  /// Fetch data for the current mode using current bounds
+  void _fetchDataForCurrentMode() {
+    if (_currentBounds == null) return;
+
+    if (_fireDataMode == FireDataMode.hotspots) {
+      _fetchHotspotsForCurrentBounds();
+    } else {
+      _fetchBurntAreasForCurrentBounds();
+    }
+  }
+
+  /// Fetch hotspots for current viewport
+  ///
+  /// **Behavior based on MAP_LIVE_DATA flag:**
+  /// - `MAP_LIVE_DATA=false`: Skip live APIs, use mock data directly (demo mode)
+  /// - `MAP_LIVE_DATA=true`: Try FIRMS → GWIS WMS → show offline state if all fail
+  /// **Cancellation**: Uses request ID to discard stale results when filter changes.
+  Future<void> _fetchHotspotsForCurrentBounds() async {
+    if (_currentBounds == null) return;
+
+    // Increment request ID to invalidate any in-flight requests
+    final currentRequestId = ++_hotspotRequestId;
+
+    debugPrint(
+      '🗺️ MapController: Fetching hotspots for bounds '
+      'SW(${_currentBounds!.southwest.latitude.toStringAsFixed(2)},${_currentBounds!.southwest.longitude.toStringAsFixed(2)}) '
+      'NE(${_currentBounds!.northeast.latitude.toStringAsFixed(2)},${_currentBounds!.northeast.longitude.toStringAsFixed(2)}) '
+      'filter: ${_hotspotTimeFilter.name} '
+      'useLiveData: $_useLiveData',
+    );
+
+    // Demo mode: Skip all live APIs, use mock data directly
+    if (!_useLiveData) {
+      debugPrint('🗺️ MapController: MAP_LIVE_DATA=false, using mock hotspots');
+      final mockResult = await _mockHotspotService.getHotspots(
+        bounds: _currentBounds!,
+        timeFilter: _hotspotTimeFilter,
+      );
+
+      // Check if this request is still current
+      if (currentRequestId != _hotspotRequestId) {
+        debugPrint(
+          '🗺️ MapController: Discarding stale mock hotspot result (request $currentRequestId, current $_hotspotRequestId)',
+        );
+        return;
+      }
+
+      _hotspots = mockResult.getOrElse(() => []);
+      _hotspotDataSource = HotspotDataSource.mock;
+      _isUsingMockData = true;
+      _isOffline = false;
+
+      debugPrint(
+        '🗺️ MapController: Loaded ${_hotspots.length} hotspots from mock',
+      );
+      _reclusterHotspots();
+      notifyListeners();
+      return;
+    }
+
+    // MAP_LIVE_DATA=true: Use orchestrator for live API fallback chain
+    final result = await _hotspotOrchestrator.getHotspots(
+      bounds: _currentBounds!,
+      timeFilter: _hotspotTimeFilter,
+    );
+
+    // Check if this request is still current
+    if (currentRequestId != _hotspotRequestId) {
+      debugPrint(
+        '🗺️ MapController: Discarding stale hotspot result (request $currentRequestId, current $_hotspotRequestId)',
+      );
+      return;
+    }
+
+    _hotspots = result.hotspots;
+    _hotspotDataSource = result.source;
+    _isUsingMockData = result.isMockData;
+    _isOffline = false;
+
+    // If all live APIs failed (fell back to mock), show offline state instead
+    if (result.isMockData) {
+      debugPrint(
+        '🗺️ MapController: All live APIs failed, showing offline state',
+      );
+      _hotspots = [];
+      _clusters = [];
+      _isOffline = true;
+      _isUsingMockData = false;
+    } else {
+      debugPrint(
+        '🗺️ MapController: Loaded ${result.hotspots.length} hotspots from ${result.source.displayName}',
+      );
+      _reclusterHotspots();
+    }
+
+    notifyListeners();
+  }
+
+  /// Fetch burnt areas from EFFIS service for current viewport
+  ///
+  /// **Fallback**: If live EFFIS fails or service is null, falls back to mock data.
+  /// **Cancellation**: Uses request ID to discard stale results when filter changes.
+  Future<void> _fetchBurntAreasForCurrentBounds() async {
+    if (_currentBounds == null) return;
+
+    // Increment request ID to invalidate any in-flight requests
+    final currentRequestId = ++_burntAreaRequestId;
+
+    // Set loading state and notify UI
+    _isFetchingBurntAreas = true;
+    notifyListeners();
+
+    debugPrint(
+      '🗺️ MapController: Fetching burnt areas for bounds '
+      'SW(${_currentBounds!.southwest.latitude.toStringAsFixed(2)},${_currentBounds!.southwest.longitude.toStringAsFixed(2)}) '
+      'NE(${_currentBounds!.northeast.latitude.toStringAsFixed(2)},${_currentBounds!.northeast.longitude.toStringAsFixed(2)}) '
+      'filter: ${_burntAreaSeasonFilter.name} '
+      'useLiveData: $_useLiveData',
+    );
+
+    // Try live service first if available AND live data is enabled
+    if (_useLiveData && _burntAreaService != null) {
+      // Determine maxFeatures limit based on zoom and filter
+      // Service now uses smart sorting: thisSeason=DESC, lastSeason=ASC
+      // - thisSeason: Results sorted by date DESC, newest first, 2025 at top
+      // - lastSeason: Results sorted by date ASC, oldest first, 2024 before 2025
+      // Both can use same maxFeatures since target data is near the start
+      // - High zoom (detail): no limit (smaller bbox = fewer features anyway)
+      final int? maxFeatures;
+      if (_currentZoom >= 9.0) {
+        // At high zoom, bbox is small enough that we don't need limits
+        maxFeatures = null;
+      } else {
+        // Both season filters: 500 is enough since sorting ensures target year is first
+        maxFeatures = 500;
+      }
+
+      final result = await _burntAreaService!.getBurntAreas(
+        bounds: _currentBounds!,
+        seasonFilter: _burntAreaSeasonFilter,
+        maxFeatures: maxFeatures,
+        timeout: const Duration(seconds: 15), // Longer timeout for polygon data
+      );
+
+      // Check if this request is still current (not superseded by newer request)
+      if (currentRequestId != _burntAreaRequestId) {
+        debugPrint(
+          '🗺️ MapController: Discarding stale burnt area result (request $currentRequestId, current $_burntAreaRequestId)',
+        );
+        _isFetchingBurntAreas = false;
+        return;
+      }
+
+      final success = result.fold(
+        (error) {
+          debugPrint(
+            '🗺️ MapController: Live EFFIS failed: ${error.message}, falling back to mock',
+          );
+          return false;
+        },
+        (areas) {
+          debugPrint(
+            '🗺️ MapController: Loaded ${areas.length} burnt areas from live EFFIS',
+          );
+          _burntAreas = areas;
+          _isUsingMockData = false;
+          _isOffline = false;
+          return true;
+        },
+      );
+
+      if (success) {
+        _isFetchingBurntAreas = false;
+        notifyListeners();
+        return;
+      }
+    } else {
+      if (!_useLiveData) {
+        debugPrint('🗺️ MapController: Demo mode, using mock burnt areas');
+      } else {
+        debugPrint(
+            '🗺️ MapController: Burnt area service not available, using mock');
+      }
+    }
+
+    // Check again if this request is still current before setting fallback state
+    if (currentRequestId != _burntAreaRequestId) {
+      debugPrint(
+        '🗺️ MapController: Discarding stale burnt area fallback (request $currentRequestId, current $_burntAreaRequestId)',
+      );
+      _isFetchingBurntAreas = false;
+      return;
+    }
+
+    // Fallback behavior depends on live data mode
+    if (_useLiveData) {
+      // Option C: When live data expected but API failed, show offline state
+      // Don't fall back to mock - that would be misleading for safety-critical app
+      debugPrint(
+        '🗺️ MapController: Live API failed, showing offline state (no mock fallback)',
+      );
+      _burntAreas = [];
+      _isOffline = true;
+      _isUsingMockData = false;
+    } else {
+      // Demo mode: Fall back to mock service for development/testing
+      final mockResult = await _mockBurntAreaService.getBurntAreas(
+        bounds: _currentBounds!,
+        seasonFilter: _burntAreaSeasonFilter,
+      );
+
+      // Check once more after mock fetch
+      if (currentRequestId != _burntAreaRequestId) {
+        debugPrint(
+          '🗺️ MapController: Discarding stale mock burnt area result (request $currentRequestId, current $_burntAreaRequestId)',
+        );
+        _isFetchingBurntAreas = false;
+        return;
+      }
+
+      mockResult.fold(
+        (error) {
+          debugPrint(
+            '🗺️ MapController: Mock burnt area service also failed: ${error.message}',
+          );
+          _burntAreas = [];
+          _isUsingMockData = true;
+        },
+        (areas) {
+          debugPrint(
+            '🗺️ MapController: Loaded ${areas.length} burnt areas from mock',
+          );
+          _burntAreas = areas;
+          _isUsingMockData = true;
+          _isOffline = false;
+        },
+      );
+    }
+
+    _isFetchingBurntAreas = false;
+    notifyListeners();
+  }
+
+  /// Update current zoom level and recluster hotspots if needed
+  ///
+  /// Clustering radius is zoom-aware (like Mapbox Supercluster):
+  /// - At low zoom, clusters cover larger geographic areas
+  /// - At high zoom (>= 12), shows individual hotspots
+  /// - Reclusters when zoom changes significantly (by 0.5 or more)
+  void updateZoom(double zoom) {
+    final previousZoom = _currentZoom;
+    _currentZoom = zoom;
+
+    // Debug: log zoom level changes
+    debugPrint(
+        '🔍 Zoom: ${zoom.toStringAsFixed(1)} (clusters: ${zoom < HotspotClusterer.maxClusterZoom ? "ON" : "OFF"})');
+
+    // Recluster if zoom changed significantly (0.5 zoom levels)
+    // This balances responsiveness with performance
+    if ((zoom - previousZoom).abs() >= 0.5) {
+      _reclusterHotspots();
+    }
+  }
+
+  /// Recluster hotspots based on current zoom level
+  ///
+  /// Uses zoom-aware clustering where the radius in pixels stays constant
+  /// but the geographic coverage changes with zoom level.
+  void _reclusterHotspots() {
+    if (_fireDataMode != FireDataMode.hotspots) return;
+
+    // Always cluster with zoom-aware radius
+    // HotspotClusterer handles maxClusterZoom internally (zoom >= 12 = no clustering)
+    _clusters = HotspotClusterer.cluster(_hotspots, zoom: _currentZoom);
+
+    notifyListeners();
+  }
+
+  /// Whether to show clusters or individual hotspots based on zoom
+  ///
+  /// At zoom < 12: show cluster badges (for multi-hotspot clusters) and pins (for singles)
+  /// At zoom >= 12: show individual flame pins only
+  bool get shouldShowClusters =>
+      _fireDataMode == FireDataMode.hotspots &&
+      _currentZoom < HotspotClusterer.maxClusterZoom;
 
   @override
   void dispose() {

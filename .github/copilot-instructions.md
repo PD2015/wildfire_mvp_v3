@@ -196,6 +196,21 @@ replaces:
 **Full strategy**: See `docs/DOCUMENTATION_STRATEGY.md`
 
 ## Recent Changes
+- **Live Fire Data Display** (021-live-fire-data):
+  - Added `FireDataMode` enum (hotspots, burntAreas) for dual fire data layers
+  - Added `HotspotTimeFilter` enum (today, thisWeek) with GWIS layer name mapping
+  - Added `BurntAreaSeasonFilter` enum (thisSeason, lastSeason) with year calculation
+  - Created `Hotspot` model with FRP, confidence, intensity calculations
+  - Created `BurntArea` model with polygon boundary points, land cover, simplification tracking
+  - Created `HotspotCluster` view model for zoom-based clustering
+  - Implemented `GwisHotspotService` for VIIRS satellite hotspot data
+  - Implemented `EffisBurntAreaService` for MODIS burnt area polygons
+  - Extended `MapController` with mode/filter state and service integration
+  - Created `FireDataModeToggle` widget (SegmentedButton) per D1
+  - Created `HotspotTimeFilterChips`, `BurntAreaSeasonChips` per D2
+  - Added fallback behavior with `isUsingMockData` flag per D5
+  - 1471 tests total (14 fallback, 17 hotspot integration, 14 burnt area integration, 13 performance)
+  - See "Live Fire Data Patterns" section for implementation details
 - **Burnt Area Polygon Visualization** (A15, Issue #54):
   - Extended FireIncident model with `boundaryPoints: List<LatLng>?` for polygon boundaries
   - Added GeoJSON Polygon geometry parsing in `fromJson()` with validation (>= 3 points)
@@ -212,7 +227,6 @@ replaces:
   - Implemented trust-building UX: combination approach with icons, place names, positive framing
   - Comprehensive test coverage: 101 tests (21 LocationCard, 26 HomeState, 24 HomeController, 30 LocationUtils)
   - See "Location Tracking and Validation Patterns" section for implementation details
-- 016-016-a14-riskbanner: Added Dart 3.9.2, Flutter 3.35.5 stable + Flutter SDK, Material Design, existing RiskPalette, CachedBadge widge
 
 ## Utility Classes Reference
 
@@ -1077,6 +1091,212 @@ _logger.info('Cache stored for geohash: $geohash');
 
 // WRONG: Raw coordinates in cache logs
 _logger.info('Cached data for $lat, $lon'); // Violates C2 gate
+```
+
+## Live Fire Data Patterns
+
+### FireDataMode and Filters
+```dart
+// Mode determines which data layer is visible (mutually exclusive per D1)
+enum FireDataMode { hotspots, burntAreas }
+
+// Time filters per mode (D2)
+enum HotspotTimeFilter {
+  today,     // GWIS layer: viirs.hs.today (last 24h)
+  thisWeek,  // GWIS layer: viirs.hs.week (last 7 days)
+}
+
+enum BurntAreaSeasonFilter {
+  thisSeason,  // Current fire season year
+  lastSeason,  // Previous year
+}
+
+// Usage in MapController
+void setFireDataMode(FireDataMode mode) {
+  if (_fireDataMode == mode) return;
+  _fireDataMode = mode;
+
+  // Clear data from previous mode (D1: mutually exclusive)
+  if (mode == FireDataMode.hotspots) {
+    _burntAreas = [];
+  } else {
+    _hotspots = [];
+    _clusters = [];
+  }
+
+  _fetchDataForCurrentMode();
+  notifyListeners();
+}
+```
+
+### GwisHotspotService Usage
+```dart
+// Service interface with retry support
+abstract class GwisHotspotService {
+  Future<Either<ApiError, List<Hotspot>>> getHotspots({
+    required LatLngBounds bounds,
+    required HotspotTimeFilter timeFilter,
+    Duration timeout = const Duration(seconds: 8),
+    int maxRetries = 3,
+  });
+}
+
+// Hotspot model with intensity derived from FRP
+class Hotspot {
+  final String id;
+  final LatLng location;
+  final DateTime detectedAt;
+  final double frp;         // Fire Radiative Power in MW
+  final double confidence;  // 0-100%
+
+  String get intensity {
+    if (frp < 10) return 'low';
+    if (frp < 50) return 'moderate';
+    return 'high';
+  }
+}
+```
+
+### EffisBurntAreaService Usage
+```dart
+// Service interface for burnt area polygons
+abstract class EffisBurntAreaService {
+  Future<Either<ApiError, List<BurntArea>>> getBurntAreas({
+    required LatLngBounds bounds,
+    required BurntAreaSeasonFilter seasonFilter,
+    Duration timeout = const Duration(seconds: 10),
+    int maxRetries = 3,
+  });
+}
+
+// BurntArea model with polygon support
+class BurntArea {
+  final String id;
+  final List<LatLng> boundaryPoints;  // >= 3 points required
+  final double areaHectares;
+  final DateTime fireDate;
+  final int seasonYear;
+  final Map<String, double>? landCoverBreakdown;
+  final bool isSimplified;
+
+  LatLng get centroid => _calculateCentroid();
+  String get intensity {
+    if (areaHectares < 10) return 'low';
+    if (areaHectares < 100) return 'moderate';
+    return 'high';
+  }
+}
+```
+
+### Hotspot Clustering
+```dart
+// Cluster hotspots based on zoom level
+class HotspotCluster {
+  final String id;
+  final LatLng center;
+  final List<Hotspot> hotspots;
+  final LatLngBounds bounds;
+
+  int get count => hotspots.length;
+  String get aggregateIntensity {
+    if (hotspots.isEmpty) return 'low';
+    final maxFrp = hotspots.map((h) => h.frp).reduce(max);
+    if (maxFrp >= 50) return 'high';
+    if (maxFrp >= 10) return 'moderate';
+    return 'low';
+  }
+}
+
+// Clustering threshold: zoom < 10 shows clusters, zoom >= 10 shows squares
+bool get shouldShowClusters => _currentZoom < 10.0;
+```
+
+### Mock Data Fallback (D5)
+```dart
+// Controller tracks mock data state
+bool _isUsingMockData = false;
+
+Future<void> _fetchHotspotsForCurrentBounds() async {
+  final result = await _hotspotService!.getHotspots(...);
+
+  result.fold(
+    (error) {
+      debugPrint('Error fetching hotspots: ${error.message}');
+      _isUsingMockData = true;  // Flag for UI "Demo Data" chip
+    },
+    (hotspots) {
+      _hotspots = hotspots;
+      _isUsingMockData = false;
+      _reclusterHotspots();
+    },
+  );
+  notifyListeners();
+}
+
+// MapScreen shows DemoDataChip when isUsingMockData is true
+if (controller.isUsingMockData) {
+  MapSourceChip(source: Freshness.mock, ...);  // Shows "DEMO DATA"
+}
+```
+
+### Testing Fire Data Services
+```dart
+// Controllable mock for integration tests
+class ControllableMockGwisService implements GwisHotspotService {
+  Either<ApiError, List<Hotspot>>? _overrideResult;
+
+  void setHotspots(List<Hotspot> hotspots) {
+    _overrideResult = Right(hotspots);
+  }
+
+  void setError(ApiError error) {
+    _overrideResult = Left(error);
+  }
+
+  @override
+  Future<Either<ApiError, List<Hotspot>>> getHotspots({...}) async {
+    return _overrideResult ?? const Right([]);
+  }
+}
+
+// Test fallback behavior
+test('GWIS failure sets mock data flag', () async {
+  final service = _FailingGwisService();
+  final controller = MapController(hotspotService: service, ...);
+
+  await controller.initialize();
+  controller.setFireDataMode(FireDataMode.hotspots);
+  controller.updateBounds(testBounds);
+
+  await Future.delayed(const Duration(milliseconds: 100));
+
+  expect(controller.isUsingMockData, isTrue);
+});
+```
+
+### Live Fire Data Anti-Patterns (Avoid)
+```dart
+// ❌ WRONG: Show both modes simultaneously
+_markers = [...hotspotMarkers, ...burntAreaMarkers];  // D1 violation
+
+// ❌ WRONG: Hardcode time filter years
+if (year == 2025) fetchThisSeason();  // Use BurntAreaSeasonFilter.year
+
+// ❌ WRONG: No fallback flag
+result.fold(
+  (error) => debugPrint('Error'),  // Missing: _isUsingMockData = true
+  (data) => _hotspots = data,
+);
+
+// ❌ WRONG: Skip clustering at high zoom
+_markers = hotspots.map(toMarker).toSet();  // Clusters needed at zoom < 10
+
+// ✅ CORRECT: Check zoom threshold
+if (shouldShowClusters) {
+  _markers = _clusters.map(toClusterMarker).toSet();
+} else {
+  _markers = _hotspots.map(toHotspotMarker).toSet();
+}
 ```
 
 ## Polygon Visualization Patterns

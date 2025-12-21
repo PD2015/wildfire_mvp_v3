@@ -1,7 +1,7 @@
 ---
 title: EFFIS API Endpoints Reference
 status: active
-last_updated: 2025-12-09
+last_updated: 2025-12-18
 category: reference
 subcategory: api
 related:
@@ -10,6 +10,14 @@ related:
   - ../../lib/models/fire_incident.dart
   - ../../test/fixtures/scotland_fire_273772_fixture.dart
 changelog:
+  - 2025-12-18: 🔍 EFFIS Burnt Areas investigation - JRC endpoint deprecated, Copernicus working, UK data CONFIRMED present
+  - 2025-12-18: Fire 273772 (9,809 ha, West Moray, June 2025) verified in ms:modis.ba.poly.season layer
+  - 2025-12-18: Added ms:modis.ba.poly.lastseason layer, documented WFS 1.1.0 vs 2.0.0 issues, GML3 output preferred
+  - 2025-12-16: 🐛 ROOT CAUSE FOUND - GwisHotspotServiceImpl incorrectly uses WFS instead of WMS. Hotspots require WMS GetFeatureInfo, not WFS GetFeature!
+  - 2025-12-16: Verified endpoints ARE working - WMS returns live hotspot data, WFS returns 502 (not supported for hotspots)
+  - 2025-12-16: Added "Correct Service Types" section documenting WMS vs WFS requirements per layer
+  - 2025-12-16: Earlier "outage" was actually us testing wrong service type (WFS instead of WMS)
+  - 2025-12-16: Burnt areas via WFS on /effis confirmed working
   - 2025-12-09: Added hotspot data lifecycle section (time windows, archive retention, historical access)
   - 2025-12-09: Added hotspot pixel limitations section explaining why area estimation from hotspots is inaccurate
   - 2025-12-09: Documented Scotland Wildfire Tracker (Strathclyde) as alternative data source with analysis
@@ -27,41 +35,72 @@ This document describes the EFFIS (European Forest Fire Information System) and 
 
 ## Executive Summary
 
-As of December 2025, EFFIS has migrated from the legacy JRC endpoint to a new Copernicus emergency endpoint. Applications must update to use the new endpoint for live data access.
+> 🐛 **BUG IDENTIFIED (2025-12-16)**: Our `GwisHotspotServiceImpl` was incorrectly using **WFS** for hotspot queries. The GWIS endpoint only supports **WMS** for hotspots. This is why "live data" wasn't working - it's a code bug, not an endpoint issue!
 
-| Service | Legacy Endpoint (DEPRECATED) | Current Endpoint (USE THIS) |
-|---------|------------------------------|----------------------------|
-| **GWIS (FWI)** | `ies-ows.jrc.ec.europa.eu/gwis` | `maps.effis.emergency.copernicus.eu/gwis` |
-| **EFFIS (Fires)** | `ies-ows.jrc.ec.europa.eu/effis` | `maps.effis.emergency.copernicus.eu/effis` |
+As of December 2025, EFFIS provides data via the Copernicus emergency endpoint.
 
-### ⚠️ Important: Hotspot Data Requires GWIS Endpoint
+| Service | Current Endpoint | Protocol | Status |
+|---------|------------------|----------|--------|
+| **Hotspots** | `maps.effis.emergency.copernicus.eu/gwis` | **WMS** (not WFS!) | ✅ Working |
+| **FWI** | `maps.effis.emergency.copernicus.eu/gwis` | **WMS** | ✅ Working |
+| **Burnt Areas** | `maps.effis.emergency.copernicus.eu/effis` | **WFS** | ✅ Working |
 
-Real-time active fire hotspots are **only available via the GWIS endpoint**, not the EFFIS endpoint:
+---
 
-| Data Type | Endpoint | Layer Example | Status |
-|-----------|----------|---------------|--------|
-| **Real-time Hotspots** | `/gwis` | `viirs.hs.today` | ✅ Current (Dec 2025) |
-| **Historical Hotspots** | `/effis` | `viirs.hs` | ❌ Stale (Oct 2021) |
-| **Burnt Areas** | `/effis` | `modis.ba.poly.season` | ✅ Current |
-| **FWI Data** | `/gwis` | `nasa_geos5.query` | ✅ Current |
+## ⚠️ CRITICAL: Correct Service Types (WMS vs WFS)
+
+This is the **root cause** of our "live data not working" issue. Different layers require different OGC service types:
+
+| Data Type | Endpoint | Service Type | Status | Notes |
+|-----------|----------|--------------|--------|-------|
+| **Hotspots** | `/gwis` | ⚠️ **WMS only** | ✅ Works | WFS returns 502! |
+| **FWI** | `/gwis` | **WMS** | ✅ Works | Use GetFeatureInfo |
+| **Burnt Areas** | `/effis` | **WFS** | ✅ Works | GML response |
+
+### Bug in GwisHotspotServiceImpl
+
+Our current implementation incorrectly uses WFS:
+
+```dart
+// ❌ WRONG - Returns 502 error
+'$_baseUrl?service=WFS&version=2.0.0&request=GetFeature&typeName=viirs.hs.today&outputFormat=application/json'
+
+// ✅ CORRECT - Returns live hotspot data
+'$_baseUrl?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=viirs.hs.today&QUERY_LAYERS=viirs.hs.today&INFO_FORMAT=application/vnd.ogc.gml'
+```
+
+### Verified Test Results (2025-12-16 ~16:00 UTC)
+
+```bash
+# ❌ WFS for hotspots - FAILS with 502
+curl "https://maps.effis.emergency.copernicus.eu/gwis?service=WFS&version=2.0.0&request=GetFeature&typeName=viirs.hs.today&outputFormat=application/json"
+# HTTP 502
+
+# ✅ WMS GetFeatureInfo for hotspots - WORKS
+curl "https://maps.effis.emergency.copernicus.eu/gwis?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetFeatureInfo&LAYERS=viirs.hs.today&QUERY_LAYERS=viirs.hs.today&CRS=EPSG:4326&BBOX=-20,-10,20,40&WIDTH=256&HEIGHT=256&I=128&J=128&INFO_FORMAT=application/vnd.ogc.gml&STYLES=&FEATURE_COUNT=50"
+# Returns live hotspots from Dec 15-16, 2025!
+
+# ✅ WFS for burnt areas - WORKS
+curl "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&version=1.1.0&request=GetFeature&typeName=ms:modis.ba.poly.season&bbox=54.5,-9.0,61.0,0.0,EPSG:4326&count=2"
+# Returns Scottish fires with polygon boundaries
+```
+
+---
+
+### ⚠️ Important: Hotspot Data Requires WMS, Not WFS
+
+Real-time active fire hotspots are **only available via WMS GetFeatureInfo**, not WFS GetFeature:
+
+| Data Type | Endpoint | Protocol | Layer Example | Status |
+|-----------|----------|----------|---------------|--------|
+| **Real-time Hotspots** | `/gwis` | **WMS** | `viirs.hs.today` | ✅ Working |
+| **Historical Hotspots** | `/effis` | WFS | `viirs.hs` | ❌ Stale (Oct 2021) |
+| **Burnt Areas** | `/effis` | **WFS** | `modis.ba.poly.season` | ✅ Working |
+| **FWI Data** | `/gwis` | **WMS** | `ecmwf.query` | ✅ Working |
+
+---
 
 ## Endpoint Comparison
-
-### Legacy Endpoint (DEPRECATED)
-
-**Base URL:** `https://ies-ows.jrc.ec.europa.eu/`
-
-| Aspect | Status | Notes |
-|--------|--------|-------|
-| FWI WMS Data | ❌ Stale | Last data: January 31, 2025 (~10 month gap) |
-| WFS Fire Incidents | ❌ Broken | Oracle database connection failure |
-| Documentation | ❌ Outdated | No longer referenced in official docs |
-
-**Error observed on WFS:**
-```
-msOracleSpatialLayerOpen(): OracleSpatial error. 
-Cannot create OCI Handlers. Connection failure.
-```
 
 ### Current Endpoint (ACTIVE)
 
@@ -69,11 +108,96 @@ Cannot create OCI Handlers. Connection failure.
 
 | Aspect | Status | Notes |
 |--------|--------|-------|
-| FWI WMS Data | ✅ Live | Current date data available |
-| WFS Fire Incidents | ✅ Working | Active fire hotspots and burnt areas |
-| Documentation | ✅ Official | Referenced at forest-fire.emergency.copernicus.eu |
+| Hotspot WMS (`/gwis`) | ✅ Working | Use WMS GetFeatureInfo, NOT WFS |
+| FWI WMS (`/gwis`) | ✅ Working | Use WMS GetFeatureInfo |
+| Burnt Area WFS (`/effis`) | ✅ Working | Use WFS GetFeature |
 
 **Official documentation:** https://forest-fire.emergency.copernicus.eu/downloads-instructions
+
+### Legacy Endpoint (DEPRECATED)
+
+**Base URL:** `https://ies-ows.jrc.ec.europa.eu/`
+
+| Aspect | Status | Notes |
+|--------|--------|-------|
+| FWI WMS Data | ⚠️ Partial | Historical only (Mar-Sep 2024), no current data |
+| WFS Fire Incidents | ❌ Broken | Oracle database connection failure |
+
+---
+
+## Implementation Fix Plan (GwisHotspotServiceImpl)
+
+> **Issue**: Service uses WFS which returns 502 for hotspots. Must migrate to WMS GetFeatureInfo.
+
+### Current Implementation (BROKEN)
+
+```dart
+// lib/services/gwis_hotspot_service_impl.dart
+String _buildWfsUrl(LatLngBounds bounds, HotspotTimeFilter timeFilter) {
+  return '$_baseUrl?'
+      'service=WFS&'           // ❌ GWIS doesn't support WFS for hotspots
+      'version=2.0.0&'
+      'request=GetFeature&'
+      'typeName=${timeFilter.gwisLayerName}&'
+      'outputFormat=application/json&'
+      'srsName=EPSG:4326&'
+      'bbox=${sw.longitude},${sw.latitude},${ne.longitude},${ne.latitude},EPSG:4326';
+}
+```
+
+### Required Fix
+
+Rewrite to use WMS GetFeatureInfo:
+
+```dart
+String _buildWmsUrl(LatLngBounds bounds, HotspotTimeFilter timeFilter) {
+  final sw = bounds.southwest;
+  final ne = bounds.northeast;
+  
+  return '$_baseUrl?'
+      'SERVICE=WMS&'
+      'VERSION=1.3.0&'
+      'REQUEST=GetFeatureInfo&'
+      'LAYERS=${timeFilter.gwisLayerName}&'
+      'QUERY_LAYERS=${timeFilter.gwisLayerName}&'
+      'CRS=EPSG:4326&'
+      'BBOX=${sw.latitude},${sw.longitude},${ne.latitude},${ne.longitude}&'
+      'WIDTH=256&'
+      'HEIGHT=256&'
+      'I=128&'
+      'J=128&'
+      'INFO_FORMAT=application/vnd.ogc.gml&'
+      'STYLES=&'
+      'FEATURE_COUNT=100';  // Limit results
+}
+```
+
+### Key Challenges
+
+1. **WMS GetFeatureInfo is point-based**: Designed for clicking on a map, not viewport queries
+   - Returns features at a specific pixel (I,J) in the rendered image
+   - May need multiple queries or WMTS tiles approach for full viewport coverage
+
+2. **Response format**: GML instead of GeoJSON
+   - Need to parse GML response format
+   - Update `_parseResponse` method to handle GML structure
+
+3. **Viewport coverage strategy options**:
+   - **Option A**: Grid of GetFeatureInfo queries across viewport (many requests)
+   - **Option B**: Use WMTS tiles + UTFGrid for feature detection
+   - **Option C**: Accept limitation - only show fires in center of viewport
+
+### Files to Modify
+
+1. `lib/services/gwis_hotspot_service_impl.dart` - Main fix
+2. `lib/models/hotspot.dart` - May need `fromGml()` factory
+3. `test/unit/services/gwis_hotspot_service_test.dart` - Update tests
+
+### Estimated Effort
+
+- **Simple fix** (Option C - center query only): 2-4 hours
+- **Full fix** (Option A - grid queries): 4-8 hours
+- **Optimal fix** (Option B - WMTS): 8-16 hours (requires research)
 
 ---
 
@@ -184,18 +308,29 @@ https://maps.effis.emergency.copernicus.eu/gwis
 | `ms:modis.ba.point` | MODIS burnt area centroids | Points | ✅ Current |
 | `ms:effis.nrt.ba.poly` | Near-real-time burnt areas | Polygons | ✅ Current |
 | `ms:effis.nrt.ba.point` | NRT burnt area centroids | Points | ✅ Current |
-| `ms:modis.ba.poly.season` | Seasonal burnt areas (current fire season) | Polygons | ✅ Current |
+| `ms:modis.ba.poly.season` | Current fire season burnt areas | Polygons | ✅ Current |
+| `ms:modis.ba.poly.lastseason` | Previous fire season burnt areas | Polygons | ✅ Current |
+
+> ✅ **UK Data Confirmed (2025-12-18)**: UK burnt area data IS available in EFFIS, including fire 273772 (9,809 ha, West Moray, June 28, 2025). Use GML3 output format for reliable results - JSON output may fail with bbox filters.
+
+### WFS Version Compatibility
+
+| WFS Version | Status | Notes |
+|-------------|--------|-------|
+| **1.1.0** | ✅ Recommended | Works reliably |
+| 2.0.0 | ⚠️ Issues | CQL_FILTER can cause 502 errors |
+| 1.0.0 | ⚠️ Untested | May work |
 
 ### WFS GetFeature Request
 
 ```
 https://maps.effis.emergency.copernicus.eu/effis
   ?SERVICE=WFS
-  &VERSION=2.0.0
+  &VERSION=1.1.0
   &REQUEST=GetFeature
-  &TYPENAME=ms:modis.ba.poly
-  &OUTPUTFORMAT=GML3
-  &COUNT=100
+  &TYPENAME=ms:modis.ba.poly.season
+  &OUTPUTFORMAT=json
+  &MAXFEATURES=100
 ```
 
 **Supported output formats:**
