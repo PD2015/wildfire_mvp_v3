@@ -25,16 +25,17 @@ class MockLocationResolver implements LocationResolver {
     bool allowDefault = true,
   }) async {
     if (_savedManualLocation != null) {
-      return Right(ResolvedLocation(
-        coordinates: _savedManualLocation!,
-        source: LocationSource.cached,
-        placeName: _savedPlaceName,
-      ));
+      return Right(
+        ResolvedLocation(
+          coordinates: _savedManualLocation!,
+          source: LocationSource.cached,
+          placeName: _savedPlaceName,
+        ),
+      );
     }
-    return Right(ResolvedLocation(
-      coordinates: defaultLocation,
-      source: defaultSource,
-    ));
+    return Right(
+      ResolvedLocation(coordinates: defaultLocation, source: defaultSource),
+    );
   }
 
   @override
@@ -67,9 +68,8 @@ class MockLocationStateManager extends ChangeNotifier
   LocationDisplayState _state;
   bool _isManualLocation = false;
 
-  MockLocationStateManager({
-    LocationDisplayState? initialState,
-  }) : _state = initialState ?? const LocationDisplayInitial();
+  MockLocationStateManager({LocationDisplayState? initialState})
+    : _state = initialState ?? const LocationDisplayInitial();
 
   @override
   LocationDisplayState get state => _state;

@@ -83,8 +83,12 @@ class ReportFireLocation extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [coordinates, nearestPlaceName, what3words, selectedAt];
+  List<Object?> get props => [
+    coordinates,
+    nearestPlaceName,
+    what3words,
+    selectedAt,
+  ];
 
   @override
   String toString() =>
@@ -106,9 +110,7 @@ class ReportFireState extends Equatable {
   /// Optional location set by user for the fire
   final ReportFireLocation? fireLocation;
 
-  const ReportFireState({
-    this.fireLocation,
-  });
+  const ReportFireState({this.fireLocation});
 
   /// Initial state with no location set
   const ReportFireState.initial() : fireLocation = null;

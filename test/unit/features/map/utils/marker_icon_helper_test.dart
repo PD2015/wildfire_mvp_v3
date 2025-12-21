@@ -47,8 +47,11 @@ void main() {
       final intensities = ['low', 'moderate', 'high', 'unknown'];
       for (final intensity in intensities) {
         final icon = MarkerIconHelper.getIcon(intensity);
-        expect(icon, isA<BitmapDescriptor>(),
-            reason: 'Should return valid icon for $intensity');
+        expect(
+          icon,
+          isA<BitmapDescriptor>(),
+          reason: 'Should return valid icon for $intensity',
+        );
       }
     });
 

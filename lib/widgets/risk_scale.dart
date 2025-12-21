@@ -94,10 +94,7 @@ class RiskScale extends StatelessWidget {
                             ),
                             borderRadius: BorderRadius.circular(999),
                             border: isCurrentLevel
-                                ? Border.all(
-                                    color: textColor,
-                                    width: 0.5,
-                                  )
+                                ? Border.all(color: textColor, width: 0.5)
                                 : null,
                           ),
                         ),

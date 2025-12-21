@@ -30,11 +30,15 @@ class HotspotClusterer {
   /// The formula accounts for:
   /// - Zoom level: each zoom level halves the meters per pixel
   /// - Latitude: meters per pixel decreases towards the poles
-  static double pixelsToMeters(double pixels, double zoom,
-      {double latitude = 56.0}) {
+  static double pixelsToMeters(
+    double pixels,
+    double zoom, {
+    double latitude = 56.0,
+  }) {
     // At higher zoom levels, each pixel represents fewer meters
     // Formula: metersPerPixel = baseMetersPerPixel / 2^zoom * cos(latitude)
-    final double metersPerPixel = _metersPerPixelAtZoom0 *
+    final double metersPerPixel =
+        _metersPerPixelAtZoom0 *
         math.cos(latitude * math.pi / 180.0) /
         math.pow(2, zoom);
     return pixels * metersPerPixel;
@@ -47,8 +51,10 @@ class HotspotClusterer {
   /// - Zoom 5: ~60px ≈ 1.6 km radius
   /// - Zoom 7: ~60px ≈ 400m radius
   /// - Zoom 9: ~60px ≈ 100m radius
-  static double getClusterRadiusMeters(double zoom,
-      {double radiusPixels = defaultRadiusPixels}) {
+  static double getClusterRadiusMeters(
+    double zoom, {
+    double radiusPixels = defaultRadiusPixels,
+  }) {
     return pixelsToMeters(radiusPixels, zoom);
   }
 
@@ -88,7 +94,7 @@ class HotspotClusterer {
     // Calculate average latitude for more accurate radius conversion
     final avgLat =
         hotspots.fold<double>(0.0, (sum, h) => sum + h.location.latitude) /
-            hotspots.length;
+        hotspots.length;
 
     // Convert pixel radius to meters based on current zoom
     final radiusMeters = pixelsToMeters(radiusPixels, zoom, latitude: avgLat);
@@ -118,10 +124,9 @@ class HotspotClusterer {
         }
       }
 
-      clusters.add(HotspotCluster.fromHotspots(
-        id: 'cluster_$i',
-        hotspots: clusterMembers,
-      ));
+      clusters.add(
+        HotspotCluster.fromHotspots(id: 'cluster_$i', hotspots: clusterMembers),
+      );
     }
 
     return clusters;
@@ -138,7 +143,8 @@ class HotspotClusterer {
     final double deltaLon =
         (point2.longitude - point1.longitude) * math.pi / 180.0;
 
-    final double a = math.sin(deltaLat / 2) * math.sin(deltaLat / 2) +
+    final double a =
+        math.sin(deltaLat / 2) * math.sin(deltaLat / 2) +
         math.cos(lat1Rad) *
             math.cos(lat2Rad) *
             math.sin(deltaLon / 2) *

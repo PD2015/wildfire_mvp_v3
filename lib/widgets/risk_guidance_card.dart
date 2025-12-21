@@ -23,10 +23,7 @@ class RiskGuidanceCard extends StatelessWidget {
   /// Risk level to display guidance for, or null for generic guidance
   final RiskLevel? level;
 
-  const RiskGuidanceCard({
-    super.key,
-    this.level,
-  });
+  const RiskGuidanceCard({super.key, this.level});
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +32,9 @@ class RiskGuidanceCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final cardBackground =
-        isDark ? scheme.surfaceContainerHigh : scheme.surfaceContainerHighest;
+    final cardBackground = isDark
+        ? scheme.surfaceContainerHigh
+        : scheme.surfaceContainerHighest;
     final cardBorderColor = isDark
         ? level?.color ?? scheme.outline
         : level?.color ?? scheme.outlineVariant;
@@ -52,10 +50,7 @@ class RiskGuidanceCard extends StatelessWidget {
         color: cardBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: cardBorderColor,
-            width: 2,
-          ),
+          side: BorderSide(color: cardBorderColor, width: 2),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -65,9 +60,9 @@ class RiskGuidanceCard extends StatelessWidget {
               // Title
               Text(
                 guidance.title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
 
@@ -92,8 +87,9 @@ class RiskGuidanceCard extends StatelessWidget {
                           width: 8,
                           height: 8,
                           decoration: BoxDecoration(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -129,11 +125,11 @@ class RiskGuidanceCard extends StatelessWidget {
                       child: Text(
                         ScotlandRiskGuidance.emergencyFooter,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onTertiaryContainer,
-                            ),
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onTertiaryContainer,
+                        ),
                       ),
                     ),
                   ],

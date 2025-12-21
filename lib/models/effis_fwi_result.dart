@@ -149,15 +149,15 @@ class EffisFwiResult extends Equatable {
 
   @override
   List<Object?> get props => [
-        fwi,
-        dc,
-        dmc,
-        ffmc,
-        isi,
-        bui,
-        datetime,
-        longitude,
-        latitude,
-        riskLevel,
-      ];
+    fwi,
+    dc,
+    dmc,
+    ffmc,
+    isi,
+    bui,
+    datetime,
+    longitude,
+    latitude,
+    riskLevel,
+  ];
 }

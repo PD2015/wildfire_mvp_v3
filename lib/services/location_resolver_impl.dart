@@ -21,9 +21,8 @@ class LocationResolverImpl implements LocationResolver {
   ///
   /// [geolocatorService] - GPS abstraction, defaults to real implementation.
   /// Pass a fake in tests for controllable behavior.
-  LocationResolverImpl({
-    GeolocatorService? geolocatorService,
-  }) : _geolocatorService = geolocatorService ?? GeolocatorServiceImpl();
+  LocationResolverImpl({GeolocatorService? geolocatorService})
+    : _geolocatorService = geolocatorService ?? GeolocatorServiceImpl();
 
   final GeolocatorService _geolocatorService;
 
@@ -46,8 +45,9 @@ class LocationResolverImpl implements LocationResolver {
   /// ternary expression isn't a constant expression even though both branches
   /// are const. The analyzer incorrectly suggests const but it won't compile.
   // ignore: prefer_const_declarations
-  static final LatLng _defaultFallbackLocation =
-      FeatureFlags.devMode ? _aviemoreLocation : _scotlandCentroid;
+  static final LatLng _defaultFallbackLocation = FeatureFlags.devMode
+      ? _aviemoreLocation
+      : _scotlandCentroid;
 
   /// Cache keys for SharedPreferences persistence
   static const String _versionKey = 'manual_location_version';
@@ -96,10 +96,9 @@ class LocationResolverImpl implements LocationResolver {
         debugPrint(
           'Location resolved via GPS: ${GeographicUtils.logRedact(coords.latitude, coords.longitude)}',
         );
-        return Right(ResolvedLocation(
-          coordinates: coords,
-          source: LocationSource.gps,
-        ));
+        return Right(
+          ResolvedLocation(coordinates: coords, source: LocationSource.gps),
+        );
       } else {
         debugPrint('GPS unavailable: ${gpsResult.fold((e) => e, (r) => '')}');
       }
@@ -107,16 +106,19 @@ class LocationResolverImpl implements LocationResolver {
       // Tier 3: SharedPreferences cached manual location
       final cacheResult = await _tryCache();
       if (cacheResult.isRight()) {
-        final (coords, placeName) =
-            cacheResult.getOrElse(() => (_defaultFallbackLocation, null));
+        final (coords, placeName) = cacheResult.getOrElse(
+          () => (_defaultFallbackLocation, null),
+        );
         debugPrint(
           'Location resolved via cache: ${GeographicUtils.logRedact(coords.latitude, coords.longitude)}',
         );
-        return Right(ResolvedLocation(
-          coordinates: coords,
-          source: LocationSource.cached,
-          placeName: placeName,
-        ));
+        return Right(
+          ResolvedLocation(
+            coordinates: coords,
+            source: LocationSource.cached,
+            placeName: placeName,
+          ),
+        );
       }
 
       // Tier 4: Manual entry (caller responsibility)
@@ -135,20 +137,24 @@ class LocationResolverImpl implements LocationResolver {
       debugPrint(
         'Location resolved via default: ${GeographicUtils.logRedact(_defaultFallbackLocation.latitude, _defaultFallbackLocation.longitude)}${FeatureFlags.devMode ? ' (DEV_MODE)' : ''}',
       );
-      return Right(ResolvedLocation(
-        coordinates: _defaultFallbackLocation,
-        source: LocationSource.defaultFallback,
-      ));
+      return Right(
+        ResolvedLocation(
+          coordinates: _defaultFallbackLocation,
+          source: LocationSource.defaultFallback,
+        ),
+      );
     } catch (e) {
       debugPrint('Location resolution error: $e');
       if (allowDefault) {
         debugPrint(
           'Falling back to default: ${GeographicUtils.logRedact(_defaultFallbackLocation.latitude, _defaultFallbackLocation.longitude)}',
         );
-        return Right(ResolvedLocation(
-          coordinates: _defaultFallbackLocation,
-          source: LocationSource.defaultFallback,
-        ));
+        return Right(
+          ResolvedLocation(
+            coordinates: _defaultFallbackLocation,
+            source: LocationSource.defaultFallback,
+          ),
+        );
       }
       return const Left(LocationError.gpsUnavailable);
     } finally {
@@ -164,16 +170,16 @@ class LocationResolverImpl implements LocationResolver {
   Future<Either<String, LatLng>> _tryGps() async {
     try {
       // Check if location services are enabled
-      final serviceEnabled =
-          await _geolocatorService.isLocationServiceEnabled();
+      final serviceEnabled = await _geolocatorService
+          .isLocationServiceEnabled();
       debugPrint('GPS: Location services enabled: $serviceEnabled');
       if (!serviceEnabled) {
         return const Left('Location services disabled');
       }
 
       // Check permission status
-      LocationPermission permission =
-          await _geolocatorService.checkPermission();
+      LocationPermission permission = await _geolocatorService
+          .checkPermission();
       debugPrint('GPS: Initial permission status: $permission');
 
       if (permission == LocationPermission.denied) {
@@ -205,7 +211,8 @@ class LocationResolverImpl implements LocationResolver {
       const timeout = Duration(seconds: 8);
 
       debugPrint(
-          'GPS: Acquiring fresh position (${timeout.inSeconds}s timeout)...');
+        'GPS: Acquiring fresh position (${timeout.inSeconds}s timeout)...',
+      );
       final position = await _geolocatorService.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.medium,
         timeLimit: timeout,
@@ -240,9 +247,7 @@ class LocationResolverImpl implements LocationResolver {
         final cachedAt = DateTime.fromMillisecondsSinceEpoch(timestampMs);
         final age = DateTime.now().difference(cachedAt);
         if (age > _maxCacheAge) {
-          debugPrint(
-            'Cache expired (age: ${age.inMinutes} min). Skipping.',
-          );
+          debugPrint('Cache expired (age: ${age.inMinutes} min). Skipping.');
           return const Left(LocationError.gpsUnavailable);
         }
       } else {
@@ -288,20 +293,25 @@ class LocationResolverImpl implements LocationResolver {
   ) async {
     final cacheResult = await _tryCache();
     if (cacheResult.isRight()) {
-      final (coords, placeName) =
-          cacheResult.getOrElse(() => (_defaultFallbackLocation, null));
-      return Right(ResolvedLocation(
-        coordinates: coords,
-        source: LocationSource.cached,
-        placeName: placeName,
-      ));
+      final (coords, placeName) = cacheResult.getOrElse(
+        () => (_defaultFallbackLocation, null),
+      );
+      return Right(
+        ResolvedLocation(
+          coordinates: coords,
+          source: LocationSource.cached,
+          placeName: placeName,
+        ),
+      );
     }
 
     if (allowDefault) {
-      return Right(ResolvedLocation(
-        coordinates: _defaultFallbackLocation,
-        source: LocationSource.defaultFallback,
-      ));
+      return Right(
+        ResolvedLocation(
+          coordinates: _defaultFallbackLocation,
+          source: LocationSource.defaultFallback,
+        ),
+      );
     }
 
     // When GPS is unavailable due to platform restrictions and manual entry needed
@@ -413,8 +423,9 @@ class LocationResolverImpl implements LocationResolver {
           final placeName = prefs.getString(_placeKey);
           final timestampMs = prefs.getInt(_timestampKey);
           final age = timestampMs != null
-              ? DateTime.now()
-                  .difference(DateTime.fromMillisecondsSinceEpoch(timestampMs))
+              ? DateTime.now().difference(
+                  DateTime.fromMillisecondsSinceEpoch(timestampMs),
+                )
               : Duration.zero;
           debugPrint(
             'Loaded cached manual location: ${GeographicUtils.logRedact(lat, lon)}${placeName != null ? ' ($placeName)' : ''} (age: ${age.inMinutes} min)',

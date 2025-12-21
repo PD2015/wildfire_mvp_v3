@@ -107,8 +107,7 @@ void main() {
       // Assert: Should succeed with mock data
       expect(result.isRight(), isTrue);
 
-      result.fold((error) => fail('Expected Right, got Left: ${error.message}'),
-          (
+      result.fold((error) => fail('Expected Right, got Left: ${error.message}'), (
         incidents,
       ) {
         // Mock service returns 0-3 incidents depending on asset availability in test environment

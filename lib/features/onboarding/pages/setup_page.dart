@@ -318,10 +318,7 @@ class _InfoItem extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _InfoItem({
-    required this.icon,
-    required this.text,
-  });
+  const _InfoItem({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -330,11 +327,7 @@ class _InfoItem extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          size: 20,
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
+        Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
         const SizedBox(width: 8),
         Expanded(
           child: Text(

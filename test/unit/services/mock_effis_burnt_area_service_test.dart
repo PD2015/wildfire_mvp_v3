@@ -19,11 +19,13 @@ void main() {
 
   // Skip entire test file on web - rootBundle.loadString hangs in Chrome tests
   if (kIsWeb) {
-    test('skipped on web platform', () {
-      // rootBundle.loadString doesn't work in Chrome test environment
-    },
-        skip:
-            'MockEffisBurntAreaService tests use rootBundle which hangs on web');
+    test(
+      'skipped on web platform',
+      () {
+        // rootBundle.loadString doesn't work in Chrome test environment
+      },
+      skip: 'MockEffisBurntAreaService tests use rootBundle which hangs on web',
+    );
     return;
   }
 
@@ -47,12 +49,9 @@ void main() {
         );
 
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Should not return error'),
-          (burntAreas) {
-            expect(burntAreas, isA<List>());
-          },
-        );
+        result.fold((error) => fail('Should not return error'), (burntAreas) {
+          expect(burntAreas, isA<List>());
+        });
       });
 
       test('filters burnt areas by bounding box', () async {
@@ -67,13 +66,10 @@ void main() {
           seasonFilter: BurntAreaSeasonFilter.thisSeason,
         );
 
-        result.fold(
-          (error) => fail('Should not return error'),
-          (burntAreas) {
-            // With bounds far from Scotland, should return empty
-            expect(burntAreas, isEmpty);
-          },
-        );
+        result.fold((error) => fail('Should not return error'), (burntAreas) {
+          // With bounds far from Scotland, should return empty
+          expect(burntAreas, isEmpty);
+        });
       });
 
       test('returns burnt areas within Scotland bounds', () async {
@@ -88,19 +84,16 @@ void main() {
           seasonFilter: BurntAreaSeasonFilter.thisSeason,
         );
 
-        result.fold(
-          (error) => fail('Should not return error'),
-          (burntAreas) {
-            // All mock burnt areas should be in Scotland
-            for (final area in burntAreas) {
-              // Check centroid is within bounds
-              expect(area.centroid.latitude, greaterThanOrEqualTo(54.0));
-              expect(area.centroid.latitude, lessThanOrEqualTo(61.0));
-              expect(area.centroid.longitude, greaterThanOrEqualTo(-8.0));
-              expect(area.centroid.longitude, lessThanOrEqualTo(0.0));
-            }
-          },
-        );
+        result.fold((error) => fail('Should not return error'), (burntAreas) {
+          // All mock burnt areas should be in Scotland
+          for (final area in burntAreas) {
+            // Check centroid is within bounds
+            expect(area.centroid.latitude, greaterThanOrEqualTo(54.0));
+            expect(area.centroid.latitude, lessThanOrEqualTo(61.0));
+            expect(area.centroid.longitude, greaterThanOrEqualTo(-8.0));
+            expect(area.centroid.longitude, lessThanOrEqualTo(0.0));
+          }
+        });
       });
 
       test('never returns Left (mock service always succeeds)', () async {
@@ -119,23 +112,25 @@ void main() {
         }
       });
 
-      test('ignores timeout and maxRetries parameters (mock behavior)',
-          () async {
-        const bounds = LatLngBounds(
-          southwest: LatLng(54.0, -8.0),
-          northeast: LatLng(61.0, 0.0),
-        );
+      test(
+        'ignores timeout and maxRetries parameters (mock behavior)',
+        () async {
+          const bounds = LatLngBounds(
+            southwest: LatLng(54.0, -8.0),
+            northeast: LatLng(61.0, 0.0),
+          );
 
-        final result = await service.getBurntAreas(
-          bounds: bounds,
-          seasonFilter: BurntAreaSeasonFilter.thisSeason,
-          timeout: const Duration(milliseconds: 1), // Very short timeout
-          maxRetries: 0,
-        );
+          final result = await service.getBurntAreas(
+            bounds: bounds,
+            seasonFilter: BurntAreaSeasonFilter.thisSeason,
+            timeout: const Duration(milliseconds: 1), // Very short timeout
+            maxRetries: 0,
+          );
 
-        // Should still succeed - mock ignores these parameters
-        expect(result.isRight(), isTrue);
-      });
+          // Should still succeed - mock ignores these parameters
+          expect(result.isRight(), isTrue);
+        },
+      );
     });
 
     group('season filtering', () {
@@ -150,15 +145,12 @@ void main() {
           seasonFilter: BurntAreaSeasonFilter.thisSeason,
         );
 
-        result.fold(
-          (error) => fail('Should not return error'),
-          (burntAreas) {
-            final currentYear = DateTime.now().year;
-            for (final area in burntAreas) {
-              expect(area.seasonYear, equals(currentYear));
-            }
-          },
-        );
+        result.fold((error) => fail('Should not return error'), (burntAreas) {
+          final currentYear = DateTime.now().year;
+          for (final area in burntAreas) {
+            expect(area.seasonYear, equals(currentYear));
+          }
+        });
       });
 
       test('lastSeason filter returns previous year data', () async {
@@ -172,15 +164,12 @@ void main() {
           seasonFilter: BurntAreaSeasonFilter.lastSeason,
         );
 
-        result.fold(
-          (error) => fail('Should not return error'),
-          (burntAreas) {
-            final lastYear = DateTime.now().year - 1;
-            for (final area in burntAreas) {
-              expect(area.seasonYear, equals(lastYear));
-            }
-          },
-        );
+        result.fold((error) => fail('Should not return error'), (burntAreas) {
+          final lastYear = DateTime.now().year - 1;
+          for (final area in burntAreas) {
+            expect(area.seasonYear, equals(lastYear));
+          }
+        });
       });
     });
 
@@ -196,18 +185,15 @@ void main() {
           seasonFilter: BurntAreaSeasonFilter.thisSeason,
         );
 
-        result.fold(
-          (error) => fail('Should not return error'),
-          (burntAreas) {
-            for (final area in burntAreas) {
-              expect(
-                area.boundaryPoints.length,
-                greaterThanOrEqualTo(3),
-                reason: 'BurntArea ${area.id} should have >= 3 boundary points',
-              );
-            }
-          },
-        );
+        result.fold((error) => fail('Should not return error'), (burntAreas) {
+          for (final area in burntAreas) {
+            expect(
+              area.boundaryPoints.length,
+              greaterThanOrEqualTo(3),
+              reason: 'BurntArea ${area.id} should have >= 3 boundary points',
+            );
+          }
+        });
       });
 
       test('returned areas have positive area in hectares', () async {
@@ -221,18 +207,15 @@ void main() {
           seasonFilter: BurntAreaSeasonFilter.thisSeason,
         );
 
-        result.fold(
-          (error) => fail('Should not return error'),
-          (burntAreas) {
-            for (final area in burntAreas) {
-              expect(
-                area.areaHectares,
-                greaterThan(0),
-                reason: 'BurntArea ${area.id} should have positive area',
-              );
-            }
-          },
-        );
+        result.fold((error) => fail('Should not return error'), (burntAreas) {
+          for (final area in burntAreas) {
+            expect(
+              area.areaHectares,
+              greaterThan(0),
+              reason: 'BurntArea ${area.id} should have positive area',
+            );
+          }
+        });
       });
 
       test('returned areas have unique IDs', () async {
@@ -246,14 +229,14 @@ void main() {
           seasonFilter: BurntAreaSeasonFilter.thisSeason,
         );
 
-        result.fold(
-          (error) => fail('Should not return error'),
-          (burntAreas) {
-            final ids = burntAreas.map((a) => a.id).toSet();
-            expect(ids.length, equals(burntAreas.length),
-                reason: 'All burnt area IDs should be unique');
-          },
-        );
+        result.fold((error) => fail('Should not return error'), (burntAreas) {
+          final ids = burntAreas.map((a) => a.id).toSet();
+          expect(
+            ids.length,
+            equals(burntAreas.length),
+            reason: 'All burnt area IDs should be unique',
+          );
+        });
       });
     });
 

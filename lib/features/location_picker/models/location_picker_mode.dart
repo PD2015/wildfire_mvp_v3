@@ -52,16 +52,16 @@ enum LocationPickerMode {
 extension LocationPickerModeExtension on LocationPickerMode {
   /// Display title for the AppBar
   String get title => switch (this) {
-        LocationPickerMode.riskLocation => 'Select Location',
-        LocationPickerMode.fireReport => 'Set Fire Location',
-      };
+    LocationPickerMode.riskLocation => 'Select Location',
+    LocationPickerMode.fireReport => 'Set Fire Location',
+  };
 
   /// Whether to show emergency reminder banner
   bool get showEmergencyBanner => this == LocationPickerMode.fireReport;
 
   /// Confirm button text
   String get confirmButtonText => switch (this) {
-        LocationPickerMode.riskLocation => 'Confirm Location',
-        LocationPickerMode.fireReport => 'Use This Location',
-      };
+    LocationPickerMode.riskLocation => 'Confirm Location',
+    LocationPickerMode.fireReport => 'Use This Location',
+  };
 }

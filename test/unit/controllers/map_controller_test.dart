@@ -37,10 +37,12 @@ class MockLocationResolver implements LocationResolver {
       return _getLatLonResult!;
     }
     // Default success case: Edinburgh
-    return const Right(ResolvedLocation(
-      coordinates: LatLng(55.9533, -3.1883),
-      source: LocationSource.gps,
-    ));
+    return const Right(
+      ResolvedLocation(
+        coordinates: LatLng(55.9533, -3.1883),
+        source: LocationSource.gps,
+      ),
+    );
   }
 
   @override
@@ -326,8 +328,9 @@ void main() {
     group('ChangeNotifier integration', () {
       test('notifies listeners when state changes', () async {
         // Arrange
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
 
         final states = <MapState>[];
         controller.addListener(() {
@@ -345,8 +348,9 @@ void main() {
 
       test('allows multiple listeners to be added', () async {
         // Arrange
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
 
         int listener1Count = 0;
         int listener2Count = 0;
@@ -365,8 +369,9 @@ void main() {
 
       test('stops notifying after listener is removed', () async {
         // Arrange
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
 
         int callCount = 0;
         void listener() => callCount++;

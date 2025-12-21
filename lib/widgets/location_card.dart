@@ -132,10 +132,7 @@ class LocationCard extends StatelessWidget {
         elevation: 1,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: scheme.outlineVariant,
-            width: 1,
-          ),
+          side: BorderSide(color: scheme.outlineVariant, width: 1),
         ),
         margin: EdgeInsets.zero,
         child: Padding(
@@ -217,8 +214,12 @@ class LocationCard extends StatelessWidget {
                           _buildCoordinatesRow(context, scheme, hasLocation),
                         ] else ...[
                           // No formatted location - show coordinates as main display
-                          _buildCoordinatesRow(context, scheme, hasLocation,
-                              isMainDisplay: true),
+                          _buildCoordinatesRow(
+                            context,
+                            scheme,
+                            hasLocation,
+                            isMainDisplay: true,
+                          ),
                         ],
                         const SizedBox(height: 2),
                         Row(
@@ -320,8 +321,9 @@ class LocationCard extends StatelessWidget {
                 icon: const Icon(Icons.edit_location_alt, size: 18),
                 label: const Text('Change'),
                 style: OutlinedButton.styleFrom(
-                  minimumSize:
-                      const Size.fromHeight(48), // C3: ≥48dp touch target
+                  minimumSize: const Size.fromHeight(
+                    48,
+                  ), // C3: ≥48dp touch target
                 ),
               ),
             ),
@@ -339,8 +341,9 @@ class LocationCard extends StatelessWidget {
                 style: FilledButton.styleFrom(
                   backgroundColor: scheme.primary,
                   foregroundColor: scheme.onPrimary,
-                  minimumSize:
-                      const Size.fromHeight(48), // C3: ≥48dp touch target
+                  minimumSize: const Size.fromHeight(
+                    48,
+                  ), // C3: ≥48dp touch target
                 ),
               ),
             ),
@@ -376,11 +379,7 @@ class LocationCard extends StatelessWidget {
     return Row(
       children: [
         // what3words icon
-        Icon(
-          Icons.grid_3x3,
-          size: 16,
-          color: scheme.primary,
-        ),
+        Icon(Icons.grid_3x3, size: 16, color: scheme.primary),
         const SizedBox(width: 8),
 
         // what3words address or loading state
@@ -422,15 +421,8 @@ class LocationCard extends StatelessWidget {
             label: 'Copy what3words address to clipboard',
             button: true,
             child: IconButton(
-              icon: Icon(
-                Icons.copy,
-                size: 18,
-                color: scheme.onSurfaceVariant,
-              ),
-              constraints: const BoxConstraints(
-                minWidth: 48,
-                minHeight: 48,
-              ),
+              icon: Icon(Icons.copy, size: 18, color: scheme.onSurfaceVariant),
+              constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
               onPressed: () {
                 // Copy to clipboard
                 Clipboard.setData(ClipboardData(text: what3words!));
@@ -516,24 +508,17 @@ class LocationCard extends StatelessWidget {
     return Semantics(
       label: 'Location source: $label',
       child: Chip(
-        avatar: Icon(
-          icon,
-          size: 18,
-          color: scheme.onTertiaryContainer,
-        ),
+        avatar: Icon(icon, size: 18, color: scheme.onTertiaryContainer),
         label: Text(
           label,
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: scheme.onTertiaryContainer,
-                letterSpacing: 1.0,
-              ),
+            fontWeight: FontWeight.bold,
+            color: scheme.onTertiaryContainer,
+            letterSpacing: 1.0,
+          ),
         ),
         backgroundColor: scheme.tertiaryContainer,
-        side: BorderSide(
-          color: scheme.tertiary,
-          width: 1.5,
-        ),
+        side: BorderSide(color: scheme.tertiary, width: 1.5),
         elevation: 4,
         shadowColor: scheme.shadow.withValues(alpha: 0.25),
         padding: const EdgeInsets.symmetric(horizontal: 4),

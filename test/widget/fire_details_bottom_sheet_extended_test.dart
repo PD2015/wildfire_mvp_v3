@@ -27,27 +27,25 @@ void main() {
       });
 
       testWidgets(
-          'displays "Active Hotspot" educational label for hotspot type',
-          (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: FireDetailsBottomSheet.fromHotspot(
-                hotspot: testHotspot,
-                onClose: () {},
+        'displays "Active Hotspot" educational label for hotspot type',
+        (tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: FireDetailsBottomSheet.fromHotspot(
+                  hotspot: testHotspot,
+                  onClose: () {},
+                ),
               ),
             ),
-          ),
-        );
-        await tester.pumpAndSettle();
+          );
+          await tester.pumpAndSettle();
 
-        expect(find.text('Active Hotspot'), findsOneWidget);
-        // Educational description should explain what this means
-        expect(
-          find.textContaining('Satellite-detected'),
-          findsOneWidget,
-        );
-      });
+          expect(find.text('Active Hotspot'), findsOneWidget);
+          // Educational description should explain what this means
+          expect(find.textContaining('Satellite-detected'), findsOneWidget);
+        },
+      );
 
       testWidgets('displays FRP with intensity indicator', (tester) async {
         await tester.pumpWidget(
@@ -69,8 +67,9 @@ void main() {
         expect(find.text('Moderate'), findsOneWidget);
       });
 
-      testWidgets('displays "Detected X hours ago" relative time format',
-          (tester) async {
+      testWidgets('displays "Detected X hours ago" relative time format', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -149,31 +148,34 @@ void main() {
       });
 
       testWidgets(
-          'displays "Verified Burnt Area" educational label for burntArea type',
-          (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: FireDetailsBottomSheet.fromBurntArea(
-                burntArea: testBurntArea,
-                onClose: () {},
+        'displays "Verified Burnt Area" educational label for burntArea type',
+        (tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: FireDetailsBottomSheet.fromBurntArea(
+                  burntArea: testBurntArea,
+                  onClose: () {},
+                ),
               ),
             ),
-          ),
-        );
-        await tester.pumpAndSettle();
+          );
+          await tester.pumpAndSettle();
 
-        expect(find.text('Verified Burnt Area'), findsOneWidget);
-        // Educational description should explain what this means - check exact text
-        expect(
-          find.text(
-              'MODIS satellite-confirmed area affected by fire this season.'),
-          findsOneWidget,
-        );
-      });
+          expect(find.text('Verified Burnt Area'), findsOneWidget);
+          // Educational description should explain what this means - check exact text
+          expect(
+            find.text(
+              'MODIS satellite-confirmed area affected by fire this season.',
+            ),
+            findsOneWidget,
+          );
+        },
+      );
 
-      testWidgets('displays simplification notice when isSimplified = true',
-          (tester) async {
+      testWidgets('displays simplification notice when isSimplified = true', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -192,38 +194,40 @@ void main() {
       });
 
       testWidgets(
-          'does not display simplification notice when isSimplified = false',
-          (tester) async {
-        final unsimplifiedArea = BurntArea(
-          id: 'effis_unsimplified',
-          boundaryPoints: const [
-            LatLng(56.0, -4.0),
-            LatLng(56.1, -4.0),
-            LatLng(56.1, -3.9),
-          ],
-          areaHectares: 50.0,
-          fireDate: DateTime(2025, 7, 10),
-          seasonYear: 2025,
-          isSimplified: false,
-        );
+        'does not display simplification notice when isSimplified = false',
+        (tester) async {
+          final unsimplifiedArea = BurntArea(
+            id: 'effis_unsimplified',
+            boundaryPoints: const [
+              LatLng(56.0, -4.0),
+              LatLng(56.1, -4.0),
+              LatLng(56.1, -3.9),
+            ],
+            areaHectares: 50.0,
+            fireDate: DateTime(2025, 7, 10),
+            seasonYear: 2025,
+            isSimplified: false,
+          );
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: FireDetailsBottomSheet.fromBurntArea(
-                burntArea: unsimplifiedArea,
-                onClose: () {},
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: FireDetailsBottomSheet.fromBurntArea(
+                  burntArea: unsimplifiedArea,
+                  onClose: () {},
+                ),
               ),
             ),
-          ),
-        );
-        await tester.pumpAndSettle();
+          );
+          await tester.pumpAndSettle();
 
-        expect(find.textContaining('Simplified'), findsNothing);
-      });
+          expect(find.textContaining('Simplified'), findsNothing);
+        },
+      );
 
-      testWidgets('displays land cover breakdown as horizontal bars',
-          (tester) async {
+      testWidgets('displays land cover breakdown as horizontal bars', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -445,9 +449,7 @@ void main() {
           areaHectares: 50.0,
           fireDate: DateTime(2025, 7, 10),
           seasonYear: 2025,
-          landCoverBreakdown: const {
-            'forest': 0.45,
-          },
+          landCoverBreakdown: const {'forest': 0.45},
         );
 
         await tester.pumpWidget(
@@ -495,9 +497,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(
-          find.bySemanticsLabel(
-            RegExp(r'Polygon simplified from 500 points'),
-          ),
+          find.bySemanticsLabel(RegExp(r'Polygon simplified from 500 points')),
           findsOneWidget,
         );
       });

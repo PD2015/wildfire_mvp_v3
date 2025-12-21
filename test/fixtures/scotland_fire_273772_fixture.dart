@@ -81,20 +81,20 @@ class ScotlandFire273772Fixture {
 
   /// Full FireIncident object for integration tests
   static FireIncident get incident => FireIncident(
-        id: id,
-        location: centroid,
-        source: DataSource.effis,
-        freshness: Freshness.live,
-        timestamp: fireDate,
-        intensity: 'high', // 9,809 ha is a significant fire
-        detectedAt: fireDate,
-        sensorSource: 'MODIS',
-        description: 'Moorland fire in West Moray, Cairngorms region',
-        areaHectares: areaHectares,
-        boundaryPoints: simplifiedPolygon,
-        confidence: 95.0,
-        lastUpdate: lastUpdate,
-      );
+    id: id,
+    location: centroid,
+    source: DataSource.effis,
+    freshness: Freshness.live,
+    timestamp: fireDate,
+    intensity: 'high', // 9,809 ha is a significant fire
+    detectedAt: fireDate,
+    sensorSource: 'MODIS',
+    description: 'Moorland fire in West Moray, Cairngorms region',
+    areaHectares: areaHectares,
+    boundaryPoints: simplifiedPolygon,
+    confidence: 95.0,
+    lastUpdate: lastUpdate,
+  );
 
   /// FireIncident with full polygon (use sparingly - large data)
   /// For performance testing polygon rendering
@@ -117,39 +117,39 @@ class ScotlandFire273772Fixture {
 
   /// GeoJSON-style feature for testing fromJson parsing
   static Map<String, dynamic> get geoJsonFeature => {
-        'type': 'Feature',
-        'properties': {
-          'id': id,
-          'FIREDATE': '2025-06-28T11:53:00Z',
-          'AREA_HA': areaHectares,
-          'COUNTRY': 'UK',
-          'PROVINCE': province,
-          'COMMUNE': commune,
-          'LASTUPDATE': '2025-07-09',
-          'BROADLEAVED': 0.0,
-          'CONIFEROUS': 0.0,
-          'MIXED': 0.0,
-          'SCLEROPHYLLOUS': 0.0,
-          'TRANSITIONAL': 4.24,
-          'OTHER_NATURAL': 93.24,
-          'OTHER': 2.52,
-        },
-        'geometry': {
-          'type': 'Polygon',
-          'coordinates': [
-            // Simplified outer ring (GeoJSON uses [lon, lat] order)
-            [
-              [-3.622999, 57.472033],
-              [-3.622877, 57.472131],
-              [-3.622810, 57.472249],
-              [-3.622797, 57.472387],
-              [-3.622840, 57.472545],
-              [-3.622938, 57.472723],
-              [-3.623032, 57.472868],
-              [-3.623122, 57.472980],
-              [-3.622999, 57.472033], // Closed ring
-            ],
-          ],
-        },
-      };
+    'type': 'Feature',
+    'properties': {
+      'id': id,
+      'FIREDATE': '2025-06-28T11:53:00Z',
+      'AREA_HA': areaHectares,
+      'COUNTRY': 'UK',
+      'PROVINCE': province,
+      'COMMUNE': commune,
+      'LASTUPDATE': '2025-07-09',
+      'BROADLEAVED': 0.0,
+      'CONIFEROUS': 0.0,
+      'MIXED': 0.0,
+      'SCLEROPHYLLOUS': 0.0,
+      'TRANSITIONAL': 4.24,
+      'OTHER_NATURAL': 93.24,
+      'OTHER': 2.52,
+    },
+    'geometry': {
+      'type': 'Polygon',
+      'coordinates': [
+        // Simplified outer ring (GeoJSON uses [lon, lat] order)
+        [
+          [-3.622999, 57.472033],
+          [-3.622877, 57.472131],
+          [-3.622810, 57.472249],
+          [-3.622797, 57.472387],
+          [-3.622840, 57.472545],
+          [-3.622938, 57.472723],
+          [-3.623032, 57.472868],
+          [-3.623122, 57.472980],
+          [-3.622999, 57.472033], // Closed ring
+        ],
+      ],
+    },
+  };
 }

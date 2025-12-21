@@ -224,8 +224,9 @@ void main() {
           final weatherContainer = containers.firstWhere((container) {
             final decoration = container.decoration as BoxDecoration?;
             final color = decoration?.color;
-            final alphaValue =
-                color != null ? (color.a * 255.0).round() & 0xff : null;
+            final alphaValue = color != null
+                ? (color.a * 255.0).round() & 0xff
+                : null;
             return decoration?.borderRadius != null &&
                 alphaValue != null &&
                 alphaValue < 255;
@@ -398,7 +399,8 @@ FireRisk _fakeFireRisk({
     level: level,
     source: source,
     freshness: freshness,
-    observedAt: observedAtUtc ??
+    observedAt:
+        observedAtUtc ??
         DateTime.now().toUtc().subtract(const Duration(minutes: 30)),
   );
 }

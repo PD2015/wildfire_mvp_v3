@@ -20,7 +20,8 @@ class MockWhat3wordsService implements What3wordsService {
   MockWhat3wordsService({this.delay = Duration.zero});
 
   void setConvertTo3waResult(
-      Either<What3wordsError, What3wordsAddress> result) {
+    Either<What3wordsError, What3wordsAddress> result,
+  ) {
     _convertTo3waResult = result;
   }
 
@@ -67,7 +68,8 @@ class MockGeocodingService implements GeocodingService {
   MockGeocodingService({this.delay = Duration.zero});
 
   void setSearchPlacesResult(
-      Either<GeocodingError, List<PlaceSearchResult>> result) {
+    Either<GeocodingError, List<PlaceSearchResult>> result,
+  ) {
     _searchPlacesResult = result;
   }
 
@@ -188,8 +190,9 @@ void main() {
       });
 
       test('stores mode correctly', () {
-        final controller =
-            createController(mode: LocationPickerMode.fireReport);
+        final controller = createController(
+          mode: LocationPickerMode.fireReport,
+        );
         expect(controller.mode, equals(LocationPickerMode.fireReport));
       });
     });
@@ -301,7 +304,8 @@ void main() {
       test('shows error when what3words conversion fails', () async {
         mockW3w.setConvertToCoordinatesResult(
           const Left(
-              What3wordsApiError(code: 'BadWords', message: 'Not found')),
+            What3wordsApiError(code: 'BadWords', message: 'Not found'),
+          ),
         );
 
         final controller = createController();
@@ -427,8 +431,10 @@ void main() {
         final state = controller.state as LocationPickerSelected;
         expect(state.coordinates, equals(testLocation));
         expect(state.placeName, equals('Edinburgh'));
-        expect(mockGeocoding.getPlaceCoordinatesCalls,
-            equals(0)); // Should not call
+        expect(
+          mockGeocoding.getPlaceCoordinatesCalls,
+          equals(0),
+        ); // Should not call
       });
 
       test('resolves coordinates from place_id when not provided', () async {

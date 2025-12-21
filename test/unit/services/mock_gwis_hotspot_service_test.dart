@@ -19,9 +19,13 @@ void main() {
 
   // Skip entire test file on web - rootBundle.loadString hangs in Chrome tests
   if (kIsWeb) {
-    test('skipped on web platform', () {
-      // rootBundle.loadString doesn't work in Chrome test environment
-    }, skip: 'MockGwisHotspotService tests use rootBundle which hangs on web');
+    test(
+      'skipped on web platform',
+      () {
+        // rootBundle.loadString doesn't work in Chrome test environment
+      },
+      skip: 'MockGwisHotspotService tests use rootBundle which hangs on web',
+    );
     return;
   }
 
@@ -45,13 +49,10 @@ void main() {
         );
 
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Should not return error'),
-          (hotspots) {
-            // Mock data should return hotspots (may be empty if bounds don't match)
-            expect(hotspots, isA<List>());
-          },
-        );
+        result.fold((error) => fail('Should not return error'), (hotspots) {
+          // Mock data should return hotspots (may be empty if bounds don't match)
+          expect(hotspots, isA<List>());
+        });
       });
 
       test('filters hotspots by bounding box', () async {
@@ -66,13 +67,10 @@ void main() {
           timeFilter: HotspotTimeFilter.today,
         );
 
-        result.fold(
-          (error) => fail('Should not return error'),
-          (hotspots) {
-            // With bounds far from Scotland, should return empty
-            expect(hotspots, isEmpty);
-          },
-        );
+        result.fold((error) => fail('Should not return error'), (hotspots) {
+          // With bounds far from Scotland, should return empty
+          expect(hotspots, isEmpty);
+        });
       });
 
       test('returns hotspots within Scotland bounds', () async {
@@ -87,18 +85,15 @@ void main() {
           timeFilter: HotspotTimeFilter.today,
         );
 
-        result.fold(
-          (error) => fail('Should not return error'),
-          (hotspots) {
-            // All mock hotspots should be in Scotland
-            for (final hotspot in hotspots) {
-              expect(hotspot.location.latitude, greaterThanOrEqualTo(54.0));
-              expect(hotspot.location.latitude, lessThanOrEqualTo(61.0));
-              expect(hotspot.location.longitude, greaterThanOrEqualTo(-8.0));
-              expect(hotspot.location.longitude, lessThanOrEqualTo(0.0));
-            }
-          },
-        );
+        result.fold((error) => fail('Should not return error'), (hotspots) {
+          // All mock hotspots should be in Scotland
+          for (final hotspot in hotspots) {
+            expect(hotspot.location.latitude, greaterThanOrEqualTo(54.0));
+            expect(hotspot.location.latitude, lessThanOrEqualTo(61.0));
+            expect(hotspot.location.longitude, greaterThanOrEqualTo(-8.0));
+            expect(hotspot.location.longitude, lessThanOrEqualTo(0.0));
+          }
+        });
       });
 
       test('never returns Left (mock service always succeeds)', () async {
@@ -117,23 +112,25 @@ void main() {
         }
       });
 
-      test('ignores timeout and maxRetries parameters (mock behavior)',
-          () async {
-        const bounds = LatLngBounds(
-          southwest: LatLng(54.0, -8.0),
-          northeast: LatLng(61.0, 0.0),
-        );
+      test(
+        'ignores timeout and maxRetries parameters (mock behavior)',
+        () async {
+          const bounds = LatLngBounds(
+            southwest: LatLng(54.0, -8.0),
+            northeast: LatLng(61.0, 0.0),
+          );
 
-        final result = await service.getHotspots(
-          bounds: bounds,
-          timeFilter: HotspotTimeFilter.today,
-          timeout: const Duration(milliseconds: 1), // Very short timeout
-          maxRetries: 0,
-        );
+          final result = await service.getHotspots(
+            bounds: bounds,
+            timeFilter: HotspotTimeFilter.today,
+            timeout: const Duration(milliseconds: 1), // Very short timeout
+            maxRetries: 0,
+          );
 
-        // Should still succeed - mock ignores these parameters
-        expect(result.isRight(), isTrue);
-      });
+          // Should still succeed - mock ignores these parameters
+          expect(result.isRight(), isTrue);
+        },
+      );
 
       test('accepts both time filters', () async {
         const bounds = LatLngBounds(
@@ -213,7 +210,8 @@ void main() {
           expect(
             diff.inMinutes,
             lessThan(5),
-            reason: 'Newest hotspot should be ~6 hours ago: '
+            reason:
+                'Newest hotspot should be ~6 hours ago: '
                 'expected $expectedNewest, got $newestDate',
           );
         }
@@ -290,12 +288,12 @@ void main() {
               .toList();
 
           if (commonIds.length >= 2) {
-            final diff1 = h1ById[commonIds[0]]!
-                .detectedAt
-                .difference(h1ById[commonIds[1]]!.detectedAt);
-            final diff2 = h2ById[commonIds[0]]!
-                .detectedAt
-                .difference(h2ById[commonIds[1]]!.detectedAt);
+            final diff1 = h1ById[commonIds[0]]!.detectedAt.difference(
+              h1ById[commonIds[1]]!.detectedAt,
+            );
+            final diff2 = h2ById[commonIds[0]]!.detectedAt.difference(
+              h2ById[commonIds[1]]!.detectedAt,
+            );
 
             // The relative time difference should be identical
             expect(diff1, equals(diff2));
@@ -303,65 +301,71 @@ void main() {
         }
       });
 
-      test('today filter returns hotspots within 24 hours of mock now',
-          () async {
-        // Arrange: Fixed "now" for reproducible tests
-        final fixedNow = DateTime.utc(2025, 6, 15, 12, 0);
-        final clockedService = MockGwisHotspotService(clock: () => fixedNow);
+      test(
+        'today filter returns hotspots within 24 hours of mock now',
+        () async {
+          // Arrange: Fixed "now" for reproducible tests
+          final fixedNow = DateTime.utc(2025, 6, 15, 12, 0);
+          final clockedService = MockGwisHotspotService(clock: () => fixedNow);
 
-        const bounds = LatLngBounds(
-          southwest: LatLng(54.0, -8.0),
-          northeast: LatLng(61.0, 0.0),
-        );
-
-        // Act
-        final result = await clockedService.getHotspots(
-          bounds: bounds,
-          timeFilter: HotspotTimeFilter.today,
-        );
-
-        // Assert
-        final hotspots = result.getOrElse(() => []);
-        final cutoff = fixedNow.subtract(const Duration(hours: 24));
-
-        for (final hotspot in hotspots) {
-          expect(
-            hotspot.detectedAt.isAfter(cutoff),
-            isTrue,
-            reason: 'Hotspot at ${hotspot.detectedAt} should be after $cutoff',
+          const bounds = LatLngBounds(
+            southwest: LatLng(54.0, -8.0),
+            northeast: LatLng(61.0, 0.0),
           );
-        }
-      });
 
-      test('thisWeek filter returns hotspots within 7 days of mock now',
-          () async {
-        // Arrange: Fixed "now" for reproducible tests
-        final fixedNow = DateTime.utc(2025, 6, 15, 12, 0);
-        final clockedService = MockGwisHotspotService(clock: () => fixedNow);
-
-        const bounds = LatLngBounds(
-          southwest: LatLng(54.0, -8.0),
-          northeast: LatLng(61.0, 0.0),
-        );
-
-        // Act
-        final result = await clockedService.getHotspots(
-          bounds: bounds,
-          timeFilter: HotspotTimeFilter.thisWeek,
-        );
-
-        // Assert
-        final hotspots = result.getOrElse(() => []);
-        final cutoff = fixedNow.subtract(const Duration(days: 7));
-
-        for (final hotspot in hotspots) {
-          expect(
-            hotspot.detectedAt.isAfter(cutoff),
-            isTrue,
-            reason: 'Hotspot at ${hotspot.detectedAt} should be after $cutoff',
+          // Act
+          final result = await clockedService.getHotspots(
+            bounds: bounds,
+            timeFilter: HotspotTimeFilter.today,
           );
-        }
-      });
+
+          // Assert
+          final hotspots = result.getOrElse(() => []);
+          final cutoff = fixedNow.subtract(const Duration(hours: 24));
+
+          for (final hotspot in hotspots) {
+            expect(
+              hotspot.detectedAt.isAfter(cutoff),
+              isTrue,
+              reason:
+                  'Hotspot at ${hotspot.detectedAt} should be after $cutoff',
+            );
+          }
+        },
+      );
+
+      test(
+        'thisWeek filter returns hotspots within 7 days of mock now',
+        () async {
+          // Arrange: Fixed "now" for reproducible tests
+          final fixedNow = DateTime.utc(2025, 6, 15, 12, 0);
+          final clockedService = MockGwisHotspotService(clock: () => fixedNow);
+
+          const bounds = LatLngBounds(
+            southwest: LatLng(54.0, -8.0),
+            northeast: LatLng(61.0, 0.0),
+          );
+
+          // Act
+          final result = await clockedService.getHotspots(
+            bounds: bounds,
+            timeFilter: HotspotTimeFilter.thisWeek,
+          );
+
+          // Assert
+          final hotspots = result.getOrElse(() => []);
+          final cutoff = fixedNow.subtract(const Duration(days: 7));
+
+          for (final hotspot in hotspots) {
+            expect(
+              hotspot.detectedAt.isAfter(cutoff),
+              isTrue,
+              reason:
+                  'Hotspot at ${hotspot.detectedAt} should be after $cutoff',
+            );
+          }
+        },
+      );
     });
   });
 }

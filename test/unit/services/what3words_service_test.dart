@@ -19,8 +19,10 @@ void main() {
         final mockClient = MockClient((request) async {
           expect(request.url.host, equals('api.what3words.com'));
           expect(request.url.path, equals('/v3/convert-to-3wa'));
-          expect(request.url.queryParameters['coordinates'],
-              equals('$testLat,$testLon'));
+          expect(
+            request.url.queryParameters['coordinates'],
+            equals('$testLat,$testLon'),
+          );
           expect(request.url.queryParameters['key'], equals(testApiKey));
 
           return http.Response(
@@ -42,13 +44,12 @@ void main() {
         final result = await service.convertTo3wa(lat: testLat, lon: testLon);
 
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Expected success, got error: $error'),
-          (address) {
-            expect(address.words, equals(testWords));
-            expect(address.displayFormat, equals('///$testWords'));
-          },
-        );
+        result.fold((error) => fail('Expected success, got error: $error'), (
+          address,
+        ) {
+          expect(address.words, equals(testWords));
+          expect(address.displayFormat, equals('///$testWords'));
+        });
       });
 
       test('returns error when API key is empty', () async {
@@ -59,22 +60,16 @@ void main() {
           return http.Response('', 500);
         });
 
-        final service = What3wordsServiceImpl(
-          client: mockClient,
-          apiKey: '',
-        );
+        final service = What3wordsServiceImpl(client: mockClient, apiKey: '');
 
         final result = await service.convertTo3wa(lat: testLat, lon: testLon);
 
         expect(clientCalled, isFalse);
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<What3wordsApiError>());
-            expect((error as What3wordsApiError).code, equals('NoApiKey'));
-          },
-          (address) => fail('Expected error, got address: $address'),
-        );
+        result.fold((error) {
+          expect(error, isA<What3wordsApiError>());
+          expect((error as What3wordsApiError).code, equals('NoApiKey'));
+        }, (address) => fail('Expected error, got address: $address'));
       });
 
       test('returns error on 401 unauthorized', () async {
@@ -90,15 +85,12 @@ void main() {
         final result = await service.convertTo3wa(lat: testLat, lon: testLon);
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<What3wordsApiError>());
-            final apiError = error as What3wordsApiError;
-            expect(apiError.code, equals('InvalidKey'));
-            expect(apiError.statusCode, equals(401));
-          },
-          (address) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<What3wordsApiError>());
+          final apiError = error as What3wordsApiError;
+          expect(apiError.code, equals('InvalidKey'));
+          expect(apiError.statusCode, equals(401));
+        }, (address) => fail('Expected error'));
       });
 
       test('returns error on 429 rate limit', () async {
@@ -114,15 +106,12 @@ void main() {
         final result = await service.convertTo3wa(lat: testLat, lon: testLon);
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<What3wordsApiError>());
-            final apiError = error as What3wordsApiError;
-            expect(apiError.code, equals('QuotaExceeded'));
-            expect(apiError.statusCode, equals(429));
-          },
-          (address) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<What3wordsApiError>());
+          final apiError = error as What3wordsApiError;
+          expect(apiError.code, equals('QuotaExceeded'));
+          expect(apiError.statusCode, equals(429));
+        }, (address) => fail('Expected error'));
       });
 
       test('returns error on API error response', () async {
@@ -132,7 +121,7 @@ void main() {
               'error': {
                 'code': 'BadCoordinates',
                 'message': 'Invalid coordinates',
-              }
+              },
             }),
             200,
           );
@@ -146,15 +135,12 @@ void main() {
         final result = await service.convertTo3wa(lat: testLat, lon: testLon);
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<What3wordsApiError>());
-            final apiError = error as What3wordsApiError;
-            expect(apiError.code, equals('BadCoordinates'));
-            expect(apiError.message, equals('Invalid coordinates'));
-          },
-          (address) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<What3wordsApiError>());
+          final apiError = error as What3wordsApiError;
+          expect(apiError.code, equals('BadCoordinates'));
+          expect(apiError.message, equals('Invalid coordinates'));
+        }, (address) => fail('Expected error'));
       });
 
       test('returns error on missing words in response', () async {
@@ -176,14 +162,10 @@ void main() {
         final result = await service.convertTo3wa(lat: testLat, lon: testLon);
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<What3wordsApiError>());
-            expect(
-                (error as What3wordsApiError).code, equals('InvalidResponse'));
-          },
-          (address) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<What3wordsApiError>());
+          expect((error as What3wordsApiError).code, equals('InvalidResponse'));
+        }, (address) => fail('Expected error'));
       });
 
       test('returns network error on HTTP exception', () async {
@@ -199,14 +181,13 @@ void main() {
         final result = await service.convertTo3wa(lat: testLat, lon: testLon);
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<What3wordsNetworkError>());
-            expect((error as What3wordsNetworkError).details,
-                contains('Connection refused'));
-          },
-          (address) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<What3wordsNetworkError>());
+          expect(
+            (error as What3wordsNetworkError).details,
+            contains('Connection refused'),
+          );
+        }, (address) => fail('Expected error'));
       });
 
       test('returns error on generic HTTP errors', () async {
@@ -222,15 +203,12 @@ void main() {
         final result = await service.convertTo3wa(lat: testLat, lon: testLon);
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<What3wordsApiError>());
-            final apiError = error as What3wordsApiError;
-            expect(apiError.code, equals('HttpError'));
-            expect(apiError.statusCode, equals(503));
-          },
-          (address) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<What3wordsApiError>());
+          final apiError = error as What3wordsApiError;
+          expect(apiError.code, equals('HttpError'));
+          expect(apiError.statusCode, equals(503));
+        }, (address) => fail('Expected error'));
       });
     });
 
@@ -260,13 +238,12 @@ void main() {
         final result = await service.convertToCoordinates(words: testWords);
 
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Expected success, got error: $error'),
-          (coords) {
-            expect(coords.latitude, equals(testLat));
-            expect(coords.longitude, equals(testLon));
-          },
-        );
+        result.fold((error) => fail('Expected success, got error: $error'), (
+          coords,
+        ) {
+          expect(coords.latitude, equals(testLat));
+          expect(coords.longitude, equals(testLon));
+        });
       });
 
       test('validates format before API call', () async {
@@ -286,14 +263,13 @@ void main() {
 
         expect(clientCalled, isFalse);
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<What3wordsInvalidAddressError>());
-            expect((error as What3wordsInvalidAddressError).input,
-                equals('invalid'));
-          },
-          (coords) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<What3wordsInvalidAddressError>());
+          expect(
+            (error as What3wordsInvalidAddressError).input,
+            equals('invalid'),
+          );
+        }, (coords) => fail('Expected error'));
       });
 
       test('normalizes address with slashes before API call', () async {
@@ -313,8 +289,9 @@ void main() {
           apiKey: testApiKey,
         );
 
-        final result =
-            await service.convertToCoordinates(words: '///$testWords');
+        final result = await service.convertToCoordinates(
+          words: '///$testWords',
+        );
         expect(result.isRight(), isTrue);
       });
 
@@ -326,22 +303,16 @@ void main() {
           return http.Response('', 500);
         });
 
-        final service = What3wordsServiceImpl(
-          client: mockClient,
-          apiKey: '',
-        );
+        final service = What3wordsServiceImpl(client: mockClient, apiKey: '');
 
         final result = await service.convertToCoordinates(words: testWords);
 
         expect(clientCalled, isFalse);
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<What3wordsApiError>());
-            expect((error as What3wordsApiError).code, equals('NoApiKey'));
-          },
-          (coords) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<What3wordsApiError>());
+          expect((error as What3wordsApiError).code, equals('NoApiKey'));
+        }, (coords) => fail('Expected error'));
       });
 
       test('returns error on BadWords API response', () async {
@@ -351,7 +322,7 @@ void main() {
               'error': {
                 'code': 'BadWords',
                 'message': 'what3words address not found',
-              }
+              },
             }),
             200,
           );
@@ -363,17 +334,15 @@ void main() {
         );
 
         // Valid format but nonexistent address
-        final result =
-            await service.convertToCoordinates(words: 'fake.fake.fake');
+        final result = await service.convertToCoordinates(
+          words: 'fake.fake.fake',
+        );
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            // BadWords should be converted to InvalidAddressError
-            expect(error, isA<What3wordsInvalidAddressError>());
-          },
-          (coords) => fail('Expected error'),
-        );
+        result.fold((error) {
+          // BadWords should be converted to InvalidAddressError
+          expect(error, isA<What3wordsInvalidAddressError>());
+        }, (coords) => fail('Expected error'));
       });
 
       test('returns error on 401 unauthorized', () async {
@@ -389,15 +358,12 @@ void main() {
         final result = await service.convertToCoordinates(words: testWords);
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<What3wordsApiError>());
-            final apiError = error as What3wordsApiError;
-            expect(apiError.code, equals('InvalidKey'));
-            expect(apiError.statusCode, equals(401));
-          },
-          (coords) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<What3wordsApiError>());
+          final apiError = error as What3wordsApiError;
+          expect(apiError.code, equals('InvalidKey'));
+          expect(apiError.statusCode, equals(401));
+        }, (coords) => fail('Expected error'));
       });
 
       test('returns error on missing coordinates in response', () async {
@@ -419,14 +385,10 @@ void main() {
         final result = await service.convertToCoordinates(words: testWords);
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<What3wordsApiError>());
-            expect(
-                (error as What3wordsApiError).code, equals('InvalidResponse'));
-          },
-          (coords) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<What3wordsApiError>());
+          expect((error as What3wordsApiError).code, equals('InvalidResponse'));
+        }, (coords) => fail('Expected error'));
       });
 
       test('returns error on missing lat/lng in coordinates', () async {
@@ -447,14 +409,10 @@ void main() {
         final result = await service.convertToCoordinates(words: testWords);
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<What3wordsApiError>());
-            expect(
-                (error as What3wordsApiError).code, equals('InvalidResponse'));
-          },
-          (coords) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<What3wordsApiError>());
+          expect((error as What3wordsApiError).code, equals('InvalidResponse'));
+        }, (coords) => fail('Expected error'));
       });
 
       test('returns network error on HTTP exception', () async {
@@ -470,12 +428,9 @@ void main() {
         final result = await service.convertToCoordinates(words: testWords);
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<What3wordsNetworkError>());
-          },
-          (coords) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<What3wordsNetworkError>());
+        }, (coords) => fail('Expected error'));
       });
     });
 

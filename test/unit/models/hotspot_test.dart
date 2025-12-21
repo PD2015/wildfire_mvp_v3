@@ -25,9 +25,7 @@ void main() {
       });
 
       test('test factory creates valid instance with defaults', () {
-        final hotspot = Hotspot.test(
-          location: testLocation,
-        );
+        final hotspot = Hotspot.test(location: testLocation);
 
         expect(hotspot.location, equals(testLocation));
         expect(hotspot.frp, equals(25.0)); // default
@@ -37,58 +35,37 @@ void main() {
 
     group('intensity from FRP', () {
       test('FRP < 10 returns low intensity', () {
-        final hotspot = Hotspot.test(
-          location: testLocation,
-          frp: 5.0,
-        );
+        final hotspot = Hotspot.test(location: testLocation, frp: 5.0);
         expect(hotspot.intensity, equals('low'));
       });
 
       test('FRP = 0 returns low intensity', () {
-        final hotspot = Hotspot.test(
-          location: testLocation,
-          frp: 0.0,
-        );
+        final hotspot = Hotspot.test(location: testLocation, frp: 0.0);
         expect(hotspot.intensity, equals('low'));
       });
 
       test('FRP = 9.99 returns low intensity', () {
-        final hotspot = Hotspot.test(
-          location: testLocation,
-          frp: 9.99,
-        );
+        final hotspot = Hotspot.test(location: testLocation, frp: 9.99);
         expect(hotspot.intensity, equals('low'));
       });
 
       test('FRP = 10 returns moderate intensity', () {
-        final hotspot = Hotspot.test(
-          location: testLocation,
-          frp: 10.0,
-        );
+        final hotspot = Hotspot.test(location: testLocation, frp: 10.0);
         expect(hotspot.intensity, equals('moderate'));
       });
 
       test('FRP = 49.99 returns moderate intensity', () {
-        final hotspot = Hotspot.test(
-          location: testLocation,
-          frp: 49.99,
-        );
+        final hotspot = Hotspot.test(location: testLocation, frp: 49.99);
         expect(hotspot.intensity, equals('moderate'));
       });
 
       test('FRP = 50 returns high intensity', () {
-        final hotspot = Hotspot.test(
-          location: testLocation,
-          frp: 50.0,
-        );
+        final hotspot = Hotspot.test(location: testLocation, frp: 50.0);
         expect(hotspot.intensity, equals('high'));
       });
 
       test('FRP > 50 returns high intensity', () {
-        final hotspot = Hotspot.test(
-          location: testLocation,
-          frp: 150.0,
-        );
+        final hotspot = Hotspot.test(location: testLocation, frp: 150.0);
         expect(hotspot.intensity, equals('high'));
       });
     });
@@ -187,11 +164,7 @@ void main() {
       test('handles missing acq_date gracefully', () {
         final json = {
           'id': 'test',
-          'properties': {
-            'latitude': 55.0,
-            'longitude': -3.0,
-            'frp': 10.0,
-          },
+          'properties': {'latitude': 55.0, 'longitude': -3.0, 'frp': 10.0},
         };
 
         final hotspot = Hotspot.fromJson(json);
@@ -232,10 +205,14 @@ void main() {
         final restored = Hotspot.fromJson(json);
 
         expect(restored.id, equals(original.id));
-        expect(restored.location.latitude,
-            closeTo(original.location.latitude, 0.0001));
-        expect(restored.location.longitude,
-            closeTo(original.location.longitude, 0.0001));
+        expect(
+          restored.location.latitude,
+          closeTo(original.location.latitude, 0.0001),
+        );
+        expect(
+          restored.location.longitude,
+          closeTo(original.location.longitude, 0.0001),
+        );
         expect(restored.frp, equals(original.frp));
         expect(restored.confidence, equals(original.confidence));
       });
@@ -317,10 +294,7 @@ void main() {
           confidence: 80.0,
         );
 
-        final copy = original.copyWith(
-          id: 'test_002',
-          frp: 50.0,
-        );
+        final copy = original.copyWith(id: 'test_002', frp: 50.0);
 
         expect(copy.id, equals('test_002')); // Changed
         expect(copy.location, equals(original.location));

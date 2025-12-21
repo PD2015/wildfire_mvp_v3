@@ -29,10 +29,12 @@ void main() {
 
       // Set up default mock behaviors
       when(mockLocationResolver.getLatLon()).thenAnswer(
-        (_) async => const Right(ResolvedLocation(
-          coordinates: LatLng(55.9533, -3.1883), // Edinburgh
-          source: LocationSource.gps,
-        )),
+        (_) async => const Right(
+          ResolvedLocation(
+            coordinates: LatLng(55.9533, -3.1883), // Edinburgh
+            source: LocationSource.gps,
+          ),
+        ),
       );
 
       when(
@@ -178,8 +180,9 @@ void main() {
       expect(routeMatch.uri.path, '/');
 
       // Verify route name matches
-      final route = router
-          .routerDelegate.currentConfiguration.matches.last.route as GoRoute;
+      final route =
+          router.routerDelegate.currentConfiguration.matches.last.route
+              as GoRoute;
       expect(route.name, 'fire-risk');
     });
 
@@ -194,8 +197,9 @@ void main() {
       expect(routeMatch.uri.path, '/fire-risk');
 
       // Verify route name matches
-      final route = router
-          .routerDelegate.currentConfiguration.matches.last.route as GoRoute;
+      final route =
+          router.routerDelegate.currentConfiguration.matches.last.route
+              as GoRoute;
       expect(route.name, 'fire-risk-alias');
     });
   });

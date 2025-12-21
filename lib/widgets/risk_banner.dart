@@ -93,9 +93,9 @@ class RiskBanner extends StatelessWidget {
         RiskBannerLoading() => _buildLoadingState(),
         RiskBannerSuccess(:final data) => _buildSuccessState(data),
         RiskBannerError(:final message, :final cached) => _buildErrorState(
-            message,
-            cached,
-          ),
+          message,
+          cached,
+        ),
       },
     );
   }
@@ -224,10 +224,7 @@ class RiskBanner extends StatelessWidget {
               ],
 
               // Risk scale
-              RiskScale(
-                currentLevel: data.level,
-                textColor: textColor,
-              ),
+              RiskScale(currentLevel: data.level, textColor: textColor),
 
               // Weather panel (if enabled)
               if (config.showWeatherPanel) ...[
@@ -412,10 +409,7 @@ class RiskBanner extends StatelessWidget {
               const CachedBadge(),
 
               // Risk scale
-              RiskScale(
-                currentLevel: cached.level,
-                textColor: textColor,
-              ),
+              RiskScale(currentLevel: cached.level, textColor: textColor),
 
               const SizedBox(height: 12.0),
 

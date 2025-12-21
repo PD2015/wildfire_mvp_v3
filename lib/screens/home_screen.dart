@@ -126,8 +126,8 @@ class _HomeScreenState extends State<HomeScreen> {
           'For information only. Dial 999 in an emergency.',
           key: const Key('disclaimer_text'),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
           textAlign: TextAlign.center,
         ),
       ),
@@ -143,12 +143,13 @@ class _HomeScreenState extends State<HomeScreen> {
         return const RiskBanner(state: RiskBannerLoading());
 
       case HomeStateSuccess(
-          :final riskData,
-          :final location,
-          :final formattedLocation,
-        ):
+        :final riskData,
+        :final location,
+        :final formattedLocation,
+      ):
         // Prefer human-readable location name, fallback to coordinates (C2 compliant)
-        final locationLabel = formattedLocation ??
+        final locationLabel =
+            formattedLocation ??
             LocationUtils.logRedact(location.latitude, location.longitude);
 
         return RiskBanner(
@@ -157,10 +158,10 @@ class _HomeScreenState extends State<HomeScreen> {
         );
 
       case HomeStateError(
-          :final errorMessage,
-          :final cachedData,
-          :final cachedLocation,
-        ):
+        :final errorMessage,
+        :final cachedData,
+        :final cachedLocation,
+      ):
         // Format cached location with privacy-compliant 2-decimal precision (C2)
         final locationLabel = cachedLocation != null
             ? LocationUtils.logRedact(
@@ -200,8 +201,8 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             'Showing cached data',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -259,8 +260,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return switch (homeState) {
       // Success state: Show guidance for current risk level
-      HomeStateSuccess(:final riskData) =>
-        RiskGuidanceCard(level: riskData.level),
+      HomeStateSuccess(:final riskData) => RiskGuidanceCard(
+        level: riskData.level,
+      ),
 
       // Error state with cached data: Show guidance for cached risk level
       HomeStateError(:final cachedData) when cachedData != null =>
@@ -328,23 +330,23 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text(
                           'Unable to load current data',
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onErrorContainer,
-                                  ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onErrorContainer,
+                              ),
                         ),
                         if (cachedData == null) ...[
                           const SizedBox(height: 4.0),
                           Text(
                             errorMessage,
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.onErrorContainer,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onErrorContainer,
+                                ),
                           ),
                         ],
                       ],
@@ -376,18 +378,18 @@ class _HomeScreenState extends State<HomeScreen> {
     final roundedLat = (lat * 100).round() / 100;
     final roundedLon = (lon * 100).round() / 100;
 
-    final url =
-        Uri.parse('https://maps.googleapis.com/maps/api/staticmap').replace(
-      queryParameters: {
-        'center': '$roundedLat,$roundedLon',
-        'zoom': '14',
-        'size': '600x300',
-        'markers': 'color:red|$roundedLat,$roundedLon',
-        'key': apiKey,
-        'scale': '2',
-        'maptype': 'roadmap',
-      },
-    );
+    final url = Uri.parse('https://maps.googleapis.com/maps/api/staticmap')
+        .replace(
+          queryParameters: {
+            'center': '$roundedLat,$roundedLon',
+            'zoom': '14',
+            'size': '600x300',
+            'markers': 'color:red|$roundedLat,$roundedLon',
+            'key': apiKey,
+            'scale': '2',
+            'maptype': 'roadmap',
+          },
+        );
 
     return url.toString();
   }
@@ -411,10 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final state = _controller.state;
 
     switch (state) {
-      case HomeStateLoading(
-          :final lastKnownLocation,
-          :final isLocationStale,
-        ):
+      case HomeStateLoading(:final lastKnownLocation, :final isLocationStale):
         // Determine subtitle based on staleness
         String subtitle;
         if (lastKnownLocation != null) {
@@ -441,14 +440,14 @@ class _HomeScreenState extends State<HomeScreen> {
         );
 
       case HomeStateSuccess(
-          :final location,
-          :final locationSource,
-          :final placeName,
-          :final what3words,
-          :final formattedLocation,
-          :final isWhat3wordsLoading,
-          :final isGeocodingLoading,
-        ):
+        :final location,
+        :final locationSource,
+        :final placeName,
+        :final what3words,
+        :final formattedLocation,
+        :final isWhat3wordsLoading,
+        :final isGeocodingLoading,
+      ):
         // Build trust-building subtitle with combination approach
         final String subtitle = switch (locationSource) {
           LocationSource.gps => 'Current location (GPS)',

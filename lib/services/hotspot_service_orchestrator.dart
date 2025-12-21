@@ -35,10 +35,7 @@ class HotspotResult {
   bool get isLiveData =>
       source == HotspotDataSource.firms || source == HotspotDataSource.gwis;
 
-  const HotspotResult({
-    required this.hotspots,
-    required this.source,
-  });
+  const HotspotResult({required this.hotspots, required this.source});
 }
 
 /// Orchestrates hotspot data fetching with automatic fallback chain.
@@ -83,9 +80,9 @@ class HotspotServiceOrchestrator {
     HotspotService? firmsService,
     HotspotService? gwisService,
     required HotspotService mockService,
-  })  : _firmsService = firmsService,
-        _gwisService = gwisService,
-        _mockService = mockService;
+  }) : _firmsService = firmsService,
+       _gwisService = gwisService,
+       _mockService = mockService;
 
   /// Fetch hotspots with automatic fallback
   ///
@@ -180,10 +177,7 @@ class HotspotServiceOrchestrator {
     );
 
     final hotspots = result.getOrElse(() => []);
-    return HotspotResult(
-      hotspots: hotspots,
-      source: HotspotDataSource.mock,
-    );
+    return HotspotResult(hotspots: hotspots, source: HotspotDataSource.mock);
   }
 
   /// Check if any live service is available

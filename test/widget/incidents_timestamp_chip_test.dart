@@ -9,11 +9,7 @@ void main() {
       return MaterialApp(
         theme: WildfireA11yTheme.light,
         home: Scaffold(
-          body: Center(
-            child: IncidentsTimestampChip(
-              lastUpdated: lastUpdated,
-            ),
-          ),
+          body: Center(child: IncidentsTimestampChip(lastUpdated: lastUpdated)),
         ),
       );
     }
@@ -91,8 +87,9 @@ void main() {
       expect(semantics.label, contains('Just now'));
     });
 
-    testWidgets('has minimum touch target of 44dp (C3 accessibility)',
-        (tester) async {
+    testWidgets('has minimum touch target of 44dp (C3 accessibility)', (
+      tester,
+    ) async {
       final now = DateTime.now().toUtc();
       await tester.pumpWidget(buildChip(now));
 
@@ -102,8 +99,11 @@ void main() {
 
       // Material Design minimum touch target: 44dp
       // Note: width can vary based on text, but height must be ≥44dp
-      expect(chipSize.height, greaterThanOrEqualTo(44.0),
-          reason: 'Chip height must be ≥44dp for C3 accessibility compliance');
+      expect(
+        chipSize.height,
+        greaterThanOrEqualTo(44.0),
+        reason: 'Chip height must be ≥44dp for C3 accessibility compliance',
+      );
     });
 
     testWidgets('uses theme colors correctly', (tester) async {
@@ -115,8 +115,10 @@ void main() {
 
       // Verify chip uses theme colors
       final theme = WildfireA11yTheme.light;
-      expect(chipWidget.backgroundColor,
-          equals(theme.colorScheme.surfaceContainerHighest));
+      expect(
+        chipWidget.backgroundColor,
+        equals(theme.colorScheme.surfaceContainerHighest),
+      );
 
       // Verify icon color
       final iconWidget = tester.widget<Icon>(find.byIcon(Icons.access_time));
@@ -131,9 +133,11 @@ void main() {
       final chipWidget = tester.widget<Chip>(find.byType(Chip));
 
       // Verify subtle elevation (2.0 per design)
-      expect(chipWidget.elevation, equals(2.0),
-          reason:
-              'Chip should have subtle elevation for map overlay visibility');
+      expect(
+        chipWidget.elevation,
+        equals(2.0),
+        reason: 'Chip should have subtle elevation for map overlay visibility',
+      );
     });
 
     testWidgets('updates display when lastUpdated changes', (tester) async {
@@ -161,11 +165,7 @@ void main() {
         MaterialApp(
           theme: WildfireA11yTheme.dark,
           home: Scaffold(
-            body: Center(
-              child: IncidentsTimestampChip(
-                lastUpdated: now,
-              ),
-            ),
+            body: Center(child: IncidentsTimestampChip(lastUpdated: now)),
           ),
         ),
       );
@@ -177,12 +177,15 @@ void main() {
       // Verify uses dark theme colors
       final chipWidget = tester.widget<Chip>(find.byType(Chip));
       final darkTheme = WildfireA11yTheme.dark;
-      expect(chipWidget.backgroundColor,
-          equals(darkTheme.colorScheme.surfaceContainerHighest));
+      expect(
+        chipWidget.backgroundColor,
+        equals(darkTheme.colorScheme.surfaceContainerHighest),
+      );
     });
 
-    testWidgets('auto-refreshes display every minute with timer',
-        (tester) async {
+    testWidgets('auto-refreshes display every minute with timer', (
+      tester,
+    ) async {
       // Start with timestamp from 1.5 minutes ago
       final now = DateTime.now().toUtc();
       final onePointFiveMinutesAgo = now.subtract(const Duration(seconds: 90));

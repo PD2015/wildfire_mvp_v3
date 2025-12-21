@@ -35,7 +35,7 @@ class DebouncedViewportLoader {
   bounds.LatLngBounds? _lastLoadedBounds; // Track last bounds we loaded for
   bool _isLoading = false;
   GoogleMapController?
-      _mapController; // Actual map controller for accurate bounds
+  _mapController; // Actual map controller for accurate bounds
 
   /// Create a debounced viewport loader.
   ///
@@ -56,7 +56,8 @@ class DebouncedViewportLoader {
   void setMapController(GoogleMapController controller) {
     _mapController = controller;
     debugPrint(
-        '🗺️ DebouncedViewportLoader: Map controller set - using accurate viewport bounds');
+      '🗺️ DebouncedViewportLoader: Map controller set - using accurate viewport bounds',
+    );
   }
 
   /// Handle camera movement event.
@@ -139,7 +140,8 @@ class DebouncedViewportLoader {
       if (_lastLoadedBounds != null &&
           _isSameBounds(visibleBounds, _lastLoadedBounds!)) {
         debugPrint(
-            '🗺️ DebouncedViewportLoader: Skipping load - viewport unchanged');
+          '🗺️ DebouncedViewportLoader: Skipping load - viewport unchanged',
+        );
         _isLoading = false;
         return;
       }

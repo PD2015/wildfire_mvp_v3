@@ -12,10 +12,7 @@ class LegalDocumentScreen extends StatefulWidget {
   /// The legal document to display.
   final LegalDocument document;
 
-  const LegalDocumentScreen({
-    required this.document,
-    super.key,
-  });
+  const LegalDocumentScreen({required this.document, super.key});
 
   @override
   State<LegalDocumentScreen> createState() => _LegalDocumentScreenState();
@@ -80,11 +77,13 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
       if (isLevel2Header || isLevel3Header) {
         // Save previous section
         if (currentContent.isNotEmpty || !isFirstSection) {
-          sections.add(_ContentSection(
-            id: currentSectionId,
-            content: currentContent.toString(),
-            key: GlobalKey(),
-          ));
+          sections.add(
+            _ContentSection(
+              id: currentSectionId,
+              content: currentContent.toString(),
+              key: GlobalKey(),
+            ),
+          );
           currentContent.clear();
         }
         isFirstSection = false;
@@ -93,8 +92,10 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
         final headerText = isLevel2Header
             ? trimmed.substring(3).replaceAll('**', '').trim()
             : trimmed.substring(4).replaceAll('**', '').trim();
-        currentSectionId =
-            headerText.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+        currentSectionId = headerText.toLowerCase().replaceAll(
+          RegExp(r'[^a-z0-9]+'),
+          '-',
+        );
       }
 
       currentContent.writeln(line);
@@ -102,11 +103,13 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
 
     // Add final section
     if (currentContent.isNotEmpty) {
-      sections.add(_ContentSection(
-        id: currentSectionId,
-        content: currentContent.toString(),
-        key: GlobalKey(),
-      ));
+      sections.add(
+        _ContentSection(
+          id: currentSectionId,
+          content: currentContent.toString(),
+          key: GlobalKey(),
+        ),
+      );
     }
 
     return sections;
@@ -139,10 +142,7 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              _getDocumentIcon(widget.document.id),
-              size: 20,
-            ),
+            Icon(_getDocumentIcon(widget.document.id), size: 20),
             const SizedBox(width: 8),
             Flexible(
               child: Text(
@@ -212,9 +212,7 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
                           }
                         },
                         styleSheet: _buildMarkdownStyleSheet(context),
-                        builders: {
-                          'blockquote': _EmergencyCalloutBuilder(),
-                        },
+                        builders: {'blockquote': _EmergencyCalloutBuilder()},
                       ),
                     ),
                   ),
@@ -225,8 +223,9 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
                     child: Text(
                       'Last updated: ${_formatDate(widget.document.effectiveDate)}',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color:
-                            theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.6,
+                        ),
                       ),
                     ),
                   ),
@@ -288,23 +287,18 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
           AnimatedCrossFade(
             firstChild: const SizedBox.shrink(),
             secondChild: Padding(
-              padding: const EdgeInsets.only(
-                left: 12,
-                right: 12,
-                bottom: 12,
-              ),
+              padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Divider(
                     height: 1,
-                    color:
-                        theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    color: theme.colorScheme.outlineVariant.withValues(
+                      alpha: 0.5,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  ..._tocEntries.map(
-                    (entry) => _buildTocItem(entry, theme),
-                  ),
+                  ..._tocEntries.map((entry) => _buildTocItem(entry, theme)),
                 ],
               ),
             ),
@@ -354,8 +348,9 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
                 entry.title,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight:
-                      entry.level == 2 ? FontWeight.w500 : FontWeight.normal,
+                  fontWeight: entry.level == 2
+                      ? FontWeight.w500
+                      : FontWeight.normal,
                 ),
               ),
             ),
@@ -434,8 +429,9 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
       } else if (isMetadata) {
         // Convert to italic for secondary styling
         // Remove existing bold markers and wrap in italics
-        final cleanedLine =
-            trimmedLine.replaceAll('**', '').replaceFirst(': ', ': *');
+        final cleanedLine = trimmedLine
+            .replaceAll('**', '')
+            .replaceFirst(': ', ': *');
         processedLines.add('_$cleanedLine*_');
       } else {
         processedLines.add(line);
@@ -452,22 +448,12 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
 
     return MarkdownStyleSheet(
       // Headers
-      h1: theme.textTheme.headlineSmall?.copyWith(
-        fontWeight: FontWeight.w600,
-      ),
-      h2: theme.textTheme.titleLarge?.copyWith(
-        fontWeight: FontWeight.w600,
-      ),
-      h3: theme.textTheme.titleMedium?.copyWith(
-        fontWeight: FontWeight.w600,
-      ),
-      h4: theme.textTheme.titleSmall?.copyWith(
-        fontWeight: FontWeight.w600,
-      ),
+      h1: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
+      h2: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+      h3: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+      h4: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
       // Body text
-      p: theme.textTheme.bodyMedium?.copyWith(
-        height: 1.6,
-      ),
+      p: theme.textTheme.bodyMedium?.copyWith(height: 1.6),
       // Strong/bold
       strong: theme.textTheme.bodyMedium?.copyWith(
         fontWeight: FontWeight.w600,
@@ -480,9 +466,7 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
         height: 1.6,
       ),
       // Lists
-      listBullet: theme.textTheme.bodyMedium?.copyWith(
-        height: 1.6,
-      ),
+      listBullet: theme.textTheme.bodyMedium?.copyWith(height: 1.6),
       // Links
       a: theme.textTheme.bodyMedium?.copyWith(
         color: theme.colorScheme.primary,
@@ -562,11 +546,7 @@ class _EmergencyCalloutBuilder extends MarkdownElementBuilder {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              Icons.warning_amber_rounded,
-              color: iconColor,
-              size: 20,
-            ),
+            Icon(Icons.warning_amber_rounded, color: iconColor, size: 20),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -590,11 +570,7 @@ class _TocEntry {
   final String id;
   final int level;
 
-  const _TocEntry({
-    required this.title,
-    required this.id,
-    required this.level,
-  });
+  const _TocEntry({required this.title, required this.id, required this.level});
 }
 
 /// A section of content with a global key for scroll navigation.
@@ -603,9 +579,5 @@ class _ContentSection {
   final String content;
   final GlobalKey key;
 
-  _ContentSection({
-    required this.id,
-    required this.content,
-    required this.key,
-  });
+  _ContentSection({required this.id, required this.content, required this.key});
 }

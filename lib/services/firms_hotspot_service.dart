@@ -36,11 +36,9 @@ class FirmsHotspotService implements HotspotService {
   ///
   /// [apiKey] - NASA FIRMS MAP_KEY (get from firms.modaps.eosdis.nasa.gov/api/map_key/)
   /// [httpClient] - Injectable HTTP client for network requests
-  FirmsHotspotService({
-    required String apiKey,
-    required http.Client httpClient,
-  })  : _apiKey = apiKey,
-        _httpClient = httpClient;
+  FirmsHotspotService({required String apiKey, required http.Client httpClient})
+    : _apiKey = apiKey,
+      _httpClient = httpClient;
 
   @override
   String get serviceName => 'NASA FIRMS';
@@ -75,7 +73,8 @@ class FirmsHotspotService implements HotspotService {
     // Build FIRMS Area API URL
     // Format: /api/area/csv/{MAP_KEY}/{SOURCE}/{west},{south},{east},{north}/{days}
     final days = timeFilter == HotspotTimeFilter.today ? 1 : 7;
-    final url = '$_baseUrl/csv/$_apiKey/VIIRS_SNPP_NRT/'
+    final url =
+        '$_baseUrl/csv/$_apiKey/VIIRS_SNPP_NRT/'
         '${sw.longitude},${sw.latitude},${ne.longitude},${ne.latitude}/$days';
 
     developer.log(
@@ -84,12 +83,9 @@ class FirmsHotspotService implements HotspotService {
     );
 
     try {
-      final response = await _httpClient.get(
-        Uri.parse(url),
-        headers: {
-          'User-Agent': _userAgent,
-        },
-      ).timeout(timeout);
+      final response = await _httpClient
+          .get(Uri.parse(url), headers: {'User-Agent': _userAgent})
+          .timeout(timeout);
 
       if (response.statusCode == 200) {
         return _parseCsvResponse(response.body);
@@ -97,23 +93,29 @@ class FirmsHotspotService implements HotspotService {
 
       // Handle error responses
       if (response.statusCode == 401 || response.statusCode == 403) {
-        return Left(ApiError(
-          message: 'FIRMS API key invalid or expired',
-          statusCode: response.statusCode,
-        ));
+        return Left(
+          ApiError(
+            message: 'FIRMS API key invalid or expired',
+            statusCode: response.statusCode,
+          ),
+        );
       }
 
       if (response.statusCode == 429) {
-        return Left(ApiError(
-          message: 'FIRMS rate limit exceeded',
-          statusCode: response.statusCode,
-        ));
+        return Left(
+          ApiError(
+            message: 'FIRMS rate limit exceeded',
+            statusCode: response.statusCode,
+          ),
+        );
       }
 
-      return Left(ApiError(
-        message: 'FIRMS request failed with status ${response.statusCode}',
-        statusCode: response.statusCode,
-      ));
+      return Left(
+        ApiError(
+          message: 'FIRMS request failed with status ${response.statusCode}',
+          statusCode: response.statusCode,
+        ),
+      );
     } on TimeoutException {
       return Left(ApiError(message: 'FIRMS request timed out'));
     } catch (e) {
@@ -150,10 +152,12 @@ class FirmsHotspotService implements HotspotService {
 
       // Validate required columns exist
       if (latIdx == -1 || lonIdx == -1) {
-        return Left(ApiError(
-          message:
-              'FIRMS response missing required columns (latitude, longitude)',
-        ));
+        return Left(
+          ApiError(
+            message:
+                'FIRMS response missing required columns (latitude, longitude)',
+          ),
+        );
       }
 
       final hotspots = <Hotspot>[];
@@ -176,8 +180,9 @@ class FirmsHotspotService implements HotspotService {
           final detectedAt = _parseAcquisitionDateTime(acqDate, acqTime);
 
           // Parse FRP (Fire Radiative Power)
-          final frp =
-              frpIdx >= 0 ? double.tryParse(values[frpIdx]) ?? 0.0 : 0.0;
+          final frp = frpIdx >= 0
+              ? double.tryParse(values[frpIdx]) ?? 0.0
+              : 0.0;
 
           // Parse confidence (FIRMS uses: l=low, n=nominal, h=high)
           final confStr = confIdx >= 0 ? values[confIdx] : 'n';
@@ -188,13 +193,15 @@ class FirmsHotspotService implements HotspotService {
               'firms_${lat.toStringAsFixed(5)}_${lon.toStringAsFixed(5)}_'
               '${detectedAt.millisecondsSinceEpoch}';
 
-          hotspots.add(Hotspot(
-            id: id,
-            location: LatLng(lat, lon),
-            detectedAt: detectedAt,
-            frp: frp,
-            confidence: confidence,
-          ));
+          hotspots.add(
+            Hotspot(
+              id: id,
+              location: LatLng(lat, lon),
+              detectedAt: detectedAt,
+              frp: frp,
+              confidence: confidence,
+            ),
+          );
         } catch (e) {
           // Skip malformed rows but continue parsing
           developer.log(
@@ -230,10 +237,12 @@ class FirmsHotspotService implements HotspotService {
       final day = int.parse(parts[2]);
 
       // Parse time as HHMM format
-      final hour =
-          time.length >= 2 ? int.tryParse(time.substring(0, 2)) ?? 0 : 0;
-      final minute =
-          time.length >= 4 ? int.tryParse(time.substring(2, 4)) ?? 0 : 0;
+      final hour = time.length >= 2
+          ? int.tryParse(time.substring(0, 2)) ?? 0
+          : 0;
+      final minute = time.length >= 4
+          ? int.tryParse(time.substring(2, 4)) ?? 0
+          : 0;
 
       return DateTime.utc(year, month, day, hour, minute);
     } catch (e) {

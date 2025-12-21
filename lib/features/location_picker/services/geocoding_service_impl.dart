@@ -32,14 +32,13 @@ class GeocodingServiceImpl implements GeocodingService {
   ///
   /// If no geocoding key is configured, falls back to [FeatureFlags.googleMapsApiKey]
   /// for backwards compatibility during migration.
-  GeocodingServiceImpl({
-    http.Client? client,
-    String? apiKey,
-  })  : _client = client ?? http.Client(),
-        _apiKey = apiKey ??
-            (FeatureFlags.geocodingApiKey.isNotEmpty
-                ? FeatureFlags.geocodingApiKey
-                : FeatureFlags.googleMapsApiKey);
+  GeocodingServiceImpl({http.Client? client, String? apiKey})
+    : _client = client ?? http.Client(),
+      _apiKey =
+          apiKey ??
+          (FeatureFlags.geocodingApiKey.isNotEmpty
+              ? FeatureFlags.geocodingApiKey
+              : FeatureFlags.googleMapsApiKey);
 
   @override
   Future<Either<GeocodingError, List<PlaceSearchResult>>> searchPlaces({
@@ -48,7 +47,8 @@ class GeocodingServiceImpl implements GeocodingService {
   }) async {
     if (_apiKey.isEmpty) {
       return const Left(
-          GeocodingApiError('Google Maps API key not configured'));
+        GeocodingApiError('Google Maps API key not configured'),
+      );
     }
 
     if (query.trim().isEmpty) {
@@ -86,17 +86,17 @@ class GeocodingServiceImpl implements GeocodingService {
           return const Right([]);
         } else if (status == 'REQUEST_DENIED') {
           return const Left(
-              GeocodingApiError('API request denied - check API key'));
+            GeocodingApiError('API request denied - check API key'),
+          );
         } else if (status == 'OVER_QUERY_LIMIT') {
           return const Left(GeocodingApiError('API quota exceeded'));
         } else {
           return Left(GeocodingApiError('API error: $status'));
         }
       } else {
-        return Left(GeocodingApiError(
-          'HTTP error',
-          statusCode: response.statusCode,
-        ));
+        return Left(
+          GeocodingApiError('HTTP error', statusCode: response.statusCode),
+        );
       }
     } on http.ClientException catch (e) {
       debugPrint('Geocoding: Network error - $e');
@@ -114,7 +114,8 @@ class GeocodingServiceImpl implements GeocodingService {
   }) async {
     if (_apiKey.isEmpty) {
       return const Left(
-          GeocodingApiError('Google Maps API key not configured'));
+        GeocodingApiError('Google Maps API key not configured'),
+      );
     }
 
     // Request multiple result types to get the most specific available
@@ -131,7 +132,8 @@ class GeocodingServiceImpl implements GeocodingService {
     );
 
     debugPrint(
-        'Geocoding: Reverse geocoding ${LocationUtils.logRedact(lat, lon)}');
+      'Geocoding: Reverse geocoding ${LocationUtils.logRedact(lat, lon)}',
+    );
 
     try {
       final response = await _client.get(url).timeout(_timeout);
@@ -146,7 +148,8 @@ class GeocodingServiceImpl implements GeocodingService {
             // Extract the best place name from all results
             final locationName = _extractBestLocationName(results);
             debugPrint(
-                'Geocoding: Resolved to "${locationName.displayName}" (${locationName.detailLevel.name})');
+              'Geocoding: Resolved to "${locationName.displayName}" (${locationName.detailLevel.name})',
+            );
             return Right(locationName.displayName);
           }
           return const Left(GeocodingNoResultsError('coordinates'));
@@ -156,10 +159,9 @@ class GeocodingServiceImpl implements GeocodingService {
           return Left(GeocodingApiError('API error: $status'));
         }
       } else {
-        return Left(GeocodingApiError(
-          'HTTP error',
-          statusCode: response.statusCode,
-        ));
+        return Left(
+          GeocodingApiError('HTTP error', statusCode: response.statusCode),
+        );
       }
     } on http.ClientException catch (e) {
       debugPrint('Geocoding: Network error - $e');
@@ -176,15 +178,13 @@ class GeocodingServiceImpl implements GeocodingService {
   }) async {
     if (_apiKey.isEmpty) {
       return const Left(
-          GeocodingApiError('Google Maps API key not configured'));
+        GeocodingApiError('Google Maps API key not configured'),
+      );
     }
 
-    final url = Uri.parse(_geocodeBaseUrl).replace(
-      queryParameters: {
-        'place_id': placeId,
-        'key': _apiKey,
-      },
-    );
+    final url = Uri.parse(
+      _geocodeBaseUrl,
+    ).replace(queryParameters: {'place_id': placeId, 'key': _apiKey});
 
     debugPrint('Geocoding: Resolving place_id $placeId');
 
@@ -206,7 +206,8 @@ class GeocodingServiceImpl implements GeocodingService {
               final lat = (location['lat'] as num).toDouble();
               final lng = (location['lng'] as num).toDouble();
               debugPrint(
-                  'Geocoding: Resolved to ${LocationUtils.logRedact(lat, lng)}');
+                'Geocoding: Resolved to ${LocationUtils.logRedact(lat, lng)}',
+              );
               return Right(LatLng(lat, lng));
             }
           }
@@ -217,10 +218,9 @@ class GeocodingServiceImpl implements GeocodingService {
           return Left(GeocodingApiError('API error: $status'));
         }
       } else {
-        return Left(GeocodingApiError(
-          'HTTP error',
-          statusCode: response.statusCode,
-        ));
+        return Left(
+          GeocodingApiError('HTTP error', statusCode: response.statusCode),
+        );
       }
     } on http.ClientException catch (e) {
       debugPrint('Geocoding: Network error - $e');
@@ -321,12 +321,16 @@ class GeocodingServiceImpl implements GeocodingService {
         naturalFeature = _getComponentName(components, 'natural_feature');
       }
       if (types.contains('administrative_area_level_2') && adminArea2 == null) {
-        adminArea2 =
-            _getComponentName(components, 'administrative_area_level_2');
+        adminArea2 = _getComponentName(
+          components,
+          'administrative_area_level_2',
+        );
       }
       if (types.contains('administrative_area_level_1') && adminArea1 == null) {
-        adminArea1 =
-            _getComponentName(components, 'administrative_area_level_1');
+        adminArea1 = _getComponentName(
+          components,
+          'administrative_area_level_1',
+        );
       }
 
       // Also check inside address components for these types

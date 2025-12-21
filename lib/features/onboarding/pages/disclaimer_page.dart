@@ -70,15 +70,9 @@ class DisclaimerPage extends StatelessWidget {
                   const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _EmergencyNumber(
-                        number: '999',
-                        label: 'Emergency',
-                      ),
+                      _EmergencyNumber(number: '999', label: 'Emergency'),
                       SizedBox(width: 24),
-                      _EmergencyNumber(
-                        number: '101',
-                        label: 'Non-emergency',
-                      ),
+                      _EmergencyNumber(number: '101', label: 'Non-emergency'),
                     ],
                   ),
                 ],
@@ -173,10 +167,7 @@ class _EmergencyNumber extends StatelessWidget {
   final String number;
   final String label;
 
-  const _EmergencyNumber({
-    required this.number,
-    required this.label,
-  });
+  const _EmergencyNumber({required this.number, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -211,10 +202,7 @@ class _DisclaimerItem extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _DisclaimerItem({
-    required this.icon,
-    required this.text,
-  });
+  const _DisclaimerItem({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -223,11 +211,7 @@ class _DisclaimerItem extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          size: 24,
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
+        Icon(icon, size: 24, color: theme.colorScheme.onSurfaceVariant),
         const SizedBox(width: 12),
         Expanded(
           child: Text(

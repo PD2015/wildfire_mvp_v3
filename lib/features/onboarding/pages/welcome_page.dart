@@ -9,10 +9,7 @@ class WelcomePage extends StatelessWidget {
   /// Callback when user taps continue.
   final VoidCallback onContinue;
 
-  const WelcomePage({
-    required this.onContinue,
-    super.key,
-  });
+  const WelcomePage({required this.onContinue, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -113,10 +110,7 @@ class _FeatureItem extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _FeatureItem({
-    required this.icon,
-    required this.text,
-  });
+  const _FeatureItem({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -124,18 +118,9 @@ class _FeatureItem extends StatelessWidget {
 
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 24,
-          color: theme.colorScheme.primary,
-        ),
+        Icon(icon, size: 24, color: theme.colorScheme.primary),
         const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: theme.textTheme.bodyMedium,
-          ),
-        ),
+        Expanded(child: Text(text, style: theme.textTheme.bodyMedium)),
       ],
     );
   }

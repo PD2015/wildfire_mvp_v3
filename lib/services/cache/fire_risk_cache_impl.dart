@@ -50,8 +50,8 @@ class FireRiskCacheImpl implements FireRiskCache {
   /// - [prefs]: SharedPreferences instance for persistent storage
   /// - [clock]: Clock for testable time operations (defaults to SystemClock)
   FireRiskCacheImpl({required SharedPreferences prefs, Clock? clock})
-      : _prefs = prefs,
-        _clock = clock ?? SystemClock();
+    : _prefs = prefs,
+      _clock = clock ?? SystemClock();
 
   /// Retrieve cached FireRisk data by geohash key with TTL enforcement
   ///
@@ -195,8 +195,8 @@ class FireRiskCacheImpl implements FireRiskCache {
   Future<void> clear() async {
     try {
       final keys = _prefs.getKeys().where(
-            (key) => key.startsWith(_entryKeyPrefix),
-          );
+        (key) => key.startsWith(_entryKeyPrefix),
+      );
       for (final key in keys) {
         _prefs.remove(key);
       }
@@ -266,8 +266,8 @@ class FireRiskCacheImpl implements FireRiskCache {
 
     try {
       final keys = _prefs.getKeys().where(
-            (key) => key.startsWith(_entryKeyPrefix),
-          );
+        (key) => key.startsWith(_entryKeyPrefix),
+      );
 
       for (final key in keys) {
         final geohashKey = key.substring(_entryKeyPrefix.length);
@@ -341,8 +341,8 @@ class FireRiskCacheImpl implements FireRiskCache {
   Future<void> _updateTotalEntries() async {
     try {
       final keys = _prefs.getKeys().where(
-            (key) => key.startsWith(_entryKeyPrefix),
-          );
+        (key) => key.startsWith(_entryKeyPrefix),
+      );
       final metadata = await getMetadata();
 
       await _saveMetadata(metadata.copyWith(totalEntries: keys.length));

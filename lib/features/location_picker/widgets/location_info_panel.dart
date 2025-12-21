@@ -121,11 +121,7 @@ class LocationInfoPanel extends StatelessWidget {
   Widget _buildHeader(ThemeData theme, ColorScheme colorScheme) {
     return Row(
       children: [
-        Icon(
-          Icons.map_outlined,
-          size: 18,
-          color: colorScheme.onSurface,
-        ),
+        Icon(Icons.map_outlined, size: 18, color: colorScheme.onSurface),
         const SizedBox(width: 8),
         Text(
           title ?? 'Pan map to set location',
@@ -265,11 +261,7 @@ class LocationInfoPanel extends StatelessWidget {
             height: 48,
             child: IconButton(
               key: const Key('copy_what3words_button'),
-              icon: Icon(
-                Icons.copy,
-                size: 20,
-                color: colorScheme.primary,
-              ),
+              icon: Icon(Icons.copy, size: 20, color: colorScheme.primary),
               onPressed: onCopyWhat3words != null
                   ? () {
                       // Copy to clipboard

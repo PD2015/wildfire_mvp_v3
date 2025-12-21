@@ -30,7 +30,8 @@ class DistanceCalculator {
     final deltaLonRad = _degreesToRadians(to.longitude - from.longitude);
 
     // Haversine formula
-    final a = math.sin(deltaLatRad / 2) * math.sin(deltaLatRad / 2) +
+    final a =
+        math.sin(deltaLatRad / 2) * math.sin(deltaLatRad / 2) +
         math.cos(lat1Rad) *
             math.cos(lat2Rad) *
             math.sin(deltaLonRad / 2) *
@@ -70,7 +71,8 @@ class DistanceCalculator {
     final deltaLonRad = _degreesToRadians(to.longitude - from.longitude);
 
     final y = math.sin(deltaLonRad) * math.cos(lat2Rad);
-    final x = math.cos(lat1Rad) * math.sin(lat2Rad) -
+    final x =
+        math.cos(lat1Rad) * math.sin(lat2Rad) -
         math.sin(lat1Rad) * math.cos(lat2Rad) * math.cos(deltaLonRad);
 
     final bearingRad = math.atan2(y, x);
@@ -125,17 +127,24 @@ class DistanceCalculator {
   /// Uses GeographicUtils.logRedact for coordinate logging compliance.
   /// Suitable for service layer usage with privacy requirements.
   static String calculateDistanceWithLogging(
-      LatLng userLocation, LatLng fireLocation) {
+    LatLng userLocation,
+    LatLng fireLocation,
+  ) {
     final userLocationLog = GeographicUtils.logRedact(
-        userLocation.latitude, userLocation.longitude);
+      userLocation.latitude,
+      userLocation.longitude,
+    );
     final fireLocationLog = GeographicUtils.logRedact(
-        fireLocation.latitude, fireLocation.longitude);
+      fireLocation.latitude,
+      fireLocation.longitude,
+    );
 
     final result = formatDistanceAndDirection(userLocation, fireLocation);
 
     // Privacy-compliant logging
     debugPrint(
-        'Distance calculation: User at $userLocationLog to fire at $fireLocationLog = $result');
+      'Distance calculation: User at $userLocationLog to fire at $fireLocationLog = $result',
+    );
 
     return result;
   }
@@ -152,7 +161,9 @@ class DistanceCalculator {
   /// Returns null if coordinates are invalid or calculation fails.
   /// Suitable for production use with proper error handling.
   static String? calculateDistanceSafe(
-      LatLng? userLocation, LatLng? fireLocation) {
+    LatLng? userLocation,
+    LatLng? fireLocation,
+  ) {
     if (userLocation == null || fireLocation == null) return null;
 
     if (!areValidCoordinates(userLocation, fireLocation)) return null;

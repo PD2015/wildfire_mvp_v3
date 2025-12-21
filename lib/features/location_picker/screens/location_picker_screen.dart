@@ -104,10 +104,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         zoom: 14.0, // Closer zoom for known location
       );
     }
-    return const CameraPosition(
-      target: _scotlandCentroid,
-      zoom: _defaultZoom,
-    );
+    return const CameraPosition(target: _scotlandCentroid, zoom: _defaultZoom);
   }
 
   /// Handle camera idle (user stopped panning)
@@ -184,8 +181,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     try {
       // Use LocationResolver for GPS - single source of truth for location logic
       // allowDefault: false ensures we get actual GPS, not a fallback default
-      final result =
-          await widget.locationResolver.getLatLon(allowDefault: false);
+      final result = await widget.locationResolver.getLatLon(
+        allowDefault: false,
+      );
 
       result.fold(
         (error) {
@@ -211,7 +209,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         (resolved) async {
           // Animate map to GPS location
           final gpsLocation = LatLng(
-              resolved.coordinates.latitude, resolved.coordinates.longitude);
+            resolved.coordinates.latitude,
+            resolved.coordinates.longitude,
+          );
           await _mapController?.animateCamera(
             CameraUpdate.newLatLngZoom(gpsLocation, 14.0),
           );
@@ -228,7 +228,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Could not get GPS location: ${e.toString().split(':').last.trim()}'),
+              'Could not get GPS location: ${e.toString().split(':').last.trim()}',
+            ),
             duration: const Duration(seconds: 3),
           ),
         );
@@ -387,11 +388,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
               padding: EdgeInsets.zero,
             ),
           ),
-          Container(
-            height: 1,
-            width: 32,
-            color: colorScheme.outlineVariant,
-          ),
+          Container(height: 1, width: 32, color: colorScheme.outlineVariant),
           // Zoom out button
           SizedBox(
             width: 48,
@@ -479,26 +476,14 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             _controller.setMapType(type);
           },
           itemBuilder: (context) => [
-            _buildMapTypeMenuItem(
-              MapType.terrain,
-              'Terrain',
-              Icons.terrain,
-            ),
+            _buildMapTypeMenuItem(MapType.terrain, 'Terrain', Icons.terrain),
             _buildMapTypeMenuItem(
               MapType.satellite,
               'Satellite',
               Icons.satellite_alt,
             ),
-            _buildMapTypeMenuItem(
-              MapType.hybrid,
-              'Hybrid',
-              Icons.layers,
-            ),
-            _buildMapTypeMenuItem(
-              MapType.normal,
-              'Normal',
-              Icons.map,
-            ),
+            _buildMapTypeMenuItem(MapType.hybrid, 'Hybrid', Icons.layers),
+            _buildMapTypeMenuItem(MapType.normal, 'Normal', Icons.map),
           ],
         ),
       ),
@@ -515,10 +500,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       value: type,
       child: Row(
         children: [
-          Icon(
-            icon,
-            color: isSelected ? Theme.of(context).primaryColor : null,
-          ),
+          Icon(icon, color: isSelected ? Theme.of(context).primaryColor : null),
           const SizedBox(width: 12),
           Text(
             label,
@@ -529,11 +511,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           ),
           if (isSelected) ...[
             const Spacer(),
-            Icon(
-              Icons.check,
-              color: Theme.of(context).primaryColor,
-              size: 20,
-            ),
+            Icon(Icons.check, color: Theme.of(context).primaryColor, size: 20),
           ],
         ],
       ),
@@ -549,7 +527,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     // Check if we should show suggestions
-    final showSuggestions = state is LocationPickerSearching &&
+    final showSuggestions =
+        state is LocationPickerSearching &&
         (state.suggestions.isNotEmpty || state.isLoading);
 
     return Column(
@@ -600,7 +579,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   /// Build search prefix icon (changes to /// for what3words input)
   Widget _buildSearchPrefixIcon() {
     final text = _searchController.text;
-    final isWhat3words = text.startsWith('/') ||
+    final isWhat3words =
+        text.startsWith('/') ||
         (text.contains('.') && text.split('.').length >= 2);
 
     if (isWhat3words) {
@@ -719,8 +699,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                   Text(
                     suggestion.name,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
+                      fontWeight: FontWeight.w500,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -729,9 +709,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     Text(
                       suggestion.formattedAddress,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -778,16 +757,16 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
     switch (state) {
       case LocationPickerInitial(
-          :final initialLocation,
-          :final initialWhat3words
-        ):
+        :final initialLocation,
+        :final initialWhat3words,
+      ):
         coords = initialLocation;
         w3w = initialWhat3words;
       case LocationPickerSelected(
-          :final coordinates,
-          :final what3words,
-          :final isResolvingWhat3words
-        ):
+        :final coordinates,
+        :final what3words,
+        :final isResolvingWhat3words,
+      ):
         coords = coordinates;
         w3w = what3words;
         isLoading = isResolvingWhat3words;

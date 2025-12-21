@@ -30,7 +30,8 @@ class LocationSearchBar extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     // Detect what3words input pattern
-    final isWhat3words = controller.text.startsWith('/') ||
+    final isWhat3words =
+        controller.text.startsWith('/') ||
         controller.text.contains('.') && controller.text.split('.').length >= 2;
 
     return Container(
@@ -61,8 +62,10 @@ class LocationSearchBar extends StatelessWidget {
           ),
           filled: true,
           fillColor: colorScheme.surface,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
         ),
         style: theme.textTheme.bodyLarge,
         textInputAction: TextInputAction.search,
@@ -85,10 +88,7 @@ class LocationSearchBar extends StatelessWidget {
         ),
       );
     }
-    return Icon(
-      Icons.search,
-      color: colorScheme.onSurfaceVariant,
-    );
+    return Icon(Icons.search, color: colorScheme.onSurfaceVariant);
   }
 
   Widget? _buildSuffixIcon(ColorScheme colorScheme) {

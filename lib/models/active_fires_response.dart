@@ -84,8 +84,10 @@ class ActiveFiresResponse extends Equatable {
   /// Factory for caching/deserialization from stored JSON
   factory ActiveFiresResponse.fromCacheJson(Map<String, dynamic> json) {
     final incidents = (json['incidents'] as List)
-        .map((incident) =>
-            FireIncident.fromCacheJson(incident as Map<String, dynamic>))
+        .map(
+          (incident) =>
+              FireIncident.fromCacheJson(incident as Map<String, dynamic>),
+        )
         .toList();
 
     final boundsJson = json['queriedBounds'] as Map<String, dynamic>;
@@ -162,15 +164,14 @@ class ActiveFiresResponse extends Equatable {
   /// Filter incidents by minimum confidence threshold
   ActiveFiresResponse filterByConfidence(double minConfidence) {
     final filtered = incidents
-        .where((incident) =>
-            incident.confidence != null &&
-            incident.confidence! >= minConfidence)
+        .where(
+          (incident) =>
+              incident.confidence != null &&
+              incident.confidence! >= minConfidence,
+        )
         .toList();
 
-    return copyWith(
-      incidents: filtered,
-      totalCount: filtered.length,
-    );
+    return copyWith(incidents: filtered, totalCount: filtered.length);
   }
 
   /// Filter incidents by fire radiative power threshold
@@ -179,18 +180,16 @@ class ActiveFiresResponse extends Equatable {
         .where((incident) => incident.frp != null && incident.frp! >= minFrp)
         .toList();
 
-    return copyWith(
-      incidents: filtered,
-      totalCount: filtered.length,
-    );
+    return copyWith(incidents: filtered, totalCount: filtered.length);
   }
 
   /// Validate that all incidents fall within the queried bounds
   bool get isValid {
     if (incidents.isEmpty) return true;
 
-    return incidents
-        .every((incident) => _isWithinBounds(incident.location, queriedBounds));
+    return incidents.every(
+      (incident) => _isWithinBounds(incident.location, queriedBounds),
+    );
   }
 
   /// Get incidents sorted by detection time (most recent first)
@@ -206,8 +205,9 @@ class ActiveFiresResponse extends Equatable {
 
   /// Get incidents sorted by confidence (highest first)
   List<FireIncident> get incidentsByConfidence {
-    final withConfidence =
-        incidents.where((incident) => incident.confidence != null).toList();
+    final withConfidence = incidents
+        .where((incident) => incident.confidence != null)
+        .toList();
     withConfidence.sort((a, b) => b.confidence!.compareTo(a.confidence!));
     return withConfidence;
   }
@@ -224,13 +224,13 @@ class ActiveFiresResponse extends Equatable {
 
   @override
   List<Object?> get props => [
-        incidents,
-        queriedBounds,
-        responseTimeMs,
-        dataSource,
-        totalCount,
-        timestamp,
-      ];
+    incidents,
+    queriedBounds,
+    responseTimeMs,
+    dataSource,
+    totalCount,
+    timestamp,
+  ];
 
   @override
   String toString() {

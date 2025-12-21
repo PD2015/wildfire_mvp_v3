@@ -16,13 +16,12 @@ void main() {
 
   group('A12 Accessibility Validation Tests', () {
     group('Touch Target Size Requirements (C3 Compliance)', () {
-      testWidgets(
-          'emergency buttons meet minimum 44dp touch target requirement', (
+      testWidgets('emergency buttons meet minimum 44dp touch target requirement', (
         tester,
       ) async {
-        await tester.pumpWidget(MaterialApp(
-          home: ReportFireScreen(controller: controller),
-        ));
+        await tester.pumpWidget(
+          MaterialApp(home: ReportFireScreen(controller: controller)),
+        );
 
         await tester.pumpAndSettle();
 
@@ -107,17 +106,15 @@ void main() {
 
       testWidgets('touch targets have adequate spacing', (tester) async {
         await tester.pumpWidget(
-            MaterialApp(home: ReportFireScreen(controller: controller)));
+          MaterialApp(home: ReportFireScreen(controller: controller)),
+        );
 
         await tester.pumpAndSettle();
 
         final buttonFinders = [
           find.widgetWithText(EmergencyButton, '999 – Fire Service'),
           find.widgetWithText(EmergencyButton, '101 – Police'),
-          find.widgetWithText(
-            EmergencyButton,
-            'Crimestoppers',
-          ),
+          find.widgetWithText(EmergencyButton, 'Crimestoppers'),
         ];
 
         // Scroll to ensure all buttons are visible
@@ -146,7 +143,8 @@ void main() {
         tester,
       ) async {
         await tester.pumpWidget(
-            MaterialApp(home: ReportFireScreen(controller: controller)));
+          MaterialApp(home: ReportFireScreen(controller: controller)),
+        );
 
         await tester.pumpAndSettle();
 
@@ -181,7 +179,8 @@ void main() {
 
       testWidgets('screen has proper semantic structure', (tester) async {
         await tester.pumpWidget(
-            MaterialApp(home: ReportFireScreen(controller: controller)));
+          MaterialApp(home: ReportFireScreen(controller: controller)),
+        );
 
         await tester.pumpAndSettle();
 
@@ -206,7 +205,8 @@ void main() {
         tester,
       ) async {
         await tester.pumpWidget(
-            MaterialApp(home: ReportFireScreen(controller: controller)));
+          MaterialApp(home: ReportFireScreen(controller: controller)),
+        );
 
         // Verify emergency contact constants have correct priorities
         expect(EmergencyContact.fireService.priority, EmergencyPriority.urgent);
@@ -296,7 +296,8 @@ void main() {
         tester,
       ) async {
         await tester.pumpWidget(
-            MaterialApp(home: ReportFireScreen(controller: controller)));
+          MaterialApp(home: ReportFireScreen(controller: controller)),
+        );
 
         await tester.pumpAndSettle();
 
@@ -308,10 +309,7 @@ void main() {
         final buttons = [
           find.widgetWithText(EmergencyButton, '999 – Fire Service'),
           find.widgetWithText(EmergencyButton, '101 – Police'),
-          find.widgetWithText(
-            EmergencyButton,
-            'Crimestoppers',
-          ),
+          find.widgetWithText(EmergencyButton, 'Crimestoppers'),
         ];
 
         // All emergency buttons should be focusable
@@ -335,7 +333,8 @@ void main() {
         tester,
       ) async {
         await tester.pumpWidget(
-            MaterialApp(home: ReportFireScreen(controller: controller)));
+          MaterialApp(home: ReportFireScreen(controller: controller)),
+        );
 
         await tester.pumpAndSettle();
 
@@ -347,10 +346,7 @@ void main() {
         final buttons = [
           find.widgetWithText(EmergencyButton, '999 – Fire Service'),
           find.widgetWithText(EmergencyButton, '101 – Police'),
-          find.widgetWithText(
-            EmergencyButton,
-            'Crimestoppers',
-          ),
+          find.widgetWithText(EmergencyButton, 'Crimestoppers'),
         ];
 
         for (final button in buttons) {
@@ -374,7 +370,8 @@ void main() {
         tester,
       ) async {
         await tester.pumpWidget(
-            MaterialApp(home: ReportFireScreen(controller: controller)));
+          MaterialApp(home: ReportFireScreen(controller: controller)),
+        );
 
         // Wait for controller to initialize and settle
         await tester.pumpAndSettle(const Duration(seconds: 1));
@@ -408,7 +405,8 @@ void main() {
         await tester.binding.setSurfaceSize(const Size(800, 600));
 
         await tester.pumpWidget(
-            MaterialApp(home: ReportFireScreen(controller: controller)));
+          MaterialApp(home: ReportFireScreen(controller: controller)),
+        );
 
         // Touch targets should still meet requirements in landscape
         final fireServiceButton = find.widgetWithText(

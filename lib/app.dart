@@ -110,7 +110,8 @@ class WildFireApp extends StatelessWidget {
     // Redirect logic for onboarding
     redirect: (context, state) {
       final isOnboarding = state.uri.path == '/onboarding';
-      final isLegalPath = state.uri.path.startsWith('/about') ||
+      final isLegalPath =
+          state.uri.path.startsWith('/about') ||
           state.uri.path.startsWith('/settings/about');
       final needsOnboarding = _isOnboardingRequired();
 
@@ -147,7 +148,8 @@ class WildFireApp extends StatelessWidget {
         path: '/location-picker',
         name: 'location-picker',
         builder: (context, state) {
-          final extras = state.extra as LocationPickerExtras? ??
+          final extras =
+              state.extra as LocationPickerExtras? ??
               const LocationPickerExtras(mode: LocationPickerMode.riskLocation);
 
           return LocationPickerScreen(
@@ -210,16 +212,14 @@ class WildFireApp extends StatelessWidget {
               GoRoute(
                 path: 'terms',
                 name: 'settings-about-terms',
-                builder: (context, state) => LegalDocumentScreen(
-                  document: LegalContent.termsOfService,
-                ),
+                builder: (context, state) =>
+                    LegalDocumentScreen(document: LegalContent.termsOfService),
               ),
               GoRoute(
                 path: 'privacy',
                 name: 'settings-about-privacy',
-                builder: (context, state) => LegalDocumentScreen(
-                  document: LegalContent.privacyPolicy,
-                ),
+                builder: (context, state) =>
+                    LegalDocumentScreen(document: LegalContent.privacyPolicy),
               ),
               GoRoute(
                 path: 'disclaimer',
@@ -231,9 +231,8 @@ class WildFireApp extends StatelessWidget {
               GoRoute(
                 path: 'data-sources',
                 name: 'settings-about-data-sources',
-                builder: (context, state) => LegalDocumentScreen(
-                  document: LegalContent.dataSources,
-                ),
+                builder: (context, state) =>
+                    LegalDocumentScreen(document: LegalContent.dataSources),
               ),
             ],
           ),
@@ -256,23 +255,20 @@ class WildFireApp extends StatelessWidget {
           GoRoute(
             path: 'getting-started/how-to-use',
             name: 'help-how-to-use',
-            builder: (context, state) => const HelpDocumentScreen(
-              document: HelpContent.howToUse,
-            ),
+            builder: (context, state) =>
+                const HelpDocumentScreen(document: HelpContent.howToUse),
           ),
           GoRoute(
             path: 'getting-started/risk-levels',
             name: 'help-risk-levels',
-            builder: (context, state) => const HelpDocumentScreen(
-              document: HelpContent.riskLevels,
-            ),
+            builder: (context, state) =>
+                const HelpDocumentScreen(document: HelpContent.riskLevels),
           ),
           GoRoute(
             path: 'getting-started/when-to-use',
             name: 'help-when-to-use',
-            builder: (context, state) => const HelpDocumentScreen(
-              document: HelpContent.whenToUse,
-            ),
+            builder: (context, state) =>
+                const HelpDocumentScreen(document: HelpContent.whenToUse),
           ),
           // Wildfire Education section
           GoRoute(
@@ -285,9 +281,8 @@ class WildFireApp extends StatelessWidget {
           GoRoute(
             path: 'wildfire-education/weather-fuel-fire',
             name: 'help-weather-fuel-fire',
-            builder: (context, state) => const HelpDocumentScreen(
-              document: HelpContent.weatherFuelFire,
-            ),
+            builder: (context, state) =>
+                const HelpDocumentScreen(document: HelpContent.weatherFuelFire),
           ),
           GoRoute(
             path: 'wildfire-education/seasonal-guidance',
@@ -300,38 +295,33 @@ class WildFireApp extends StatelessWidget {
           GoRoute(
             path: 'using-the-map/hotspots',
             name: 'help-hotspots',
-            builder: (context, state) => const HelpDocumentScreen(
-              document: HelpContent.hotspots,
-            ),
+            builder: (context, state) =>
+                const HelpDocumentScreen(document: HelpContent.hotspots),
           ),
           GoRoute(
             path: 'using-the-map/data-sources',
             name: 'help-data-sources',
-            builder: (context, state) => const HelpDocumentScreen(
-              document: HelpContent.dataSourcesHelp,
-            ),
+            builder: (context, state) =>
+                const HelpDocumentScreen(document: HelpContent.dataSourcesHelp),
           ),
           GoRoute(
             path: 'using-the-map/update-frequency',
             name: 'help-update-frequency',
-            builder: (context, state) => const HelpDocumentScreen(
-              document: HelpContent.updateFrequency,
-            ),
+            builder: (context, state) =>
+                const HelpDocumentScreen(document: HelpContent.updateFrequency),
           ),
           // Safety & Responsibility section
           GoRoute(
             path: 'safety/see-fire',
             name: 'help-see-fire',
-            builder: (context, state) => const HelpDocumentScreen(
-              document: HelpContent.seeFireAction,
-            ),
+            builder: (context, state) =>
+                const HelpDocumentScreen(document: HelpContent.seeFireAction),
           ),
           GoRoute(
             path: 'safety/limitations',
             name: 'help-limitations',
-            builder: (context, state) => const HelpDocumentScreen(
-              document: HelpContent.limitations,
-            ),
+            builder: (context, state) =>
+                const HelpDocumentScreen(document: HelpContent.limitations),
           ),
           GoRoute(
             path: 'safety/emergency-guidance',
@@ -395,8 +385,9 @@ class WildFireApp extends StatelessWidget {
 
               // Burnt area service with caching for historical data
               // 2024 data is bundled as asset, 2025+ fetched live
-              final liveService =
-                  EffisBurntAreaServiceImpl(httpClient: httpClient);
+              final liveService = EffisBurntAreaServiceImpl(
+                httpClient: httpClient,
+              );
               final burntAreaService = CachedBurntAreaService(
                 liveService: liveService,
               );

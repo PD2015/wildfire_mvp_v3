@@ -95,19 +95,19 @@ extension LocationSourceDisplayExtension on LocationSource {
   ///
   /// Used in LocationCard header badge and accessibility labels.
   String get displayLabel => switch (this) {
-        LocationSource.gps => 'GPS',
-        LocationSource.manual => 'Manual',
-        LocationSource.cached => 'Cached',
-        LocationSource.defaultFallback => 'Default',
-      };
+    LocationSource.gps => 'GPS',
+    LocationSource.manual => 'Manual',
+    LocationSource.cached => 'Cached',
+    LocationSource.defaultFallback => 'Default',
+  };
 
   /// Longer descriptive label for accessibility
   String get accessibilityLabel => switch (this) {
-        LocationSource.gps => 'Location from GPS',
-        LocationSource.manual => 'Manually set location',
-        LocationSource.cached => 'Cached location',
-        LocationSource.defaultFallback => 'Default location',
-      };
+    LocationSource.gps => 'Location from GPS',
+    LocationSource.manual => 'Manually set location',
+    LocationSource.cached => 'Cached location',
+    LocationSource.defaultFallback => 'Default location',
+  };
 }
 
 /// Result of location resolution containing coordinates and source

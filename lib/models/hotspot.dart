@@ -99,7 +99,8 @@ class Hotspot extends Equatable {
     final confidence = _parseConfidence(properties['confidence']);
 
     // Generate ID from position and time if not provided
-    final id = json['id']?.toString() ??
+    final id =
+        json['id']?.toString() ??
         'hotspot_${location.latitude.toStringAsFixed(4)}_${location.longitude.toStringAsFixed(4)}_${detectedAt.millisecondsSinceEpoch}';
 
     return Hotspot(
@@ -126,10 +127,12 @@ class Hotspot extends Equatable {
       final day = int.parse(parts[2]);
 
       // Parse time as HHMM format
-      final hour =
-          time.length >= 2 ? int.tryParse(time.substring(0, 2)) ?? 0 : 0;
-      final minute =
-          time.length >= 4 ? int.tryParse(time.substring(2, 4)) ?? 0 : 0;
+      final hour = time.length >= 2
+          ? int.tryParse(time.substring(0, 2)) ?? 0
+          : 0;
+      final minute = time.length >= 4
+          ? int.tryParse(time.substring(2, 4)) ?? 0
+          : 0;
 
       return DateTime.utc(year, month, day, hour, minute);
     } catch (e) {
@@ -163,22 +166,22 @@ class Hotspot extends Equatable {
 
   /// Convert to JSON for caching/serialization
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'geometry': {
-          'type': 'Point',
-          'coordinates': [location.longitude, location.latitude],
-        },
-        'properties': {
-          'acq_date':
-              '${detectedAt.year.toString().padLeft(4, '0')}-${detectedAt.month.toString().padLeft(2, '0')}-${detectedAt.day.toString().padLeft(2, '0')}',
-          'acq_time':
-              '${detectedAt.hour.toString().padLeft(2, '0')}${detectedAt.minute.toString().padLeft(2, '0')}',
-          'frp': frp,
-          'confidence': confidence,
-          'latitude': location.latitude,
-          'longitude': location.longitude,
-        },
-      };
+    'id': id,
+    'geometry': {
+      'type': 'Point',
+      'coordinates': [location.longitude, location.latitude],
+    },
+    'properties': {
+      'acq_date':
+          '${detectedAt.year.toString().padLeft(4, '0')}-${detectedAt.month.toString().padLeft(2, '0')}-${detectedAt.day.toString().padLeft(2, '0')}',
+      'acq_time':
+          '${detectedAt.hour.toString().padLeft(2, '0')}${detectedAt.minute.toString().padLeft(2, '0')}',
+      'frp': frp,
+      'confidence': confidence,
+      'latitude': location.latitude,
+      'longitude': location.longitude,
+    },
+  };
 
   /// Factory for test data with reasonable defaults
   factory Hotspot.test({

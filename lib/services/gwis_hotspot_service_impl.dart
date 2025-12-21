@@ -32,8 +32,8 @@ class GwisHotspotServiceImpl implements GwisHotspotService {
   /// [httpClient] - Injectable HTTP client for network requests
   /// [random] - Injectable random generator for retry jitter
   GwisHotspotServiceImpl({required http.Client httpClient, Random? random})
-      : _httpClient = httpClient,
-        _random = random ?? Random();
+    : _httpClient = httpClient,
+      _random = random ?? Random();
 
   @override
   Future<Either<ApiError, List<Hotspot>>> getHotspots({
@@ -74,13 +74,12 @@ class GwisHotspotServiceImpl implements GwisHotspotService {
 
     while (attempt <= maxRetries) {
       try {
-        final response = await _httpClient.get(
-          Uri.parse(url),
-          headers: {
-            'User-Agent': _userAgent,
-            'Accept': _acceptHeader,
-          },
-        ).timeout(timeout);
+        final response = await _httpClient
+            .get(
+              Uri.parse(url),
+              headers: {'User-Agent': _userAgent, 'Accept': _acceptHeader},
+            )
+            .timeout(timeout);
 
         if (response.statusCode == 200) {
           return _parseResponse(response.body);
@@ -100,10 +99,12 @@ class GwisHotspotServiceImpl implements GwisHotspotService {
         }
 
         // Non-retriable error
-        return Left(ApiError(
-          message: 'GWIS request failed with status ${response.statusCode}',
-          statusCode: response.statusCode,
-        ));
+        return Left(
+          ApiError(
+            message: 'GWIS request failed with status ${response.statusCode}',
+            statusCode: response.statusCode,
+          ),
+        );
       } on TimeoutException {
         lastError = ApiError(message: 'GWIS request timed out');
         attempt++;

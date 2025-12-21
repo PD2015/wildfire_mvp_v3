@@ -45,12 +45,16 @@ void main() {
 
     test('thisSeason display label is "This Season"', () {
       expect(
-          BurntAreaSeasonFilter.thisSeason.displayLabel, equals('This Season'));
+        BurntAreaSeasonFilter.thisSeason.displayLabel,
+        equals('This Season'),
+      );
     });
 
     test('lastSeason display label is "Last Season"', () {
       expect(
-          BurntAreaSeasonFilter.lastSeason.displayLabel, equals('Last Season'));
+        BurntAreaSeasonFilter.lastSeason.displayLabel,
+        equals('Last Season'),
+      );
     });
 
     group('seasonStart', () {
@@ -90,10 +94,7 @@ void main() {
 
       test('returns true for season end date', () {
         final endDate = DateTime(DateTime.now().year, 9, 30);
-        expect(
-          BurntAreaSeasonFilter.thisSeason.containsDate(endDate),
-          isTrue,
-        );
+        expect(BurntAreaSeasonFilter.thisSeason.containsDate(endDate), isTrue);
       });
 
       test('returns false for date before season', () {

@@ -112,8 +112,7 @@ void main() {
       ); // Banner
     });
 
-    testWidgets('should handle button taps and show SnackBar on dialer failure',
-        (
+    testWidgets('should handle button taps and show SnackBar on dialer failure', (
       tester,
     ) async {
       // Act

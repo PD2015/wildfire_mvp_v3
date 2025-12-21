@@ -52,8 +52,8 @@ class LocationPickerController extends ChangeNotifier {
     LatLng? initialLocation,
     What3wordsAddress? initialWhat3words,
     String? initialPlaceName,
-  })  : _what3wordsService = what3wordsService,
-        _geocodingService = geocodingService {
+  }) : _what3wordsService = what3wordsService,
+       _geocodingService = geocodingService {
     if (initialLocation != null ||
         initialWhat3words != null ||
         initialPlaceName != null) {
@@ -88,11 +88,13 @@ class LocationPickerController extends ChangeNotifier {
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
       // Return to initial state
-      _updateState(LocationPickerInitial(
-        initialLocation: _getLastKnownLocation(),
-        initialWhat3words: _getLastKnownWhat3words(),
-        initialPlaceName: _getLastKnownPlaceName(),
-      ));
+      _updateState(
+        LocationPickerInitial(
+          initialLocation: _getLastKnownLocation(),
+          initialWhat3words: _getLastKnownWhat3words(),
+          initialPlaceName: _getLastKnownPlaceName(),
+        ),
+      );
       return;
     }
 
@@ -103,10 +105,7 @@ class LocationPickerController extends ChangeNotifier {
     }
 
     // Start searching state immediately for UI feedback
-    _updateState(LocationPickerSearching(
-      query: trimmed,
-      isLoading: true,
-    ));
+    _updateState(LocationPickerSearching(query: trimmed, isLoading: true));
 
     // Debounce the actual API call
     _searchDebounceTimer = Timer(searchDebounce, () {
@@ -118,31 +117,35 @@ class LocationPickerController extends ChangeNotifier {
   Future<void> _handleWhat3wordsInput(String input) async {
     final address = What3wordsAddress.tryParse(input);
     if (address == null) {
-      _updateState(const LocationPickerError(
-        message: 'Invalid what3words format. Use word.word.word',
-        isWhat3wordsError: true,
-      ));
+      _updateState(
+        const LocationPickerError(
+          message: 'Invalid what3words format. Use word.word.word',
+          isWhat3wordsError: true,
+        ),
+      );
       return;
     }
 
-    _updateState(LocationPickerSearching(
-      query: input,
-      isLoading: true,
-    ));
+    _updateState(LocationPickerSearching(query: input, isLoading: true));
 
-    final result =
-        await _what3wordsService.convertToCoordinates(words: address.words);
+    final result = await _what3wordsService.convertToCoordinates(
+      words: address.words,
+    );
 
     result.fold(
-      (error) => _updateState(LocationPickerError(
-        message: error.userMessage,
-        isWhat3wordsError: true,
-      )),
-      (coords) => _updateState(LocationPickerSelected(
-        coordinates: coords,
-        what3words: address,
-        isResolvingPlaceName: true,
-      )),
+      (error) => _updateState(
+        LocationPickerError(
+          message: error.userMessage,
+          isWhat3wordsError: true,
+        ),
+      ),
+      (coords) => _updateState(
+        LocationPickerSelected(
+          coordinates: coords,
+          what3words: address,
+          isResolvingPlaceName: true,
+        ),
+      ),
     );
 
     // If we got coordinates, also fetch the place name
@@ -162,14 +165,15 @@ class LocationPickerController extends ChangeNotifier {
     if (currentState.query != query) return;
 
     result.fold(
-      (error) => _updateState(LocationPickerError(
-        message: 'Search failed: ${error.toString()}',
-        previousState: currentState,
-      )),
-      (results) => _updateState(currentState.copyWith(
-        suggestions: results,
-        isLoading: false,
-      )),
+      (error) => _updateState(
+        LocationPickerError(
+          message: 'Search failed: ${error.toString()}',
+          previousState: currentState,
+        ),
+      ),
+      (results) => _updateState(
+        currentState.copyWith(suggestions: results, isLoading: false),
+      ),
     );
   }
 
@@ -179,38 +183,45 @@ class LocationPickerController extends ChangeNotifier {
 
     if (coords == null) {
       // Need to resolve coordinates from place_id
-      _updateState(LocationPickerSelected(
-        coordinates: const LatLng(0, 0), // Temporary placeholder
-        placeName: place.name,
-        isResolvingWhat3words: true,
-        isResolvingPlaceName: false,
-      ));
+      _updateState(
+        LocationPickerSelected(
+          coordinates: const LatLng(0, 0), // Temporary placeholder
+          placeName: place.name,
+          isResolvingWhat3words: true,
+          isResolvingPlaceName: false,
+        ),
+      );
 
-      final result =
-          await _geocodingService.getPlaceCoordinates(placeId: place.placeId);
+      final result = await _geocodingService.getPlaceCoordinates(
+        placeId: place.placeId,
+      );
       result.fold(
         (error) {
-          _updateState(const LocationPickerError(
-            message: 'Could not resolve location',
-          ));
+          _updateState(
+            const LocationPickerError(message: 'Could not resolve location'),
+          );
         },
         (resolvedCoords) {
           coords = resolvedCoords;
-          _updateState(LocationPickerSelected(
-            coordinates: resolvedCoords,
-            placeName: place.name,
-            isResolvingWhat3words: true,
-          ));
+          _updateState(
+            LocationPickerSelected(
+              coordinates: resolvedCoords,
+              placeName: place.name,
+              isResolvingWhat3words: true,
+            ),
+          );
           // Resolve what3words after successful coordinate resolution
           _resolveWhat3words(resolvedCoords);
         },
       );
     } else {
-      _updateState(LocationPickerSelected(
-        coordinates: coords,
-        placeName: place.name,
-        isResolvingWhat3words: true,
-      ));
+      _updateState(
+        LocationPickerSelected(
+          coordinates: coords,
+          placeName: place.name,
+          isResolvingWhat3words: true,
+        ),
+      );
       // Resolve what3words for the coordinates
       _resolveWhat3words(coords);
     }
@@ -218,11 +229,13 @@ class LocationPickerController extends ChangeNotifier {
 
   /// Handle map tap to select location (T015)
   void onMapTapped(LatLng coordinates) {
-    _updateState(LocationPickerSelected(
-      coordinates: coordinates,
-      isResolvingWhat3words: true,
-      isResolvingPlaceName: true,
-    ));
+    _updateState(
+      LocationPickerSelected(
+        coordinates: coordinates,
+        isResolvingWhat3words: true,
+        isResolvingPlaceName: true,
+      ),
+    );
 
     // Resolve both what3words and place name in parallel
     _resolveWhat3words(coordinates);
@@ -240,16 +253,20 @@ class LocationPickerController extends ChangeNotifier {
 
     // Log with redacted coordinates per C2
     debugPrint(
-        'Camera idle at: ${LocationUtils.logRedact(coordinates.latitude, coordinates.longitude)}');
+      'Camera idle at: ${LocationUtils.logRedact(coordinates.latitude, coordinates.longitude)}',
+    );
 
     // Update state with new coordinates immediately
-    _updateState(LocationPickerSelected(
-      coordinates: coordinates,
-      what3words: _getLastKnownWhat3words(),
-      placeName: null, // Reset place name for new location
-      isResolvingWhat3words: true,
-      isResolvingPlaceName: false, // Don't resolve place name on pan (too slow)
-    ));
+    _updateState(
+      LocationPickerSelected(
+        coordinates: coordinates,
+        what3words: _getLastKnownWhat3words(),
+        placeName: null, // Reset place name for new location
+        isResolvingWhat3words: true,
+        isResolvingPlaceName:
+            false, // Don't resolve place name on pan (too slow)
+      ),
+    );
 
     // Debounce the what3words fetch
     _cameraIdleDebounceTimer = Timer(cameraIdleDebounce, () {
@@ -322,15 +339,19 @@ class LocationPickerController extends ChangeNotifier {
     result.fold(
       (error) {
         debugPrint('what3words resolution failed: ${error.userMessage}');
-        _updateState(currentState.copyWith(
-          isResolvingWhat3words: false,
-          // Don't fail the whole selection, just skip w3w
-        ));
+        _updateState(
+          currentState.copyWith(
+            isResolvingWhat3words: false,
+            // Don't fail the whole selection, just skip w3w
+          ),
+        );
       },
-      (address) => _updateState(currentState.copyWith(
-        what3words: address,
-        isResolvingWhat3words: false,
-      )),
+      (address) => _updateState(
+        currentState.copyWith(
+          what3words: address,
+          isResolvingWhat3words: false,
+        ),
+      ),
     );
   }
 
@@ -349,15 +370,19 @@ class LocationPickerController extends ChangeNotifier {
     result.fold(
       (error) {
         debugPrint('Reverse geocoding failed: $error');
-        _updateState(currentState.copyWith(
-          isResolvingPlaceName: false,
-          // Don't fail the whole selection, just skip place name
-        ));
+        _updateState(
+          currentState.copyWith(
+            isResolvingPlaceName: false,
+            // Don't fail the whole selection, just skip place name
+          ),
+        );
       },
-      (placeName) => _updateState(currentState.copyWith(
-        placeName: placeName,
-        isResolvingPlaceName: false,
-      )),
+      (placeName) => _updateState(
+        currentState.copyWith(
+          placeName: placeName,
+          isResolvingPlaceName: false,
+        ),
+      ),
     );
   }
 

@@ -48,11 +48,11 @@ class MapSuccess extends MapState {
 
   @override
   List<Object?> get props => [
-        incidents,
-        centerLocation,
-        freshness,
-        lastUpdated,
-      ];
+    incidents,
+    centerLocation,
+    freshness,
+    lastUpdated,
+  ];
 }
 
 /// Error state with optional cached data

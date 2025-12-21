@@ -20,7 +20,7 @@ class ApiError extends Equatable {
   /// [message] must be non-empty. [statusCode] can be null for non-HTTP errors.
   /// [reason] is automatically determined from [statusCode] if not provided.
   ApiError({required this.message, this.statusCode, ApiErrorReason? reason})
-      : reason = reason ?? _categorizeError(statusCode) {
+    : reason = reason ?? _categorizeError(statusCode) {
     if (message.isEmpty) {
       throw ArgumentError('Error message cannot be empty');
     }

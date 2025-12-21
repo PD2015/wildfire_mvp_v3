@@ -16,17 +16,16 @@ class What3wordsWarningDialog extends StatelessWidget {
   /// Creates a what3words warning dialog.
   ///
   /// [isLoading] - True if w3w is still loading, false if failed/unavailable
-  const What3wordsWarningDialog({
-    super.key,
-    this.isLoading = false,
-  });
+  const What3wordsWarningDialog({super.key, this.isLoading = false});
 
   /// Whether what3words is currently loading (vs failed)
   final bool isLoading;
 
   /// Shows the dialog and returns true if user chose to confirm anyway
-  static Future<bool> show(BuildContext context,
-      {bool isLoading = false}) async {
+  static Future<bool> show(
+    BuildContext context, {
+    bool isLoading = false,
+  }) async {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => What3wordsWarningDialog(isLoading: isLoading),

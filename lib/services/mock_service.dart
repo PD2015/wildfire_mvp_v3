@@ -48,7 +48,7 @@ class MockService {
   ///
   /// Default strategy for production use when all other services fail
   MockService.defaultStrategy()
-      : _strategy = MockStrategy.fixed(RiskLevel.moderate);
+    : _strategy = MockStrategy.fixed(RiskLevel.moderate);
 
   /// Get mock fire risk data for coordinates
   ///

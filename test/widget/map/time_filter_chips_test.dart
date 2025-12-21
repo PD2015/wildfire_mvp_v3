@@ -27,8 +27,9 @@ void main() {
         expect(find.text('Last Season'), findsNothing);
       });
 
-      testWidgets('tapping This Week calls onHotspotFilterChanged',
-          (tester) async {
+      testWidgets('tapping This Week calls onHotspotFilterChanged', (
+        tester,
+      ) async {
         HotspotTimeFilter? selectedFilter;
 
         await tester.pumpWidget(
@@ -97,8 +98,9 @@ void main() {
         expect(find.text('This Week'), findsNothing);
       });
 
-      testWidgets('tapping Last Season calls onBurntAreaFilterChanged',
-          (tester) async {
+      testWidgets('tapping Last Season calls onBurntAreaFilterChanged', (
+        tester,
+      ) async {
         BurntAreaSeasonFilter? selectedFilter;
 
         await tester.pumpWidget(
@@ -121,8 +123,9 @@ void main() {
         expect(selectedFilter, BurntAreaSeasonFilter.lastSeason);
       });
 
-      testWidgets('tapping This Season calls onBurntAreaFilterChanged',
-          (tester) async {
+      testWidgets('tapping This Season calls onBurntAreaFilterChanged', (
+        tester,
+      ) async {
         BurntAreaSeasonFilter? selectedFilter;
 
         await tester.pumpWidget(
@@ -147,8 +150,9 @@ void main() {
     });
 
     group('disabled state', () {
-      testWidgets('disabled chips do not respond to taps (hotspots)',
-          (tester) async {
+      testWidgets('disabled chips do not respond to taps (hotspots)', (
+        tester,
+      ) async {
         HotspotTimeFilter? selectedFilter;
 
         await tester.pumpWidget(
@@ -172,8 +176,9 @@ void main() {
         expect(selectedFilter, isNull);
       });
 
-      testWidgets('disabled chips do not respond to taps (burnt areas)',
-          (tester) async {
+      testWidgets('disabled chips do not respond to taps (burnt areas)', (
+        tester,
+      ) async {
         BurntAreaSeasonFilter? selectedFilter;
 
         await tester.pumpWidget(
@@ -199,8 +204,9 @@ void main() {
     });
 
     group('mode switching', () {
-      testWidgets('switches from hotspots to burnt areas chips',
-          (tester) async {
+      testWidgets('switches from hotspots to burnt areas chips', (
+        tester,
+      ) async {
         // Start with hotspots mode
         await tester.pumpWidget(
           MaterialApp(
@@ -303,8 +309,9 @@ void main() {
     });
 
     group('visual selection state', () {
-      testWidgets('Today chip shows selected styling when active',
-          (tester) async {
+      testWidgets('Today chip shows selected styling when active', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -324,8 +331,9 @@ void main() {
         expect(todayText, findsOneWidget);
       });
 
-      testWidgets('This Season chip shows selected styling when active',
-          (tester) async {
+      testWidgets('This Season chip shows selected styling when active', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(

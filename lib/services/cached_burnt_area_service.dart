@@ -49,9 +49,8 @@ class CachedBurntAreaService implements EffisBurntAreaService {
   static const String _assetPathPattern =
       'assets/cache/burnt_areas_{year}_uk.json';
 
-  CachedBurntAreaService({
-    required EffisBurntAreaService liveService,
-  }) : _liveService = liveService;
+  CachedBurntAreaService({required EffisBurntAreaService liveService})
+    : _liveService = liveService;
 
   @override
   Future<Either<ApiError, List<BurntArea>>> getBurntAreas({
@@ -68,7 +67,8 @@ class CachedBurntAreaService implements EffisBurntAreaService {
     // 2. If bundle fails OR is stale (>9 days), try live API as fallback
 
     debugPrint(
-        '🗺️ CachedBurntAreaService: Loading $targetYear (${seasonFilter.displayLabel}) from bundle');
+      '🗺️ CachedBurntAreaService: Loading $targetYear (${seasonFilter.displayLabel}) from bundle',
+    );
 
     final bundleResult = await _loadFromAsset(targetYear, bounds);
 
@@ -76,7 +76,8 @@ class CachedBurntAreaService implements EffisBurntAreaService {
       (bundleError) async {
         // Bundle failed to load - try live API
         debugPrint(
-            '🗺️ CachedBurntAreaService: Bundle failed, trying live API: ${bundleError.message}');
+          '🗺️ CachedBurntAreaService: Bundle failed, trying live API: ${bundleError.message}',
+        );
         return _liveService.getBurntAreas(
           bounds: bounds,
           seasonFilter: seasonFilter,
@@ -94,7 +95,8 @@ class CachedBurntAreaService implements EffisBurntAreaService {
           final age = DateTime.now().difference(bundleTimestamp);
           if (age > stalenessThreshold) {
             debugPrint(
-                '🗺️ CachedBurntAreaService: Bundle is stale (${bundleTimestamp.toIso8601String()}), trying live API');
+              '🗺️ CachedBurntAreaService: Bundle is stale (${bundleTimestamp.toIso8601String()}), trying live API',
+            );
 
             // Try live API, but fall back to bundle data if it fails
             final liveResult = await _liveService.getBurntAreas(
@@ -109,12 +111,14 @@ class CachedBurntAreaService implements EffisBurntAreaService {
               (liveError) {
                 // Live failed, return bundle data (better than nothing)
                 debugPrint(
-                    '🗺️ CachedBurntAreaService: Live API failed, using stale bundle: ${liveError.message}');
+                  '🗺️ CachedBurntAreaService: Live API failed, using stale bundle: ${liveError.message}',
+                );
                 return Right(bundleData);
               },
               (liveData) {
                 debugPrint(
-                    '🗺️ CachedBurntAreaService: Live API success, returning ${liveData.length} areas');
+                  '🗺️ CachedBurntAreaService: Live API success, returning ${liveData.length} areas',
+                );
                 return Right(liveData);
               },
             );
@@ -123,7 +127,8 @@ class CachedBurntAreaService implements EffisBurntAreaService {
 
         // Bundle is fresh (or no timestamp) - return it directly
         debugPrint(
-            '🗺️ CachedBurntAreaService: Bundle is fresh, returning ${bundleData.length} areas');
+          '🗺️ CachedBurntAreaService: Bundle is fresh, returning ${bundleData.length} areas',
+        );
         return Right(bundleData);
       },
     );
@@ -141,8 +146,10 @@ class CachedBurntAreaService implements EffisBurntAreaService {
     try {
       // Check memory cache first
       if (!_dataCache.containsKey(year)) {
-        final assetPath =
-            _assetPathPattern.replaceAll('{year}', year.toString());
+        final assetPath = _assetPathPattern.replaceAll(
+          '{year}',
+          year.toString(),
+        );
         debugPrint('🗺️ CachedBurntAreaService: Loading asset $assetPath');
 
         final jsonString = await rootBundle.loadString(assetPath);
@@ -155,7 +162,8 @@ class CachedBurntAreaService implements EffisBurntAreaService {
           if (generatedAt != null) {
             _bundleTimestamps[year] = generatedAt;
             debugPrint(
-                '🗺️ CachedBurntAreaService: Bundle generated at $generatedAtStr');
+              '🗺️ CachedBurntAreaService: Bundle generated at $generatedAtStr',
+            );
           }
         }
 
@@ -168,7 +176,8 @@ class CachedBurntAreaService implements EffisBurntAreaService {
 
         _dataCache[year] = burntAreas;
         debugPrint(
-            '🗺️ CachedBurntAreaService: Loaded ${burntAreas.length} burnt areas for $year');
+          '🗺️ CachedBurntAreaService: Loaded ${burntAreas.length} burnt areas for $year',
+        );
       }
 
       // Filter to requested bounds
@@ -179,14 +188,17 @@ class CachedBurntAreaService implements EffisBurntAreaService {
       }).toList();
 
       debugPrint(
-          '🗺️ CachedBurntAreaService: Returning ${filtered.length} of ${allAreas.length} areas within bounds');
+        '🗺️ CachedBurntAreaService: Returning ${filtered.length} of ${allAreas.length} areas within bounds',
+      );
       return Right(filtered);
     } catch (e) {
       debugPrint('🗺️ CachedBurntAreaService: Error loading asset: $e');
-      return Left(ApiError(
-        message: 'Failed to load cached burnt area data: $e',
-        statusCode: null,
-      ));
+      return Left(
+        ApiError(
+          message: 'Failed to load cached burnt area data: $e',
+          statusCode: null,
+        ),
+      );
     }
   }
 
@@ -201,10 +213,7 @@ class CachedBurntAreaService implements EffisBurntAreaService {
     // Parse coordinates (format: [[lat, lon], [lat, lon], ...])
     final boundaryPoints = coords.map((coord) {
       final c = coord as List<dynamic>;
-      return LatLng(
-        (c[0] as num).toDouble(),
-        (c[1] as num).toDouble(),
-      );
+      return LatLng((c[0] as num).toDouble(), (c[1] as num).toDouble());
     }).toList();
 
     // Parse fire date
