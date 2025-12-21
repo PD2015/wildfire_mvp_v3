@@ -24,6 +24,7 @@ import 'package:wildfire_mvp_v3/models/hotspot_cluster.dart';
 import 'package:wildfire_mvp_v3/models/burnt_area.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
 import 'package:wildfire_mvp_v3/utils/debounced_viewport_loader.dart';
+import 'package:wildfire_mvp_v3/widgets/app_bar_actions.dart';
 import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet.dart';
 
 /// Map screen with Google Maps integration showing active fire incidents
@@ -758,6 +759,7 @@ class _MapScreenState extends State<MapScreen> {
                 ),
               )
             : null,
+        actions: const [AppBarActions()],
       ),
       body: Stack(
         children: [
@@ -814,6 +816,7 @@ class _MapScreenState extends State<MapScreen> {
       appBar: AppBar(
         title: const Text('Fire Map'),
         centerTitle: true,
+        actions: const [AppBarActions()],
       ),
       body: SingleChildScrollView(
         child: Padding(

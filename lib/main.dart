@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Icon keep-alive for Flutter Web tree-shaking prevention
 // ignore: unused_import
@@ -89,10 +90,12 @@ class ServiceContainer {
   final FireRiskService fireRiskService;
   final What3wordsService? what3wordsService;
   final GeocodingService? geocodingService;
+  final SharedPreferences prefs;
 
   ServiceContainer({
     required this.locationResolver,
     required this.fireRiskService,
+    required this.prefs,
     this.what3wordsService,
     this.geocodingService,
   });
@@ -100,6 +103,10 @@ class ServiceContainer {
 
 /// Initialize all services with proper dependency wiring
 Future<ServiceContainer> _initializeServices() async {
+  // Initialize SharedPreferences for onboarding/consent storage
+  final prefs = await SharedPreferences.getInstance();
+  debugPrint('✅ SharedPreferences initialized');
+
   // Initialize location resolver (A4)
   final LocationResolver locationResolver = LocationResolverImpl();
 
@@ -175,6 +182,7 @@ Future<ServiceContainer> _initializeServices() async {
   return ServiceContainer(
     locationResolver: locationResolver,
     fireRiskService: fireRiskService,
+    prefs: prefs,
     what3wordsService: what3wordsService,
     geocodingService: geocodingService,
   );
@@ -223,6 +231,7 @@ class _WildFireAppRootState extends State<WildFireAppRoot>
       homeController: widget.homeController,
       locationResolver: widget.services.locationResolver,
       fireRiskService: widget.services.fireRiskService,
+      prefs: widget.services.prefs,
       what3wordsService: widget.services.what3wordsService,
       geocodingService: widget.services.geocodingService,
     );

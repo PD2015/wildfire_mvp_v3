@@ -22,6 +22,7 @@ dependencies:
   url_launcher: ^6.3.0
   pointer_interceptor: ^0.10.1+2
   xml: ^6.6.1
+  flutter_markdown: ^0.7.4+3
 
 dev_dependencies:
   flutter_test:

@@ -98,32 +98,21 @@ void main() {
       mockController.dispose();
     });
 
-    /// Helper to build HomeScreen with test setup (basic - no navigation)
-    Widget buildHomeScreen() {
-      return MaterialApp(home: HomeScreen(controller: mockController));
-    }
+    /// Helper to build HomeScreen wrapped in a GoRouter-aware MaterialApp
+    Widget buildHomeScreen({List<GoRoute> additionalRoutes = const []}) {
+      final routes = <GoRoute>[
+        GoRoute(
+          path: '/',
+          builder: (context, state) => HomeScreen(controller: mockController),
+        ),
+        ...additionalRoutes,
+      ];
 
-    /// Helper to build HomeScreen with GoRouter (for navigation tests)
-    Widget buildHomeScreenWithRouter() {
       final router = GoRouter(
         initialLocation: '/',
-        routes: [
-          GoRoute(
-            path: '/',
-            builder: (context, state) => HomeScreen(controller: mockController),
-          ),
-          GoRoute(
-            path: '/location-picker',
-            builder: (context, state) {
-              locationPickerNavigated = true;
-              // Return a simple placeholder screen
-              return const Scaffold(
-                body: Center(child: Text('Location Picker Screen')),
-              );
-            },
-          ),
-        ],
+        routes: routes,
       );
+
       return MaterialApp.router(routerConfig: router);
     }
 
@@ -393,7 +382,21 @@ void main() {
           ),
         );
 
-        await tester.pumpWidget(buildHomeScreenWithRouter());
+        await tester.pumpWidget(
+          buildHomeScreen(
+            additionalRoutes: [
+              GoRoute(
+                path: '/location-picker',
+                builder: (context, state) {
+                  locationPickerNavigated = true;
+                  return const Scaffold(
+                    body: Center(child: Text('Location Picker Screen')),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
 
         // Act - Tap the Change Location button in LocationCard
         // Updated: Button text is now "Change Location" for non-manual locations
@@ -780,6 +783,73 @@ void main() {
           find.byType(RiskGuidanceCard),
         );
         expect(card.level, equals(RiskLevel.extreme));
+      });
+    });
+
+    group('Disclaimer Footer', () {
+      testWidgets('displays disclaimer text', (tester) async {
+        // Arrange
+        mockController.setState(
+          HomeStateSuccess(
+            riskData: TestData.createFireRisk(),
+            location: TestData.edinburgh,
+            lastUpdated: DateTime.now(),
+            locationSource: LocationSource.gps,
+          ),
+        );
+
+        await tester.pumpWidget(buildHomeScreen());
+
+        // Assert - Disclaimer text is visible
+        expect(
+          find.text('For information only. Dial 999 in an emergency.'),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('disclaimer footer has proper accessibility', (
+        tester,
+      ) async {
+        // Arrange
+        mockController.setState(
+          HomeStateSuccess(
+            riskData: TestData.createFireRisk(),
+            location: TestData.edinburgh,
+            lastUpdated: DateTime.now(),
+            locationSource: LocationSource.gps,
+          ),
+        );
+
+        await tester.pumpWidget(buildHomeScreen());
+
+        // Assert - Disclaimer text is findable
+        expect(find.byKey(const Key('disclaimer_text')), findsOneWidget);
+      });
+
+      testWidgets('footer shows in all states', (tester) async {
+        // Test loading state
+        mockController.setState(
+          HomeStateLoading(startTime: DateTime.now()),
+          loading: true,
+        );
+        await tester.pumpWidget(buildHomeScreen());
+        expect(
+          find.text('For information only. Dial 999 in an emergency.'),
+          findsOneWidget,
+        );
+
+        // Test error state
+        mockController.setState(
+          const HomeStateError(
+            errorMessage: 'Test error',
+            canRetry: true,
+          ),
+        );
+        await tester.pump();
+        expect(
+          find.text('For information only. Dial 999 in an emergency.'),
+          findsOneWidget,
+        );
       });
     });
   });

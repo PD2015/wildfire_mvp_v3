@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wildfire_mvp_v3/widgets/app_bar_actions.dart';
 import 'package:wildfire_mvp_v3/features/report/controllers/report_fire_controller.dart';
 import 'package:wildfire_mvp_v3/features/report/models/emergency_contact.dart';
 import 'package:wildfire_mvp_v3/features/report/widgets/emergency_button.dart';
@@ -56,7 +57,11 @@ class _ReportFireScreenState extends State<ReportFireScreen> {
     final bannerFg = cs.onTertiaryContainer;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Report a Fire'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Report a Fire'),
+        centerTitle: true,
+        actions: const [AppBarActions()],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
