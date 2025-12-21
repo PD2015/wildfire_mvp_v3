@@ -982,6 +982,15 @@ class _MapScreenState extends State<MapScreen> {
               lastUpdated: _controller.lastUpdated,
             ),
           ),
+        // Loading indicator banner - shows when fetching burnt area data
+        if (_controller.isFetchingBurntAreas &&
+            _controller.fireDataMode == FireDataMode.burntAreas)
+          Positioned(
+            top: 60,
+            left: 16,
+            right: 16,
+            child: _buildLoadingBanner(context),
+          ),
         // Map controls positioned at top-right (fire data mode, filters, map type, GPS)
         Positioned(
           top: 16,
@@ -1091,6 +1100,40 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
       ],
+    );
+  }
+
+  /// Build loading banner - shows when fetching burnt area data
+  ///
+  /// Displays a subtle banner with progress indicator and text
+  /// to inform users that data is being loaded.
+  Widget _buildLoadingBanner(BuildContext context) {
+    return Card(
+      elevation: 4,
+      color: Theme.of(context).colorScheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Loading burnt areas...',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

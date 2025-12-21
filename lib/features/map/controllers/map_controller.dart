@@ -68,6 +68,10 @@ class MapController extends ChangeNotifier {
   // When offline, no data is shown rather than falling back to mock
   bool _isOffline = false;
 
+  // Loading state for burnt area data fetches
+  // Used to show loading indicator in UI
+  bool _isFetchingBurntAreas = false;
+
   // Timestamp of last successful data fetch
   DateTime _lastUpdated = DateTime.now();
 
@@ -129,6 +133,10 @@ class MapController extends ChangeNotifier {
   List<BurntArea> get burntAreas => _burntAreas;
   List<HotspotCluster> get clusters => _clusters;
   bool get isUsingMockData => _isUsingMockData;
+
+  /// Whether burnt area data is currently being fetched
+  /// Used to show loading indicator in UI
+  bool get isFetchingBurntAreas => _isFetchingBurntAreas;
 
   /// Which service provided the current hotspot data
   HotspotDataSource get hotspotDataSource => _hotspotDataSource;
@@ -506,6 +514,10 @@ class MapController extends ChangeNotifier {
     // Increment request ID to invalidate any in-flight requests
     final currentRequestId = ++_burntAreaRequestId;
 
+    // Set loading state and notify UI
+    _isFetchingBurntAreas = true;
+    notifyListeners();
+
     debugPrint(
       '🗺️ MapController: Fetching burnt areas for bounds '
       'SW(${_currentBounds!.southwest.latitude.toStringAsFixed(2)},${_currentBounds!.southwest.longitude.toStringAsFixed(2)}) '
@@ -543,6 +555,7 @@ class MapController extends ChangeNotifier {
         debugPrint(
           '🗺️ MapController: Discarding stale burnt area result (request $currentRequestId, current $_burntAreaRequestId)',
         );
+        _isFetchingBurntAreas = false;
         return;
       }
 
@@ -565,6 +578,7 @@ class MapController extends ChangeNotifier {
       );
 
       if (success) {
+        _isFetchingBurntAreas = false;
         notifyListeners();
         return;
       }
@@ -583,6 +597,7 @@ class MapController extends ChangeNotifier {
       debugPrint(
         '🗺️ MapController: Discarding stale burnt area fallback (request $currentRequestId, current $_burntAreaRequestId)',
       );
+      _isFetchingBurntAreas = false;
       return;
     }
 
@@ -608,6 +623,7 @@ class MapController extends ChangeNotifier {
         debugPrint(
           '🗺️ MapController: Discarding stale mock burnt area result (request $currentRequestId, current $_burntAreaRequestId)',
         );
+        _isFetchingBurntAreas = false;
         return;
       }
 
@@ -630,6 +646,7 @@ class MapController extends ChangeNotifier {
       );
     }
 
+    _isFetchingBurntAreas = false;
     notifyListeners();
   }
 

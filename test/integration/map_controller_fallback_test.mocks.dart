@@ -8,16 +8,14 @@ import 'dart:async' as _i4;
 import 'package:dartz/dartz.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:wildfire_mvp_v3/models/api_error.dart' as _i7;
-import 'package:wildfire_mvp_v3/models/burnt_area.dart' as _i16;
+import 'package:wildfire_mvp_v3/models/burnt_area.dart' as _i13;
 import 'package:wildfire_mvp_v3/models/fire_data_mode.dart' as _i14;
 import 'package:wildfire_mvp_v3/models/fire_incident.dart' as _i8;
-import 'package:wildfire_mvp_v3/models/hotspot.dart' as _i13;
 import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart' as _i9;
 import 'package:wildfire_mvp_v3/models/location_models.dart' as _i5;
-import 'package:wildfire_mvp_v3/services/effis_burnt_area_service.dart' as _i15;
+import 'package:wildfire_mvp_v3/services/effis_burnt_area_service.dart' as _i12;
 import 'package:wildfire_mvp_v3/services/fire_location_service.dart' as _i6;
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart' as _i10;
-import 'package:wildfire_mvp_v3/services/gwis_hotspot_service.dart' as _i12;
 import 'package:wildfire_mvp_v3/services/location_resolver.dart' as _i3;
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart' as _i11;
 
@@ -180,66 +178,22 @@ class MockFireRiskService extends _i1.Mock implements _i10.FireRiskService {
       ) as _i4.Future<_i2.Either<_i7.ApiError, _i11.FireRisk>>);
 }
 
-/// A class which mocks [GwisHotspotService].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockGwisHotspotService extends _i1.Mock
-    implements _i12.GwisHotspotService {
-  MockGwisHotspotService() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  _i4.Future<_i2.Either<_i7.ApiError, List<_i13.Hotspot>>> getHotspots({
-    required _i9.LatLngBounds? bounds,
-    required _i14.HotspotTimeFilter? timeFilter,
-    Duration? timeout = const Duration(seconds: 8),
-    int? maxRetries = 3,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getHotspots,
-          [],
-          {
-            #bounds: bounds,
-            #timeFilter: timeFilter,
-            #timeout: timeout,
-            #maxRetries: maxRetries,
-          },
-        ),
-        returnValue:
-            _i4.Future<_i2.Either<_i7.ApiError, List<_i13.Hotspot>>>.value(
-                _FakeEither_0<_i7.ApiError, List<_i13.Hotspot>>(
-          this,
-          Invocation.method(
-            #getHotspots,
-            [],
-            {
-              #bounds: bounds,
-              #timeFilter: timeFilter,
-              #timeout: timeout,
-              #maxRetries: maxRetries,
-            },
-          ),
-        )),
-      ) as _i4.Future<_i2.Either<_i7.ApiError, List<_i13.Hotspot>>>);
-}
-
 /// A class which mocks [EffisBurntAreaService].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockEffisBurntAreaService extends _i1.Mock
-    implements _i15.EffisBurntAreaService {
+    implements _i12.EffisBurntAreaService {
   MockEffisBurntAreaService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<_i2.Either<_i7.ApiError, List<_i16.BurntArea>>> getBurntAreas({
+  _i4.Future<_i2.Either<_i7.ApiError, List<_i13.BurntArea>>> getBurntAreas({
     required _i9.LatLngBounds? bounds,
     required _i14.BurntAreaSeasonFilter? seasonFilter,
     Duration? timeout = const Duration(seconds: 10),
     int? maxRetries = 3,
+    int? maxFeatures,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -250,11 +204,12 @@ class MockEffisBurntAreaService extends _i1.Mock
             #seasonFilter: seasonFilter,
             #timeout: timeout,
             #maxRetries: maxRetries,
+            #maxFeatures: maxFeatures,
           },
         ),
         returnValue:
-            _i4.Future<_i2.Either<_i7.ApiError, List<_i16.BurntArea>>>.value(
-                _FakeEither_0<_i7.ApiError, List<_i16.BurntArea>>(
+            _i4.Future<_i2.Either<_i7.ApiError, List<_i13.BurntArea>>>.value(
+                _FakeEither_0<_i7.ApiError, List<_i13.BurntArea>>(
           this,
           Invocation.method(
             #getBurntAreas,
@@ -264,8 +219,9 @@ class MockEffisBurntAreaService extends _i1.Mock
               #seasonFilter: seasonFilter,
               #timeout: timeout,
               #maxRetries: maxRetries,
+              #maxFeatures: maxFeatures,
             },
           ),
         )),
-      ) as _i4.Future<_i2.Either<_i7.ApiError, List<_i16.BurntArea>>>);
+      ) as _i4.Future<_i2.Either<_i7.ApiError, List<_i13.BurntArea>>>);
 }
