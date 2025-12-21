@@ -85,14 +85,14 @@ AppBar Icons → Settings (/settings) | Help & Info (/help)
 
 ## Implementation Tasks
 
-### Phase 1: Foundation (Routes & Shells)
-- [ ] **T1.1** Create shared `AppBarActions` widget for Settings/Help icons
-- [ ] **T1.2** Add AppBar actions to `HomeScreen`
-- [ ] **T1.3** Add AppBar actions to `MapScreen`
-- [ ] **T1.4** Add AppBar actions to `ReportFireScreen`
-- [ ] **T1.5** Create `SettingsScreen` hub (scaffold with sections)
-- [ ] **T1.6** Create `HelpInfoScreen` hub (scaffold with sections)
-- [ ] **T1.7** Add `/settings` and `/help` routes to `app.dart`
+### Phase 1: Foundation (Routes & Shells) ✅
+- [x] **T1.1** Create shared `AppBarActions` widget for Settings/Help icons
+- [x] **T1.2** Add AppBar actions to `HomeScreen`
+- [x] **T1.3** Add AppBar actions to `MapScreen`
+- [x] **T1.4** Add AppBar actions to `ReportFireScreen`
+- [x] **T1.5** Create `SettingsScreen` hub (scaffold with sections)
+- [x] **T1.6** Create `HelpInfoScreen` hub (scaffold with sections)
+- [x] **T1.7** Add `/settings` and `/help` routes to `app.dart`
 
 ### Phase 2: Settings Hub Implementation
 - [ ] **T2.1** Create `SettingsPrefs` service for persistence
@@ -355,6 +355,7 @@ No new dependencies required.
 |------|------|--------|-------|
 | 21 Dec 2025 | Branch created | ✅ | `feature/agent-d/settings-help-hubs` |
 | 21 Dec 2025 | Planning document | ✅ | This file |
+| 21 Dec 2025 | Phase 1 complete | ✅ | T1.1-T1.7 — Routes, hubs, AppBarActions |
 | | | | |
 
 ---

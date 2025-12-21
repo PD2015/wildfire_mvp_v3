@@ -19,6 +19,9 @@ import 'features/location_picker/services/what3words_service_impl.dart';
 import 'features/location_picker/services/geocoding_service.dart';
 import 'features/location_picker/services/geocoding_service_impl.dart';
 import 'features/settings/screens/settings_screen.dart';
+import 'features/settings/screens/notifications_settings_screen.dart';
+import 'features/settings/screens/about_settings_screen.dart';
+import 'features/settings/screens/advanced_settings_screen.dart';
 import 'features/help/screens/help_info_screen.dart';
 import 'services/location_resolver.dart';
 import 'services/location_state_manager.dart';
@@ -193,34 +196,53 @@ class WildFireApp extends StatelessWidget {
         name: 'settings',
         builder: (context, state) => const SettingsScreen(),
         routes: [
-          // Legal documents under settings/about
+          // Notifications settings
           GoRoute(
-            path: 'about/terms',
-            name: 'settings-terms',
-            builder: (context, state) => LegalDocumentScreen(
-              document: LegalContent.termsOfService,
-            ),
+            path: 'notifications',
+            name: 'settings-notifications',
+            builder: (context, state) => const NotificationsSettingsScreen(),
           ),
+          // About section (legal documents hub)
           GoRoute(
-            path: 'about/privacy',
-            name: 'settings-privacy',
-            builder: (context, state) => LegalDocumentScreen(
-              document: LegalContent.privacyPolicy,
-            ),
+            path: 'about',
+            name: 'settings-about',
+            builder: (context, state) => const AboutSettingsScreen(),
+            routes: [
+              GoRoute(
+                path: 'terms',
+                name: 'settings-about-terms',
+                builder: (context, state) => LegalDocumentScreen(
+                  document: LegalContent.termsOfService,
+                ),
+              ),
+              GoRoute(
+                path: 'privacy',
+                name: 'settings-about-privacy',
+                builder: (context, state) => LegalDocumentScreen(
+                  document: LegalContent.privacyPolicy,
+                ),
+              ),
+              GoRoute(
+                path: 'disclaimer',
+                name: 'settings-about-disclaimer',
+                builder: (context, state) => LegalDocumentScreen(
+                  document: LegalContent.emergencyDisclaimer,
+                ),
+              ),
+              GoRoute(
+                path: 'data-sources',
+                name: 'settings-about-data-sources',
+                builder: (context, state) => LegalDocumentScreen(
+                  document: LegalContent.dataSources,
+                ),
+              ),
+            ],
           ),
+          // Advanced settings (developer options)
           GoRoute(
-            path: 'about/disclaimer',
-            name: 'settings-disclaimer',
-            builder: (context, state) => LegalDocumentScreen(
-              document: LegalContent.emergencyDisclaimer,
-            ),
-          ),
-          GoRoute(
-            path: 'about/data-sources',
-            name: 'settings-data-sources',
-            builder: (context, state) => LegalDocumentScreen(
-              document: LegalContent.dataSources,
-            ),
+            path: 'advanced',
+            name: 'settings-advanced',
+            builder: (context, state) => const AdvancedSettingsScreen(),
           ),
         ],
       ),
