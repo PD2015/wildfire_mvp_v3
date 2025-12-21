@@ -105,14 +105,14 @@ AppBar Icons → Settings (/settings) | Help & Info (/help)
 - [ ] **T2.5** Create `AdvancedSettingsScreen` with dev options
 - [ ] **T2.6** Implement dev options gating (kDebugMode + tap-to-unlock in prod)
 
-### Phase 3: Help & Info Hub Implementation
-- [ ] **T3.1** Create `HelpContent` class (like `LegalContent`) with help documents
-- [ ] **T3.2** Create help content: Getting Started section
-- [ ] **T3.3** Create help content: Wildfire Education section (stub content)
-- [ ] **T3.4** Create help content: Using the Map section (stub content)
-- [ ] **T3.5** Create help content: Safety & Responsibility section
-- [ ] **T3.6** Create `AboutHelpScreen` (app info + version + data sources link)
-- [ ] **T3.7** Add all Help routes to `app.dart`
+### Phase 3: Help & Info Hub Implementation ✅
+- [x] **T3.1** Create `HelpContent` class (like `LegalContent`) with help documents
+- [x] **T3.2** Create help content: Getting Started section
+- [x] **T3.3** Create help content: Wildfire Education section (stub content)
+- [x] **T3.4** Create help content: Using the Map section (stub content)
+- [x] **T3.5** Create help content: Safety & Responsibility section
+- [x] **T3.6** Create `AboutHelpScreen` (app info + version + data sources link)
+- [x] **T3.7** Add all Help routes to `app.dart`
 
 ### Phase 4: Cleanup & Polish
 - [ ] **T4.1** Update onboarding legal links to new `/settings/about/*` paths
@@ -360,6 +360,7 @@ No new dependencies required.
 | 21 Dec 2025 | Planning document | ✅ | This file |
 | 21 Dec 2025 | Phase 1 complete | ✅ | T1.1-T1.7 — Routes, hubs, AppBarActions |
 | 21 Dec 2025 | Phase 2 complete | ✅ | T2.1-T2.6 — Settings screens and services |
+| 21 Dec 2025 | Phase 3 complete | ✅ | T3.1-T3.7 — Help content and screens |
 | | | | |
 
 ---

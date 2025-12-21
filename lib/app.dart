@@ -5,7 +5,6 @@ import 'content/legal_content.dart';
 import 'controllers/home_controller.dart';
 import 'models/consent_record.dart';
 import 'screens/home_screen.dart';
-import 'screens/about_screen.dart';
 import 'screens/legal_document_screen.dart';
 import 'features/map/screens/map_screen.dart';
 import 'features/map/controllers/map_controller.dart';
@@ -106,7 +105,8 @@ class WildFireApp extends StatelessWidget {
     // Redirect logic for onboarding
     redirect: (context, state) {
       final isOnboarding = state.uri.path == '/onboarding';
-      final isAboutPath = state.uri.path.startsWith('/about');
+      final isLegalPath = state.uri.path.startsWith('/about') ||
+          state.uri.path.startsWith('/settings/about');
       final needsOnboarding = _isOnboardingRequired();
 
       // If onboarding is complete and user is on /onboarding, redirect to home
@@ -114,9 +114,9 @@ class WildFireApp extends StatelessWidget {
         return '/';
       }
 
-      // If onboarding is needed and user is NOT on /onboarding or /about/*,
+      // If onboarding is needed and user is NOT on /onboarding or legal paths,
       // redirect to onboarding
-      if (needsOnboarding && !isOnboarding && !isAboutPath) {
+      if (needsOnboarding && !isOnboarding && !isLegalPath) {
         return '/onboarding';
       }
 
@@ -156,41 +156,32 @@ class WildFireApp extends StatelessWidget {
         },
       ),
 
-      // About and legal routes (no bottom nav)
+      // About and legal routes (legacy - redirect to new locations)
+      // Keep for backwards compatibility with any deep links
       GoRoute(
         path: '/about',
         name: 'about',
-        builder: (context, state) => const AboutScreen(),
-        routes: [
-          GoRoute(
-            path: 'terms',
-            name: 'terms',
-            builder: (context, state) => LegalDocumentScreen(
-              document: LegalContent.termsOfService,
-            ),
-          ),
-          GoRoute(
-            path: 'privacy',
-            name: 'privacy',
-            builder: (context, state) => LegalDocumentScreen(
-              document: LegalContent.privacyPolicy,
-            ),
-          ),
-          GoRoute(
-            path: 'disclaimer',
-            name: 'disclaimer',
-            builder: (context, state) => LegalDocumentScreen(
-              document: LegalContent.emergencyDisclaimer,
-            ),
-          ),
-          GoRoute(
-            path: 'data-sources',
-            name: 'data-sources',
-            builder: (context, state) => LegalDocumentScreen(
-              document: LegalContent.dataSources,
-            ),
-          ),
-        ],
+        redirect: (context, state) => '/help/about',
+      ),
+      GoRoute(
+        path: '/about/terms',
+        name: 'terms',
+        redirect: (context, state) => '/settings/about/terms',
+      ),
+      GoRoute(
+        path: '/about/privacy',
+        name: 'privacy',
+        redirect: (context, state) => '/settings/about/privacy',
+      ),
+      GoRoute(
+        path: '/about/disclaimer',
+        name: 'disclaimer',
+        redirect: (context, state) => '/settings/about/disclaimer',
+      ),
+      GoRoute(
+        path: '/about/data-sources',
+        name: 'data-sources',
+        redirect: (context, state) => '/settings/about/data-sources',
       ),
 
       // Settings hub (no bottom nav)

@@ -70,11 +70,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _navigateToTerms() {
-    context.push('/about/terms');
+    context.push('/settings/about/terms');
   }
 
   void _navigateToPrivacy() {
-    context.push('/about/privacy');
+    context.push('/settings/about/privacy');
   }
 
   Future<void> _completeOnboarding() async {
