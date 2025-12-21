@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dartz/dartz.dart';
@@ -97,6 +98,14 @@ class _FailingBurntAreaService implements EffisBurntAreaService {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Skip all tests on web platform - mock services use rootBundle.loadString
+  // which doesn't work in the Chrome test environment
+  if (kIsWeb) {
+    test('skipped on web platform', () {},
+        skip: 'rootBundle.loadString hangs on web');
+    return;
+  }
 
   const testBounds = LatLngBounds(
     southwest: LatLng(55.0, -4.0),
