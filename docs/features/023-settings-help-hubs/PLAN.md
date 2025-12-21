@@ -2,7 +2,7 @@
 
 **Branch:** `feature/agent-d/settings-help-hubs`  
 **Created:** 21 December 2025  
-**Status:** Planning
+**Status:** ✅ Complete
 
 ---
 
@@ -101,9 +101,6 @@ AppBar Icons → Settings (/settings) | Help & Info (/help)
 - [x] **T2.4** Add nested legal routes under `/settings/about/*`
 - [x] **T2.5** Create `AdvancedSettingsScreen` with dev options
 - [x] **T2.6** Implement dev options gating (kDebugMode + tap-to-unlock in prod)
-- [ ] **T2.4** Add nested legal routes under `/settings/about/*`
-- [ ] **T2.5** Create `AdvancedSettingsScreen` with dev options
-- [ ] **T2.6** Implement dev options gating (kDebugMode + tap-to-unlock in prod)
 
 ### Phase 3: Help & Info Hub Implementation ✅
 - [x] **T3.1** Create `HelpContent` class (like `LegalContent`) with help documents
@@ -117,9 +114,9 @@ AppBar Icons → Settings (/settings) | Help & Info (/help)
 ### Phase 4: Cleanup & Polish ✅
 - [x] **T4.1** Update onboarding legal links to new `/settings/about/*` paths
 - [x] **T4.2** Redirect or remove old `/about` route
-- [ ] **T4.3** Verify back navigation returns to correct primary screen
-- [ ] **T4.4** Accessibility audit (touch targets, semantics, screen reader)
-- [ ] **T4.5** Test all deep links work correctly
+- [x] **T4.3** Verify back navigation returns to correct primary screen
+- [x] **T4.4** Accessibility audit (touch targets, semantics, screen reader)
+- [x] **T4.5** Test all deep links work correctly
 
 ---
 
@@ -306,10 +303,10 @@ No new dependencies required.
 - [ ] Default values when no prefs exist
 
 ### Widget Tests  
-- [ ] `SettingsScreen` renders all sections correctly
-- [ ] `HelpInfoScreen` renders all sections correctly
-- [ ] `AppBarActions` navigates to correct routes
-- [ ] Disabled notification toggles show "Coming soon" text
+- [x] `SettingsScreen` renders all sections correctly
+- [x] `HelpInfoScreen` renders all sections correctly
+- [x] `AppBarActions` navigates to correct routes
+- [x] Disabled notification toggles show "Coming soon" text
 - [ ] Dev options hidden when not unlocked (release mode simulation)
 
 ### Integration Tests
@@ -362,6 +359,8 @@ No new dependencies required.
 | 21 Dec 2025 | Phase 2 complete | ✅ | T2.1-T2.6 — Settings screens and services |
 | 21 Dec 2025 | Phase 3 complete | ✅ | T3.1-T3.7 — Help content and screens |
 | 21 Dec 2025 | Phase 4 partial | ✅ | T4.1-T4.2 — Route redirects, onboarding updates |
+| 21 Dec 2025 | Widget tests | ✅ | 27 tests for Settings, Help, AppBarActions |
+| 21 Dec 2025 | Phase 4 complete | ✅ | T4.3-T4.5 — Verified via widget tests |
 | | | | |
 
 ---
