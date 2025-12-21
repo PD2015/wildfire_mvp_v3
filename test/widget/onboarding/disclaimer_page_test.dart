@@ -75,7 +75,7 @@ void main() {
       );
 
       expect(
-        find.textContaining('not a real-time emergency alert system'),
+        find.textContaining('general wildfire-risk information'),
         findsOneWidget,
       );
     });

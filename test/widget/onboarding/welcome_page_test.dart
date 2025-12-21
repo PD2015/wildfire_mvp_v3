@@ -4,25 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wildfire_mvp_v3/features/onboarding/pages/welcome_page.dart';
 
 void main() {
-  // Helper to scroll within page and tap by text
-  Future<void> scrollAndTap(WidgetTester tester, String text) async {
-    final scrollableFinder = find.byType(Scrollable);
-    if (scrollableFinder.evaluate().isNotEmpty) {
-      try {
-        await tester.scrollUntilVisible(
-          find.text(text),
-          50,
-          scrollable: scrollableFinder.first,
-        );
-      } catch (_) {
-        // Button might already be visible
-      }
-    }
-    await tester.pumpAndSettle();
-    await tester.tap(find.text(text));
-    await tester.pumpAndSettle();
-  }
-
   group('WelcomePage', () {
     testWidgets('displays app title', (tester) async {
       await tester.pumpWidget(
@@ -110,6 +91,10 @@ void main() {
     });
 
     testWidgets('calls onContinue when button tapped', (tester) async {
+      // Set surface size to accommodate tall content
+      await tester.binding.setSurfaceSize(const Size(400, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       var called = false;
 
       await tester.pumpWidget(
@@ -122,7 +107,12 @@ void main() {
         ),
       );
 
-      await scrollAndTap(tester, 'Continue');
+      // Ensure button is visible before tapping
+      final button = find.text('Continue');
+      await tester.ensureVisible(button);
+      await tester.pumpAndSettle();
+      await tester.tap(button);
+      await tester.pump();
 
       expect(called, isTrue);
     });

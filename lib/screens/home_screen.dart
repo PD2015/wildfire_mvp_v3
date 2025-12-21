@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:wildfire_mvp_v3/widgets/app_bar_actions.dart';
 import 'package:wildfire_mvp_v3/widgets/location_card.dart';
 
 import '../config/feature_flags.dart';
@@ -58,7 +59,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Wildfire Risk'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Wildfire Risk'),
+        centerTitle: true,
+        actions: const [AppBarActions()],
+      ),
       body: ListenableBuilder(
         listenable: _controller,
         builder: (context, child) {
@@ -107,47 +112,23 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Builds the disclaimer footer with emergency info and about link
+  /// Builds the disclaimer footer with emergency info
   ///
   /// Displays legal disclaimer that this app is for information only
-  /// and provides emergency contact guidance. Links to About page.
+  /// and provides emergency contact guidance.
   Widget _buildDisclaimerFooter() {
     return Semantics(
       container: true,
-      label: 'App disclaimer and about link',
+      label: 'App disclaimer',
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Column(
-          children: [
-            // Emergency disclaimer text
-            Text(
-              'For information only. Dial 999 in an emergency.',
-              key: const Key('disclaimer_text'),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8.0),
-            // About this app link
-            TextButton(
-              key: const Key('about_link'),
-              onPressed: () => context.push('/about'),
-              style: TextButton.styleFrom(
-                minimumSize: const Size(44.0, 44.0), // C3: Accessibility
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 8.0,
-                ),
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: Text(
+          'For information only. Dial 999 in an emergency.',
+          key: const Key('disclaimer_text'),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-              child: Text(
-                'About this app',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-              ),
-            ),
-          ],
+          textAlign: TextAlign.center,
         ),
       ),
     );

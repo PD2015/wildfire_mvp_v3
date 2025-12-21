@@ -98,32 +98,21 @@ void main() {
       mockController.dispose();
     });
 
-    /// Helper to build HomeScreen with test setup (basic - no navigation)
-    Widget buildHomeScreen() {
-      return MaterialApp(home: HomeScreen(controller: mockController));
-    }
+    /// Helper to build HomeScreen wrapped in a GoRouter-aware MaterialApp
+    Widget buildHomeScreen({List<GoRoute> additionalRoutes = const []}) {
+      final routes = <GoRoute>[
+        GoRoute(
+          path: '/',
+          builder: (context, state) => HomeScreen(controller: mockController),
+        ),
+        ...additionalRoutes,
+      ];
 
-    /// Helper to build HomeScreen with GoRouter (for navigation tests)
-    Widget buildHomeScreenWithRouter() {
       final router = GoRouter(
         initialLocation: '/',
-        routes: [
-          GoRoute(
-            path: '/',
-            builder: (context, state) => HomeScreen(controller: mockController),
-          ),
-          GoRoute(
-            path: '/location-picker',
-            builder: (context, state) {
-              locationPickerNavigated = true;
-              // Return a simple placeholder screen
-              return const Scaffold(
-                body: Center(child: Text('Location Picker Screen')),
-              );
-            },
-          ),
-        ],
+        routes: routes,
       );
+
       return MaterialApp.router(routerConfig: router);
     }
 
@@ -393,7 +382,21 @@ void main() {
           ),
         );
 
-        await tester.pumpWidget(buildHomeScreenWithRouter());
+        await tester.pumpWidget(
+          buildHomeScreen(
+            additionalRoutes: [
+              GoRoute(
+                path: '/location-picker',
+                builder: (context, state) {
+                  locationPickerNavigated = true;
+                  return const Scaffold(
+                    body: Center(child: Text('Location Picker Screen')),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
 
         // Act - Tap the Change Location button in LocationCard
         // Updated: Button text is now "Change Location" for non-manual locations
@@ -795,79 +798,13 @@ void main() {
           ),
         );
 
-        await tester.pumpWidget(buildHomeScreenWithRouter());
+        await tester.pumpWidget(buildHomeScreen());
 
         // Assert - Disclaimer text is visible
         expect(
           find.text('For information only. Dial 999 in an emergency.'),
           findsOneWidget,
         );
-      });
-
-      testWidgets('displays About this app link', (tester) async {
-        // Arrange
-        mockController.setState(
-          HomeStateSuccess(
-            riskData: TestData.createFireRisk(),
-            location: TestData.edinburgh,
-            lastUpdated: DateTime.now(),
-            locationSource: LocationSource.gps,
-          ),
-        );
-
-        await tester.pumpWidget(buildHomeScreenWithRouter());
-
-        // Assert - About link is visible
-        expect(find.text('About this app'), findsOneWidget);
-      });
-
-      testWidgets('About link navigates to /about route', (tester) async {
-        // Arrange
-        bool aboutNavigated = false;
-        final router = GoRouter(
-          initialLocation: '/',
-          routes: [
-            GoRoute(
-              path: '/',
-              builder: (context, state) =>
-                  HomeScreen(controller: mockController),
-            ),
-            GoRoute(
-              path: '/about',
-              builder: (context, state) {
-                aboutNavigated = true;
-                return const Scaffold(body: Text('About Page'));
-              },
-            ),
-          ],
-        );
-
-        mockController.setState(
-          HomeStateSuccess(
-            riskData: TestData.createFireRisk(),
-            location: TestData.edinburgh,
-            lastUpdated: DateTime.now(),
-            locationSource: LocationSource.gps,
-          ),
-        );
-
-        await tester.pumpWidget(
-          MaterialApp.router(routerConfig: router),
-        );
-
-        // Scroll to make About link visible
-        await tester.scrollUntilVisible(
-          find.text('About this app'),
-          100.0,
-          scrollable: find.byType(Scrollable).first,
-        );
-
-        // Act - Tap the About link
-        await tester.tap(find.text('About this app'));
-        await tester.pumpAndSettle();
-
-        // Assert - Navigated to about page
-        expect(aboutNavigated, isTrue);
       });
 
       testWidgets('disclaimer footer has proper accessibility', (
@@ -883,41 +820,10 @@ void main() {
           ),
         );
 
-        await tester.pumpWidget(buildHomeScreenWithRouter());
+        await tester.pumpWidget(buildHomeScreen());
 
-        // Assert - Key widgets are findable
+        // Assert - Disclaimer text is findable
         expect(find.byKey(const Key('disclaimer_text')), findsOneWidget);
-        expect(find.byKey(const Key('about_link')), findsOneWidget);
-      });
-
-      testWidgets('About link has minimum touch target', (tester) async {
-        // Arrange
-        mockController.setState(
-          HomeStateSuccess(
-            riskData: TestData.createFireRisk(),
-            location: TestData.edinburgh,
-            lastUpdated: DateTime.now(),
-            locationSource: LocationSource.gps,
-          ),
-        );
-
-        await tester.pumpWidget(buildHomeScreenWithRouter());
-
-        // Scroll to make About link visible
-        await tester.scrollUntilVisible(
-          find.byKey(const Key('about_link')),
-          100.0,
-          scrollable: find.byType(Scrollable).first,
-        );
-
-        // Assert - Button has minimum size
-        final button = tester.widget<TextButton>(
-          find.byKey(const Key('about_link')),
-        );
-        final style = button.style;
-        final minimumSize = style?.minimumSize?.resolve({});
-        expect(minimumSize?.width, greaterThanOrEqualTo(44.0));
-        expect(minimumSize?.height, greaterThanOrEqualTo(44.0));
       });
 
       testWidgets('footer shows in all states', (tester) async {
@@ -926,7 +832,7 @@ void main() {
           HomeStateLoading(startTime: DateTime.now()),
           loading: true,
         );
-        await tester.pumpWidget(buildHomeScreenWithRouter());
+        await tester.pumpWidget(buildHomeScreen());
         expect(
           find.text('For information only. Dial 999 in an emergency.'),
           findsOneWidget,

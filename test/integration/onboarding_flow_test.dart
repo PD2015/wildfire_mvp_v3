@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:wildfire_mvp_v3/features/onboarding/screens/onboarding_screen.dart';
@@ -7,59 +8,6 @@ import 'package:wildfire_mvp_v3/models/consent_record.dart';
 import 'package:wildfire_mvp_v3/services/onboarding_prefs_impl.dart';
 
 void main() {
-  // Helper to tap a button by text, scrolling if needed
-  Future<void> tapButton(WidgetTester tester, String text) async {
-    final buttonFinder = find.text(text);
-    // Try to scroll to the button if it's not visible
-    final scrollableFinder = find.byType(Scrollable);
-    if (scrollableFinder.evaluate().isNotEmpty) {
-      try {
-        await tester.scrollUntilVisible(
-          buttonFinder,
-          50,
-          scrollable: scrollableFinder.first,
-        );
-      } catch (_) {
-        // Button might already be visible
-      }
-    }
-    await tester.pumpAndSettle();
-    await tester.tap(buttonFinder);
-    await tester.pumpAndSettle();
-  }
-
-  // Helper to tap a CheckboxListTile by finding and tapping the Checkbox inside it
-  Future<void> tapCheckboxListTile(WidgetTester tester, Key tileKey) async {
-    final tileFinder = find.byKey(tileKey);
-    final scrollableFinder = find.byType(Scrollable);
-    if (scrollableFinder.evaluate().isNotEmpty) {
-      try {
-        await tester.scrollUntilVisible(
-          tileFinder,
-          50,
-          scrollable: scrollableFinder.first,
-        );
-      } catch (_) {
-        // Checkbox might already be visible
-      }
-    }
-    await tester.pumpAndSettle();
-
-    // Find the Checkbox widget inside the CheckboxListTile
-    final checkboxFinder = find.descendant(
-      of: tileFinder,
-      matching: find.byType(Checkbox),
-    );
-
-    if (checkboxFinder.evaluate().isNotEmpty) {
-      await tester.tap(checkboxFinder);
-    } else {
-      // Fallback: tap the tile itself
-      await tester.tap(tileFinder);
-    }
-    await tester.pumpAndSettle();
-  }
-
   group('Onboarding Flow Integration', () {
     late SharedPreferences prefs;
     late OnboardingPrefsImpl prefsService;
@@ -71,40 +19,132 @@ void main() {
       prefsService = OnboardingPrefsImpl(prefs);
     });
 
+    /// Creates a test app with GoRouter to support navigation
+    Widget createTestApp({
+      required OnboardingPrefsImpl prefsService,
+      VoidCallback? onComplete,
+    }) {
+      final router = GoRouter(
+        initialLocation: '/onboarding',
+        routes: [
+          GoRoute(
+            path: '/onboarding',
+            builder: (context, state) => OnboardingScreen(
+              prefsService: prefsService,
+              onComplete: onComplete,
+            ),
+          ),
+          // Stub routes for terms and privacy navigation
+          GoRoute(
+            path: '/settings/about/terms',
+            builder: (context, state) => const Scaffold(
+              body: Center(child: Text('Terms Page')),
+            ),
+          ),
+          GoRoute(
+            path: '/settings/about/privacy',
+            builder: (context, state) => const Scaffold(
+              body: Center(child: Text('Privacy Page')),
+            ),
+          ),
+        ],
+      );
+
+      return MaterialApp.router(
+        routerConfig: router,
+      );
+    }
+
+    /// Helper to tap a button by finding it via FilledButton with text.
+    /// Scrolls to make the button visible before tapping.
+    Future<void> tapFilledButton(WidgetTester tester, String buttonText) async {
+      final button = find.widgetWithText(FilledButton, buttonText);
+      expect(button, findsOneWidget,
+          reason: 'FilledButton "$buttonText" should be visible');
+
+      // Scroll to make the button visible
+      await tester.ensureVisible(button);
+      await tester.pumpAndSettle();
+
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+    }
+
+    /// Helper to tap a checkbox by key, scrolling if needed.
+    /// Taps on the actual Checkbox widget (not the full tile) to avoid hitting embedded links.
+    Future<void> tapCheckbox(WidgetTester tester, Key key) async {
+      final checkboxTile = find.byKey(key);
+      expect(checkboxTile, findsOneWidget,
+          reason: 'Checkbox with key $key should be visible');
+
+      // Scroll to make the checkbox visible
+      await tester.ensureVisible(checkboxTile);
+      await tester.pumpAndSettle();
+
+      // Find the Checkbox widget inside the CheckboxListTile and tap it
+      final checkbox = find.descendant(
+        of: checkboxTile,
+        matching: find.byType(Checkbox),
+      );
+      expect(checkbox, findsOneWidget,
+          reason: 'Checkbox inside tile should be found');
+      await tester.tap(checkbox);
+      await tester.pumpAndSettle();
+    }
+
+    /// Helper to tap the Back button, scrolling if needed.
+    Future<void> tapBackButton(WidgetTester tester) async {
+      final backButton = find.text('Back');
+      expect(backButton, findsOneWidget,
+          reason: 'Back button should be visible');
+
+      // Scroll to make the button visible
+      await tester.ensureVisible(backButton);
+      await tester.pumpAndSettle();
+
+      await tester.tap(backButton);
+      await tester.pumpAndSettle();
+    }
+
     testWidgets('complete onboarding flow - fresh install to home',
         (tester) async {
+      // Set a large surface size to accommodate all onboarding content
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       var onboardingComplete = false;
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingScreen(
-            prefsService: prefsService,
-            onComplete: () => onboardingComplete = true,
-          ),
+        createTestApp(
+          prefsService: prefsService,
+          onComplete: () => onboardingComplete = true,
         ),
       );
+      await tester.pumpAndSettle();
 
-      // Page 1: Welcome - button says "Continue"
+      // Page 1: Welcome
       expect(find.text('Welcome to WildFire'), findsOneWidget);
-      await tapButton(tester, 'Continue');
+      await tapFilledButton(tester, 'Continue');
 
-      // Page 2: Disclaimer - button says "I Understand"
+      // Page 2: Disclaimer
       expect(find.text('Important Safety Information'), findsOneWidget);
-      await tapButton(tester, 'I Understand');
+      await tapFilledButton(tester, 'I Understand');
 
-      // Page 3: Privacy - button says "Continue"
+      // Page 3: Privacy
       expect(find.text('Your Privacy Matters'), findsOneWidget);
-      await tapButton(tester, 'Continue');
+      await tapFilledButton(tester, 'Continue');
 
       // Page 4: Setup
       expect(find.text('Set Your Preferences'), findsOneWidget);
 
-      // Accept both checkboxes (disclaimer and terms)
-      await tapCheckboxListTile(tester, const Key('disclaimer_checkbox'));
-      await tapCheckboxListTile(tester, const Key('terms_checkbox'));
+      // Accept disclaimer checkbox
+      await tapCheckbox(tester, const Key('disclaimer_checkbox'));
+
+      // Accept terms checkbox
+      await tapCheckbox(tester, const Key('terms_checkbox'));
 
       // Complete onboarding
-      await tapButton(tester, 'Complete Setup');
+      await tapFilledButton(tester, 'Complete Setup');
 
       // Verify onComplete was called
       expect(onboardingComplete, isTrue);
@@ -145,42 +185,35 @@ void main() {
     });
 
     testWidgets('radius selection is saved correctly', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingScreen(
-            prefsService: prefsService,
-          ),
-        ),
+        createTestApp(prefsService: prefsService),
       );
+      await tester.pumpAndSettle();
 
       // Navigate to setup page
-      await tapButton(tester, 'Continue'); // Welcome -> Disclaimer
-      await tapButton(tester, 'I Understand'); // Disclaimer -> Privacy
-      await tapButton(tester, 'Continue'); // Privacy -> Setup
+      await tapFilledButton(tester, 'Continue'); // Welcome -> Disclaimer
+      await tapFilledButton(tester, 'I Understand'); // Disclaimer -> Privacy
+      await tapFilledButton(tester, 'Continue'); // Privacy -> Setup
 
-      // Scroll to 25km option and select it
-      final scrollableFinder = find.byType(Scrollable);
-      if (scrollableFinder.evaluate().isNotEmpty) {
-        try {
-          await tester.scrollUntilVisible(
-            find.text('25km'),
-            50,
-            scrollable: scrollableFinder.first,
-          );
-        } catch (_) {
-          // Button might already be visible
-        }
-      }
+      // Select 25km radius (different from default 10km)
+      final radius25 = find.text('25km');
+      expect(radius25, findsOneWidget);
+      await tester.ensureVisible(radius25);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('25km'));
+      await tester.tap(radius25);
       await tester.pumpAndSettle();
 
-      // Accept both checkboxes (disclaimer and terms)
-      await tapCheckboxListTile(tester, const Key('disclaimer_checkbox'));
-      await tapCheckboxListTile(tester, const Key('terms_checkbox'));
+      // Accept disclaimer checkbox
+      await tapCheckbox(tester, const Key('disclaimer_checkbox'));
+
+      // Accept terms checkbox
+      await tapCheckbox(tester, const Key('terms_checkbox'));
 
       // Complete onboarding
-      await tapButton(tester, 'Complete Setup');
+      await tapFilledButton(tester, 'Complete Setup');
 
       // Verify 25km radius was saved
       final savedRadius = await prefsService.getNotificationRadiusKm();
@@ -188,121 +221,123 @@ void main() {
     });
 
     testWidgets('page indicator updates correctly', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingScreen(
-            prefsService: prefsService,
-          ),
-        ),
-      );
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      // Page 1 - actual semantics: "Step 1 of 4: Welcome"
-      expect(
-        find.bySemanticsLabel(RegExp(r'Step 1 of 4')),
-        findsOneWidget,
+      await tester.pumpWidget(
+        createTestApp(prefsService: prefsService),
       );
+      await tester.pumpAndSettle();
+
+      // Page 1
+      expect(find.bySemanticsLabel('Step 1 of 4: Welcome'), findsOneWidget);
 
       // Navigate to page 2
-      await tapButton(tester, 'Continue');
-      expect(
-        find.bySemanticsLabel(RegExp(r'Step 2 of 4')),
-        findsOneWidget,
-      );
+      await tapFilledButton(tester, 'Continue');
+      expect(find.bySemanticsLabel('Step 2 of 4: Safety information'),
+          findsOneWidget);
 
       // Navigate to page 3
-      await tapButton(tester, 'I Understand');
-      expect(
-        find.bySemanticsLabel(RegExp(r'Step 3 of 4')),
-        findsOneWidget,
-      );
+      await tapFilledButton(tester, 'I Understand');
+      expect(find.bySemanticsLabel('Step 3 of 4: Privacy'), findsOneWidget);
 
       // Navigate to page 4
-      await tapButton(tester, 'Continue');
-      expect(
-        find.bySemanticsLabel(RegExp(r'Step 4 of 4')),
-        findsOneWidget,
-      );
+      await tapFilledButton(tester, 'Continue');
+      expect(find.bySemanticsLabel('Step 4 of 4: Setup'), findsOneWidget);
     });
 
     testWidgets('cannot complete without accepting terms', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingScreen(
-            prefsService: prefsService,
-          ),
-        ),
+        createTestApp(prefsService: prefsService),
       );
-
-      // Navigate to setup page
-      await tapButton(tester, 'Continue'); // Welcome -> Disclaimer
-      await tapButton(tester, 'I Understand'); // Disclaimer -> Privacy
-      await tapButton(tester, 'Continue'); // Privacy -> Setup
-
-      // Scroll to Complete button without accepting terms
-      final scrollableFinder = find.byType(Scrollable);
-      if (scrollableFinder.evaluate().isNotEmpty) {
-        try {
-          await tester.scrollUntilVisible(
-            find.text('Complete Setup'),
-            50,
-            scrollable: scrollableFinder.first,
-          );
-        } catch (_) {
-          // Button might already be visible
-        }
-      }
       await tester.pumpAndSettle();
 
-      // Find the Complete Setup button
+      // Navigate to setup page
+      await tapFilledButton(tester, 'Continue');
+      await tapFilledButton(tester, 'I Understand');
+      await tapFilledButton(tester, 'Continue');
+
+      // Find the Complete Setup button and scroll to it
       final button = find.widgetWithText(FilledButton, 'Complete Setup');
       expect(button, findsOneWidget);
+      await tester.ensureVisible(button);
+      await tester.pumpAndSettle();
 
-      // Verify button is disabled
+      // Verify button is disabled (onPressed is null)
       final filledButton = tester.widget<FilledButton>(button);
       expect(filledButton.onPressed, isNull);
     });
 
-    testWidgets('complete button enables after accepting terms',
+    testWidgets('complete button enables after accepting both checkboxes',
         (tester) async {
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingScreen(
-            prefsService: prefsService,
-          ),
-        ),
+        createTestApp(prefsService: prefsService),
       );
-
-      // Navigate to setup page
-      await tapButton(tester, 'Continue'); // Welcome -> Disclaimer
-      await tapButton(tester, 'I Understand'); // Disclaimer -> Privacy
-      await tapButton(tester, 'Continue'); // Privacy -> Setup
-
-      // Accept both checkboxes (disclaimer and terms)
-      await tapCheckboxListTile(tester, const Key('disclaimer_checkbox'));
-      await tapCheckboxListTile(tester, const Key('terms_checkbox'));
-
-      // Scroll to Complete button
-      final scrollableFinder = find.byType(Scrollable);
-      if (scrollableFinder.evaluate().isNotEmpty) {
-        try {
-          await tester.scrollUntilVisible(
-            find.text('Complete Setup'),
-            50,
-            scrollable: scrollableFinder.first,
-          );
-        } catch (_) {
-          // Button might already be visible
-        }
-      }
       await tester.pumpAndSettle();
 
-      // Find the Complete Setup button
-      final button = find.widgetWithText(FilledButton, 'Complete Setup');
-      expect(button, findsOneWidget);
+      // Navigate to setup page
+      await tapFilledButton(tester, 'Continue');
+      await tapFilledButton(tester, 'I Understand');
+      await tapFilledButton(tester, 'Continue');
 
-      // Verify button is enabled
-      final filledButton = tester.widget<FilledButton>(button);
+      // Scroll to see Complete Setup button and verify it starts disabled
+      var button = find.widgetWithText(FilledButton, 'Complete Setup');
+      await tester.ensureVisible(button);
+      await tester.pumpAndSettle();
+      var filledButton = tester.widget<FilledButton>(button);
+      expect(filledButton.onPressed, isNull);
+
+      // Accept only disclaimer - button should still be disabled
+      await tapCheckbox(tester, const Key('disclaimer_checkbox'));
+
+      button = find.widgetWithText(FilledButton, 'Complete Setup');
+      await tester.ensureVisible(button);
+      await tester.pumpAndSettle();
+      filledButton = tester.widget<FilledButton>(button);
+      expect(filledButton.onPressed, isNull);
+
+      // Accept terms - button should now be enabled
+      await tapCheckbox(tester, const Key('terms_checkbox'));
+
+      button = find.widgetWithText(FilledButton, 'Complete Setup');
+      await tester.ensureVisible(button);
+      await tester.pumpAndSettle();
+      filledButton = tester.widget<FilledButton>(button);
       expect(filledButton.onPressed, isNotNull);
+    });
+
+    testWidgets('back navigation works on all pages', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        createTestApp(prefsService: prefsService),
+      );
+      await tester.pumpAndSettle();
+
+      // Navigate to page 4
+      await tapFilledButton(tester, 'Continue');
+      await tapFilledButton(tester, 'I Understand');
+      await tapFilledButton(tester, 'Continue');
+      expect(find.text('Set Your Preferences'), findsOneWidget);
+
+      // Go back to page 3
+      await tapBackButton(tester);
+      expect(find.text('Your Privacy Matters'), findsOneWidget);
+
+      // Go back to page 2
+      await tapBackButton(tester);
+      expect(find.text('Important Safety Information'), findsOneWidget);
+
+      // Go back to page 1 (Welcome has no back button)
+      await tapBackButton(tester);
+      expect(find.text('Welcome to WildFire'), findsOneWidget);
     });
   });
 }

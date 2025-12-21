@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:wildfire_mvp_v3/features/onboarding/screens/onboarding_screen.dart';
@@ -16,188 +17,193 @@ void main() {
     prefsService = OnboardingPrefsImpl(prefs);
   });
 
-  // Helper to scroll within current page and tap
-  Future<void> scrollAndTap(WidgetTester tester, String text) async {
-    final scrollableFinder = find.byType(Scrollable).first;
-    await tester.scrollUntilVisible(
-      find.text(text),
-      50,
-      scrollable: scrollableFinder,
+  /// Creates a test app with GoRouter wrapper (needed for context.push() calls)
+  Widget createTestApp({
+    required OnboardingPrefsImpl prefsService,
+    VoidCallback? onComplete,
+  }) {
+    final router = GoRouter(
+      initialLocation: '/onboarding',
+      routes: [
+        GoRoute(
+          path: '/onboarding',
+          builder: (context, state) => OnboardingScreen(
+            prefsService: prefsService,
+            onComplete: onComplete,
+          ),
+        ),
+        // Stub routes for terms/privacy navigation (hit by links in terms checkbox)
+        GoRoute(
+          path: '/settings/about/terms',
+          builder: (context, state) => const Scaffold(
+            body: Center(child: Text('Terms Screen')),
+          ),
+        ),
+        GoRoute(
+          path: '/settings/about/privacy',
+          builder: (context, state) => const Scaffold(
+            body: Center(child: Text('Privacy Screen')),
+          ),
+        ),
+      ],
     );
+
+    return MaterialApp.router(
+      routerConfig: router,
+    );
+  }
+
+  /// Helper to tap a FilledButton with ensureVisible
+  Future<void> tapFilledButton(WidgetTester tester, String text) async {
+    final buttonFinder = find.text(text);
+    await tester.ensureVisible(buttonFinder);
     await tester.pumpAndSettle();
-    await tester.tap(find.text(text));
+    await tester.tap(buttonFinder);
     await tester.pumpAndSettle();
   }
 
-  // Helper to tap a CheckboxListTile by finding and tapping the Checkbox inside it
-  // This avoids hitting GestureDetector links within the tile
-  Future<void> tapCheckboxListTile(WidgetTester tester, Key tileKey) async {
-    final tileFinder = find.byKey(tileKey);
-    final scrollableFinder = find.byType(Scrollable);
-    if (scrollableFinder.evaluate().isNotEmpty) {
-      try {
-        await tester.scrollUntilVisible(
-          tileFinder,
-          50,
-          scrollable: scrollableFinder.first,
-        );
-      } catch (_) {
-        // Checkbox might already be visible
-      }
-    }
+  /// Helper to tap a checkbox by key (taps the actual Checkbox widget to avoid hitting embedded links)
+  Future<void> tapCheckbox(WidgetTester tester, Key key) async {
+    final checkboxListTileFinder = find.byKey(key);
+    await tester.ensureVisible(checkboxListTileFinder);
     await tester.pumpAndSettle();
-
-    // Find the Checkbox widget inside the CheckboxListTile
+    // Find the actual Checkbox inside the CheckboxListTile to avoid hitting links
     final checkboxFinder = find.descendant(
-      of: tileFinder,
+      of: checkboxListTileFinder,
       matching: find.byType(Checkbox),
     );
-
-    if (checkboxFinder.evaluate().isNotEmpty) {
-      await tester.tap(checkboxFinder);
-    } else {
-      // Fallback: tap the tile itself
-      await tester.tap(tileFinder);
-    }
+    await tester.tap(checkboxFinder);
     await tester.pumpAndSettle();
   }
 
   group('OnboardingScreen', () {
     testWidgets('displays page indicator', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingScreen(
-            prefsService: prefsService,
-          ),
-        ),
-      );
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(createTestApp(prefsService: prefsService));
+      await tester.pumpAndSettle();
 
       expect(find.byType(PageIndicator), findsOneWidget);
     });
 
     testWidgets('starts on welcome page', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingScreen(
-            prefsService: prefsService,
-          ),
-        ),
-      );
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(createTestApp(prefsService: prefsService));
+      await tester.pumpAndSettle();
 
       expect(find.text('Welcome to WildFire'), findsOneWidget);
     });
 
     testWidgets('navigates to disclaimer page on continue', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingScreen(
-            prefsService: prefsService,
-          ),
-        ),
-      );
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await scrollAndTap(tester, 'Continue');
+      await tester.pumpWidget(createTestApp(prefsService: prefsService));
+      await tester.pumpAndSettle();
+
+      await tapFilledButton(tester, 'Continue');
 
       expect(find.text('Important Safety Information'), findsOneWidget);
     });
 
     testWidgets('navigates to privacy page from disclaimer', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingScreen(
-            prefsService: prefsService,
-          ),
-        ),
-      );
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      // Navigate through pages with scroll support
-      await scrollAndTap(tester, 'Continue');
-      await scrollAndTap(tester, 'I Understand');
+      await tester.pumpWidget(createTestApp(prefsService: prefsService));
+      await tester.pumpAndSettle();
+
+      await tapFilledButton(tester, 'Continue');
+      await tapFilledButton(tester, 'I Understand');
 
       expect(find.text('Your Privacy Matters'), findsOneWidget);
     });
 
     testWidgets('navigates to setup page from privacy', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingScreen(
-            prefsService: prefsService,
-          ),
-        ),
-      );
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      // Navigate through pages with scroll support
-      await scrollAndTap(tester, 'Continue');
-      await scrollAndTap(tester, 'I Understand');
-      await scrollAndTap(tester, 'Continue');
+      await tester.pumpWidget(createTestApp(prefsService: prefsService));
+      await tester.pumpAndSettle();
+
+      await tapFilledButton(tester, 'Continue');
+      await tapFilledButton(tester, 'I Understand');
+      await tapFilledButton(tester, 'Continue');
 
       expect(find.text('Set Your Preferences'), findsOneWidget);
     });
 
     testWidgets('page indicator updates as pages change', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingScreen(
-            prefsService: prefsService,
-          ),
-        ),
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(createTestApp(prefsService: prefsService));
+      await tester.pumpAndSettle();
+
+      // Verify initial page indicator (Step 1 of 4: Welcome)
+      expect(
+        find.bySemanticsLabel(RegExp(r'Step 1 of 4')),
+        findsOneWidget,
       );
 
-      // Verify initial page indicator (semantics: "Step X of Y: title")
-      expect(find.bySemanticsLabel(RegExp(r'Step 1 of 4')), findsOneWidget);
+      // Navigate to next page
+      await tapFilledButton(tester, 'Continue');
 
-      // Navigate to next page with scroll support
-      await scrollAndTap(tester, 'Continue');
-
-      // Verify page indicator updated
-      expect(find.bySemanticsLabel(RegExp(r'Step 2 of 4')), findsOneWidget);
+      // Verify page indicator updated (Step 2 of 4: Safety)
+      expect(
+        find.bySemanticsLabel(RegExp(r'Step 2 of 4')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('calls onComplete after completing onboarding', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       var completed = false;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingScreen(
-            prefsService: prefsService,
-            onComplete: () => completed = true,
-          ),
-        ),
-      );
+      await tester.pumpWidget(createTestApp(
+        prefsService: prefsService,
+        onComplete: () => completed = true,
+      ));
+      await tester.pumpAndSettle();
 
-      // Navigate through all pages with scroll support
-      await scrollAndTap(tester, 'Continue');
-      await scrollAndTap(tester, 'I Understand');
-      await scrollAndTap(tester, 'Continue');
+      // Navigate through all pages
+      await tapFilledButton(tester, 'Continue');
+      await tapFilledButton(tester, 'I Understand');
+      await tapFilledButton(tester, 'Continue');
 
-      // Accept both checkboxes using helper that targets the Checkbox widget
-      await tapCheckboxListTile(tester, const Key('disclaimer_checkbox'));
-      await tapCheckboxListTile(tester, const Key('terms_checkbox'));
+      // Accept both checkboxes
+      await tapCheckbox(tester, const Key('disclaimer_checkbox'));
+      await tapCheckbox(tester, const Key('terms_checkbox'));
 
-      await scrollAndTap(tester, 'Complete Setup');
+      // Complete
+      await tapFilledButton(tester, 'Complete Setup');
 
       expect(completed, isTrue);
     });
 
     testWidgets('saves consent when completing onboarding', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingScreen(
-            prefsService: prefsService,
-          ),
-        ),
-      );
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      // Navigate through all pages with scroll support
-      await scrollAndTap(tester, 'Continue');
-      await scrollAndTap(tester, 'I Understand');
-      await scrollAndTap(tester, 'Continue');
+      await tester.pumpWidget(createTestApp(prefsService: prefsService));
+      await tester.pumpAndSettle();
 
-      // Accept both checkboxes using helper that targets the Checkbox widget
-      await tapCheckboxListTile(tester, const Key('disclaimer_checkbox'));
-      await tapCheckboxListTile(tester, const Key('terms_checkbox'));
+      // Navigate through all pages
+      await tapFilledButton(tester, 'Continue');
+      await tapFilledButton(tester, 'I Understand');
+      await tapFilledButton(tester, 'Continue');
 
-      await scrollAndTap(tester, 'Complete Setup');
+      // Accept both checkboxes
+      await tapCheckbox(tester, const Key('disclaimer_checkbox'));
+      await tapCheckbox(tester, const Key('terms_checkbox'));
+
+      // Complete
+      await tapFilledButton(tester, 'Complete Setup');
 
       // Verify consent was recorded
       final consent = await prefsService.getConsentRecord();
@@ -207,25 +213,23 @@ void main() {
 
     testWidgets('saves default notification radius when completing onboarding',
         (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingScreen(
-            prefsService: prefsService,
-          ),
-        ),
-      );
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      // Navigate through all pages with scroll support
-      await scrollAndTap(tester, 'Continue');
-      await scrollAndTap(tester, 'I Understand');
-      await scrollAndTap(tester, 'Continue');
+      await tester.pumpWidget(createTestApp(prefsService: prefsService));
+      await tester.pumpAndSettle();
 
-      // Accept both checkboxes using helper that targets the Checkbox widget
-      await tapCheckboxListTile(tester, const Key('disclaimer_checkbox'));
-      await tapCheckboxListTile(tester, const Key('terms_checkbox'));
+      // Navigate through all pages
+      await tapFilledButton(tester, 'Continue');
+      await tapFilledButton(tester, 'I Understand');
+      await tapFilledButton(tester, 'Continue');
 
-      // Complete onboarding (uses default radius of 10)
-      await scrollAndTap(tester, 'Complete Setup');
+      // Accept both checkboxes
+      await tapCheckbox(tester, const Key('disclaimer_checkbox'));
+      await tapCheckbox(tester, const Key('terms_checkbox'));
+
+      // Complete
+      await tapFilledButton(tester, 'Complete Setup');
 
       // Verify default radius was saved
       final radius = await prefsService.getNotificationRadiusKm();
@@ -233,25 +237,21 @@ void main() {
     });
 
     testWidgets('uses PageView for page navigation', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingScreen(
-            prefsService: prefsService,
-          ),
-        ),
-      );
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(createTestApp(prefsService: prefsService));
+      await tester.pumpAndSettle();
 
       expect(find.byType(PageView), findsOneWidget);
     });
 
     testWidgets('disables swipe navigation', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: OnboardingScreen(
-            prefsService: prefsService,
-          ),
-        ),
-      );
+      await tester.binding.setSurfaceSize(const Size(600, 1600));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(createTestApp(prefsService: prefsService));
+      await tester.pumpAndSettle();
 
       // Try to swipe left
       await tester.drag(find.byType(PageView), const Offset(-300, 0));

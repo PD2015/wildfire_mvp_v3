@@ -361,6 +361,7 @@ void main() {
           expect(buttonWidget.onPressed, isNotNull);
 
           // Should be able to tap without throwing
+          await tester.ensureVisible(button);
           await tester.tap(button);
           await tester.pump();
 

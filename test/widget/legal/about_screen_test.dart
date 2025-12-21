@@ -113,8 +113,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(LegalDocumentScreen), findsOneWidget);
-      // Introduction appears in TOC and content
-      expect(find.textContaining('Introduction'), findsAtLeastNWidgets(1));
+      // Use findsWidgets because SelectableText creates multiple text instances
+      expect(find.textContaining('Introduction'), findsWidgets);
     });
 
     testWidgets('tapping Privacy navigates to privacy screen', (tester) async {
@@ -125,8 +125,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(LegalDocumentScreen), findsOneWidget);
-      // UK GDPR appears multiple times in the content
-      expect(find.textContaining('UK GDPR'), findsAtLeastNWidgets(1));
+      // Use findsWidgets because SelectableText creates multiple text instances
+      expect(find.textContaining('UK GDPR'), findsWidgets);
     });
 
     testWidgets('tapping Disclaimer navigates to disclaimer screen',
@@ -138,9 +138,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(LegalDocumentScreen), findsOneWidget);
-      // Emergency Guidance appears in TOC and content
-      expect(
-          find.textContaining('Emergency Guidance'), findsAtLeastNWidgets(1));
+      // Use findsWidgets because SelectableText creates multiple text instances
+      // Look for content that appears in disclaimer
+      expect(find.textContaining('Emergency Guidance'), findsWidgets);
     });
 
     testWidgets('tapping Data Sources navigates to data sources screen',
@@ -152,8 +152,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(LegalDocumentScreen), findsOneWidget);
-      // EFFIS may appear multiple times in the content
-      expect(find.textContaining('EFFIS'), findsAtLeastNWidgets(1));
+      // Use findsWidgets because SelectableText creates multiple text instances
+      expect(find.textContaining('EFFIS'), findsWidgets);
     });
 
     testWidgets('displays content version', (tester) async {

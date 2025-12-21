@@ -5,7 +5,6 @@ import 'content/legal_content.dart';
 import 'controllers/home_controller.dart';
 import 'models/consent_record.dart';
 import 'screens/home_screen.dart';
-import 'screens/about_screen.dart';
 import 'screens/legal_document_screen.dart';
 import 'features/map/screens/map_screen.dart';
 import 'features/map/controllers/map_controller.dart';
@@ -18,6 +17,14 @@ import 'features/location_picker/services/what3words_service.dart';
 import 'features/location_picker/services/what3words_service_impl.dart';
 import 'features/location_picker/services/geocoding_service.dart';
 import 'features/location_picker/services/geocoding_service_impl.dart';
+import 'features/settings/screens/settings_screen.dart';
+import 'features/settings/screens/notifications_settings_screen.dart';
+import 'features/settings/screens/about_settings_screen.dart';
+import 'features/settings/screens/advanced_settings_screen.dart';
+import 'features/help/screens/help_info_screen.dart';
+import 'features/help/screens/help_document_screen.dart';
+import 'features/help/screens/about_help_screen.dart';
+import 'features/help/content/help_content.dart';
 import 'services/location_resolver.dart';
 import 'services/location_state_manager.dart';
 import 'services/fire_location_service.dart';
@@ -98,7 +105,8 @@ class WildFireApp extends StatelessWidget {
     // Redirect logic for onboarding
     redirect: (context, state) {
       final isOnboarding = state.uri.path == '/onboarding';
-      final isAboutPath = state.uri.path.startsWith('/about');
+      final isLegalPath = state.uri.path.startsWith('/about') ||
+          state.uri.path.startsWith('/settings/about');
       final needsOnboarding = _isOnboardingRequired();
 
       // If onboarding is complete and user is on /onboarding, redirect to home
@@ -106,9 +114,9 @@ class WildFireApp extends StatelessWidget {
         return '/';
       }
 
-      // If onboarding is needed and user is NOT on /onboarding or /about/*,
+      // If onboarding is needed and user is NOT on /onboarding or legal paths,
       // redirect to onboarding
-      if (needsOnboarding && !isOnboarding && !isAboutPath) {
+      if (needsOnboarding && !isOnboarding && !isLegalPath) {
         return '/onboarding';
       }
 
@@ -148,39 +156,190 @@ class WildFireApp extends StatelessWidget {
         },
       ),
 
-      // About and legal routes (no bottom nav)
+      // About and legal routes (legacy - redirect to new locations)
+      // Keep for backwards compatibility with any deep links
       GoRoute(
         path: '/about',
         name: 'about',
-        builder: (context, state) => const AboutScreen(),
+        redirect: (context, state) => '/help/about',
+      ),
+      GoRoute(
+        path: '/about/terms',
+        name: 'terms',
+        redirect: (context, state) => '/settings/about/terms',
+      ),
+      GoRoute(
+        path: '/about/privacy',
+        name: 'privacy',
+        redirect: (context, state) => '/settings/about/privacy',
+      ),
+      GoRoute(
+        path: '/about/disclaimer',
+        name: 'disclaimer',
+        redirect: (context, state) => '/settings/about/disclaimer',
+      ),
+      GoRoute(
+        path: '/about/data-sources',
+        name: 'data-sources',
+        redirect: (context, state) => '/settings/about/data-sources',
+      ),
+
+      // Settings hub (no bottom nav)
+      GoRoute(
+        path: '/settings',
+        name: 'settings',
+        builder: (context, state) => const SettingsScreen(),
         routes: [
+          // Notifications settings
           GoRoute(
-            path: 'terms',
-            name: 'terms',
-            builder: (context, state) => LegalDocumentScreen(
-              document: LegalContent.termsOfService,
+            path: 'notifications',
+            name: 'settings-notifications',
+            builder: (context, state) => const NotificationsSettingsScreen(),
+          ),
+          // About section (legal documents hub)
+          GoRoute(
+            path: 'about',
+            name: 'settings-about',
+            builder: (context, state) => const AboutSettingsScreen(),
+            routes: [
+              GoRoute(
+                path: 'terms',
+                name: 'settings-about-terms',
+                builder: (context, state) => LegalDocumentScreen(
+                  document: LegalContent.termsOfService,
+                ),
+              ),
+              GoRoute(
+                path: 'privacy',
+                name: 'settings-about-privacy',
+                builder: (context, state) => LegalDocumentScreen(
+                  document: LegalContent.privacyPolicy,
+                ),
+              ),
+              GoRoute(
+                path: 'disclaimer',
+                name: 'settings-about-disclaimer',
+                builder: (context, state) => LegalDocumentScreen(
+                  document: LegalContent.emergencyDisclaimer,
+                ),
+              ),
+              GoRoute(
+                path: 'data-sources',
+                name: 'settings-about-data-sources',
+                builder: (context, state) => LegalDocumentScreen(
+                  document: LegalContent.dataSources,
+                ),
+              ),
+            ],
+          ),
+          // Advanced settings (developer options)
+          GoRoute(
+            path: 'advanced',
+            name: 'settings-advanced',
+            builder: (context, state) => const AdvancedSettingsScreen(),
+          ),
+        ],
+      ),
+
+      // Help & Info hub (no bottom nav)
+      GoRoute(
+        path: '/help',
+        name: 'help',
+        builder: (context, state) => const HelpInfoScreen(),
+        routes: [
+          // Getting Started section
+          GoRoute(
+            path: 'getting-started/how-to-use',
+            name: 'help-how-to-use',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.howToUse,
             ),
           ),
           GoRoute(
-            path: 'privacy',
-            name: 'privacy',
-            builder: (context, state) => LegalDocumentScreen(
-              document: LegalContent.privacyPolicy,
+            path: 'getting-started/risk-levels',
+            name: 'help-risk-levels',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.riskLevels,
             ),
           ),
           GoRoute(
-            path: 'disclaimer',
-            name: 'disclaimer',
-            builder: (context, state) => LegalDocumentScreen(
-              document: LegalContent.emergencyDisclaimer,
+            path: 'getting-started/when-to-use',
+            name: 'help-when-to-use',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.whenToUse,
+            ),
+          ),
+          // Wildfire Education section
+          GoRoute(
+            path: 'wildfire-education/understanding-risk',
+            name: 'help-understanding-risk',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.understandingRisk,
             ),
           ),
           GoRoute(
-            path: 'data-sources',
-            name: 'data-sources',
-            builder: (context, state) => LegalDocumentScreen(
-              document: LegalContent.dataSources,
+            path: 'wildfire-education/weather-fuel-fire',
+            name: 'help-weather-fuel-fire',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.weatherFuelFire,
             ),
+          ),
+          GoRoute(
+            path: 'wildfire-education/seasonal-guidance',
+            name: 'help-seasonal-guidance',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.seasonalGuidance,
+            ),
+          ),
+          // Using the Map section
+          GoRoute(
+            path: 'using-the-map/hotspots',
+            name: 'help-hotspots',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.hotspots,
+            ),
+          ),
+          GoRoute(
+            path: 'using-the-map/data-sources',
+            name: 'help-data-sources',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.dataSourcesHelp,
+            ),
+          ),
+          GoRoute(
+            path: 'using-the-map/update-frequency',
+            name: 'help-update-frequency',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.updateFrequency,
+            ),
+          ),
+          // Safety & Responsibility section
+          GoRoute(
+            path: 'safety/see-fire',
+            name: 'help-see-fire',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.seeFireAction,
+            ),
+          ),
+          GoRoute(
+            path: 'safety/limitations',
+            name: 'help-limitations',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.limitations,
+            ),
+          ),
+          GoRoute(
+            path: 'safety/emergency-guidance',
+            name: 'help-emergency-guidance',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.emergencyGuidance,
+            ),
+          ),
+          // About section
+          GoRoute(
+            path: 'about',
+            name: 'help-about',
+            builder: (context, state) => const AboutHelpScreen(),
           ),
         ],
       ),
