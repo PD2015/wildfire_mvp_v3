@@ -18,6 +18,8 @@ import 'features/location_picker/services/what3words_service.dart';
 import 'features/location_picker/services/what3words_service_impl.dart';
 import 'features/location_picker/services/geocoding_service.dart';
 import 'features/location_picker/services/geocoding_service_impl.dart';
+import 'features/settings/screens/settings_screen.dart';
+import 'features/help/screens/help_info_screen.dart';
 import 'services/location_resolver.dart';
 import 'services/location_state_manager.dart';
 import 'services/fire_location_service.dart';
@@ -183,6 +185,51 @@ class WildFireApp extends StatelessWidget {
             ),
           ),
         ],
+      ),
+
+      // Settings hub (no bottom nav)
+      GoRoute(
+        path: '/settings',
+        name: 'settings',
+        builder: (context, state) => const SettingsScreen(),
+        routes: [
+          // Legal documents under settings/about
+          GoRoute(
+            path: 'about/terms',
+            name: 'settings-terms',
+            builder: (context, state) => LegalDocumentScreen(
+              document: LegalContent.termsOfService,
+            ),
+          ),
+          GoRoute(
+            path: 'about/privacy',
+            name: 'settings-privacy',
+            builder: (context, state) => LegalDocumentScreen(
+              document: LegalContent.privacyPolicy,
+            ),
+          ),
+          GoRoute(
+            path: 'about/disclaimer',
+            name: 'settings-disclaimer',
+            builder: (context, state) => LegalDocumentScreen(
+              document: LegalContent.emergencyDisclaimer,
+            ),
+          ),
+          GoRoute(
+            path: 'about/data-sources',
+            name: 'settings-data-sources',
+            builder: (context, state) => LegalDocumentScreen(
+              document: LegalContent.dataSources,
+            ),
+          ),
+        ],
+      ),
+
+      // Help & Info hub (no bottom nav)
+      GoRoute(
+        path: '/help',
+        name: 'help',
+        builder: (context, state) => const HelpInfoScreen(),
       ),
 
       // Main app shell with bottom navigation

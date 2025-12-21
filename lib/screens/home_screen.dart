@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:wildfire_mvp_v3/widgets/app_bar_actions.dart';
 import 'package:wildfire_mvp_v3/widgets/location_card.dart';
 
 import '../config/feature_flags.dart';
@@ -58,7 +59,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Wildfire Risk'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Wildfire Risk'),
+        centerTitle: true,
+        actions: const [AppBarActions()],
+      ),
       body: ListenableBuilder(
         listenable: _controller,
         builder: (context, child) {
