@@ -269,5 +269,75 @@ void main() {
         expect(h1, isNot(equals(h2)));
       });
     });
+
+    group('copyWith', () {
+      test('returns identical copy when no parameters specified', () {
+        final original = Hotspot(
+          id: 'test_001',
+          location: testLocation,
+          detectedAt: testDetectedAt,
+          frp: 25.5,
+          confidence: 80.0,
+        );
+
+        final copy = original.copyWith();
+
+        expect(copy.id, equals(original.id));
+        expect(copy.location, equals(original.location));
+        expect(copy.detectedAt, equals(original.detectedAt));
+        expect(copy.frp, equals(original.frp));
+        expect(copy.confidence, equals(original.confidence));
+      });
+
+      test('overrides only detectedAt when specified', () {
+        final original = Hotspot(
+          id: 'test_001',
+          location: testLocation,
+          detectedAt: testDetectedAt,
+          frp: 25.5,
+          confidence: 80.0,
+        );
+
+        final newDate = DateTime.utc(2025, 8, 20, 15, 30);
+        final copy = original.copyWith(detectedAt: newDate);
+
+        expect(copy.id, equals(original.id));
+        expect(copy.location, equals(original.location));
+        expect(copy.detectedAt, equals(newDate)); // Changed
+        expect(copy.frp, equals(original.frp));
+        expect(copy.confidence, equals(original.confidence));
+      });
+
+      test('overrides multiple fields when specified', () {
+        final original = Hotspot(
+          id: 'test_001',
+          location: testLocation,
+          detectedAt: testDetectedAt,
+          frp: 25.5,
+          confidence: 80.0,
+        );
+
+        final copy = original.copyWith(
+          id: 'test_002',
+          frp: 50.0,
+        );
+
+        expect(copy.id, equals('test_002')); // Changed
+        expect(copy.location, equals(original.location));
+        expect(copy.detectedAt, equals(original.detectedAt));
+        expect(copy.frp, equals(50.0)); // Changed
+        expect(copy.confidence, equals(original.confidence));
+      });
+
+      test('can copy with new location', () {
+        final original = Hotspot.test(location: testLocation);
+        const newLocation = LatLng(56.0, -4.0);
+
+        final copy = original.copyWith(location: newLocation);
+
+        expect(copy.location, equals(newLocation));
+        expect(copy.id, equals(original.id));
+      });
+    });
   });
 }

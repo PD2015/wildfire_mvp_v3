@@ -197,6 +197,26 @@ class Hotspot extends Equatable {
     );
   }
 
+  /// Create a copy with modified fields
+  ///
+  /// Used by MockHotspotService to transform dates at load time
+  /// so mock data remains fresh (not filtered out by time filters).
+  Hotspot copyWith({
+    String? id,
+    LatLng? location,
+    DateTime? detectedAt,
+    double? frp,
+    double? confidence,
+  }) {
+    return Hotspot(
+      id: id ?? this.id,
+      location: location ?? this.location,
+      detectedAt: detectedAt ?? this.detectedAt,
+      frp: frp ?? this.frp,
+      confidence: confidence ?? this.confidence,
+    );
+  }
+
   @override
   List<Object?> get props => [id, location, detectedAt, frp, confidence];
 }

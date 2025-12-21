@@ -33,6 +33,10 @@ class MockHotspotService implements HotspotService {
   String get serviceName => 'Mock';
 
   /// Load and parse mock hotspot data from assets
+  ///
+  /// Transforms hardcoded dates to be relative to "now" so mock data
+  /// never expires. The newest hotspot becomes ~6 hours ago, and all
+  /// other dates maintain their relative offsets.
   Future<List<Hotspot>> _loadMockData() async {
     if (_cachedHotspots != null) {
       return _cachedHotspots!;
@@ -45,15 +49,46 @@ class MockHotspotService implements HotspotService {
       final jsonData = json.decode(jsonString) as Map<String, dynamic>;
       final features = jsonData['features'] as List<dynamic>;
 
-      _cachedHotspots = features.map((feature) {
+      // Parse raw hotspots first
+      final rawHotspots = features.map((feature) {
         return Hotspot.fromJson(feature as Map<String, dynamic>);
       }).toList();
+
+      // Transform dates: make newest hotspot ~6 hours ago
+      _cachedHotspots = _transformDatesToRelative(rawHotspots);
 
       return _cachedHotspots!;
     } catch (e) {
       // Mock service should never fail - return empty list
       return [];
     }
+  }
+
+  /// Transform mock hotspot dates to be relative to "now"
+  ///
+  /// Finds the newest date in the dataset and calculates an offset
+  /// to make it ~6 hours ago. All other dates shift by the same offset,
+  /// preserving relative timing between hotspots.
+  List<Hotspot> _transformDatesToRelative(List<Hotspot> rawHotspots) {
+    if (rawHotspots.isEmpty) return rawHotspots;
+
+    final now = _clock();
+
+    // Find the newest detection time
+    final newestDate = rawHotspots
+        .map((h) => h.detectedAt)
+        .reduce((a, b) => a.isAfter(b) ? a : b);
+
+    // Calculate offset: newest should be ~6 hours ago
+    final targetNewestTime = now.subtract(const Duration(hours: 6));
+    final offset = targetNewestTime.difference(newestDate);
+
+    // Apply offset to all hotspots
+    return rawHotspots.map((hotspot) {
+      return hotspot.copyWith(
+        detectedAt: hotspot.detectedAt.add(offset),
+      );
+    }).toList();
   }
 
   @override

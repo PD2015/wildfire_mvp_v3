@@ -165,5 +165,190 @@ void main() {
         expect(result2.isRight(), isTrue);
       });
     });
+
+    group('date transformation', () {
+      test('transforms mock data dates so newest is ~6 hours ago', () async {
+        // Arrange: Fixed "now" for reproducible tests
+        final fixedNow = DateTime.utc(2025, 6, 15, 12, 0);
+        final clockedService = MockGwisHotspotService(clock: () => fixedNow);
+
+        const bounds = LatLngBounds(
+          southwest: LatLng(54.0, -8.0),
+          northeast: LatLng(61.0, 0.0),
+        );
+
+        // Act
+        final result = await clockedService.getHotspots(
+          bounds: bounds,
+          timeFilter: HotspotTimeFilter.thisWeek,
+        );
+
+        // Assert
+        expect(result.isRight(), isTrue);
+        final hotspots = result.getOrElse(() => []);
+
+        if (hotspots.isNotEmpty) {
+          // Newest should be ~6 hours before fixedNow
+          final newestDate = hotspots
+              .map((h) => h.detectedAt)
+              .reduce((a, b) => a.isAfter(b) ? a : b);
+
+          final expectedNewest = fixedNow.subtract(const Duration(hours: 6));
+
+          // Allow small tolerance for test timing
+          final diff = newestDate.difference(expectedNewest).abs();
+          expect(
+            diff.inMinutes,
+            lessThan(5),
+            reason: 'Newest hotspot should be ~6 hours ago: '
+                'expected $expectedNewest, got $newestDate',
+          );
+        }
+      });
+
+      test('mock data never expires regardless of real date', () async {
+        // Arrange: Far future date
+        final futureNow = DateTime.utc(2030, 1, 1, 12, 0);
+        final clockedService = MockGwisHotspotService(clock: () => futureNow);
+
+        const bounds = LatLngBounds(
+          southwest: LatLng(54.0, -8.0),
+          northeast: LatLng(61.0, 0.0),
+        );
+
+        // Act
+        final result = await clockedService.getHotspots(
+          bounds: bounds,
+          timeFilter: HotspotTimeFilter.today, // Strictest filter
+        );
+
+        // Assert
+        final hotspots = result.getOrElse(() => []);
+
+        // Mock data should still return hotspots even in 2030
+        // because dates are transformed relative to "now"
+        expect(
+          hotspots.length,
+          greaterThan(0),
+          reason: 'Mock data should never expire',
+        );
+      });
+
+      test('preserves relative timing between hotspots', () async {
+        // Arrange: Two services at different "now" times
+        final now1 = DateTime.utc(2025, 6, 15, 12, 0);
+        final now2 = DateTime.utc(2025, 12, 25, 12, 0); // 6 months later
+
+        final service1 = MockGwisHotspotService(clock: () => now1);
+        final service2 = MockGwisHotspotService(clock: () => now2);
+
+        const bounds = LatLngBounds(
+          southwest: LatLng(54.0, -8.0),
+          northeast: LatLng(61.0, 0.0),
+        );
+
+        // Act
+        final result1 = await service1.getHotspots(
+          bounds: bounds,
+          timeFilter: HotspotTimeFilter.thisWeek,
+        );
+        final result2 = await service2.getHotspots(
+          bounds: bounds,
+          timeFilter: HotspotTimeFilter.thisWeek,
+        );
+
+        // Assert
+        final hotspots1 = result1.getOrElse(() => []);
+        final hotspots2 = result2.getOrElse(() => []);
+
+        // Both should return same number of hotspots
+        expect(hotspots1.length, equals(hotspots2.length));
+
+        // The time differences between hotspots should be preserved
+        if (hotspots1.length >= 2) {
+          // Find common hotspots by ID
+          final h1ById = {for (final h in hotspots1) h.id: h};
+          final h2ById = {for (final h in hotspots2) h.id: h};
+
+          // Pick first two IDs that exist in both
+          final commonIds = h1ById.keys
+              .where((id) => h2ById.containsKey(id))
+              .take(2)
+              .toList();
+
+          if (commonIds.length >= 2) {
+            final diff1 = h1ById[commonIds[0]]!
+                .detectedAt
+                .difference(h1ById[commonIds[1]]!.detectedAt);
+            final diff2 = h2ById[commonIds[0]]!
+                .detectedAt
+                .difference(h2ById[commonIds[1]]!.detectedAt);
+
+            // The relative time difference should be identical
+            expect(diff1, equals(diff2));
+          }
+        }
+      });
+
+      test('today filter returns hotspots within 24 hours of mock now',
+          () async {
+        // Arrange: Fixed "now" for reproducible tests
+        final fixedNow = DateTime.utc(2025, 6, 15, 12, 0);
+        final clockedService = MockGwisHotspotService(clock: () => fixedNow);
+
+        const bounds = LatLngBounds(
+          southwest: LatLng(54.0, -8.0),
+          northeast: LatLng(61.0, 0.0),
+        );
+
+        // Act
+        final result = await clockedService.getHotspots(
+          bounds: bounds,
+          timeFilter: HotspotTimeFilter.today,
+        );
+
+        // Assert
+        final hotspots = result.getOrElse(() => []);
+        final cutoff = fixedNow.subtract(const Duration(hours: 24));
+
+        for (final hotspot in hotspots) {
+          expect(
+            hotspot.detectedAt.isAfter(cutoff),
+            isTrue,
+            reason: 'Hotspot at ${hotspot.detectedAt} should be after $cutoff',
+          );
+        }
+      });
+
+      test('thisWeek filter returns hotspots within 7 days of mock now',
+          () async {
+        // Arrange: Fixed "now" for reproducible tests
+        final fixedNow = DateTime.utc(2025, 6, 15, 12, 0);
+        final clockedService = MockGwisHotspotService(clock: () => fixedNow);
+
+        const bounds = LatLngBounds(
+          southwest: LatLng(54.0, -8.0),
+          northeast: LatLng(61.0, 0.0),
+        );
+
+        // Act
+        final result = await clockedService.getHotspots(
+          bounds: bounds,
+          timeFilter: HotspotTimeFilter.thisWeek,
+        );
+
+        // Assert
+        final hotspots = result.getOrElse(() => []);
+        final cutoff = fixedNow.subtract(const Duration(days: 7));
+
+        for (final hotspot in hotspots) {
+          expect(
+            hotspot.detectedAt.isAfter(cutoff),
+            isTrue,
+            reason: 'Hotspot at ${hotspot.detectedAt} should be after $cutoff',
+          );
+        }
+      });
+    });
   });
 }
