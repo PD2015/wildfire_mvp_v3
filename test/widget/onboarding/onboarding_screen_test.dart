@@ -29,6 +29,39 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  // Helper to tap a CheckboxListTile by finding and tapping the Checkbox inside it
+  // This avoids hitting GestureDetector links within the tile
+  Future<void> tapCheckboxListTile(WidgetTester tester, Key tileKey) async {
+    final tileFinder = find.byKey(tileKey);
+    final scrollableFinder = find.byType(Scrollable);
+    if (scrollableFinder.evaluate().isNotEmpty) {
+      try {
+        await tester.scrollUntilVisible(
+          tileFinder,
+          50,
+          scrollable: scrollableFinder.first,
+        );
+      } catch (_) {
+        // Checkbox might already be visible
+      }
+    }
+    await tester.pumpAndSettle();
+
+    // Find the Checkbox widget inside the CheckboxListTile
+    final checkboxFinder = find.descendant(
+      of: tileFinder,
+      matching: find.byType(Checkbox),
+    );
+
+    if (checkboxFinder.evaluate().isNotEmpty) {
+      await tester.tap(checkboxFinder);
+    } else {
+      // Fallback: tap the tile itself
+      await tester.tap(tileFinder);
+    }
+    await tester.pumpAndSettle();
+  }
+
   group('OnboardingScreen', () {
     testWidgets('displays page indicator', (tester) async {
       await tester.pumpWidget(
@@ -63,8 +96,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('Continue'));
-      await tester.pumpAndSettle();
+      await scrollAndTap(tester, 'Continue');
 
       expect(find.text('Important Safety Information'), findsOneWidget);
     });
@@ -111,14 +143,14 @@ void main() {
         ),
       );
 
-      // Verify initial page indicator
-      expect(find.bySemanticsLabel('Page 1 of 4'), findsOneWidget);
+      // Verify initial page indicator (semantics: "Step X of Y: title")
+      expect(find.bySemanticsLabel(RegExp(r'Step 1 of 4')), findsOneWidget);
 
       // Navigate to next page with scroll support
       await scrollAndTap(tester, 'Continue');
 
       // Verify page indicator updated
-      expect(find.bySemanticsLabel('Page 2 of 4'), findsOneWidget);
+      expect(find.bySemanticsLabel(RegExp(r'Step 2 of 4')), findsOneWidget);
     });
 
     testWidgets('calls onComplete after completing onboarding', (tester) async {
@@ -138,18 +170,9 @@ void main() {
       await scrollAndTap(tester, 'I Understand');
       await scrollAndTap(tester, 'Continue');
 
-      // Scroll to and accept both checkboxes (disclaimer + terms)
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('disclaimer_checkbox')),
-        50,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('disclaimer_checkbox')));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('terms_checkbox')));
-      await tester.pumpAndSettle();
+      // Accept both checkboxes using helper that targets the Checkbox widget
+      await tapCheckboxListTile(tester, const Key('disclaimer_checkbox'));
+      await tapCheckboxListTile(tester, const Key('terms_checkbox'));
 
       await scrollAndTap(tester, 'Complete Setup');
 
@@ -170,18 +193,9 @@ void main() {
       await scrollAndTap(tester, 'I Understand');
       await scrollAndTap(tester, 'Continue');
 
-      // Scroll to and accept both checkboxes (disclaimer + terms)
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('disclaimer_checkbox')),
-        50,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('disclaimer_checkbox')));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const Key('terms_checkbox')));
-      await tester.pumpAndSettle();
+      // Accept both checkboxes using helper that targets the Checkbox widget
+      await tapCheckboxListTile(tester, const Key('disclaimer_checkbox'));
+      await tapCheckboxListTile(tester, const Key('terms_checkbox'));
 
       await scrollAndTap(tester, 'Complete Setup');
 
@@ -206,18 +220,9 @@ void main() {
       await scrollAndTap(tester, 'I Understand');
       await scrollAndTap(tester, 'Continue');
 
-      // Scroll to and accept both checkboxes (disclaimer + terms)
-      await tester.scrollUntilVisible(
-        find.byKey(const Key('disclaimer_checkbox')),
-        50,
-        scrollable: find.byType(Scrollable).first,
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('disclaimer_checkbox')));
-      await tester.pump();
-
-      await tester.tap(find.byKey(const Key('terms_checkbox')));
-      await tester.pump();
+      // Accept both checkboxes using helper that targets the Checkbox widget
+      await tapCheckboxListTile(tester, const Key('disclaimer_checkbox'));
+      await tapCheckboxListTile(tester, const Key('terms_checkbox'));
 
       // Complete onboarding (uses default radius of 10)
       await scrollAndTap(tester, 'Complete Setup');

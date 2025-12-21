@@ -75,7 +75,7 @@ void main() {
       );
 
       expect(
-        find.textContaining('informational data only'),
+        find.textContaining('not a real-time emergency alert system'),
         findsOneWidget,
       );
     });

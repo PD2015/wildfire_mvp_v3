@@ -4,6 +4,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wildfire_mvp_v3/features/onboarding/pages/welcome_page.dart';
 
 void main() {
+  // Helper to scroll within page and tap by text
+  Future<void> scrollAndTap(WidgetTester tester, String text) async {
+    final scrollableFinder = find.byType(Scrollable);
+    if (scrollableFinder.evaluate().isNotEmpty) {
+      try {
+        await tester.scrollUntilVisible(
+          find.text(text),
+          50,
+          scrollable: scrollableFinder.first,
+        );
+      } catch (_) {
+        // Button might already be visible
+      }
+    }
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(text));
+    await tester.pumpAndSettle();
+  }
+
   group('WelcomePage', () {
     testWidgets('displays app title', (tester) async {
       await tester.pumpWidget(
@@ -75,7 +94,7 @@ void main() {
       expect(find.byIcon(Icons.local_fire_department), findsOneWidget);
     });
 
-    testWidgets('displays Get Started button', (tester) async {
+    testWidgets('displays Continue button', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -86,7 +105,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Get Started'), findsOneWidget);
+      expect(find.text('Continue'), findsOneWidget);
       expect(find.byType(FilledButton), findsOneWidget);
     });
 
@@ -103,8 +122,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('Get Started'));
-      await tester.pump();
+      await scrollAndTap(tester, 'Continue');
 
       expect(called, isTrue);
     });

@@ -41,8 +41,8 @@ void main() {
         ),
       );
 
-      // Check that key content sections appear
-      expect(find.textContaining('Introduction'), findsOneWidget);
+      // Check that key content sections appear (may appear in TOC and content)
+      expect(find.textContaining('Introduction'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('content is scrollable', (tester) async {
@@ -95,7 +95,8 @@ void main() {
       );
 
       expect(find.text('Privacy Policy'), findsOneWidget);
-      expect(find.textContaining('UK GDPR'), findsOneWidget);
+      // UK GDPR appears multiple times in the content (in different sections)
+      expect(find.textContaining('UK GDPR'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('disclaimer displays emergency guidance', (tester) async {
@@ -108,7 +109,8 @@ void main() {
       );
 
       expect(find.text('Emergency & Accuracy Disclaimer'), findsOneWidget);
-      expect(find.textContaining('999'), findsOneWidget);
+      // 999 may appear multiple times in emergency guidance content
+      expect(find.textContaining('999'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('data sources displays attribution', (tester) async {
@@ -121,7 +123,8 @@ void main() {
       );
 
       expect(find.text('Data Sources & Attribution'), findsOneWidget);
-      expect(find.textContaining('EFFIS'), findsOneWidget);
+      // EFFIS may appear multiple times in the content
+      expect(find.textContaining('EFFIS'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('content is selectable', (tester) async {
@@ -133,7 +136,8 @@ void main() {
         ),
       );
 
-      expect(find.byType(SelectableText), findsOneWidget);
+      // Content is rendered in multiple sections, each with SelectableText
+      expect(find.byType(SelectableText), findsAtLeastNWidgets(1));
     });
   });
 }

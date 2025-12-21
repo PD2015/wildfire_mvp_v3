@@ -113,7 +113,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(LegalDocumentScreen), findsOneWidget);
-      expect(find.textContaining('Introduction'), findsOneWidget);
+      // Introduction appears in TOC and content
+      expect(find.textContaining('Introduction'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('tapping Privacy navigates to privacy screen', (tester) async {
@@ -124,7 +125,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(LegalDocumentScreen), findsOneWidget);
-      expect(find.textContaining('UK GDPR'), findsOneWidget);
+      // UK GDPR appears multiple times in the content
+      expect(find.textContaining('UK GDPR'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('tapping Disclaimer navigates to disclaimer screen',
@@ -136,8 +138,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(LegalDocumentScreen), findsOneWidget);
-      // Look for content that appears in disclaimer
-      expect(find.textContaining('Emergency Guidance'), findsOneWidget);
+      // Emergency Guidance appears in TOC and content
+      expect(
+          find.textContaining('Emergency Guidance'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('tapping Data Sources navigates to data sources screen',
@@ -149,7 +152,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(LegalDocumentScreen), findsOneWidget);
-      expect(find.textContaining('EFFIS'), findsOneWidget);
+      // EFFIS may appear multiple times in the content
+      expect(find.textContaining('EFFIS'), findsAtLeastNWidgets(1));
     });
 
     testWidgets('displays content version', (tester) async {
