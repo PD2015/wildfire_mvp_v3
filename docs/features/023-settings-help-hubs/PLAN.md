@@ -114,9 +114,9 @@ AppBar Icons → Settings (/settings) | Help & Info (/help)
 - [x] **T3.6** Create `AboutHelpScreen` (app info + version + data sources link)
 - [x] **T3.7** Add all Help routes to `app.dart`
 
-### Phase 4: Cleanup & Polish
-- [ ] **T4.1** Update onboarding legal links to new `/settings/about/*` paths
-- [ ] **T4.2** Redirect or remove old `/about` route
+### Phase 4: Cleanup & Polish ✅
+- [x] **T4.1** Update onboarding legal links to new `/settings/about/*` paths
+- [x] **T4.2** Redirect or remove old `/about` route
 - [ ] **T4.3** Verify back navigation returns to correct primary screen
 - [ ] **T4.4** Accessibility audit (touch targets, semantics, screen reader)
 - [ ] **T4.5** Test all deep links work correctly
@@ -361,6 +361,7 @@ No new dependencies required.
 | 21 Dec 2025 | Phase 1 complete | ✅ | T1.1-T1.7 — Routes, hubs, AppBarActions |
 | 21 Dec 2025 | Phase 2 complete | ✅ | T2.1-T2.6 — Settings screens and services |
 | 21 Dec 2025 | Phase 3 complete | ✅ | T3.1-T3.7 — Help content and screens |
+| 21 Dec 2025 | Phase 4 partial | ✅ | T4.1-T4.2 — Route redirects, onboarding updates |
 | | | | |
 
 ---
