@@ -179,8 +179,13 @@ void main() {
     });
 
     test('returns ConsentRecord when valid data exists', () async {
-      final timestamp =
-          DateTime.utc(2025, 12, 10, 14, 30).millisecondsSinceEpoch;
+      final timestamp = DateTime.utc(
+        2025,
+        12,
+        10,
+        14,
+        30,
+      ).millisecondsSinceEpoch;
       SharedPreferences.setMockInitialValues({
         OnboardingConfig.keyTermsVersion: 1,
         OnboardingConfig.keyTermsTimestamp: timestamp,
@@ -265,14 +270,8 @@ void main() {
         prefs.getInt(OnboardingConfig.keyTermsVersion),
         equals(OnboardingConfig.currentTermsVersion),
       );
-      expect(
-        prefs.getInt(OnboardingConfig.keyTermsTimestamp),
-        isNotNull,
-      );
-      expect(
-        prefs.getInt(OnboardingConfig.keyNotificationRadius),
-        equals(25),
-      );
+      expect(prefs.getInt(OnboardingConfig.keyTermsTimestamp), isNotNull);
+      expect(prefs.getInt(OnboardingConfig.keyNotificationRadius), equals(25));
     });
 
     test('timestamp is recent', () async {
@@ -356,16 +355,15 @@ void main() {
       await service.updateNotificationRadius(radiusKm: 50);
 
       // Radius updated
-      expect(
-        prefs.getInt(OnboardingConfig.keyNotificationRadius),
-        equals(50),
-      );
+      expect(prefs.getInt(OnboardingConfig.keyNotificationRadius), equals(50));
 
       // Other values unchanged
       expect(prefs.getInt(OnboardingConfig.keyOnboardingVersion), equals(1));
       expect(prefs.getInt(OnboardingConfig.keyTermsVersion), equals(1));
       expect(
-          prefs.getInt(OnboardingConfig.keyTermsTimestamp), equals(timestamp));
+        prefs.getInt(OnboardingConfig.keyTermsTimestamp),
+        equals(timestamp),
+      );
     });
 
     test('throws ArgumentError for invalid radius', () async {
@@ -388,10 +386,7 @@ void main() {
 
       await service.updateNotificationRadius(radiusKm: 0);
 
-      expect(
-        prefs.getInt(OnboardingConfig.keyNotificationRadius),
-        equals(0),
-      );
+      expect(prefs.getInt(OnboardingConfig.keyNotificationRadius), equals(0));
     });
   });
 
@@ -416,7 +411,9 @@ void main() {
       final consent = await service.getConsentRecord();
       expect(consent, isNotNull);
       expect(
-          consent!.termsVersion, equals(OnboardingConfig.currentTermsVersion));
+        consent!.termsVersion,
+        equals(OnboardingConfig.currentTermsVersion),
+      );
       expect(consent.isCurrentVersion, isTrue);
     });
 

@@ -31,8 +31,9 @@ void main() {
       });
 
       test('transitions to Complete when onboarding not required', () async {
-        when(mockPrefsService.isOnboardingRequired())
-            .thenAnswer((_) async => false);
+        when(
+          mockPrefsService.isOnboardingRequired(),
+        ).thenAnswer((_) async => false);
 
         controller = OnboardingController(prefsService: mockPrefsService);
         await controller.initialize();
@@ -41,12 +42,15 @@ void main() {
       });
 
       test('transitions to Active when onboarding required', () async {
-        when(mockPrefsService.isOnboardingRequired())
-            .thenAnswer((_) async => true);
-        when(mockPrefsService.isMigrationRequired())
-            .thenAnswer((_) async => false);
-        when(mockPrefsService.getNotificationRadiusKm())
-            .thenAnswer((_) async => 10);
+        when(
+          mockPrefsService.isOnboardingRequired(),
+        ).thenAnswer((_) async => true);
+        when(
+          mockPrefsService.isMigrationRequired(),
+        ).thenAnswer((_) async => false);
+        when(
+          mockPrefsService.getNotificationRadiusKm(),
+        ).thenAnswer((_) async => 10);
 
         controller = OnboardingController(prefsService: mockPrefsService);
         await controller.initialize();
@@ -58,12 +62,15 @@ void main() {
       });
 
       test('transitions to Migration when migration required', () async {
-        when(mockPrefsService.isOnboardingRequired())
-            .thenAnswer((_) async => true);
-        when(mockPrefsService.isMigrationRequired())
-            .thenAnswer((_) async => true);
-        when(mockPrefsService.getNotificationRadiusKm())
-            .thenAnswer((_) async => 25);
+        when(
+          mockPrefsService.isOnboardingRequired(),
+        ).thenAnswer((_) async => true);
+        when(
+          mockPrefsService.isMigrationRequired(),
+        ).thenAnswer((_) async => true);
+        when(
+          mockPrefsService.getNotificationRadiusKm(),
+        ).thenAnswer((_) async => 25);
         when(mockPrefsService.getPreviousVersion()).thenAnswer((_) async => 1);
 
         controller = OnboardingController(prefsService: mockPrefsService);
@@ -72,13 +79,16 @@ void main() {
         expect(controller.state, isA<OnboardingMigration>());
         final migrationState = controller.state as OnboardingMigration;
         expect(migrationState.previousVersion, 1);
-        expect(migrationState.currentVersion,
-            OnboardingConfig.currentOnboardingVersion);
+        expect(
+          migrationState.currentVersion,
+          OnboardingConfig.currentOnboardingVersion,
+        );
       });
 
       test('falls back to Active on error', () async {
-        when(mockPrefsService.isOnboardingRequired())
-            .thenThrow(Exception('Storage error'));
+        when(
+          mockPrefsService.isOnboardingRequired(),
+        ).thenThrow(Exception('Storage error'));
 
         controller = OnboardingController(prefsService: mockPrefsService);
         await controller.initialize();
@@ -89,12 +99,15 @@ void main() {
 
     group('navigation', () {
       setUp(() async {
-        when(mockPrefsService.isOnboardingRequired())
-            .thenAnswer((_) async => true);
-        when(mockPrefsService.isMigrationRequired())
-            .thenAnswer((_) async => false);
-        when(mockPrefsService.getNotificationRadiusKm())
-            .thenAnswer((_) async => 10);
+        when(
+          mockPrefsService.isOnboardingRequired(),
+        ).thenAnswer((_) async => true);
+        when(
+          mockPrefsService.isMigrationRequired(),
+        ).thenAnswer((_) async => false);
+        when(
+          mockPrefsService.getNotificationRadiusKm(),
+        ).thenAnswer((_) async => 10);
 
         controller = OnboardingController(prefsService: mockPrefsService);
         await controller.initialize();
@@ -136,12 +149,15 @@ void main() {
 
     group('consent management', () {
       setUp(() async {
-        when(mockPrefsService.isOnboardingRequired())
-            .thenAnswer((_) async => true);
-        when(mockPrefsService.isMigrationRequired())
-            .thenAnswer((_) async => false);
-        when(mockPrefsService.getNotificationRadiusKm())
-            .thenAnswer((_) async => 10);
+        when(
+          mockPrefsService.isOnboardingRequired(),
+        ).thenAnswer((_) async => true);
+        when(
+          mockPrefsService.isMigrationRequired(),
+        ).thenAnswer((_) async => false);
+        when(
+          mockPrefsService.getNotificationRadiusKm(),
+        ).thenAnswer((_) async => 10);
 
         controller = OnboardingController(prefsService: mockPrefsService);
         await controller.initialize();
@@ -168,12 +184,15 @@ void main() {
 
     group('location permission', () {
       setUp(() async {
-        when(mockPrefsService.isOnboardingRequired())
-            .thenAnswer((_) async => true);
-        when(mockPrefsService.isMigrationRequired())
-            .thenAnswer((_) async => false);
-        when(mockPrefsService.getNotificationRadiusKm())
-            .thenAnswer((_) async => 10);
+        when(
+          mockPrefsService.isOnboardingRequired(),
+        ).thenAnswer((_) async => true);
+        when(
+          mockPrefsService.isMigrationRequired(),
+        ).thenAnswer((_) async => false);
+        when(
+          mockPrefsService.getNotificationRadiusKm(),
+        ).thenAnswer((_) async => 10);
 
         controller = OnboardingController(
           prefsService: mockPrefsService,
@@ -183,13 +202,14 @@ void main() {
       });
 
       test('requestLocation updates state on success', () async {
-        when(mockLocationResolver.getLatLon())
-            .thenAnswer((_) async => const Right(
-                  ResolvedLocation(
-                    coordinates: LatLng(55.9, -3.2),
-                    source: LocationSource.gps,
-                  ),
-                ));
+        when(mockLocationResolver.getLatLon()).thenAnswer(
+          (_) async => const Right(
+            ResolvedLocation(
+              coordinates: LatLng(55.9, -3.2),
+              source: LocationSource.gps,
+            ),
+          ),
+        );
 
         await controller.requestLocation();
 
@@ -199,8 +219,9 @@ void main() {
       });
 
       test('requestLocation updates state on failure', () async {
-        when(mockLocationResolver.getLatLon()).thenAnswer(
-            (_) async => const Left(LocationError.permissionDenied));
+        when(
+          mockLocationResolver.getLatLon(),
+        ).thenAnswer((_) async => const Left(LocationError.permissionDenied));
 
         await controller.requestLocation();
 
@@ -212,12 +233,15 @@ void main() {
 
     group('completion', () {
       setUp(() async {
-        when(mockPrefsService.isOnboardingRequired())
-            .thenAnswer((_) async => true);
-        when(mockPrefsService.isMigrationRequired())
-            .thenAnswer((_) async => false);
-        when(mockPrefsService.getNotificationRadiusKm())
-            .thenAnswer((_) async => 10);
+        when(
+          mockPrefsService.isOnboardingRequired(),
+        ).thenAnswer((_) async => true);
+        when(
+          mockPrefsService.isMigrationRequired(),
+        ).thenAnswer((_) async => false);
+        when(
+          mockPrefsService.getNotificationRadiusKm(),
+        ).thenAnswer((_) async => 10);
 
         controller = OnboardingController(prefsService: mockPrefsService);
         await controller.initialize();
@@ -237,9 +261,9 @@ void main() {
       });
 
       test('completeOnboarding succeeds when all requirements met', () async {
-        when(mockPrefsService.completeOnboarding(
-                radiusKm: anyNamed('radiusKm')))
-            .thenAnswer((_) async {});
+        when(
+          mockPrefsService.completeOnboarding(radiusKm: anyNamed('radiusKm')),
+        ).thenAnswer((_) async {});
 
         // Go to last page and accept terms
         controller.goToPage(3);
@@ -253,33 +277,38 @@ void main() {
         expect(result, false);
       });
 
-      test('completeOnboarding saves preferences and transitions to Complete',
-          () async {
-        when(mockPrefsService.completeOnboarding(
-                radiusKm: anyNamed('radiusKm')))
-            .thenAnswer((_) async {});
+      test(
+        'completeOnboarding saves preferences and transitions to Complete',
+        () async {
+          when(
+            mockPrefsService.completeOnboarding(radiusKm: anyNamed('radiusKm')),
+          ).thenAnswer((_) async {});
 
-        // Get to last page
-        controller.goToPage(3);
+          // Get to last page
+          controller.goToPage(3);
 
-        // Get current state and manually set both checkboxes
-        // Note: The controller's setTermsChecked only sets termsChecked
-        // We need to check if there's a setDisclaimerChecked method
+          // Get current state and manually set both checkboxes
+          // Note: The controller's setTermsChecked only sets termsChecked
+          // We need to check if there's a setDisclaimerChecked method
 
-        // For now, verify canFinish logic through state directly
-        final state = controller.state as OnboardingActive;
-        expect(state.canFinish, false); // Both checkboxes required
-      });
+          // For now, verify canFinish logic through state directly
+          final state = controller.state as OnboardingActive;
+          expect(state.canFinish, false); // Both checkboxes required
+        },
+      );
     });
 
     group('canProceed and canComplete', () {
       setUp(() async {
-        when(mockPrefsService.isOnboardingRequired())
-            .thenAnswer((_) async => true);
-        when(mockPrefsService.isMigrationRequired())
-            .thenAnswer((_) async => false);
-        when(mockPrefsService.getNotificationRadiusKm())
-            .thenAnswer((_) async => 10);
+        when(
+          mockPrefsService.isOnboardingRequired(),
+        ).thenAnswer((_) async => true);
+        when(
+          mockPrefsService.isMigrationRequired(),
+        ).thenAnswer((_) async => false);
+        when(
+          mockPrefsService.getNotificationRadiusKm(),
+        ).thenAnswer((_) async => 10);
 
         controller = OnboardingController(prefsService: mockPrefsService);
         await controller.initialize();
@@ -307,12 +336,15 @@ void main() {
 
     group('reset', () {
       test('reset transitions back to Loading state', () async {
-        when(mockPrefsService.isOnboardingRequired())
-            .thenAnswer((_) async => true);
-        when(mockPrefsService.isMigrationRequired())
-            .thenAnswer((_) async => false);
-        when(mockPrefsService.getNotificationRadiusKm())
-            .thenAnswer((_) async => 10);
+        when(
+          mockPrefsService.isOnboardingRequired(),
+        ).thenAnswer((_) async => true);
+        when(
+          mockPrefsService.isMigrationRequired(),
+        ).thenAnswer((_) async => false);
+        when(
+          mockPrefsService.getNotificationRadiusKm(),
+        ).thenAnswer((_) async => 10);
 
         controller = OnboardingController(prefsService: mockPrefsService);
         await controller.initialize();

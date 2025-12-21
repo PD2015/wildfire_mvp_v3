@@ -8,11 +8,7 @@ void main() {
     testWidgets('displays privacy title', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: PrivacyPage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: PrivacyPage(onContinue: () {})),
         ),
       );
 
@@ -22,11 +18,7 @@ void main() {
     testWidgets('displays shield icon', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: PrivacyPage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: PrivacyPage(onContinue: () {})),
         ),
       );
 
@@ -36,53 +28,32 @@ void main() {
     testWidgets('displays what we use section', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: PrivacyPage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: PrivacyPage(onContinue: () {})),
         ),
       );
 
       expect(find.text('What we use'), findsOneWidget);
-      expect(
-        find.text('Location (only while app is open)'),
-        findsOneWidget,
-      );
-      expect(
-        find.text('Your notification preferences'),
-        findsOneWidget,
-      );
+      expect(find.text('Location (only while app is open)'), findsOneWidget);
+      expect(find.text('Your notification preferences'), findsOneWidget);
     });
 
     testWidgets('displays what we don\'t do section', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: PrivacyPage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: PrivacyPage(onContinue: () {})),
         ),
       );
 
       expect(find.text('What we don\'t do'), findsOneWidget);
       expect(find.text('No tracking or analytics'), findsOneWidget);
-      expect(
-        find.text('No personal data stored on servers'),
-        findsOneWidget,
-      );
+      expect(find.text('No personal data stored on servers'), findsOneWidget);
       expect(find.text('No location history saved'), findsOneWidget);
     });
 
     testWidgets('displays Continue button', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: PrivacyPage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: PrivacyPage(onContinue: () {})),
         ),
       );
 
@@ -94,11 +65,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: PrivacyPage(
-              onContinue: () => called = true,
-            ),
-          ),
+          home: Scaffold(body: PrivacyPage(onContinue: () => called = true)),
         ),
       );
 
@@ -120,10 +87,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PrivacyPage(
-              onContinue: () {},
-              onViewPrivacy: () {},
-            ),
+            body: PrivacyPage(onContinue: () {}, onViewPrivacy: () {}),
           ),
         ),
       );
@@ -131,15 +95,12 @@ void main() {
       expect(find.text('View full privacy policy'), findsOneWidget);
     });
 
-    testWidgets('hides privacy link when callback not provided',
-        (tester) async {
+    testWidgets('hides privacy link when callback not provided', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: PrivacyPage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: PrivacyPage(onContinue: () {})),
         ),
       );
 

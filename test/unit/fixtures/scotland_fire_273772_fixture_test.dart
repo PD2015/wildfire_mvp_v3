@@ -74,8 +74,9 @@ void main() {
         LatLng(57.0, -3.1),
       ];
 
-      final incident =
-          ScotlandFire273772Fixture.incidentWithPolygon(customPolygon);
+      final incident = ScotlandFire273772Fixture.incidentWithPolygon(
+        customPolygon,
+      );
 
       expect(incident.boundaryPoints, equals(customPolygon));
       expect(incident.hasValidPolygon, isTrue);

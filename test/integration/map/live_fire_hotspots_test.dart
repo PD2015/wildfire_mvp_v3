@@ -29,18 +29,16 @@ import '../../helpers/mock_hotspot_orchestrator.dart';
 class _MockLocationResolver implements LocationResolver {
   final LatLng _mockLocation;
 
-  _MockLocationResolver({
-    LatLng? location,
-  }) : _mockLocation = location ?? const LatLng(55.9533, -3.1883);
+  _MockLocationResolver({LatLng? location})
+      : _mockLocation = location ?? const LatLng(55.9533, -3.1883);
 
   @override
   Future<Either<LocationError, ResolvedLocation>> getLatLon({
     bool allowDefault = true,
   }) async {
-    return Right(ResolvedLocation(
-      coordinates: _mockLocation,
-      source: LocationSource.gps,
-    ));
+    return Right(
+      ResolvedLocation(coordinates: _mockLocation, source: LocationSource.gps),
+    );
   }
 
   @override
@@ -63,10 +61,12 @@ class _MockFireRiskService implements FireRiskService {
     required double lon,
     Duration? deadline,
   }) async {
-    return Right(FireRisk.fromMock(
-      level: RiskLevel.low,
-      observedAt: DateTime.now().toUtc(),
-    ));
+    return Right(
+      FireRisk.fromMock(
+        level: RiskLevel.low,
+        observedAt: DateTime.now().toUtc(),
+      ),
+    );
   }
 }
 
@@ -76,9 +76,8 @@ class ControllableMockGwisService implements GwisHotspotService {
   Either<ApiError, List<Hotspot>>? _overrideResult;
   int callCount = 0;
 
-  ControllableMockGwisService({
-    List<Hotspot>? hotspots,
-  }) : _hotspots = hotspots ?? [];
+  ControllableMockGwisService({List<Hotspot>? hotspots})
+      : _hotspots = hotspots ?? [];
 
   void setHotspots(List<Hotspot> hotspots) {
     _overrideResult = Right(hotspots);
@@ -226,18 +225,27 @@ void main() {
 
         // Cross from below to above threshold
         controller.updateZoom(12.0);
-        expect(notifyCount, equals(1),
-            reason: 'Should notify when crossing threshold');
+        expect(
+          notifyCount,
+          equals(1),
+          reason: 'Should notify when crossing threshold',
+        );
 
         // Stay above threshold - still notifies because zoom changed significantly
         controller.updateZoom(13.0);
-        expect(notifyCount, equals(2),
-            reason: 'Should notify on significant zoom change');
+        expect(
+          notifyCount,
+          equals(2),
+          reason: 'Should notify on significant zoom change',
+        );
 
         // Cross from above to below threshold
         controller.updateZoom(11.0);
-        expect(notifyCount, equals(3),
-            reason: 'Should notify when crossing back');
+        expect(
+          notifyCount,
+          equals(3),
+          reason: 'Should notify when crossing back',
+        );
       });
     });
 

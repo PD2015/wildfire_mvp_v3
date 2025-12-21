@@ -141,10 +141,12 @@ class MockLocationResolver implements LocationResolver {
   }) async {
     // Simulate GPS delay (typical: 500-1000ms)
     await Future.delayed(const Duration(milliseconds: 100));
-    return const Right(ResolvedLocation(
-      coordinates: LatLng(55.9533, -3.1883), // Edinburgh
-      source: LocationSource.gps,
-    ));
+    return const Right(
+      ResolvedLocation(
+        coordinates: LatLng(55.9533, -3.1883), // Edinburgh
+        source: LocationSource.gps,
+      ),
+    );
   }
 
   @override

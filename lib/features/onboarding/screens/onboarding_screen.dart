@@ -101,9 +101,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 },
                 children: [
                   // Page 1: Welcome
-                  WelcomePage(
-                    onContinue: _nextPage,
-                  ),
+                  WelcomePage(onContinue: _nextPage),
 
                   // Page 2: Disclaimer
                   DisclaimerPage(
@@ -147,10 +145,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               top: false,
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 16),
-                child: PageIndicator(
-                  totalPages: 4,
-                  currentPage: _currentPage,
-                ),
+                child: PageIndicator(totalPages: 4, currentPage: _currentPage),
               ),
             ),
           ],

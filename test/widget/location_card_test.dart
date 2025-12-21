@@ -50,8 +50,9 @@ void main() {
       expect(find.text('Current location (GPS)'), findsOneWidget);
     });
 
-    testWidgets('displays "Location not set" for null coordinates',
-        (tester) async {
+    testWidgets('displays "Location not set" for null coordinates', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -67,8 +68,9 @@ void main() {
       expect(find.text('No location available'), findsOneWidget);
     });
 
-    testWidgets('displays "Location not set" for empty string coordinates',
-        (tester) async {
+    testWidgets('displays "Location not set" for empty string coordinates', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -99,8 +101,9 @@ void main() {
       expect(find.text('Current location (GPS)'), findsOneWidget);
     });
 
-    testWidgets('button shows "Change Location" when no location',
-        (tester) async {
+    testWidgets('button shows "Change Location" when no location', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -118,26 +121,28 @@ void main() {
     });
 
     testWidgets(
-        'button shows "Change Location" when location exists with GPS source',
-        (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: LocationCard(
-              coordinatesLabel: '55.95, -3.19',
-              subtitle: 'Current location',
-              locationSource: LocationSource.gps,
-              onChangeLocation: () {},
+      'button shows "Change Location" when location exists with GPS source',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: LocationCard(
+                coordinatesLabel: '55.95, -3.19',
+                subtitle: 'Current location',
+                locationSource: LocationSource.gps,
+                onChangeLocation: () {},
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(find.text('Change Location'), findsOneWidget);
-    });
+        expect(find.text('Change Location'), findsOneWidget);
+      },
+    );
 
-    testWidgets('button shows "Use GPS Location" when manual location',
-        (tester) async {
+    testWidgets('button shows "Use GPS Location" when manual location', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -158,31 +163,33 @@ void main() {
     });
 
     testWidgets(
-        'onChangeLocation callback fires when Change Location button tapped',
-        (tester) async {
-      bool callbackFired = false;
+      'onChangeLocation callback fires when Change Location button tapped',
+      (tester) async {
+        bool callbackFired = false;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: LocationCard(
-              coordinatesLabel: '55.95, -3.19',
-              subtitle: 'Current location',
-              locationSource: LocationSource.gps,
-              onChangeLocation: () => callbackFired = true,
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: LocationCard(
+                coordinatesLabel: '55.95, -3.19',
+                subtitle: 'Current location',
+                locationSource: LocationSource.gps,
+                onChangeLocation: () => callbackFired = true,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.tap(find.text('Change Location'));
-      await tester.pump();
+        await tester.tap(find.text('Change Location'));
+        await tester.pump();
 
-      expect(callbackFired, isTrue);
-    });
+        expect(callbackFired, isTrue);
+      },
+    );
 
-    testWidgets('action button disabled when both callbacks are null',
-        (tester) async {
+    testWidgets('action button disabled when both callbacks are null', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -209,8 +216,9 @@ void main() {
       expect(semanticsFinder, findsOneWidget);
     });
 
-    testWidgets('semantic label includes coordinates when available',
-        (tester) async {
+    testWidgets('semantic label includes coordinates when available', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -224,35 +232,30 @@ void main() {
 
       expect(
         tester.getSemantics(find.byType(LocationCard)),
-        matchesSemantics(
-          label: 'Current location: 55.95, -3.19',
-        ),
+        matchesSemantics(label: 'Current location: 55.95, -3.19'),
       );
     });
 
-    testWidgets('semantic label says "not set" when no coordinates',
-        (tester) async {
+    testWidgets('semantic label says "not set" when no coordinates', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: LocationCard(
-              coordinatesLabel: null,
-              subtitle: 'No location',
-            ),
+            body: LocationCard(coordinatesLabel: null, subtitle: 'No location'),
           ),
         ),
       );
 
       expect(
         tester.getSemantics(find.byType(LocationCard)),
-        matchesSemantics(
-          label: 'Location not set',
-        ),
+        matchesSemantics(label: 'Location not set'),
       );
     });
 
-    testWidgets('handles malformed coordinates (missing comma)',
-        (tester) async {
+    testWidgets('handles malformed coordinates (missing comma)', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -271,8 +274,9 @@ void main() {
       expect(find.text('Change Location'), findsOneWidget);
     });
 
-    testWidgets('handles malformed coordinates (non-numeric values)',
-        (tester) async {
+    testWidgets('handles malformed coordinates (non-numeric values)', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -355,8 +359,9 @@ void main() {
       expect(find.byIcon(Icons.cached), findsWidgets);
     });
 
-    testWidgets('shows default icon when locationSource is null',
-        (tester) async {
+    testWidgets('shows default icon when locationSource is null', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -372,8 +377,9 @@ void main() {
       expect(find.byIcon(Icons.my_location), findsOneWidget);
     });
 
-    testWidgets('action button has minimum touch target height',
-        (tester) async {
+    testWidgets('action button has minimum touch target height', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -408,8 +414,9 @@ void main() {
       expect(semanticsFinder, findsOneWidget);
     });
 
-    testWidgets('displays place name in subtitle when provided',
-        (tester) async {
+    testWidgets('displays place name in subtitle when provided', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -517,8 +524,9 @@ void main() {
       expect(find.byIcon(Icons.grid_3x3), findsOneWidget);
     });
 
-    testWidgets('shows copy button for what3words when callback provided',
-        (tester) async {
+    testWidgets('shows copy button for what3words when callback provided', (
+      tester,
+    ) async {
       bool wasCopied = false;
 
       await tester.pumpWidget(
@@ -561,8 +569,9 @@ void main() {
       expect(iconButton.constraints?.minHeight, 48);
     });
 
-    testWidgets('displays static map preview when URL provided',
-        (tester) async {
+    testWidgets('displays static map preview when URL provided', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -625,8 +634,9 @@ void main() {
       expect(find.byIcon(Icons.gps_fixed), findsWidgets);
     });
 
-    testWidgets('backward compatible - basic card without enhanced features',
-        (tester) async {
+    testWidgets('backward compatible - basic card without enhanced features', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -651,37 +661,39 @@ void main() {
 
   group('LocationCard Action Button Toggle', () {
     testWidgets(
-        'shows "Use GPS Location" button when location source is manual',
-        (tester) async {
-      bool useGpsCalled = false;
+      'shows "Use GPS Location" button when location source is manual',
+      (tester) async {
+        bool useGpsCalled = false;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: LocationCard(
-              coordinatesLabel: '55.95, -3.19',
-              subtitle: 'Your chosen location',
-              locationSource: LocationSource.manual,
-              onChangeLocation: () {},
-              onUseGps: () => useGpsCalled = true,
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: LocationCard(
+                coordinatesLabel: '55.95, -3.19',
+                subtitle: 'Your chosen location',
+                locationSource: LocationSource.manual,
+                onChangeLocation: () {},
+                onUseGps: () => useGpsCalled = true,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Manual location shows BOTH buttons side-by-side
-      expect(find.text('Use GPS'), findsOneWidget);
-      expect(find.text('Change'), findsOneWidget);
+        // Manual location shows BOTH buttons side-by-side
+        expect(find.text('Use GPS'), findsOneWidget);
+        expect(find.text('Change'), findsOneWidget);
 
-      // Tap the Use GPS button
-      await tester.tap(find.text('Use GPS'));
-      await tester.pump();
+        // Tap the Use GPS button
+        await tester.tap(find.text('Use GPS'));
+        await tester.pump();
 
-      expect(useGpsCalled, isTrue);
-    });
+        expect(useGpsCalled, isTrue);
+      },
+    );
 
-    testWidgets('shows "Change Location" button when location source is GPS',
-        (tester) async {
+    testWidgets('shows "Change Location" button when location source is GPS', (
+      tester,
+    ) async {
       bool changeLocationCalled = false;
 
       await tester.pumpWidget(
@@ -709,8 +721,9 @@ void main() {
       expect(changeLocationCalled, isTrue);
     });
 
-    testWidgets('shows "Change Location" for cached location source',
-        (tester) async {
+    testWidgets('shows "Change Location" for cached location source', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -728,8 +741,9 @@ void main() {
       expect(find.text('Use GPS Location'), findsNothing);
     });
 
-    testWidgets('shows "Change Location" for default fallback source',
-        (tester) async {
+    testWidgets('shows "Change Location" for default fallback source', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -748,29 +762,31 @@ void main() {
     });
 
     testWidgets(
-        'falls back to "Change Location" when onUseGps is null for manual source',
-        (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: LocationCard(
-              coordinatesLabel: '55.95, -3.19',
-              subtitle: 'Your chosen location',
-              locationSource: LocationSource.manual,
-              onChangeLocation: () {},
-              // onUseGps is null
+      'falls back to "Change Location" when onUseGps is null for manual source',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: LocationCard(
+                coordinatesLabel: '55.95, -3.19',
+                subtitle: 'Your chosen location',
+                locationSource: LocationSource.manual,
+                onChangeLocation: () {},
+                // onUseGps is null
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Should fall back to Change Location when onUseGps not provided
-      expect(find.text('Change Location'), findsOneWidget);
-      expect(find.text('Use GPS Location'), findsNothing);
-    });
+        // Should fall back to Change Location when onUseGps not provided
+        expect(find.text('Change Location'), findsOneWidget);
+        expect(find.text('Use GPS Location'), findsNothing);
+      },
+    );
 
-    testWidgets('action button meets minimum touch target (48dp)',
-        (tester) async {
+    testWidgets('action button meets minimum touch target (48dp)', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -810,8 +826,9 @@ void main() {
       expect(changeSemanticsFinder, findsOneWidget);
     });
 
-    testWidgets('Use GPS button has correct accessibility semantics',
-        (tester) async {
+    testWidgets('Use GPS button has correct accessibility semantics', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -839,8 +856,9 @@ void main() {
       expect(semanticsFinder, findsOneWidget);
     });
 
-    testWidgets('Change Location button has correct accessibility semantics',
-        (tester) async {
+    testWidgets('Change Location button has correct accessibility semantics', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -867,37 +885,39 @@ void main() {
     });
 
     testWidgets(
-        'manual location shows dual buttons and Change callback fires correctly',
-        (tester) async {
-      bool changeLocationCalled = false;
+      'manual location shows dual buttons and Change callback fires correctly',
+      (tester) async {
+        bool changeLocationCalled = false;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: LocationCard(
-              coordinatesLabel: '55.95, -3.19',
-              subtitle: 'Your chosen location',
-              locationSource: LocationSource.manual,
-              onChangeLocation: () => changeLocationCalled = true,
-              onUseGps: () {},
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: LocationCard(
+                coordinatesLabel: '55.95, -3.19',
+                subtitle: 'Your chosen location',
+                locationSource: LocationSource.manual,
+                onChangeLocation: () => changeLocationCalled = true,
+                onUseGps: () {},
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Both buttons visible
-      expect(find.text('Change'), findsOneWidget);
-      expect(find.text('Use GPS'), findsOneWidget);
+        // Both buttons visible
+        expect(find.text('Change'), findsOneWidget);
+        expect(find.text('Use GPS'), findsOneWidget);
 
-      // Tap Change button
-      await tester.tap(find.text('Change'));
-      await tester.pump();
+        // Tap Change button
+        await tester.tap(find.text('Change'));
+        await tester.pump();
 
-      expect(changeLocationCalled, isTrue);
-    });
+        expect(changeLocationCalled, isTrue);
+      },
+    );
 
-    testWidgets('manual location shows dual buttons (not single toggle)',
-        (tester) async {
+    testWidgets('manual location shows dual buttons (not single toggle)', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -920,10 +940,7 @@ void main() {
       expect(find.text('Change Location'), findsNothing);
 
       // Both should have proper accessibility
-      expect(
-        find.bySemanticsLabel('Return to GPS location'),
-        findsOneWidget,
-      );
+      expect(find.bySemanticsLabel('Return to GPS location'), findsOneWidget);
       expect(
         find.bySemanticsLabel('Adjust your manual location'),
         findsOneWidget,

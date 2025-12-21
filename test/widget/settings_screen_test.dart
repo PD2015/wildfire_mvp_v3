@@ -25,21 +25,18 @@ void main() {
           // Stub routes for other navigation tests
           GoRoute(
             path: '/settings/about/terms',
-            builder: (context, state) => const Scaffold(
-              body: Center(child: Text('Terms Content')),
-            ),
+            builder: (context, state) =>
+                const Scaffold(body: Center(child: Text('Terms Content'))),
           ),
           GoRoute(
             path: '/settings/about/privacy',
-            builder: (context, state) => const Scaffold(
-              body: Center(child: Text('Privacy Content')),
-            ),
+            builder: (context, state) =>
+                const Scaffold(body: Center(child: Text('Privacy Content'))),
           ),
           GoRoute(
             path: '/settings/about/disclaimer',
-            builder: (context, state) => const Scaffold(
-              body: Center(child: Text('Disclaimer Content')),
-            ),
+            builder: (context, state) =>
+                const Scaffold(body: Center(child: Text('Disclaimer Content'))),
           ),
           GoRoute(
             path: '/settings/about/data-sources',
@@ -49,18 +46,15 @@ void main() {
           ),
           GoRoute(
             path: '/settings/advanced',
-            builder: (context, state) => const Scaffold(
-              body: Center(child: Text('Advanced Content')),
-            ),
+            builder: (context, state) =>
+                const Scaffold(body: Center(child: Text('Advanced Content'))),
           ),
         ],
       );
     });
 
     Widget buildTestWidget() {
-      return MaterialApp.router(
-        routerConfig: router,
-      );
+      return MaterialApp.router(routerConfig: router);
     }
 
     testWidgets('renders Settings title in AppBar', (tester) async {
@@ -89,8 +83,9 @@ void main() {
       expect(find.text('Data Sources'), findsOneWidget);
     });
 
-    testWidgets('Alert Settings tile is disabled (Coming soon)',
-        (tester) async {
+    testWidgets('Alert Settings tile is disabled (Coming soon)', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 

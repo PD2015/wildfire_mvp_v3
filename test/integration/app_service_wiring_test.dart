@@ -15,32 +15,37 @@ import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 
 void main() {
   group('Service Initialization Contract', () {
-    test('GeocodingServiceImpl uses FeatureFlags.googleMapsApiKey by default',
-        () {
-      // This test documents the expected behavior:
-      // When no apiKey is provided, GeocodingServiceImpl should use
-      // FeatureFlags.googleMapsApiKey
+    test(
+      'GeocodingServiceImpl uses FeatureFlags.googleMapsApiKey by default',
+      () {
+        // This test documents the expected behavior:
+        // When no apiKey is provided, GeocodingServiceImpl should use
+        // FeatureFlags.googleMapsApiKey
 
-      // Note: In a real app, this key comes from --dart-define
-      // In tests, it will be empty unless mocked
-      final defaultKey = FeatureFlags.googleMapsApiKey;
+        // Note: In a real app, this key comes from --dart-define
+        // In tests, it will be empty unless mocked
+        final defaultKey = FeatureFlags.googleMapsApiKey;
 
-      // Create service without explicit key
-      final service = GeocodingServiceImpl();
+        // Create service without explicit key
+        final service = GeocodingServiceImpl();
 
-      // The service should have been initialized with the default key
-      // We can't directly access _apiKey, but we can verify behavior
-      expect(service, isA<GeocodingService>());
+        // The service should have been initialized with the default key
+        // We can't directly access _apiKey, but we can verify behavior
+        expect(service, isA<GeocodingService>());
 
-      // If key is empty (as in tests), API calls should fail gracefully
-      if (defaultKey.isEmpty) {
-        // Verify empty key behavior
-        service.searchPlaces(query: 'test').then((result) {
-          expect(result.isLeft(), isTrue,
-              reason: 'Empty API key should return error');
-        });
-      }
-    });
+        // If key is empty (as in tests), API calls should fail gracefully
+        if (defaultKey.isEmpty) {
+          // Verify empty key behavior
+          service.searchPlaces(query: 'test').then((result) {
+            expect(
+              result.isLeft(),
+              isTrue,
+              reason: 'Empty API key should return error',
+            );
+          });
+        }
+      },
+    );
 
     test('GeocodingServiceImpl accepts explicit API key', () {
       // Use a clearly-fake test key that won't trigger secret detection
@@ -57,14 +62,11 @@ void main() {
       final result = await service.searchPlaces(query: 'Edinburgh');
 
       expect(result.isLeft(), isTrue);
-      result.fold(
-        (error) {
-          expect(error, isA<GeocodingApiError>());
-          final apiError = error as GeocodingApiError;
-          expect(apiError.message, contains('API key not configured'));
-        },
-        (_) => fail('Expected error for empty API key'),
-      );
+      result.fold((error) {
+        expect(error, isA<GeocodingApiError>());
+        final apiError = error as GeocodingApiError;
+        expect(apiError.message, contains('API key not configured'));
+      }, (_) => fail('Expected error for empty API key'));
     });
 
     test('Empty API key returns proper error for reverseGeocode', () async {
@@ -73,14 +75,11 @@ void main() {
       final result = await service.reverseGeocode(lat: 55.9533, lon: -3.1883);
 
       expect(result.isLeft(), isTrue);
-      result.fold(
-        (error) {
-          expect(error, isA<GeocodingApiError>());
-          final apiError = error as GeocodingApiError;
-          expect(apiError.message, contains('API key not configured'));
-        },
-        (_) => fail('Expected error for empty API key'),
-      );
+      result.fold((error) {
+        expect(error, isA<GeocodingApiError>());
+        final apiError = error as GeocodingApiError;
+        expect(apiError.message, contains('API key not configured'));
+      }, (_) => fail('Expected error for empty API key'));
     });
   });
 

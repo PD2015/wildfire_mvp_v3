@@ -12,10 +12,7 @@ void main() {
           const LatLng(55.0, -3.2),
         ];
 
-        final result = PolygonSimplifier.simplify(
-          points,
-          maxPoints: 500,
-        );
+        final result = PolygonSimplifier.simplify(points, maxPoints: 500);
 
         expect(result, equals(points));
       });
@@ -24,16 +21,10 @@ void main() {
         // Create a polygon with 600 points
         final points = List.generate(
           600,
-          (i) => LatLng(
-            55.0 + (i * 0.001),
-            -3.0 + (i % 2) * 0.001,
-          ),
+          (i) => LatLng(55.0 + (i * 0.001), -3.0 + (i % 2) * 0.001),
         );
 
-        final result = PolygonSimplifier.simplify(
-          points,
-          maxPoints: 500,
-        );
+        final result = PolygonSimplifier.simplify(points, maxPoints: 500);
 
         expect(result.length, lessThanOrEqualTo(500));
       });
@@ -60,10 +51,7 @@ void main() {
         // Create a zigzag pattern
         final points = List.generate(
           100,
-          (i) => LatLng(
-            55.0 + (i * 0.01),
-            -3.0 + (i % 2) * 0.01,
-          ),
+          (i) => LatLng(55.0 + (i * 0.01), -3.0 + (i % 2) * 0.01),
         );
 
         final lowTolerance = PolygonSimplifier.simplify(
@@ -97,10 +85,7 @@ void main() {
 
     group('wouldSimplify', () {
       test('returns false when points <= maxPoints', () {
-        final points = List.generate(
-          100,
-          (i) => LatLng(55.0 + i * 0.01, -3.0),
-        );
+        final points = List.generate(100, (i) => LatLng(55.0 + i * 0.01, -3.0));
 
         expect(
           PolygonSimplifier.wouldSimplify(points, maxPoints: 500),
@@ -114,10 +99,7 @@ void main() {
           (i) => LatLng(55.0 + i * 0.001, -3.0),
         );
 
-        expect(
-          PolygonSimplifier.wouldSimplify(points, maxPoints: 500),
-          isTrue,
-        );
+        expect(PolygonSimplifier.wouldSimplify(points, maxPoints: 500), isTrue);
       });
     });
 
@@ -143,16 +125,10 @@ void main() {
     group('performance', () {
       test('simplifies 22000 points within 100ms', () {
         // Create large polygon simulating complex burnt area
-        final points = List.generate(
-          22000,
-          (i) {
-            final angle = i * 0.0003;
-            return LatLng(
-              55.0 + 0.1 * _sin(angle),
-              -3.0 + 0.1 * _cos(angle),
-            );
-          },
-        );
+        final points = List.generate(22000, (i) {
+          final angle = i * 0.0003;
+          return LatLng(55.0 + 0.1 * _sin(angle), -3.0 + 0.1 * _cos(angle));
+        });
 
         final stopwatch = Stopwatch()..start();
         final result = PolygonSimplifier.simplify(points, maxPoints: 500);
@@ -164,7 +140,8 @@ void main() {
         // Print for visibility in verbose mode
         // ignore: avoid_print
         print(
-            'Simplified ${points.length} points to ${result.length} in ${stopwatch.elapsedMilliseconds}ms');
+          'Simplified ${points.length} points to ${result.length} in ${stopwatch.elapsedMilliseconds}ms',
+        );
       });
     });
 
@@ -189,10 +166,7 @@ void main() {
 
       test('handles collinear points', () {
         // All points on a straight line
-        final points = List.generate(
-          100,
-          (i) => LatLng(55.0 + i * 0.01, -3.0),
-        );
+        final points = List.generate(100, (i) => LatLng(55.0 + i * 0.01, -3.0));
 
         // Algorithm doesn't trigger without maxPoints exceeded
         // Original list returned as-is when below maxPoints threshold

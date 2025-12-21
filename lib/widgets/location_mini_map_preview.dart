@@ -52,10 +52,7 @@ class LocationMiniMapPreview extends StatelessWidget {
           decoration: BoxDecoration(
             color: scheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: scheme.outlineVariant,
-              width: 1,
-            ),
+            border: Border.all(color: scheme.outlineVariant, width: 1),
           ),
           clipBehavior: Clip.antiAlias,
           child: Stack(
@@ -147,10 +144,7 @@ class LocationMiniMapPreview extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Loading map...',
-            style: TextStyle(
-              color: scheme.onSurfaceVariant,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
           ),
         ],
       ),

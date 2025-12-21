@@ -42,10 +42,9 @@ class _MockLocationResolver implements LocationResolver {
   Future<Either<LocationError, ResolvedLocation>> getLatLon({
     bool allowDefault = true,
   }) async {
-    return Right(ResolvedLocation(
-      coordinates: _mockLocation,
-      source: LocationSource.gps,
-    ));
+    return Right(
+      ResolvedLocation(coordinates: _mockLocation, source: LocationSource.gps),
+    );
   }
 
   @override
@@ -66,10 +65,12 @@ class _MockFireRiskService implements FireRiskService {
     required double lon,
     Duration? deadline,
   }) async {
-    return Right(FireRisk.fromMock(
-      level: RiskLevel.low,
-      observedAt: DateTime.now().toUtc(),
-    ));
+    return Right(
+      FireRisk.fromMock(
+        level: RiskLevel.low,
+        observedAt: DateTime.now().toUtc(),
+      ),
+    );
   }
 }
 
@@ -102,8 +103,11 @@ void main() {
   // Skip all tests on web platform - mock services use rootBundle.loadString
   // which doesn't work in the Chrome test environment
   if (kIsWeb) {
-    test('skipped on web platform', () {},
-        skip: 'rootBundle.loadString hangs on web');
+    test(
+      'skipped on web platform',
+      () {},
+      skip: 'rootBundle.loadString hangs on web',
+    );
     return;
   }
 
@@ -131,23 +135,25 @@ void main() {
         controller.dispose();
       });
 
-      test('uses mock data directly when MAP_LIVE_DATA=false (default)',
-          () async {
-        await controller.initialize();
-        expect(controller.state, isA<MapSuccess>());
+      test(
+        'uses mock data directly when MAP_LIVE_DATA=false (default)',
+        () async {
+          await controller.initialize();
+          expect(controller.state, isA<MapSuccess>());
 
-        // Set mode to hotspots and update bounds to trigger fetch
-        controller.setFireDataMode(FireDataMode.hotspots);
-        controller.updateBounds(testBounds);
+          // Set mode to hotspots and update bounds to trigger fetch
+          controller.setFireDataMode(FireDataMode.hotspots);
+          controller.updateBounds(testBounds);
 
-        // Allow async fetch to complete
-        await Future.delayed(const Duration(milliseconds: 100));
+          // Allow async fetch to complete
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        // With MAP_LIVE_DATA=false, mock data is used directly (skipping orchestrator)
-        expect(controller.isUsingMockData, isTrue);
-        // Orchestrator is NOT called when MAP_LIVE_DATA=false
-        expect(mockOrchestrator.callCount, equals(0));
-      });
+          // With MAP_LIVE_DATA=false, mock data is used directly (skipping orchestrator)
+          expect(controller.isUsingMockData, isTrue);
+          // Orchestrator is NOT called when MAP_LIVE_DATA=false
+          expect(mockOrchestrator.callCount, equals(0));
+        },
+      );
 
       test('controller remains functional after hotspot fetch', () async {
         await controller.initialize();
@@ -179,30 +185,36 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 200));
       });
 
-      test('orchestrator returns hotspots correctly', () async {
-        // NOTE: When MAP_LIVE_DATA=false, the orchestrator is NOT called.
-        // This test verifies that mock hotspots are loaded directly.
-        await controller.initialize();
-        controller.setFireDataMode(FireDataMode.hotspots);
-        controller.updateBounds(testBounds);
+      test(
+        'orchestrator returns hotspots correctly',
+        () async {
+          // NOTE: When MAP_LIVE_DATA=false, the orchestrator is NOT called.
+          // This test verifies that mock hotspots are loaded directly.
+          await controller.initialize();
+          controller.setFireDataMode(FireDataMode.hotspots);
+          controller.updateBounds(testBounds);
 
-        await Future.delayed(const Duration(milliseconds: 100));
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        // Controller received hotspots from mock service (not orchestrator)
-        expect(controller.hotspots.length, greaterThan(0));
-        // Orchestrator was not called
-        expect(mockOrchestrator.callCount, equals(0));
-      },
-          skip:
-              'Orchestrator not called when MAP_LIVE_DATA=false - testing mock path instead');
+          // Controller received hotspots from mock service (not orchestrator)
+          expect(controller.hotspots.length, greaterThan(0));
+          // Orchestrator was not called
+          expect(mockOrchestrator.callCount, equals(0));
+        },
+        skip:
+            'Orchestrator not called when MAP_LIVE_DATA=false - testing mock path instead',
+      );
 
-      test('tracks data source from orchestrator', () async {
-        // NOTE: When MAP_LIVE_DATA=false, the orchestrator is NOT called.
-        // Data source tracking from orchestrator cannot be tested in this environment.
-        // Skip this test.
-      },
-          skip:
-              'Cannot test orchestrator data source when MAP_LIVE_DATA=false (feature flag is const)');
+      test(
+        'tracks data source from orchestrator',
+        () async {
+          // NOTE: When MAP_LIVE_DATA=false, the orchestrator is NOT called.
+          // Data source tracking from orchestrator cannot be tested in this environment.
+          // Skip this test.
+        },
+        skip:
+            'Cannot test orchestrator data source when MAP_LIVE_DATA=false (feature flag is const)',
+      );
     });
 
     group('EFFIS Burnt Area Service Failure', () {
@@ -340,36 +352,45 @@ void main() {
         controller.dispose();
       });
 
-      test('filter changes trigger refetch via orchestrator', () async {
-        // When MAP_LIVE_DATA=false, orchestrator is skipped, but filter changes
-        // should still update state
-        await controller.initialize();
-        controller.setFireDataMode(FireDataMode.hotspots);
-        controller.updateBounds(testBounds);
-        await Future.delayed(const Duration(milliseconds: 100));
+      test(
+        'filter changes trigger refetch via orchestrator',
+        () async {
+          // When MAP_LIVE_DATA=false, orchestrator is skipped, but filter changes
+          // should still update state
+          await controller.initialize();
+          controller.setFireDataMode(FireDataMode.hotspots);
+          controller.updateBounds(testBounds);
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        // Orchestrator not called when MAP_LIVE_DATA=false
-        expect(mockOrchestrator.callCount, equals(0));
+          // Orchestrator not called when MAP_LIVE_DATA=false
+          expect(mockOrchestrator.callCount, equals(0));
 
-        // Change filter - should still work (updates internal state)
-        controller.setHotspotTimeFilter(HotspotTimeFilter.thisWeek);
-        expect(
-            controller.hotspotTimeFilter, equals(HotspotTimeFilter.thisWeek));
-      },
-          skip:
-              'Cannot test orchestrator filter changes when MAP_LIVE_DATA=false');
+          // Change filter - should still work (updates internal state)
+          controller.setHotspotTimeFilter(HotspotTimeFilter.thisWeek);
+          expect(
+            controller.hotspotTimeFilter,
+            equals(HotspotTimeFilter.thisWeek),
+          );
+        },
+        skip:
+            'Cannot test orchestrator filter changes when MAP_LIVE_DATA=false',
+      );
 
-      test('orchestrator receives correct bounds on update', () async {
-        // When MAP_LIVE_DATA=false, orchestrator is not called
-        await controller.initialize();
-        controller.setFireDataMode(FireDataMode.hotspots);
-        controller.updateBounds(testBounds);
-        await Future.delayed(const Duration(milliseconds: 100));
+      test(
+        'orchestrator receives correct bounds on update',
+        () async {
+          // When MAP_LIVE_DATA=false, orchestrator is not called
+          await controller.initialize();
+          controller.setFireDataMode(FireDataMode.hotspots);
+          controller.updateBounds(testBounds);
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        // Orchestrator not called when MAP_LIVE_DATA=false
-        expect(mockOrchestrator.callCount, equals(0));
-        expect(mockOrchestrator.lastRequestedBounds, isNull);
-      }, skip: 'Cannot test orchestrator bounds when MAP_LIVE_DATA=false');
+          // Orchestrator not called when MAP_LIVE_DATA=false
+          expect(mockOrchestrator.callCount, equals(0));
+          expect(mockOrchestrator.lastRequestedBounds, isNull);
+        },
+        skip: 'Cannot test orchestrator bounds when MAP_LIVE_DATA=false',
+      );
     });
   });
 }

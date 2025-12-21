@@ -21,11 +21,7 @@ void main() {
     testWidgets('displays safety information title', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: DisclaimerPage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: DisclaimerPage(onContinue: () {})),
         ),
       );
 
@@ -35,11 +31,7 @@ void main() {
     testWidgets('displays warning icon', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: DisclaimerPage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: DisclaimerPage(onContinue: () {})),
         ),
       );
 
@@ -49,11 +41,7 @@ void main() {
     testWidgets('displays emergency numbers 999 and 101', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: DisclaimerPage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: DisclaimerPage(onContinue: () {})),
         ),
       );
 
@@ -66,11 +54,7 @@ void main() {
     testWidgets('displays disclaimer text', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: DisclaimerPage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: DisclaimerPage(onContinue: () {})),
         ),
       );
 
@@ -83,11 +67,7 @@ void main() {
     testWidgets('displays I Understand button', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: DisclaimerPage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: DisclaimerPage(onContinue: () {})),
         ),
       );
 
@@ -99,11 +79,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: DisclaimerPage(
-              onContinue: () => called = true,
-            ),
-          ),
+          home: Scaffold(body: DisclaimerPage(onContinue: () => called = true)),
         ),
       );
 
@@ -116,35 +92,22 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: DisclaimerPage(
-              onContinue: () {},
-              onViewTerms: () {},
-            ),
+            body: DisclaimerPage(onContinue: () {}, onViewTerms: () {}),
           ),
         ),
       );
 
-      expect(
-        find.text('View full terms and conditions'),
-        findsOneWidget,
-      );
+      expect(find.text('View full terms and conditions'), findsOneWidget);
     });
 
     testWidgets('hides terms link when callback not provided', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: DisclaimerPage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: DisclaimerPage(onContinue: () {})),
         ),
       );
 
-      expect(
-        find.text('View full terms and conditions'),
-        findsNothing,
-      );
+      expect(find.text('View full terms and conditions'), findsNothing);
     });
 
     testWidgets('calls onViewTerms when link tapped', (tester) async {

@@ -22,9 +22,7 @@ class AboutScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('About'),
-      ),
+      appBar: AppBar(title: const Text('About')),
       body: SafeArea(
         child: ListView(
           children: [
@@ -76,10 +74,7 @@ class AboutScreen extends StatelessWidget {
 
             // Legal documents section
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
                 'Legal',
                 style: theme.textTheme.titleSmall?.copyWith(
@@ -121,10 +116,7 @@ class AboutScreen extends StatelessWidget {
 
             // App info section
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
                 'Information',
                 style: theme.textTheme.titleSmall?.copyWith(
@@ -163,10 +155,7 @@ class AboutScreen extends StatelessWidget {
                 ),
               ),
               ListTile(
-                leading: Icon(
-                  Icons.refresh,
-                  color: theme.colorScheme.error,
-                ),
+                leading: Icon(Icons.refresh, color: theme.colorScheme.error),
                 title: const Text('Reset Onboarding'),
                 subtitle: const Text('Clear preferences and restart flow'),
                 onTap: () async {
@@ -177,7 +166,8 @@ class AboutScreen extends StatelessWidget {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
-                            'Onboarding reset. Restart app or navigate to /onboarding'),
+                          'Onboarding reset. Restart app or navigate to /onboarding',
+                        ),
                       ),
                     );
                     context.go('/onboarding');
@@ -225,15 +215,9 @@ class _LegalTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return ListTile(
-      leading: Icon(
-        icon,
-        color: theme.colorScheme.onSurfaceVariant,
-      ),
+      leading: Icon(icon, color: theme.colorScheme.onSurfaceVariant),
       title: Text(title),
-      subtitle: Text(
-        subtitle,
-        style: theme.textTheme.bodySmall,
-      ),
+      subtitle: Text(subtitle, style: theme.textTheme.bodySmall),
       trailing: Icon(
         Icons.chevron_right,
         color: theme.colorScheme.onSurfaceVariant,

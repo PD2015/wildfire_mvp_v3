@@ -41,10 +41,7 @@ void main() {
     group('fromHotspots factory', () {
       test('throws for empty hotspot list', () {
         expect(
-          () => HotspotCluster.fromHotspots(
-            id: 'empty',
-            hotspots: const [],
-          ),
+          () => HotspotCluster.fromHotspots(id: 'empty', hotspots: const []),
           throwsArgumentError,
         );
       });
@@ -131,9 +128,7 @@ void main() {
 
     group('Equatable', () {
       test('two clusters with same props are equal', () {
-        final hotspots = [
-          Hotspot.test(id: 'h1', location: testCenter),
-        ];
+        final hotspots = [Hotspot.test(id: 'h1', location: testCenter)];
 
         final c1 = HotspotCluster.fromHotspots(id: 'same', hotspots: hotspots);
         final c2 = HotspotCluster.fromHotspots(id: 'same', hotspots: hotspots);
@@ -153,9 +148,7 @@ void main() {
     });
 
     test('single hotspot becomes single cluster', () {
-      final hotspots = [
-        Hotspot.test(location: const LatLng(55.0, -3.0)),
-      ];
+      final hotspots = [Hotspot.test(location: const LatLng(55.0, -3.0))];
 
       final clusters = builder.buildClusters(hotspots);
 
@@ -168,7 +161,9 @@ void main() {
       final hotspots = [
         Hotspot.test(id: 'a', location: const LatLng(55.9533, -3.1883)),
         Hotspot.test(
-            id: 'b', location: const LatLng(55.9573, -3.1883)), // ~440m north
+          id: 'b',
+          location: const LatLng(55.9573, -3.1883),
+        ), // ~440m north
       ];
 
       final clusters = builder.buildClusters(hotspots);
@@ -181,9 +176,13 @@ void main() {
       // Two hotspots ~10km apart (should not cluster)
       final hotspots = [
         Hotspot.test(
-            id: 'a', location: const LatLng(55.9533, -3.1883)), // Edinburgh
+          id: 'a',
+          location: const LatLng(55.9533, -3.1883),
+        ), // Edinburgh
         Hotspot.test(
-            id: 'b', location: const LatLng(55.8642, -4.2518)), // Glasgow
+          id: 'b',
+          location: const LatLng(55.8642, -4.2518),
+        ), // Glasgow
       ];
 
       final clusters = builder.buildClusters(hotspots);
@@ -192,14 +191,17 @@ void main() {
     });
 
     test('custom distance threshold is applied', () {
-      const customBuilder =
-          HotspotClusterBuilder(distanceThresholdKm: 0.1); // 100m
+      const customBuilder = HotspotClusterBuilder(
+        distanceThresholdKm: 0.1,
+      ); // 100m
 
       // Two hotspots ~440m apart (should NOT cluster with 100m threshold)
       final hotspots = [
         Hotspot.test(id: 'a', location: const LatLng(55.9533, -3.1883)),
         Hotspot.test(
-            id: 'b', location: const LatLng(55.9573, -3.1883)), // ~440m north
+          id: 'b',
+          location: const LatLng(55.9573, -3.1883),
+        ), // ~440m north
       ];
 
       final clusters = customBuilder.buildClusters(hotspots);

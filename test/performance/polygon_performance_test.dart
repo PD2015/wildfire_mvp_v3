@@ -32,15 +32,17 @@ void main() {
           app.LatLng(lat, lon), // Close the polygon
         ];
 
-        incidents.add(FireIncident(
-          id: 'perf-test-$i',
-          location: app.LatLng(lat + 0.01, lon + 0.015), // Center point
-          intensity: intensities[i % intensities.length],
-          timestamp: DateTime.now().subtract(Duration(hours: i)),
-          source: DataSource.mock,
-          freshness: Freshness.live,
-          boundaryPoints: boundaryPoints,
-        ));
+        incidents.add(
+          FireIncident(
+            id: 'perf-test-$i',
+            location: app.LatLng(lat + 0.01, lon + 0.015), // Center point
+            intensity: intensities[i % intensities.length],
+            timestamp: DateTime.now().subtract(Duration(hours: i)),
+            source: DataSource.mock,
+            freshness: Freshness.live,
+            boundaryPoints: boundaryPoints,
+          ),
+        );
       }
 
       return incidents;

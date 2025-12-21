@@ -9,9 +9,7 @@ void main() {
     testWidgets('displays document title in AppBar', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: LegalDocumentScreen(
-            document: LegalContent.termsOfService,
-          ),
+          home: LegalDocumentScreen(document: LegalContent.termsOfService),
         ),
       );
       await tester.pumpAndSettle();
@@ -22,9 +20,7 @@ void main() {
     testWidgets('displays version and effective date', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: LegalDocumentScreen(
-            document: LegalContent.termsOfService,
-          ),
+          home: LegalDocumentScreen(document: LegalContent.termsOfService),
         ),
       );
       await tester.pumpAndSettle();
@@ -39,9 +35,7 @@ void main() {
     testWidgets('displays document content', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: LegalDocumentScreen(
-            document: LegalContent.termsOfService,
-          ),
+          home: LegalDocumentScreen(document: LegalContent.termsOfService),
         ),
       );
       await tester.pumpAndSettle();
@@ -53,9 +47,7 @@ void main() {
     testWidgets('content is scrollable', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: LegalDocumentScreen(
-            document: LegalContent.termsOfService,
-          ),
+          home: LegalDocumentScreen(document: LegalContent.termsOfService),
         ),
       );
       await tester.pumpAndSettle();
@@ -68,9 +60,7 @@ void main() {
     testWidgets('has AppBar with back navigation capability', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: LegalDocumentScreen(
-            document: LegalContent.termsOfService,
-          ),
+          home: LegalDocumentScreen(document: LegalContent.termsOfService),
         ),
       );
       await tester.pumpAndSettle();
@@ -82,26 +72,19 @@ void main() {
     testWidgets('renders all legal documents', (tester) async {
       for (final doc in LegalContent.allDocuments) {
         await tester.pumpWidget(
-          MaterialApp(
-            home: LegalDocumentScreen(document: doc),
-          ),
+          MaterialApp(home: LegalDocumentScreen(document: doc)),
         );
         await tester.pumpAndSettle();
 
         expect(find.text(doc.title), findsOneWidget);
-        expect(
-          find.textContaining('Version ${doc.version}'),
-          findsOneWidget,
-        );
+        expect(find.textContaining('Version ${doc.version}'), findsOneWidget);
       }
     });
 
     testWidgets('privacy policy displays correct content', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: LegalDocumentScreen(
-            document: LegalContent.privacyPolicy,
-          ),
+          home: LegalDocumentScreen(document: LegalContent.privacyPolicy),
         ),
       );
       await tester.pumpAndSettle();
@@ -113,9 +96,7 @@ void main() {
     testWidgets('disclaimer displays emergency guidance', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: LegalDocumentScreen(
-            document: LegalContent.emergencyDisclaimer,
-          ),
+          home: LegalDocumentScreen(document: LegalContent.emergencyDisclaimer),
         ),
       );
       await tester.pumpAndSettle();
@@ -127,9 +108,7 @@ void main() {
     testWidgets('data sources displays attribution', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: LegalDocumentScreen(
-            document: LegalContent.dataSources,
-          ),
+          home: LegalDocumentScreen(document: LegalContent.dataSources),
         ),
       );
       await tester.pumpAndSettle();
@@ -142,9 +121,7 @@ void main() {
     testWidgets('content is selectable', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: LegalDocumentScreen(
-            document: LegalContent.termsOfService,
-          ),
+          home: LegalDocumentScreen(document: LegalContent.termsOfService),
         ),
       );
       await tester.pumpAndSettle();
@@ -157,9 +134,7 @@ void main() {
     ) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: LegalDocumentScreen(
-            document: LegalContent.termsOfService,
-          ),
+          home: LegalDocumentScreen(document: LegalContent.termsOfService),
         ),
       );
       await tester.pumpAndSettle();
@@ -175,8 +150,9 @@ void main() {
       // Expand TOC
       await tester.tap(toggle);
       await tester.pumpAndSettle(const Duration(milliseconds: 250));
-      crossFade =
-          tester.widget<AnimatedCrossFade>(find.byType(AnimatedCrossFade));
+      crossFade = tester.widget<AnimatedCrossFade>(
+        find.byType(AnimatedCrossFade),
+      );
       expect(crossFade.crossFadeState, CrossFadeState.showSecond);
 
       // Entries appear with indentation for subsections
@@ -190,8 +166,9 @@ void main() {
       await tester.tap(entry);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
-      crossFade =
-          tester.widget<AnimatedCrossFade>(find.byType(AnimatedCrossFade));
+      crossFade = tester.widget<AnimatedCrossFade>(
+        find.byType(AnimatedCrossFade),
+      );
       expect(crossFade.crossFadeState, CrossFadeState.showFirst);
     });
   });

@@ -30,7 +30,6 @@ void keepIconsAlive() {
     Icons.location_on_outlined,
     Icons.edit_location_alt,
     Icons.public, // defaultFallback location source
-
     // === Map Controls ===
     Icons.add,
     Icons.remove,

@@ -14,8 +14,9 @@ import 'package:wildfire_mvp_v3/theme/wildfire_a11y_theme.dart';
 /// - C4: Documents theme application across components
 void main() {
   group('ElevatedButton Theme (Light Mode)', () {
-    testWidgets('renders with correct colors and spacing',
-        (WidgetTester tester) async {
+    testWidgets('renders with correct colors and spacing', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: WildfireA11yTheme.light,
@@ -48,8 +49,9 @@ void main() {
   });
 
   group('ElevatedButton Theme (Dark Mode)', () {
-    testWidgets('renders with correct colors and spacing',
-        (WidgetTester tester) async {
+    testWidgets('renders with correct colors and spacing', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: WildfireA11yTheme.dark,
@@ -82,8 +84,9 @@ void main() {
   });
 
   group('OutlinedButton Theme (Light Mode)', () {
-    testWidgets('renders with correct border and colors',
-        (WidgetTester tester) async {
+    testWidgets('renders with correct border and colors', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: WildfireA11yTheme.light,
@@ -116,8 +119,9 @@ void main() {
   });
 
   group('OutlinedButton Theme (Dark Mode)', () {
-    testWidgets('renders with correct border and colors',
-        (WidgetTester tester) async {
+    testWidgets('renders with correct border and colors', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: WildfireA11yTheme.dark,
@@ -150,8 +154,9 @@ void main() {
   });
 
   group('TextButton Theme (Light Mode)', () {
-    testWidgets('renders with correct colors and spacing',
-        (WidgetTester tester) async {
+    testWidgets('renders with correct colors and spacing', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: WildfireA11yTheme.light,
@@ -184,8 +189,9 @@ void main() {
   });
 
   group('TextButton Theme (Dark Mode)', () {
-    testWidgets('renders with correct colors and spacing',
-        (WidgetTester tester) async {
+    testWidgets('renders with correct colors and spacing', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: WildfireA11yTheme.dark,
@@ -218,8 +224,9 @@ void main() {
   });
 
   group('InputDecoration Theme (Light Mode)', () {
-    testWidgets('renders text fields with correct styling',
-        (WidgetTester tester) async {
+    testWidgets('renders text fields with correct styling', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: WildfireA11yTheme.light,
@@ -259,8 +266,9 @@ void main() {
   });
 
   group('InputDecoration Theme (Dark Mode)', () {
-    testWidgets('renders text fields with correct styling',
-        (WidgetTester tester) async {
+    testWidgets('renders text fields with correct styling', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: WildfireA11yTheme.dark,

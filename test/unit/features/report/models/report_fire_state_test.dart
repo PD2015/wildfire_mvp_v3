@@ -55,7 +55,9 @@ void main() {
         final clipboardText = location.toClipboardText();
 
         expect(
-            clipboardText, contains('Nearest place: Cairngorms National Park'));
+          clipboardText,
+          contains('Nearest place: Cairngorms National Park'),
+        );
         expect(clipboardText, contains('Coordinates: 57.04850, -3.59620'));
         expect(clipboardText, contains('what3words: ///slurs.this.name'));
       });
@@ -163,12 +165,15 @@ void main() {
         final after = DateTime.now();
 
         expect(
-            location.selectedAt
-                .isAfter(before.subtract(const Duration(seconds: 1))),
-            isTrue);
+          location.selectedAt.isAfter(
+            before.subtract(const Duration(seconds: 1)),
+          ),
+          isTrue,
+        );
         expect(
-            location.selectedAt.isBefore(after.add(const Duration(seconds: 1))),
-            isTrue);
+          location.selectedAt.isBefore(after.add(const Duration(seconds: 1))),
+          isTrue,
+        );
       });
     });
 

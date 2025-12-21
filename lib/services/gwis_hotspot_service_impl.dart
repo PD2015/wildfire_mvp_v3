@@ -76,10 +76,7 @@ class GwisHotspotServiceImpl implements GwisHotspotService {
       try {
         final response = await _httpClient.get(
           Uri.parse(url),
-          headers: {
-            'User-Agent': _userAgent,
-            'Accept': _acceptHeader,
-          },
+          headers: {'User-Agent': _userAgent, 'Accept': _acceptHeader},
         ).timeout(timeout);
 
         if (response.statusCode == 200) {
@@ -100,10 +97,12 @@ class GwisHotspotServiceImpl implements GwisHotspotService {
         }
 
         // Non-retriable error
-        return Left(ApiError(
-          message: 'GWIS request failed with status ${response.statusCode}',
-          statusCode: response.statusCode,
-        ));
+        return Left(
+          ApiError(
+            message: 'GWIS request failed with status ${response.statusCode}',
+            statusCode: response.statusCode,
+          ),
+        );
       } on TimeoutException {
         lastError = ApiError(message: 'GWIS request timed out');
         attempt++;

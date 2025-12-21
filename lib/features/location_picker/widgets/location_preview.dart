@@ -82,11 +82,7 @@ class LocationPreview extends StatelessWidget {
     final headerText = placeName ?? 'Selected Location';
     return Row(
       children: [
-        Icon(
-          Icons.location_on,
-          color: colorScheme.primary,
-          size: 24,
-        ),
+        Icon(Icons.location_on, color: colorScheme.primary, size: 24),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -179,11 +175,7 @@ class LocationPreview extends StatelessWidget {
 
     return Row(
       children: [
-        Icon(
-          Icons.my_location,
-          size: 16,
-          color: colorScheme.onSurfaceVariant,
-        ),
+        Icon(Icons.my_location, size: 16, color: colorScheme.onSurfaceVariant),
         const SizedBox(width: 8),
         SelectableText(
           coordText,

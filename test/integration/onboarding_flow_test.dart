@@ -37,30 +37,29 @@ void main() {
           // Stub routes for terms and privacy navigation
           GoRoute(
             path: '/settings/about/terms',
-            builder: (context, state) => const Scaffold(
-              body: Center(child: Text('Terms Page')),
-            ),
+            builder: (context, state) =>
+                const Scaffold(body: Center(child: Text('Terms Page'))),
           ),
           GoRoute(
             path: '/settings/about/privacy',
-            builder: (context, state) => const Scaffold(
-              body: Center(child: Text('Privacy Page')),
-            ),
+            builder: (context, state) =>
+                const Scaffold(body: Center(child: Text('Privacy Page'))),
           ),
         ],
       );
 
-      return MaterialApp.router(
-        routerConfig: router,
-      );
+      return MaterialApp.router(routerConfig: router);
     }
 
     /// Helper to tap a button by finding it via FilledButton with text.
     /// Scrolls to make the button visible before tapping.
     Future<void> tapFilledButton(WidgetTester tester, String buttonText) async {
       final button = find.widgetWithText(FilledButton, buttonText);
-      expect(button, findsOneWidget,
-          reason: 'FilledButton "$buttonText" should be visible');
+      expect(
+        button,
+        findsOneWidget,
+        reason: 'FilledButton "$buttonText" should be visible',
+      );
 
       // Scroll to make the button visible
       await tester.ensureVisible(button);
@@ -74,8 +73,11 @@ void main() {
     /// Taps on the actual Checkbox widget (not the full tile) to avoid hitting embedded links.
     Future<void> tapCheckbox(WidgetTester tester, Key key) async {
       final checkboxTile = find.byKey(key);
-      expect(checkboxTile, findsOneWidget,
-          reason: 'Checkbox with key $key should be visible');
+      expect(
+        checkboxTile,
+        findsOneWidget,
+        reason: 'Checkbox with key $key should be visible',
+      );
 
       // Scroll to make the checkbox visible
       await tester.ensureVisible(checkboxTile);
@@ -86,8 +88,11 @@ void main() {
         of: checkboxTile,
         matching: find.byType(Checkbox),
       );
-      expect(checkbox, findsOneWidget,
-          reason: 'Checkbox inside tile should be found');
+      expect(
+        checkbox,
+        findsOneWidget,
+        reason: 'Checkbox inside tile should be found',
+      );
       await tester.tap(checkbox);
       await tester.pumpAndSettle();
     }
@@ -95,8 +100,11 @@ void main() {
     /// Helper to tap the Back button, scrolling if needed.
     Future<void> tapBackButton(WidgetTester tester) async {
       final backButton = find.text('Back');
-      expect(backButton, findsOneWidget,
-          reason: 'Back button should be visible');
+      expect(
+        backButton,
+        findsOneWidget,
+        reason: 'Back button should be visible',
+      );
 
       // Scroll to make the button visible
       await tester.ensureVisible(backButton);
@@ -106,8 +114,9 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('complete onboarding flow - fresh install to home',
-        (tester) async {
+    testWidgets('complete onboarding flow - fresh install to home', (
+      tester,
+    ) async {
       // Set a large surface size to accommodate all onboarding content
       await tester.binding.setSurfaceSize(const Size(600, 1600));
       addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -159,8 +168,9 @@ void main() {
       expect(isRequired, isFalse);
     });
 
-    testWidgets('persistence - completed onboarding is remembered',
-        (tester) async {
+    testWidgets('persistence - completed onboarding is remembered', (
+      tester,
+    ) async {
       // Pre-populate with completed onboarding state
       SharedPreferences.setMockInitialValues({
         OnboardingConfig.keyOnboardingVersion:
@@ -188,9 +198,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(600, 1600));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(
-        createTestApp(prefsService: prefsService),
-      );
+      await tester.pumpWidget(createTestApp(prefsService: prefsService));
       await tester.pumpAndSettle();
 
       // Navigate to setup page
@@ -224,9 +232,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(600, 1600));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(
-        createTestApp(prefsService: prefsService),
-      );
+      await tester.pumpWidget(createTestApp(prefsService: prefsService));
       await tester.pumpAndSettle();
 
       // Page 1
@@ -234,8 +240,10 @@ void main() {
 
       // Navigate to page 2
       await tapFilledButton(tester, 'Continue');
-      expect(find.bySemanticsLabel('Step 2 of 4: Safety information'),
-          findsOneWidget);
+      expect(
+        find.bySemanticsLabel('Step 2 of 4: Safety information'),
+        findsOneWidget,
+      );
 
       // Navigate to page 3
       await tapFilledButton(tester, 'I Understand');
@@ -250,9 +258,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(600, 1600));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(
-        createTestApp(prefsService: prefsService),
-      );
+      await tester.pumpWidget(createTestApp(prefsService: prefsService));
       await tester.pumpAndSettle();
 
       // Navigate to setup page
@@ -271,14 +277,13 @@ void main() {
       expect(filledButton.onPressed, isNull);
     });
 
-    testWidgets('complete button enables after accepting both checkboxes',
-        (tester) async {
+    testWidgets('complete button enables after accepting both checkboxes', (
+      tester,
+    ) async {
       await tester.binding.setSurfaceSize(const Size(600, 1600));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(
-        createTestApp(prefsService: prefsService),
-      );
+      await tester.pumpWidget(createTestApp(prefsService: prefsService));
       await tester.pumpAndSettle();
 
       // Navigate to setup page
@@ -316,9 +321,7 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(600, 1600));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(
-        createTestApp(prefsService: prefsService),
-      );
+      await tester.pumpWidget(createTestApp(prefsService: prefsService));
       await tester.pumpAndSettle();
 
       // Navigate to page 4

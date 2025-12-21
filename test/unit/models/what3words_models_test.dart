@@ -66,8 +66,9 @@ void main() {
       });
 
       test('rejects words with hyphens', () {
-        final result =
-            What3wordsAddress.tryParse('word-one.word-two.word-three');
+        final result = What3wordsAddress.tryParse(
+          'word-one.word-two.word-three',
+        );
         expect(result, isNull);
       });
 
@@ -121,9 +122,13 @@ void main() {
 
       test('returns true with slash prefix', () {
         expect(
-            What3wordsAddress.looksLikeWhat3words('/word.word.word'), isTrue);
+          What3wordsAddress.looksLikeWhat3words('/word.word.word'),
+          isTrue,
+        );
         expect(
-            What3wordsAddress.looksLikeWhat3words('///word.word.word'), isTrue);
+          What3wordsAddress.looksLikeWhat3words('///word.word.word'),
+          isTrue,
+        );
       });
 
       test('returns false for invalid format', () {
@@ -192,35 +197,49 @@ void main() {
   group('What3wordsError hierarchy', () {
     group('What3wordsApiError', () {
       test('provides user message for InvalidKey', () {
-        const error =
-            What3wordsApiError(code: 'InvalidKey', message: 'Key invalid');
+        const error = What3wordsApiError(
+          code: 'InvalidKey',
+          message: 'Key invalid',
+        );
         expect(error.userMessage, equals('what3words service unavailable'));
       });
 
       test('provides user message for InvalidInput', () {
-        const error =
-            What3wordsApiError(code: 'InvalidInput', message: 'Bad input');
+        const error = What3wordsApiError(
+          code: 'InvalidInput',
+          message: 'Bad input',
+        );
         expect(error.userMessage, equals('Invalid what3words address'));
       });
 
       test('provides user message for QuotaExceeded', () {
-        const error =
-            What3wordsApiError(code: 'QuotaExceeded', message: 'Limit');
-        expect(error.userMessage,
-            equals('what3words limit reached, try again later'));
+        const error = What3wordsApiError(
+          code: 'QuotaExceeded',
+          message: 'Limit',
+        );
+        expect(
+          error.userMessage,
+          equals('what3words limit reached, try again later'),
+        );
       });
 
       test('provides user message for BadWords', () {
-        const error =
-            What3wordsApiError(code: 'BadWords', message: 'Not found');
+        const error = What3wordsApiError(
+          code: 'BadWords',
+          message: 'Not found',
+        );
         expect(error.userMessage, equals('what3words address not found'));
       });
 
       test('provides fallback user message for unknown codes', () {
-        const error =
-            What3wordsApiError(code: 'Unknown', message: 'Something happened');
+        const error = What3wordsApiError(
+          code: 'Unknown',
+          message: 'Something happened',
+        );
         expect(
-            error.userMessage, equals('what3words error: Something happened'));
+          error.userMessage,
+          equals('what3words error: Something happened'),
+        );
       });
 
       test('includes status code in toString', () {

@@ -19,54 +19,42 @@ void main() {
           // Stub routes for navigation testing
           GoRoute(
             path: '/help/getting-started/how-to-use',
-            builder: (context, state) => const Scaffold(
-              body: Text('How to Use'),
-            ),
+            builder: (context, state) =>
+                const Scaffold(body: Text('How to Use')),
           ),
           GoRoute(
             path: '/help/getting-started/risk-levels',
-            builder: (context, state) => const Scaffold(
-              body: Text('Risk Levels'),
-            ),
+            builder: (context, state) =>
+                const Scaffold(body: Text('Risk Levels')),
           ),
           GoRoute(
             path: '/help/getting-started/when-to-use',
-            builder: (context, state) => const Scaffold(
-              body: Text('When to Use'),
-            ),
+            builder: (context, state) =>
+                const Scaffold(body: Text('When to Use')),
           ),
           GoRoute(
             path: '/help/wildfire-education/understanding-risk',
-            builder: (context, state) => const Scaffold(
-              body: Text('Understanding Risk'),
-            ),
+            builder: (context, state) =>
+                const Scaffold(body: Text('Understanding Risk')),
           ),
           GoRoute(
             path: '/help/using-the-map/hotspots',
-            builder: (context, state) => const Scaffold(
-              body: Text('Hotspots'),
-            ),
+            builder: (context, state) => const Scaffold(body: Text('Hotspots')),
           ),
           GoRoute(
             path: '/help/safety/see-fire',
-            builder: (context, state) => const Scaffold(
-              body: Text('See Fire'),
-            ),
+            builder: (context, state) => const Scaffold(body: Text('See Fire')),
           ),
           GoRoute(
             path: '/help/about',
-            builder: (context, state) => const Scaffold(
-              body: Text('About'),
-            ),
+            builder: (context, state) => const Scaffold(body: Text('About')),
           ),
         ],
       );
     });
 
     Widget buildTestWidget() {
-      return MaterialApp.router(
-        routerConfig: router,
-      );
+      return MaterialApp.router(routerConfig: router);
     }
 
     testWidgets('renders Help & Info title in AppBar', (tester) async {
@@ -93,8 +81,9 @@ void main() {
       expect(find.text('Understanding wildfire risk'), findsOneWidget);
     });
 
-    testWidgets('renders Using the Map section after scrolling',
-        (tester) async {
+    testWidgets('renders Using the Map section after scrolling', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
@@ -124,8 +113,9 @@ void main() {
       expect(find.text('What hotspots show'), findsOneWidget);
     });
 
-    testWidgets('renders Safety & Responsibility section after scrolling',
-        (tester) async {
+    testWidgets('renders Safety & Responsibility section after scrolling', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 
@@ -165,8 +155,9 @@ void main() {
       expect(find.text('How to Use'), findsOneWidget);
     });
 
-    testWidgets('tapping What to do if you see fire navigates correctly',
-        (tester) async {
+    testWidgets('tapping What to do if you see fire navigates correctly', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWidget());
       await tester.pumpAndSettle();
 

@@ -20,8 +20,9 @@ void main() {
       expect(find.byIcon(Icons.terrain), findsOneWidget);
     });
 
-    testWidgets('displays satellite icon for satellite map type',
-        (tester) async {
+    testWidgets('displays satellite icon for satellite map type', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -89,8 +90,9 @@ void main() {
       expect(find.text('Normal'), findsOneWidget);
     });
 
-    testWidgets('calls onMapTypeChanged when menu item selected',
-        (tester) async {
+    testWidgets('calls onMapTypeChanged when menu item selected', (
+      tester,
+    ) async {
       MapType? selectedType;
 
       await tester.pumpWidget(
@@ -117,8 +119,9 @@ void main() {
       expect(selectedType, equals(MapType.satellite));
     });
 
-    testWidgets('highlights currently selected map type in menu',
-        (tester) async {
+    testWidgets('highlights currently selected map type in menu', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -165,8 +168,9 @@ void main() {
       expect(semanticsFinder, findsOneWidget);
     });
 
-    testWidgets('uses grey icon color matching Google Maps style',
-        (tester) async {
+    testWidgets('uses grey icon color matching Google Maps style', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(useMaterial3: true),
@@ -181,14 +185,16 @@ void main() {
 
       // Get the icon and verify it uses onSurfaceVariant color
       final icon = tester.widget<Icon>(find.byIcon(Icons.terrain));
-      final colorScheme =
-          Theme.of(tester.element(find.byType(MapTypeSelector))).colorScheme;
+      final colorScheme = Theme.of(
+        tester.element(find.byType(MapTypeSelector)),
+      ).colorScheme;
 
       expect(icon.color, equals(colorScheme.onSurfaceVariant));
     });
 
-    testWidgets('has container with rounded corners and shadow',
-        (tester) async {
+    testWidgets('has container with rounded corners and shadow', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

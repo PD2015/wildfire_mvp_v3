@@ -128,8 +128,9 @@ void main() {
       expect(find.text('Privacy Policy'), findsOneWidget);
     });
 
-    testWidgets('calls onTermsChanged when terms checkbox toggled',
-        (tester) async {
+    testWidgets('calls onTermsChanged when terms checkbox toggled', (
+      tester,
+    ) async {
       bool? accepted;
 
       await tester.pumpWidget(
@@ -162,8 +163,9 @@ void main() {
       expect(accepted, isTrue);
     });
 
-    testWidgets('calls onDisclaimerChanged when disclaimer checkbox toggled',
-        (tester) async {
+    testWidgets('calls onDisclaimerChanged when disclaimer checkbox toggled', (
+      tester,
+    ) async {
       bool? acknowledged;
 
       await tester.pumpWidget(
@@ -219,8 +221,9 @@ void main() {
       );
     });
 
-    testWidgets('Complete button disabled when terms not accepted',
-        (tester) async {
+    testWidgets('Complete button disabled when terms not accepted', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -244,8 +247,9 @@ void main() {
       expect(button.onPressed, isNull);
     });
 
-    testWidgets('Complete button enabled when both checkboxes checked',
-        (tester) async {
+    testWidgets('Complete button enabled when both checkboxes checked', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -269,8 +273,9 @@ void main() {
       expect(button.onPressed, isNotNull);
     });
 
-    testWidgets('Complete button disabled when disclaimer not acknowledged',
-        (tester) async {
+    testWidgets('Complete button disabled when disclaimer not acknowledged', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -294,8 +299,9 @@ void main() {
       expect(button.onPressed, isNull);
     });
 
-    testWidgets('calls onComplete when button tapped with terms accepted',
-        (tester) async {
+    testWidgets('calls onComplete when button tapped with terms accepted', (
+      tester,
+    ) async {
       var called = false;
 
       await tester.pumpWidget(
@@ -338,13 +344,15 @@ void main() {
 
       expect(
         find.text(
-            'Please acknowledge the disclaimer and accept the terms to continue'),
+          'Please acknowledge the disclaimer and accept the terms to continue',
+        ),
         findsOneWidget,
       );
     });
 
-    testWidgets('hides helper text when both checkboxes checked',
-        (tester) async {
+    testWidgets('hides helper text when both checkboxes checked', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -363,7 +371,8 @@ void main() {
 
       expect(
         find.text(
-            'Please acknowledge the disclaimer and accept the terms to continue'),
+          'Please acknowledge the disclaimer and accept the terms to continue',
+        ),
         findsNothing,
       );
     });
@@ -435,10 +444,7 @@ void main() {
         ),
       );
 
-      expect(
-        find.text("You won't receive fire notifications"),
-        findsOneWidget,
-      );
+      expect(find.text("You won't receive fire notifications"), findsOneWidget);
     });
 
     testWidgets('shows radius description with km value', (tester) async {
@@ -460,7 +466,8 @@ void main() {
 
       expect(
         find.text(
-            "You'll be notified about fires within 25 km of your location"),
+          "You'll be notified about fires within 25 km of your location",
+        ),
         findsOneWidget,
       );
     });

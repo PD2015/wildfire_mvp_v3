@@ -58,11 +58,7 @@ class PolygonSimplifier {
     // Ensure minimum 3 points for valid polygon
     if (simplified.length < 3) {
       // Return first, middle, and last points
-      return [
-        points.first,
-        points[points.length ~/ 2],
-        points.last,
-      ];
+      return [points.first, points[points.length ~/ 2], points.last];
     }
 
     return simplified;
@@ -95,10 +91,7 @@ class PolygonSimplifier {
         points.sublist(0, maxIndex + 1),
         epsilon,
       );
-      final rightResult = _douglasPeucker(
-        points.sublist(maxIndex),
-        epsilon,
-      );
+      final rightResult = _douglasPeucker(points.sublist(maxIndex), epsilon);
 
       // Combine results, removing duplicate middle point
       return [...leftResult.sublist(0, leftResult.length - 1), ...rightResult];

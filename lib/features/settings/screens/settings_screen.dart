@@ -16,10 +16,7 @@ class SettingsScreen extends StatelessWidget {
   /// Whether developer options are unlocked (for release builds)
   final bool devOptionsUnlocked;
 
-  const SettingsScreen({
-    super.key,
-    this.devOptionsUnlocked = false,
-  });
+  const SettingsScreen({super.key, this.devOptionsUnlocked = false});
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +24,7 @@ class SettingsScreen extends StatelessWidget {
     final showAdvanced = kDebugMode || devOptionsUnlocked;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: SafeArea(
         child: ListView(
           children: [
@@ -75,10 +70,7 @@ class SettingsScreen extends StatelessWidget {
             // Advanced section (gated)
             if (showAdvanced) ...[
               const Divider(),
-              _SectionHeader(
-                title: 'Advanced',
-                color: theme.colorScheme.error,
-              ),
+              _SectionHeader(title: 'Advanced', color: theme.colorScheme.error),
               _SettingsTile(
                 icon: Icons.developer_mode,
                 title: 'Developer Options',
@@ -101,10 +93,7 @@ class _SectionHeader extends StatelessWidget {
   final String title;
   final Color? color;
 
-  const _SectionHeader({
-    required this.title,
-    this.color,
-  });
+  const _SectionHeader({required this.title, this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -113,10 +102,7 @@ class _SectionHeader extends StatelessWidget {
     return Semantics(
       header: true,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Text(
           title.toUpperCase(),
           style: theme.textTheme.titleSmall?.copyWith(
@@ -156,16 +142,14 @@ class _SettingsTile extends StatelessWidget {
         : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5);
 
     return ListTile(
-      leading: Icon(
-        icon,
-        color: effectiveIconColor,
-      ),
+      leading: Icon(icon, color: effectiveIconColor),
       title: Text(
         title,
         style: enabled
             ? null
             : TextStyle(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+              ),
       ),
       subtitle: Text(
         subtitle,

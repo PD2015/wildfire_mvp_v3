@@ -86,16 +86,20 @@ class OnboardingController extends ChangeNotifier {
 
       if (isMigration) {
         final previousVersion = await _prefsService.getPreviousVersion();
-        _updateState(OnboardingMigration(
-          previousVersion: previousVersion,
-          currentVersion: OnboardingConfig.currentOnboardingVersion,
-        ));
+        _updateState(
+          OnboardingMigration(
+            previousVersion: previousVersion,
+            currentVersion: OnboardingConfig.currentOnboardingVersion,
+          ),
+        );
       } else {
-        _updateState(OnboardingActive(
-          currentPage: 0,
-          selectedRadiusKm: previousRadius,
-          termsChecked: false,
-        ));
+        _updateState(
+          OnboardingActive(
+            currentPage: 0,
+            selectedRadiusKm: previousRadius,
+            termsChecked: false,
+          ),
+        );
       }
     } catch (e) {
       developer.log(
@@ -104,9 +108,7 @@ class OnboardingController extends ChangeNotifier {
         level: 1000, // Warning level
       );
       // Default to requiring onboarding on error
-      _updateState(const OnboardingActive(
-        currentPage: 0,
-      ));
+      _updateState(const OnboardingActive(currentPage: 0));
     }
   }
 
@@ -121,10 +123,7 @@ class OnboardingController extends ChangeNotifier {
     final nextPageIndex = currentState.currentPage + 1;
     if (nextPageIndex >= 4) return; // Max 4 pages (0-3)
 
-    developer.log(
-      'Advancing to page $nextPageIndex',
-      name: 'Onboarding',
-    );
+    developer.log('Advancing to page $nextPageIndex', name: 'Onboarding');
 
     _updateState(currentState.copyWith(currentPage: nextPageIndex));
   }
@@ -191,10 +190,7 @@ class OnboardingController extends ChangeNotifier {
     try {
       final result = await _locationResolver!.getLatLon();
 
-      final success = result.fold(
-        (error) => false,
-        (location) => true,
-      );
+      final success = result.fold((error) => false, (location) => true);
 
       if (success) {
         developer.log('Location permission granted', name: 'Onboarding');
@@ -208,10 +204,12 @@ class OnboardingController extends ChangeNotifier {
       // Update state regardless of result
       final updatedState = _state;
       if (updatedState is OnboardingActive) {
-        _updateState(updatedState.copyWith(
-          isRequestingLocation: false,
-          locationPermissionGranted: success,
-        ));
+        _updateState(
+          updatedState.copyWith(
+            isRequestingLocation: false,
+            locationPermissionGranted: success,
+          ),
+        );
       }
     } catch (e) {
       developer.log(

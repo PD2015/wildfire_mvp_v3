@@ -158,10 +158,7 @@ void main() {
       test('converts local time to UTC for display', () {
         // Create a local time that would be different in UTC
         final localTime = DateTime(2025, 12, 10, 14, 30);
-        final record = ConsentRecord(
-          termsVersion: 1,
-          acceptedAt: localTime,
-        );
+        final record = ConsentRecord(termsVersion: 1, acceptedAt: localTime);
 
         // Should display UTC time
         expect(record.formattedDate, contains('UTC'));

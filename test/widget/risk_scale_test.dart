@@ -58,7 +58,9 @@ void main() {
         const MaterialApp(
           home: Scaffold(
             body: RiskScale(
-                currentLevel: RiskLevel.veryLow, textColor: RiskPalette.white),
+              currentLevel: RiskLevel.veryLow,
+              textColor: RiskPalette.white,
+            ),
           ),
         ),
       );
@@ -83,8 +85,9 @@ void main() {
       );
     });
 
-    testWidgets('displays level labels when showLabels is true',
-        (tester) async {
+    testWidgets('displays level labels when showLabels is true', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -130,14 +133,17 @@ void main() {
         const MaterialApp(
           home: Scaffold(
             body: RiskScale(
-                currentLevel: RiskLevel.extreme, textColor: RiskPalette.white),
+              currentLevel: RiskLevel.extreme,
+              textColor: RiskPalette.white,
+            ),
           ),
         ),
       );
 
       // Get all AnimatedContainer widgets
-      final containers =
-          tester.widgetList<AnimatedContainer>(find.byType(AnimatedContainer));
+      final containers = tester.widgetList<AnimatedContainer>(
+        find.byType(AnimatedContainer),
+      );
 
       // Verify each container has a decoration with a color from RiskPalette
       final expectedColors = [
@@ -222,7 +228,9 @@ void main() {
         const MaterialApp(
           home: Scaffold(
             body: RiskScale(
-                currentLevel: RiskLevel.veryHigh, textColor: RiskPalette.white),
+              currentLevel: RiskLevel.veryHigh,
+              textColor: RiskPalette.white,
+            ),
           ),
         ),
       );
@@ -233,8 +241,9 @@ void main() {
           (widget) =>
               widget is Semantics &&
               widget.properties.label != null &&
-              widget.properties.label!
-                  .contains('Risk scale showing VERY HIGH highlighted'),
+              widget.properties.label!.contains(
+                'Risk scale showing VERY HIGH highlighted',
+              ),
         ),
       );
 

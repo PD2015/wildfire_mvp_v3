@@ -30,9 +30,7 @@ void main() {
       });
 
       test('test factory creates valid instance with defaults', () {
-        final burntArea = BurntArea.test(
-          boundaryPoints: testBoundary,
-        );
+        final burntArea = BurntArea.test(boundaryPoints: testBoundary);
 
         expect(burntArea.boundaryPoints, equals(testBoundary));
         expect(burntArea.areaHectares, equals(50.0)); // default
@@ -58,10 +56,7 @@ void main() {
         expect(
           () => BurntArea.validated(
             id: 'test',
-            boundaryPoints: const [
-              LatLng(55.0, -3.0),
-              LatLng(55.1, -3.1),
-            ],
+            boundaryPoints: const [LatLng(55.0, -3.0), LatLng(55.1, -3.1)],
             areaHectares: 50.0,
             fireDate: testFireDate,
             seasonYear: 2025,
@@ -262,10 +257,7 @@ void main() {
               ],
             ],
           },
-          'properties': {
-            'area_ha': 50.0,
-            'firedate': '2024-05-15',
-          },
+          'properties': {'area_ha': 50.0, 'firedate': '2024-05-15'},
         };
 
         final burntArea = BurntArea.fromJson(json);
@@ -309,8 +301,10 @@ void main() {
         expect(restored.id, equals(original.id));
         expect(restored.areaHectares, equals(original.areaHectares));
         expect(restored.seasonYear, equals(original.seasonYear));
-        expect(restored.boundaryPoints.length,
-            equals(original.boundaryPoints.length));
+        expect(
+          restored.boundaryPoints.length,
+          equals(original.boundaryPoints.length),
+        );
       });
     });
 

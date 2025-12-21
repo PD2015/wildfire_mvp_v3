@@ -102,29 +102,32 @@ class TimeFilterChips extends StatelessWidget {
   }
 
   Widget _buildBurntAreaFilters(BuildContext context, ColorScheme colorScheme) {
+    final thisSeasonYear = BurntAreaSeasonFilter.thisSeason.year;
+    final lastSeasonYear = BurntAreaSeasonFilter.lastSeason.year;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildFilterChip(
           context: context,
           colorScheme: colorScheme,
-          label: 'This Season',
+          label: '$thisSeasonYear',
           isSelected: burntAreaFilter == BurntAreaSeasonFilter.thisSeason,
           onSelected: enabled
               ? () => onBurntAreaFilterChanged(BurntAreaSeasonFilter.thisSeason)
               : null,
-          tooltip: 'Show burnt areas from the current fire season',
+          tooltip: 'Show burnt areas from $thisSeasonYear fire season',
         ),
         const SizedBox(width: 4),
         _buildFilterChip(
           context: context,
           colorScheme: colorScheme,
-          label: 'Last Season',
+          label: '$lastSeasonYear',
           isSelected: burntAreaFilter == BurntAreaSeasonFilter.lastSeason,
           onSelected: enabled
               ? () => onBurntAreaFilterChanged(BurntAreaSeasonFilter.lastSeason)
               : null,
-          tooltip: 'Show burnt areas from last year\'s fire season',
+          tooltip: 'Show burnt areas from $lastSeasonYear fire season',
         ),
       ],
     );
@@ -149,10 +152,7 @@ class TimeFilterChips extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           child: Container(
             // Ensure minimum 44dp touch target
-            constraints: const BoxConstraints(
-              minHeight: 36,
-              minWidth: 44,
-            ),
+            constraints: const BoxConstraints(minHeight: 36, minWidth: 44),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             alignment: Alignment.center,
             child: Text(

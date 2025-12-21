@@ -31,11 +31,7 @@ class CrosshairOverlay extends StatelessWidget {
   ///
   /// [size] - Total size of the crosshair area (default 48dp)
   /// [iconSize] - Size of the icon within the area (default 36dp)
-  const CrosshairOverlay({
-    super.key,
-    this.size = 48.0,
-    this.iconSize = 36.0,
-  });
+  const CrosshairOverlay({super.key, this.size = 48.0, this.iconSize = 36.0});
 
   /// Total size of the crosshair container
   final double size;

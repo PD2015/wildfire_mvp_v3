@@ -113,11 +113,7 @@ class MapTypeToggle extends StatelessWidget {
             height: 48, // C3 compliance: ≥48dp
             child: Tooltip(
               message: 'Switch to $_nextLabel view',
-              child: Icon(
-                _currentIcon,
-                color: colorScheme.onSurface,
-                size: 24,
-              ),
+              child: Icon(_currentIcon, color: colorScheme.onSurface, size: 24),
             ),
           ),
         ),

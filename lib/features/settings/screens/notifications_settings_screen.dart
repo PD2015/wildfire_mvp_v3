@@ -13,9 +13,7 @@ class NotificationsSettingsScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Alert Settings'),
-      ),
+      appBar: AppBar(title: const Text('Alert Settings')),
       body: SafeArea(
         child: ListView(
           children: [
@@ -63,10 +61,7 @@ class NotificationsSettingsScreen extends StatelessWidget {
 
             // Alert types section
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Semantics(
                 header: true,
                 child: Text(
@@ -104,10 +99,7 @@ class NotificationsSettingsScreen extends StatelessWidget {
 
             // Distance setting section
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Semantics(
                 header: true,
                 child: Text(
@@ -156,19 +148,11 @@ class _DisabledSettingsTile extends StatelessWidget {
     final disabledColor = theme.colorScheme.onSurface.withValues(alpha: 0.38);
 
     return ListTile(
-      leading: Icon(
-        icon,
-        color: disabledColor,
-      ),
-      title: Text(
-        title,
-        style: TextStyle(color: disabledColor),
-      ),
+      leading: Icon(icon, color: disabledColor),
+      title: Text(title, style: TextStyle(color: disabledColor)),
       subtitle: Text(
         subtitle,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: disabledColor,
-        ),
+        style: theme.textTheme.bodySmall?.copyWith(color: disabledColor),
       ),
       trailing: trailing,
       enabled: false,

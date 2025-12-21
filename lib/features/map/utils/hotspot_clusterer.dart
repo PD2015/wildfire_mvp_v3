@@ -30,8 +30,11 @@ class HotspotClusterer {
   /// The formula accounts for:
   /// - Zoom level: each zoom level halves the meters per pixel
   /// - Latitude: meters per pixel decreases towards the poles
-  static double pixelsToMeters(double pixels, double zoom,
-      {double latitude = 56.0}) {
+  static double pixelsToMeters(
+    double pixels,
+    double zoom, {
+    double latitude = 56.0,
+  }) {
     // At higher zoom levels, each pixel represents fewer meters
     // Formula: metersPerPixel = baseMetersPerPixel / 2^zoom * cos(latitude)
     final double metersPerPixel = _metersPerPixelAtZoom0 *
@@ -47,8 +50,10 @@ class HotspotClusterer {
   /// - Zoom 5: ~60px ≈ 1.6 km radius
   /// - Zoom 7: ~60px ≈ 400m radius
   /// - Zoom 9: ~60px ≈ 100m radius
-  static double getClusterRadiusMeters(double zoom,
-      {double radiusPixels = defaultRadiusPixels}) {
+  static double getClusterRadiusMeters(
+    double zoom, {
+    double radiusPixels = defaultRadiusPixels,
+  }) {
     return pixelsToMeters(radiusPixels, zoom);
   }
 
@@ -118,10 +123,9 @@ class HotspotClusterer {
         }
       }
 
-      clusters.add(HotspotCluster.fromHotspots(
-        id: 'cluster_$i',
-        hotspots: clusterMembers,
-      ));
+      clusters.add(
+        HotspotCluster.fromHotspots(id: 'cluster_$i', hotspots: clusterMembers),
+      );
     }
 
     return clusters;

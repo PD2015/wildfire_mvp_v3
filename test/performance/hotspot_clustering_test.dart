@@ -42,15 +42,19 @@ void main() {
       stopwatch.stop();
 
       print(
-          '✅ 100 hotspots → ${clusters.length} clusters in ${stopwatch.elapsedMilliseconds}ms');
+        '✅ 100 hotspots → ${clusters.length} clusters in ${stopwatch.elapsedMilliseconds}ms',
+      );
 
       expect(
         stopwatch.elapsedMilliseconds,
         lessThan(50),
         reason: '100 hotspots should cluster in < 50ms',
       );
-      expect(clusters, isNotEmpty,
-          reason: 'Should produce at least one cluster');
+      expect(
+        clusters,
+        isNotEmpty,
+        reason: 'Should produce at least one cluster',
+      );
     });
 
     test('500 hotspots clustered in < 200ms', () {
@@ -61,15 +65,19 @@ void main() {
       stopwatch.stop();
 
       print(
-          '✅ 500 hotspots → ${clusters.length} clusters in ${stopwatch.elapsedMilliseconds}ms');
+        '✅ 500 hotspots → ${clusters.length} clusters in ${stopwatch.elapsedMilliseconds}ms',
+      );
 
       expect(
         stopwatch.elapsedMilliseconds,
         lessThan(200),
         reason: '500 hotspots should cluster in < 200ms',
       );
-      expect(clusters, isNotEmpty,
-          reason: 'Should produce at least one cluster');
+      expect(
+        clusters,
+        isNotEmpty,
+        reason: 'Should produce at least one cluster',
+      );
     });
 
     test('1000 hotspots clustered in < 500ms', () {
@@ -80,15 +88,19 @@ void main() {
       stopwatch.stop();
 
       print(
-          '✅ 1000 hotspots → ${clusters.length} clusters in ${stopwatch.elapsedMilliseconds}ms');
+        '✅ 1000 hotspots → ${clusters.length} clusters in ${stopwatch.elapsedMilliseconds}ms',
+      );
 
       expect(
         stopwatch.elapsedMilliseconds,
         lessThan(500),
         reason: '1000 hotspots should cluster in < 500ms (extended test)',
       );
-      expect(clusters, isNotEmpty,
-          reason: 'Should produce at least one cluster');
+      expect(
+        clusters,
+        isNotEmpty,
+        reason: 'Should produce at least one cluster',
+      );
     });
 
     test('empty hotspot list returns empty cluster list', () {
@@ -142,7 +154,8 @@ void main() {
       stopwatch.stop();
 
       print(
-          '✅ 10 nearby hotspots → ${clusters.length} clusters in ${stopwatch.elapsedMilliseconds}ms');
+        '✅ 10 nearby hotspots → ${clusters.length} clusters in ${stopwatch.elapsedMilliseconds}ms',
+      );
 
       // All should be in 1-2 clusters at most
       expect(clusters.length, lessThanOrEqualTo(2));
@@ -193,7 +206,8 @@ void main() {
       stopwatch.stop();
 
       print(
-          '✅ 5 distant hotspots → ${clusters.length} clusters in ${stopwatch.elapsedMilliseconds}ms');
+        '✅ 5 distant hotspots → ${clusters.length} clusters in ${stopwatch.elapsedMilliseconds}ms',
+      );
 
       // Each should be in its own cluster (or very few clusters)
       expect(clusters.length, greaterThanOrEqualTo(3));

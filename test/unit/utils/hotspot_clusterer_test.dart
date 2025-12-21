@@ -161,8 +161,10 @@ void main() {
           ),
         ];
 
-        final result = HotspotClusterer.cluster(hotspots,
-            zoom: HotspotClusterer.maxClusterZoom);
+        final result = HotspotClusterer.cluster(
+          hotspots,
+          zoom: HotspotClusterer.maxClusterZoom,
+        );
 
         // Even though they're close, at max zoom they're separate
         expect(result.length, 2);
@@ -207,22 +209,34 @@ void main() {
         // At zoom 0, 60 pixels at latitude 56 (Scotland):
         // metersPerPixel = 156543.03392 * cos(56°) = ~87,538 m/px
         // 60 pixels = ~5,252 km
-        final radiusAtZoom0 =
-            HotspotClusterer.pixelsToMeters(60.0, 0.0, latitude: 56.0);
+        final radiusAtZoom0 = HotspotClusterer.pixelsToMeters(
+          60.0,
+          0.0,
+          latitude: 56.0,
+        );
         expect(radiusAtZoom0, closeTo(5252000, 10000)); // ~5252 km
 
         // Each zoom level halves the radius
-        final radiusAtZoom1 =
-            HotspotClusterer.pixelsToMeters(60.0, 1.0, latitude: 56.0);
+        final radiusAtZoom1 = HotspotClusterer.pixelsToMeters(
+          60.0,
+          1.0,
+          latitude: 56.0,
+        );
         expect(radiusAtZoom1, closeTo(radiusAtZoom0 / 2, 5000));
       });
 
       test('accounts for latitude', () {
         // At higher latitudes, radius should be smaller (cos factor)
-        final radiusAtEquator =
-            HotspotClusterer.pixelsToMeters(60.0, 6.0, latitude: 0.0);
-        final radiusAtScotland =
-            HotspotClusterer.pixelsToMeters(60.0, 6.0, latitude: 56.0);
+        final radiusAtEquator = HotspotClusterer.pixelsToMeters(
+          60.0,
+          6.0,
+          latitude: 0.0,
+        );
+        final radiusAtScotland = HotspotClusterer.pixelsToMeters(
+          60.0,
+          6.0,
+          latitude: 56.0,
+        );
 
         expect(radiusAtScotland, lessThan(radiusAtEquator));
       });
@@ -240,10 +254,14 @@ void main() {
       });
 
       test('accepts custom pixel radius', () {
-        final smallRadius =
-            HotspotClusterer.getClusterRadiusMeters(6.0, radiusPixels: 30.0);
-        final largeRadius =
-            HotspotClusterer.getClusterRadiusMeters(6.0, radiusPixels: 120.0);
+        final smallRadius = HotspotClusterer.getClusterRadiusMeters(
+          6.0,
+          radiusPixels: 30.0,
+        );
+        final largeRadius = HotspotClusterer.getClusterRadiusMeters(
+          6.0,
+          radiusPixels: 120.0,
+        );
 
         expect(largeRadius, greaterThan(smallRadius));
         expect(largeRadius, closeTo(smallRadius * 4, 100));

@@ -22,10 +22,7 @@ class DemoDataChip extends StatelessWidget {
   /// Optional custom warning text (defaults to "DEMO DATA")
   final String? label;
 
-  const DemoDataChip({
-    super.key,
-    this.label,
-  });
+  const DemoDataChip({super.key, this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -46,10 +43,7 @@ class DemoDataChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: amberBackground,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: amberBorder,
-            width: 2,
-          ),
+          border: Border.all(color: amberBorder, width: 2),
           boxShadow: [
             BoxShadow(
               color: colorScheme.shadow.withValues(alpha: 0.2),

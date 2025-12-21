@@ -8,12 +8,7 @@ void main() {
     testWidgets('renders correct number of dots', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: PageIndicator(
-              currentPage: 0,
-              totalPages: 4,
-            ),
-          ),
+          home: Scaffold(body: PageIndicator(currentPage: 0, totalPages: 4)),
         ),
       );
 
@@ -25,19 +20,12 @@ void main() {
     testWidgets('highlights current page dot', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: PageIndicator(
-              currentPage: 2,
-              totalPages: 4,
-            ),
-          ),
+          home: Scaffold(body: PageIndicator(currentPage: 2, totalPages: 4)),
         ),
       );
 
       final dots = tester
-          .widgetList<AnimatedContainer>(
-            find.byType(AnimatedContainer),
-          )
+          .widgetList<AnimatedContainer>(find.byType(AnimatedContainer))
           .toList();
 
       // Active dot (index 2) should be wider
@@ -55,12 +43,7 @@ void main() {
     testWidgets('has accessibility label with page title', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: PageIndicator(
-              currentPage: 1,
-              totalPages: 4,
-            ),
-          ),
+          home: Scaffold(body: PageIndicator(currentPage: 1, totalPages: 4)),
         ),
       );
 
@@ -68,21 +51,18 @@ void main() {
       expect(find.byType(PageIndicator), findsOneWidget);
 
       // Find semantics node with descriptive label (uses defaultOnboardingTitles)
-      final semanticsFinder =
-          find.bySemanticsLabel('Step 2 of 4: Safety information');
+      final semanticsFinder = find.bySemanticsLabel(
+        'Step 2 of 4: Safety information',
+      );
       expect(semanticsFinder, findsOneWidget);
     });
 
-    testWidgets('updates accessibility label when currentPage changes',
-        (tester) async {
+    testWidgets('updates accessibility label when currentPage changes', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: PageIndicator(
-              currentPage: 0,
-              totalPages: 4,
-            ),
-          ),
+          home: Scaffold(body: PageIndicator(currentPage: 0, totalPages: 4)),
         ),
       );
 
@@ -92,12 +72,7 @@ void main() {
       // Change to page 3 (Privacy)
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: PageIndicator(
-              currentPage: 2,
-              totalPages: 4,
-            ),
-          ),
+          home: Scaffold(body: PageIndicator(currentPage: 2, totalPages: 4)),
         ),
       );
 
@@ -110,12 +85,7 @@ void main() {
     testWidgets('works with single page', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: PageIndicator(
-              currentPage: 0,
-              totalPages: 1,
-            ),
-          ),
+          home: Scaffold(body: PageIndicator(currentPage: 0, totalPages: 1)),
         ),
       );
 
@@ -140,8 +110,9 @@ void main() {
       expect(semanticsFinder, findsOneWidget);
     });
 
-    testWidgets('falls back gracefully when page index exceeds titles',
-        (tester) async {
+    testWidgets('falls back gracefully when page index exceeds titles', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(

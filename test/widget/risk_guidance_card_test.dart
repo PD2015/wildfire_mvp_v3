@@ -17,9 +17,7 @@ void main() {
     testWidgets('renders veryLow guidance correctly', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: RiskGuidanceCard(level: RiskLevel.veryLow),
-          ),
+          home: Scaffold(body: RiskGuidanceCard(level: RiskLevel.veryLow)),
         ),
       );
 
@@ -37,10 +35,7 @@ void main() {
       }
 
       // Verify emergency footer
-      expect(
-        find.text(ScotlandRiskGuidance.emergencyFooter),
-        findsOneWidget,
-      );
+      expect(find.text(ScotlandRiskGuidance.emergencyFooter), findsOneWidget);
 
       // Verify phone icon in footer
       expect(find.byIcon(Icons.phone), findsOneWidget);
@@ -49,9 +44,7 @@ void main() {
     testWidgets('renders low guidance correctly', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: RiskGuidanceCard(level: RiskLevel.low),
-          ),
+          home: Scaffold(body: RiskGuidanceCard(level: RiskLevel.low)),
         ),
       );
 
@@ -67,9 +60,7 @@ void main() {
     testWidgets('renders moderate guidance correctly', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: RiskGuidanceCard(level: RiskLevel.moderate),
-          ),
+          home: Scaffold(body: RiskGuidanceCard(level: RiskLevel.moderate)),
         ),
       );
 
@@ -86,9 +77,7 @@ void main() {
     testWidgets('renders high guidance correctly', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: RiskGuidanceCard(level: RiskLevel.high),
-          ),
+          home: Scaffold(body: RiskGuidanceCard(level: RiskLevel.high)),
         ),
       );
 
@@ -104,9 +93,7 @@ void main() {
     testWidgets('renders veryHigh guidance correctly', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: RiskGuidanceCard(level: RiskLevel.veryHigh),
-          ),
+          home: Scaffold(body: RiskGuidanceCard(level: RiskLevel.veryHigh)),
         ),
       );
 
@@ -123,9 +110,7 @@ void main() {
     testWidgets('renders extreme guidance correctly', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: RiskGuidanceCard(level: RiskLevel.extreme),
-          ),
+          home: Scaffold(body: RiskGuidanceCard(level: RiskLevel.extreme)),
         ),
       );
 
@@ -140,11 +125,7 @@ void main() {
 
     testWidgets('renders generic guidance when level is null', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: RiskGuidanceCard(level: null),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: RiskGuidanceCard(level: null))),
       );
 
       const guidance = ScotlandRiskGuidance.genericGuidance;
@@ -159,45 +140,28 @@ void main() {
     testWidgets('has correct semantic label for veryLow', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: RiskGuidanceCard(level: RiskLevel.veryLow),
-          ),
+          home: Scaffold(body: RiskGuidanceCard(level: RiskLevel.veryLow)),
         ),
       );
 
       final semantics = tester.getSemantics(find.byType(RiskGuidanceCard));
-      expect(
-        semantics.label,
-        contains('veryLow'),
-      );
-      expect(
-        semantics.label,
-        contains('wildfire risk'),
-      );
+      expect(semantics.label, contains('veryLow'));
+      expect(semantics.label, contains('wildfire risk'));
     });
 
     testWidgets('has correct semantic label for null level', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: RiskGuidanceCard(level: null),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: RiskGuidanceCard(level: null))),
       );
 
       final semantics = tester.getSemantics(find.byType(RiskGuidanceCard));
-      expect(
-        semantics.label,
-        contains('General wildfire safety'),
-      );
+      expect(semantics.label, contains('General wildfire safety'));
     });
 
     testWidgets('displays card with rounded corners', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: RiskGuidanceCard(level: RiskLevel.moderate),
-          ),
+          home: Scaffold(body: RiskGuidanceCard(level: RiskLevel.moderate)),
         ),
       );
 
@@ -210,9 +174,7 @@ void main() {
     testWidgets('displays border with risk level color', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: RiskGuidanceCard(level: RiskLevel.high),
-          ),
+          home: Scaffold(body: RiskGuidanceCard(level: RiskLevel.high)),
         ),
       );
 
@@ -223,14 +185,11 @@ void main() {
       expect(shape.side.width, equals(2));
     });
 
-    testWidgets('displays border with theme outline color when level is null',
-        (tester) async {
+    testWidgets('displays border with theme outline color when level is null', (
+      tester,
+    ) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: RiskGuidanceCard(level: null),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: RiskGuidanceCard(level: null))),
       );
 
       final context = tester.element(find.byType(RiskGuidanceCard));
@@ -275,46 +234,45 @@ void main() {
     });
 
     testWidgets(
-        'emergency footer is a FilledButton with tertiary container background',
-        (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+      'emergency footer is a FilledButton with tertiary container background',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+            ),
+            home: const Scaffold(
+              body: RiskGuidanceCard(level: RiskLevel.extreme),
+            ),
           ),
-          home: const Scaffold(
-            body: RiskGuidanceCard(level: RiskLevel.extreme),
-          ),
-        ),
-      );
+        );
 
-      // Find the emergency footer FilledButton
-      final footerButton = find.byType(FilledButton);
-      expect(footerButton, findsOneWidget);
+        // Find the emergency footer FilledButton
+        final footerButton = find.byType(FilledButton);
+        expect(footerButton, findsOneWidget);
 
-      // Verify it has the correct icon
-      expect(
-          find.descendant(
-            of: footerButton,
-            matching: find.byIcon(Icons.phone),
-          ),
-          findsOneWidget);
-    });
+        // Verify it has the correct icon
+        expect(
+          find.descendant(of: footerButton, matching: find.byIcon(Icons.phone)),
+          findsOneWidget,
+        );
+      },
+    );
 
     testWidgets('all text is readable and not empty', (tester) async {
       // Test with moderate level
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: RiskGuidanceCard(level: RiskLevel.moderate),
-          ),
+          home: Scaffold(body: RiskGuidanceCard(level: RiskLevel.moderate)),
         ),
       );
 
       // Find all Text widgets
       final textWidgets = find.byType(Text);
-      expect(textWidgets,
-          findsAtLeastNWidgets(5)); // Title, summary, bullets, footer
+      expect(
+        textWidgets,
+        findsAtLeastNWidgets(5),
+      ); // Title, summary, bullets, footer
 
       // Verify none are empty
       for (final textFinder in textWidgets.evaluate()) {

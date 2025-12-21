@@ -12,19 +12,14 @@ class HelpDocumentScreen extends StatelessWidget {
   /// The help document to display.
   final HelpDocument document;
 
-  const HelpDocumentScreen({
-    required this.document,
-    super.key,
-  });
+  const HelpDocumentScreen({required this.document, super.key});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(document.title),
-      ),
+      appBar: AppBar(title: Text(document.title)),
       body: SafeArea(
         child: Markdown(
           data: document.content,
@@ -43,12 +38,8 @@ class HelpDocumentScreen extends StatelessWidget {
               fontWeight: FontWeight.w600,
               height: 1.4,
             ),
-            p: theme.textTheme.bodyMedium?.copyWith(
-              height: 1.6,
-            ),
-            listBullet: theme.textTheme.bodyMedium?.copyWith(
-              height: 1.6,
-            ),
+            p: theme.textTheme.bodyMedium?.copyWith(height: 1.6),
+            listBullet: theme.textTheme.bodyMedium?.copyWith(height: 1.6),
             blockquote: theme.textTheme.bodyMedium?.copyWith(
               fontStyle: FontStyle.italic,
               color: theme.colorScheme.onSurfaceVariant,
@@ -59,10 +50,7 @@ class HelpDocumentScreen extends StatelessWidget {
             ),
             blockquoteDecoration: BoxDecoration(
               border: Border(
-                left: BorderSide(
-                  color: theme.colorScheme.primary,
-                  width: 4,
-                ),
+                left: BorderSide(color: theme.colorScheme.primary, width: 4),
               ),
             ),
           ),

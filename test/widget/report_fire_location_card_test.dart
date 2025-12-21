@@ -35,9 +35,9 @@ void main() {
 
     group('Header content', () {
       testWidgets('displays fire-specific header text', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: const LocationDisplayInitial(),
-        ));
+        await tester.pumpWidget(
+          buildWidget(locationState: const LocationDisplayInitial()),
+        );
 
         expect(find.text('Location to give when you call'), findsOneWidget);
         expect(
@@ -47,9 +47,9 @@ void main() {
       });
 
       testWidgets('has my_location icon in header', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: const LocationDisplayInitial(),
-        ));
+        await tester.pumpWidget(
+          buildWidget(locationState: const LocationDisplayInitial()),
+        );
 
         expect(find.byIcon(Icons.my_location), findsOneWidget);
       });
@@ -57,9 +57,9 @@ void main() {
 
     group('Initial state', () {
       testWidgets('shows empty state message', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: const LocationDisplayInitial(),
-        ));
+        await tester.pumpWidget(
+          buildWidget(locationState: const LocationDisplayInitial()),
+        );
 
         expect(
           find.textContaining('Use the map to pick where the fire is'),
@@ -68,9 +68,9 @@ void main() {
       });
 
       testWidgets('shows "Open map to set location" button', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: const LocationDisplayInitial(),
-        ));
+        await tester.pumpWidget(
+          buildWidget(locationState: const LocationDisplayInitial()),
+        );
 
         expect(find.text('Open map to set location'), findsOneWidget);
       });
@@ -78,10 +78,12 @@ void main() {
       testWidgets('button triggers onChangeLocation', (tester) async {
         var tapped = false;
 
-        await tester.pumpWidget(buildWidget(
-          locationState: const LocationDisplayInitial(),
-          onChangeLocation: () => tapped = true,
-        ));
+        await tester.pumpWidget(
+          buildWidget(
+            locationState: const LocationDisplayInitial(),
+            onChangeLocation: () => tapped = true,
+          ),
+        );
 
         await tester.tap(find.text('Open map to set location'));
         expect(tapped, isTrue);
@@ -90,20 +92,22 @@ void main() {
 
     group('Loading state', () {
       testWidgets('shows loading indicator', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: const LocationDisplayLoading(),
-        ));
+        await tester.pumpWidget(
+          buildWidget(locationState: const LocationDisplayLoading()),
+        );
 
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
         expect(find.text('Getting your location...'), findsOneWidget);
       });
 
       testWidgets('shows last known location if available', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: const LocationDisplayLoading(
-            lastKnownLocation: testCoordinates,
+        await tester.pumpWidget(
+          buildWidget(
+            locationState: const LocationDisplayLoading(
+              lastKnownLocation: testCoordinates,
+            ),
           ),
-        ));
+        );
 
         // Should show 5dp formatted coordinates
         expect(find.textContaining('57.04850'), findsOneWidget);
@@ -113,13 +117,15 @@ void main() {
 
     group('Success state', () {
       testWidgets('displays 5dp precision coordinates', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: LocationDisplaySuccess(
-            coordinates: testCoordinates,
-            source: LocationSource.gps,
-            lastUpdated: DateTime.now(),
+        await tester.pumpWidget(
+          buildWidget(
+            locationState: LocationDisplaySuccess(
+              coordinates: testCoordinates,
+              source: LocationSource.gps,
+              lastUpdated: DateTime.now(),
+            ),
           ),
-        ));
+        );
 
         // Should show precise coordinates with separate Latitude / Longitude labels
         expect(find.text('Latitude'), findsOneWidget);
@@ -129,13 +135,15 @@ void main() {
       });
 
       testWidgets('shows helper text for fire service', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: LocationDisplaySuccess(
-            coordinates: testCoordinates,
-            source: LocationSource.gps,
-            lastUpdated: DateTime.now(),
+        await tester.pumpWidget(
+          buildWidget(
+            locationState: LocationDisplaySuccess(
+              coordinates: testCoordinates,
+              source: LocationSource.gps,
+              lastUpdated: DateTime.now(),
+            ),
           ),
-        ));
+        );
 
         expect(
           find.text('Exact coordinates recommended for fire service'),
@@ -144,69 +152,80 @@ void main() {
       });
 
       testWidgets('displays what3words when available', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: LocationDisplaySuccess(
-            coordinates: testCoordinates,
-            source: LocationSource.gps,
-            lastUpdated: DateTime.now(),
-            what3words: testWhat3words,
+        await tester.pumpWidget(
+          buildWidget(
+            locationState: LocationDisplaySuccess(
+              coordinates: testCoordinates,
+              source: LocationSource.gps,
+              lastUpdated: DateTime.now(),
+              what3words: testWhat3words,
+            ),
           ),
-        ));
+        );
 
         expect(find.text('what3words'), findsOneWidget);
         expect(find.text(testWhat3words), findsOneWidget);
       });
 
-      testWidgets('shows "Unavailable" when what3words is null',
-          (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: LocationDisplaySuccess(
-            coordinates: testCoordinates,
-            source: LocationSource.gps,
-            lastUpdated: DateTime.now(),
-            what3words: null,
+      testWidgets('shows "Unavailable" when what3words is null', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildWidget(
+            locationState: LocationDisplaySuccess(
+              coordinates: testCoordinates,
+              source: LocationSource.gps,
+              lastUpdated: DateTime.now(),
+              what3words: null,
+            ),
           ),
-        ));
+        );
 
         expect(find.text('/// Unavailable'), findsOneWidget);
       });
 
       testWidgets('shows loading indicator for what3words', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: LocationDisplaySuccess(
-            coordinates: testCoordinates,
-            source: LocationSource.gps,
-            lastUpdated: DateTime.now(),
-            isWhat3wordsLoading: true,
+        await tester.pumpWidget(
+          buildWidget(
+            locationState: LocationDisplaySuccess(
+              coordinates: testCoordinates,
+              source: LocationSource.gps,
+              lastUpdated: DateTime.now(),
+              isWhat3wordsLoading: true,
+            ),
           ),
-        ));
+        );
 
         // Should show multiple loading indicators (w3w + potentially geocoding)
         expect(find.byType(CircularProgressIndicator), findsWidgets);
       });
 
       testWidgets('shows place name when geocoding complete', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: LocationDisplaySuccess(
-            coordinates: testCoordinates,
-            source: LocationSource.gps,
-            lastUpdated: DateTime.now(),
-            formattedLocation: testPlaceName,
+        await tester.pumpWidget(
+          buildWidget(
+            locationState: LocationDisplaySuccess(
+              coordinates: testCoordinates,
+              source: LocationSource.gps,
+              lastUpdated: DateTime.now(),
+              formattedLocation: testPlaceName,
+            ),
           ),
-        ));
+        );
 
         expect(find.text('Nearest place'), findsOneWidget);
         expect(find.text(testPlaceName), findsOneWidget);
       });
 
       testWidgets('shows Copy details button', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: LocationDisplaySuccess(
-            coordinates: testCoordinates,
-            source: LocationSource.gps,
-            lastUpdated: DateTime.now(),
+        await tester.pumpWidget(
+          buildWidget(
+            locationState: LocationDisplaySuccess(
+              coordinates: testCoordinates,
+              source: LocationSource.gps,
+              lastUpdated: DateTime.now(),
+            ),
           ),
-        ));
+        );
 
         expect(find.text('Copy location for your call'), findsOneWidget);
       });
@@ -224,14 +243,16 @@ void main() {
           },
         );
 
-        await tester.pumpWidget(buildWidget(
-          locationState: LocationDisplaySuccess(
-            coordinates: testCoordinates,
-            source: LocationSource.gps,
-            lastUpdated: DateTime.now(),
-            what3words: testWhat3words,
+        await tester.pumpWidget(
+          buildWidget(
+            locationState: LocationDisplaySuccess(
+              coordinates: testCoordinates,
+              source: LocationSource.gps,
+              lastUpdated: DateTime.now(),
+              what3words: testWhat3words,
+            ),
           ),
-        ));
+        );
 
         await tester.tap(find.text('Copy location for your call'));
         // Use pump() instead of pumpAndSettle() because SnackBar has ongoing animations
@@ -243,14 +264,12 @@ void main() {
         expect(clipboardContent, contains(testWhat3words));
 
         // Verify snackbar shows
-        expect(
-          find.textContaining('Location copied'),
-          findsOneWidget,
-        );
+        expect(find.textContaining('Location copied'), findsOneWidget);
       });
 
-      testWidgets('Copy details includes "Unavailable" when no w3w',
-          (tester) async {
+      testWidgets('Copy details includes "Unavailable" when no w3w', (
+        tester,
+      ) async {
         String? clipboardContent;
         tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
           SystemChannels.platform,
@@ -262,14 +281,16 @@ void main() {
           },
         );
 
-        await tester.pumpWidget(buildWidget(
-          locationState: LocationDisplaySuccess(
-            coordinates: testCoordinates,
-            source: LocationSource.gps,
-            lastUpdated: DateTime.now(),
-            what3words: null,
+        await tester.pumpWidget(
+          buildWidget(
+            locationState: LocationDisplaySuccess(
+              coordinates: testCoordinates,
+              source: LocationSource.gps,
+              lastUpdated: DateTime.now(),
+              what3words: null,
+            ),
           ),
-        ));
+        );
 
         await tester.tap(find.text('Copy location for your call'));
         // Use pump() instead of pumpAndSettle() because SnackBar has ongoing animations
@@ -282,14 +303,16 @@ void main() {
 
     group('Manual location handling', () {
       testWidgets('shows Use GPS button for manual locations', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: LocationDisplaySuccess(
-            coordinates: testCoordinates,
-            source: LocationSource.manual,
-            lastUpdated: DateTime.now(),
+        await tester.pumpWidget(
+          buildWidget(
+            locationState: LocationDisplaySuccess(
+              coordinates: testCoordinates,
+              source: LocationSource.manual,
+              lastUpdated: DateTime.now(),
+            ),
+            onUseGps: () {},
           ),
-          onUseGps: () {},
-        ));
+        );
 
         expect(find.text('Use GPS'), findsOneWidget);
         expect(find.text('Change'), findsOneWidget);
@@ -298,27 +321,31 @@ void main() {
       testWidgets('Use GPS button triggers callback', (tester) async {
         var tapped = false;
 
-        await tester.pumpWidget(buildWidget(
-          locationState: LocationDisplaySuccess(
-            coordinates: testCoordinates,
-            source: LocationSource.manual,
-            lastUpdated: DateTime.now(),
+        await tester.pumpWidget(
+          buildWidget(
+            locationState: LocationDisplaySuccess(
+              coordinates: testCoordinates,
+              source: LocationSource.manual,
+              lastUpdated: DateTime.now(),
+            ),
+            onUseGps: () => tapped = true,
           ),
-          onUseGps: () => tapped = true,
-        ));
+        );
 
         await tester.tap(find.text('Use GPS'));
         expect(tapped, isTrue);
       });
 
       testWidgets('shows Update location for GPS source', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: LocationDisplaySuccess(
-            coordinates: testCoordinates,
-            source: LocationSource.gps,
-            lastUpdated: DateTime.now(),
+        await tester.pumpWidget(
+          buildWidget(
+            locationState: LocationDisplaySuccess(
+              coordinates: testCoordinates,
+              source: LocationSource.gps,
+              lastUpdated: DateTime.now(),
+            ),
           ),
-        ));
+        );
 
         expect(find.text('Update location'), findsOneWidget);
         expect(find.text('Use GPS'), findsNothing);
@@ -327,22 +354,26 @@ void main() {
 
     group('Error state', () {
       testWidgets('shows error message', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: const LocationDisplayError(
-            message: 'GPS unavailable',
+        await tester.pumpWidget(
+          buildWidget(
+            locationState: const LocationDisplayError(
+              message: 'GPS unavailable',
+            ),
           ),
-        ));
+        );
 
         expect(find.text('Could not get location'), findsOneWidget);
         expect(find.byIcon(Icons.error_outline), findsOneWidget);
       });
 
       testWidgets('shows set location button', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: const LocationDisplayError(
-            message: 'GPS unavailable',
+        await tester.pumpWidget(
+          buildWidget(
+            locationState: const LocationDisplayError(
+              message: 'GPS unavailable',
+            ),
           ),
-        ));
+        );
 
         expect(find.text('Open map to set location'), findsOneWidget);
       });
@@ -350,20 +381,21 @@ void main() {
 
     group('Accessibility', () {
       testWidgets('has proper semantic labels', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: const LocationDisplayInitial(),
-        ));
+        await tester.pumpWidget(
+          buildWidget(locationState: const LocationDisplayInitial()),
+        );
 
         // Main container semantic label
-        final semantics =
-            tester.getSemantics(find.byType(ReportFireLocationCard));
+        final semantics = tester.getSemantics(
+          find.byType(ReportFireLocationCard),
+        );
         expect(semantics.label, contains('Location helper'));
       });
 
       testWidgets('buttons have minimum 48dp height', (tester) async {
-        await tester.pumpWidget(buildWidget(
-          locationState: const LocationDisplayInitial(),
-        ));
+        await tester.pumpWidget(
+          buildWidget(locationState: const LocationDisplayInitial()),
+        );
 
         // Find the set location button by its text
         final buttonText = find.text('Open map to set location');
@@ -372,10 +404,7 @@ void main() {
         // Get the SizedBox parent which has the height constraint
         // The button is wrapped in: SizedBox > Semantics > OutlinedButton.icon
         final sizedBox = find
-            .ancestor(
-              of: buttonText,
-              matching: find.byType(SizedBox),
-            )
+            .ancestor(of: buttonText, matching: find.byType(SizedBox))
             .first;
 
         final size = tester.getSize(sizedBox);

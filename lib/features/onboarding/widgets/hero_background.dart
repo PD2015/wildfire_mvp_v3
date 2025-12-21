@@ -8,10 +8,7 @@ class HeroBackground extends StatelessWidget {
   /// The content to display on top of the background.
   final Widget child;
 
-  const HeroBackground({
-    required this.child,
-    super.key,
-  });
+  const HeroBackground({required this.child, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +25,6 @@ class HeroBackground extends StatelessWidget {
             /*  Color(0xFF062B27), // forest900
     Color(0xFF0C3B35), // forest800
     Color(0xFF0F4A43), // forest700 with mint tint */
-
             const Color(0xFF052A23),
             const Color(0x332C1A0F), // low-opacity ember glow
             const Color(0xFF071F1B),
@@ -47,9 +43,7 @@ class HeroBackground extends StatelessWidget {
           colors: colors,
         ),
       ),
-      child: SafeArea(
-        child: child,
-      ),
+      child: SafeArea(child: child),
     );
   }
 }

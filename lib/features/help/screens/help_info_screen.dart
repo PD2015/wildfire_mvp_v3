@@ -19,9 +19,7 @@ class HelpInfoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Help & Info'),
-      ),
+      appBar: AppBar(title: const Text('Help & Info')),
       body: SafeArea(
         child: ListView(
           children: [
@@ -150,10 +148,7 @@ class _SectionHeader extends StatelessWidget {
     return Semantics(
       header: true,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 8,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Text(
           title.toUpperCase(),
           style: theme.textTheme.titleSmall?.copyWith(
@@ -186,10 +181,7 @@ class _HelpTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return ListTile(
-      leading: Icon(
-        icon,
-        color: theme.colorScheme.onSurfaceVariant,
-      ),
+      leading: Icon(icon, color: theme.colorScheme.onSurfaceVariant),
       title: Text(title),
       subtitle: Text(
         subtitle,

@@ -209,9 +209,7 @@ void main() {
       });
 
       test('handles edge case: 23 hours 59 minutes', () {
-        final timestamp = now.subtract(
-          const Duration(hours: 23, minutes: 59),
-        );
+        final timestamp = now.subtract(const Duration(hours: 23, minutes: 59));
         expect(_formatFreshness(timestamp, now), equals('23h ago'));
       });
     });
@@ -294,10 +292,7 @@ void main() {
           timestamp: baseTime.subtract(const Duration(hours: 2)),
         );
 
-        final snippet = _buildTestSnippet(
-          incident,
-          baseTime,
-        );
+        final snippet = _buildTestSnippet(incident, baseTime);
 
         // Line 1: Risk and area
         expect(snippet, contains('Risk: Moderate'));
@@ -388,9 +383,7 @@ void main() {
         expect(title, equals('Edinburgh - Holyrood Park'));
         expect(
           snippet,
-          equals(
-            'Risk: Moderate • Burnt area: 12.5 ha\nSource: MOCK • 2h ago',
-          ),
+          equals('Risk: Moderate • Burnt area: 12.5 ha\nSource: MOCK • 2h ago'),
         );
       });
 
@@ -411,9 +404,7 @@ void main() {
         expect(title, equals('Fire #025_001'));
         expect(
           snippet,
-          equals(
-            'Risk: High • Burnt area: 28.3 ha\nSource: EFFIS • 15m ago',
-          ),
+          equals('Risk: High • Burnt area: 28.3 ha\nSource: EFFIS • 15m ago'),
         );
       });
 
@@ -434,9 +425,7 @@ void main() {
         expect(title, equals('Aviemore - Cairngorms'));
         expect(
           snippet,
-          equals(
-            'Risk: Low • Burnt area: Unknown\nSource: Cached • 5d ago',
-          ),
+          equals('Risk: Low • Burnt area: Unknown\nSource: Cached • 5d ago'),
         );
       });
 
@@ -457,9 +446,7 @@ void main() {
         expect(title, equals('Glasgow - Campsie Fells'));
         expect(
           snippet,
-          equals(
-            'Risk: High • Burnt area: 45.0 ha\nSource: SEPA • Just now',
-          ),
+          equals('Risk: High • Burnt area: 45.0 ha\nSource: SEPA • Just now'),
         );
       });
     });

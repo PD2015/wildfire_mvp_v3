@@ -13,15 +13,12 @@ void main() {
   final testWhat3words = What3wordsAddress.tryParse('filled.count.soap')!;
 
   group('LocationInfoPanel', () {
-    testWidgets('displays default header "Pan map to set location"',
-        (tester) async {
+    testWidgets('displays default header "Pan map to set location"', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: LocationInfoPanel(
-              coordinates: testCoordinates,
-            ),
-          ),
+          home: Scaffold(body: LocationInfoPanel(coordinates: testCoordinates)),
         ),
       );
 
@@ -33,11 +30,7 @@ void main() {
     testWidgets('displays coordinates with 2dp precision', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: LocationInfoPanel(
-              coordinates: testCoordinates,
-            ),
-          ),
+          home: Scaffold(body: LocationInfoPanel(coordinates: testCoordinates)),
         ),
       );
 
@@ -154,11 +147,7 @@ void main() {
     testWidgets('shows Confirm and Cancel buttons', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: LocationInfoPanel(
-              coordinates: testCoordinates,
-            ),
-          ),
+          home: Scaffold(body: LocationInfoPanel(coordinates: testCoordinates)),
         ),
       );
 
@@ -213,8 +202,9 @@ void main() {
       expect(cancelTapped, isTrue);
     });
 
-    testWidgets('Confirm button disabled when canConfirm is false',
-        (tester) async {
+    testWidgets('Confirm button disabled when canConfirm is false', (
+      tester,
+    ) async {
       bool confirmTapped = false;
 
       await tester.pumpWidget(
@@ -241,11 +231,7 @@ void main() {
     testWidgets('action buttons have ≥48dp height (C3)', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: LocationInfoPanel(
-              coordinates: testCoordinates,
-            ),
-          ),
+          home: Scaffold(body: LocationInfoPanel(coordinates: testCoordinates)),
         ),
       );
 
@@ -255,8 +241,9 @@ void main() {
         matching: find.byType(SizedBox),
       );
 
-      final confirmSizedBoxes =
-          tester.widgetList<SizedBox>(confirmButtonParent);
+      final confirmSizedBoxes = tester.widgetList<SizedBox>(
+        confirmButtonParent,
+      );
       final confirmWrapper = confirmSizedBoxes.firstWhere(
         (sb) => sb.height == 48,
         orElse: () => const SizedBox(),
@@ -296,8 +283,9 @@ void main() {
       expect(semantics, findsWidgets);
     });
 
-    testWidgets('shows default message when no what3words and not loading',
-        (tester) async {
+    testWidgets('shows default message when no what3words and not loading', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -315,11 +303,7 @@ void main() {
     testWidgets('coordinates row has location icon', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: LocationInfoPanel(
-              coordinates: testCoordinates,
-            ),
-          ),
+          home: Scaffold(body: LocationInfoPanel(coordinates: testCoordinates)),
         ),
       );
 

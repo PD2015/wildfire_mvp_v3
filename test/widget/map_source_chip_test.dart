@@ -53,10 +53,9 @@ void main() {
       });
 
       testWidgets('shows "OFFLINE" when isOffline is true', (tester) async {
-        await tester.pumpWidget(buildChip(
-          source: Freshness.live,
-          isOffline: true,
-        ));
+        await tester.pumpWidget(
+          buildChip(source: Freshness.live, isOffline: true),
+        );
 
         expect(find.text('OFFLINE'), findsOneWidget);
         expect(find.byIcon(Icons.cloud_off), findsOneWidget);
@@ -64,10 +63,9 @@ void main() {
 
       testWidgets('offline state takes precedence over source', (tester) async {
         // Even with mock source, offline should show OFFLINE chip
-        await tester.pumpWidget(buildChip(
-          source: Freshness.mock,
-          isOffline: true,
-        ));
+        await tester.pumpWidget(
+          buildChip(source: Freshness.mock, isOffline: true),
+        );
 
         expect(find.text('OFFLINE'), findsOneWidget);
         expect(find.text('DEMO DATA'), findsNothing);
@@ -76,32 +74,28 @@ void main() {
 
     group('Tappable behavior (onTap callback)', () {
       testWidgets('shows swap icon when onTap is provided', (tester) async {
-        await tester.pumpWidget(buildChip(
-          source: Freshness.mock,
-          onTap: () {},
-        ));
+        await tester.pumpWidget(
+          buildChip(source: Freshness.mock, onTap: () {}),
+        );
 
         // Swap icon indicates tappable
         expect(find.byIcon(Icons.swap_horiz), findsOneWidget);
       });
 
       testWidgets('hides swap icon when onTap is null', (tester) async {
-        await tester.pumpWidget(buildChip(
-          source: Freshness.mock,
-          onTap: null,
-        ));
+        await tester.pumpWidget(buildChip(source: Freshness.mock, onTap: null));
 
         // No swap icon when not tappable
         expect(find.byIcon(Icons.swap_horiz), findsNothing);
       });
 
-      testWidgets('calls onTap callback when tapped (demo mode)',
-          (tester) async {
+      testWidgets('calls onTap callback when tapped (demo mode)', (
+        tester,
+      ) async {
         var tapCount = 0;
-        await tester.pumpWidget(buildChip(
-          source: Freshness.mock,
-          onTap: () => tapCount++,
-        ));
+        await tester.pumpWidget(
+          buildChip(source: Freshness.mock, onTap: () => tapCount++),
+        );
 
         // Tap the chip
         await tester.tap(find.text('DEMO DATA'));
@@ -110,13 +104,13 @@ void main() {
         expect(tapCount, 1);
       });
 
-      testWidgets('calls onTap callback when tapped (live mode)',
-          (tester) async {
+      testWidgets('calls onTap callback when tapped (live mode)', (
+        tester,
+      ) async {
         var tapCount = 0;
-        await tester.pumpWidget(buildChip(
-          source: Freshness.live,
-          onTap: () => tapCount++,
-        ));
+        await tester.pumpWidget(
+          buildChip(source: Freshness.live, onTap: () => tapCount++),
+        );
 
         // Tap the chip
         await tester.tap(find.text('LIVE DATA'));
@@ -125,13 +119,13 @@ void main() {
         expect(tapCount, 1);
       });
 
-      testWidgets('calls onTap callback when tapped (cached mode)',
-          (tester) async {
+      testWidgets('calls onTap callback when tapped (cached mode)', (
+        tester,
+      ) async {
         var tapCount = 0;
-        await tester.pumpWidget(buildChip(
-          source: Freshness.cached,
-          onTap: () => tapCount++,
-        ));
+        await tester.pumpWidget(
+          buildChip(source: Freshness.cached, onTap: () => tapCount++),
+        );
 
         // Tap the chip
         await tester.tap(find.text('CACHED'));
@@ -140,14 +134,17 @@ void main() {
         expect(tapCount, 1);
       });
 
-      testWidgets('offline chip is NOT tappable (no onTap wired)',
-          (tester) async {
+      testWidgets('offline chip is NOT tappable (no onTap wired)', (
+        tester,
+      ) async {
         // Offline chips don't get onTap because users need to retry, not toggle
-        await tester.pumpWidget(buildChip(
-          source: Freshness.live,
-          isOffline: true,
-          onTap: () {}, // Even if provided, offline ignores it
-        ));
+        await tester.pumpWidget(
+          buildChip(
+            source: Freshness.live,
+            isOffline: true,
+            onTap: () {}, // Even if provided, offline ignores it
+          ),
+        );
 
         // No swap icon on offline chip
         expect(find.byIcon(Icons.swap_horiz), findsNothing);
@@ -155,8 +152,9 @@ void main() {
     });
 
     group('Accessibility (C3 compliance)', () {
-      testWidgets('demo chip has semantic label for screen readers',
-          (tester) async {
+      testWidgets('demo chip has semantic label for screen readers', (
+        tester,
+      ) async {
         await tester.pumpWidget(buildChip(source: Freshness.mock));
 
         // Semantic label should contain demo data indication (case insensitive)
@@ -164,8 +162,9 @@ void main() {
         expect(semantics.label.toUpperCase(), contains('DEMO'));
       });
 
-      testWidgets('live chip has semantic label for screen readers',
-          (tester) async {
+      testWidgets('live chip has semantic label for screen readers', (
+        tester,
+      ) async {
         await tester.pumpWidget(buildChip(source: Freshness.live));
 
         // Semantic label should contain live data indication (case insensitive)
@@ -173,8 +172,9 @@ void main() {
         expect(semantics.label.toUpperCase(), contains('LIVE'));
       });
 
-      testWidgets('cached chip has semantic label for screen readers',
-          (tester) async {
+      testWidgets('cached chip has semantic label for screen readers', (
+        tester,
+      ) async {
         await tester.pumpWidget(buildChip(source: Freshness.cached));
 
         // Semantic label should contain cached data indication (case insensitive)
@@ -182,12 +182,12 @@ void main() {
         expect(semantics.label.toUpperCase(), contains('CACHED'));
       });
 
-      testWidgets('offline chip has semantic label for screen readers',
-          (tester) async {
-        await tester.pumpWidget(buildChip(
-          source: Freshness.live,
-          isOffline: true,
-        ));
+      testWidgets('offline chip has semantic label for screen readers', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildChip(source: Freshness.live, isOffline: true),
+        );
 
         // Semantic label should contain offline indication (case insensitive)
         final semantics = tester.getSemantics(find.byType(Chip));
@@ -195,10 +195,9 @@ void main() {
       });
 
       testWidgets('tappable chip has accessible tap hint', (tester) async {
-        await tester.pumpWidget(buildChip(
-          source: Freshness.mock,
-          onTap: () {},
-        ));
+        await tester.pumpWidget(
+          buildChip(source: Freshness.mock, onTap: () {}),
+        );
 
         // Find the Semantics widget with button property (indicates tappable)
         // The semantic label is set at the Semantics wrapper, not the Chip
@@ -212,12 +211,12 @@ void main() {
         expect(semanticsWidget.properties.label, contains('Tap to switch'));
       });
 
-      testWidgets('tappable chip is marked as button in semantics',
-          (tester) async {
-        await tester.pumpWidget(buildChip(
-          source: Freshness.mock,
-          onTap: () {},
-        ));
+      testWidgets('tappable chip is marked as button in semantics', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildChip(source: Freshness.mock, onTap: () {}),
+        );
 
         // Find the Semantics widget wrapping the tappable chip
         final semanticsFinder = find.byWidgetPredicate(
@@ -237,13 +236,16 @@ void main() {
         // Note: Chip itself may be smaller but tappable area should be adequate
         // The InkWell wrapper ensures adequate touch area
         expect(
-            chipSize.height, greaterThanOrEqualTo(32)); // Compact chip minimum
+          chipSize.height,
+          greaterThanOrEqualTo(32),
+        ); // Compact chip minimum
       });
     });
 
     group('Visual styling (theme tokens)', () {
-      testWidgets('demo chip uses tertiaryContainer from theme',
-          (tester) async {
+      testWidgets('demo chip uses tertiaryContainer from theme', (
+        tester,
+      ) async {
         await tester.pumpWidget(buildChip(source: Freshness.mock));
 
         final chip = tester.widget<Chip>(find.byType(Chip));
@@ -263,8 +265,9 @@ void main() {
         expect(chip.side?.color, scheme.primary);
       });
 
-      testWidgets('cached chip uses secondaryContainer from theme',
-          (tester) async {
+      testWidgets('cached chip uses secondaryContainer from theme', (
+        tester,
+      ) async {
         await tester.pumpWidget(buildChip(source: Freshness.cached));
 
         final chip = tester.widget<Chip>(find.byType(Chip));
@@ -274,12 +277,12 @@ void main() {
         expect(chip.side?.color, scheme.secondary);
       });
 
-      testWidgets('offline chip uses tertiaryContainer from theme',
-          (tester) async {
-        await tester.pumpWidget(buildChip(
-          source: Freshness.live,
-          isOffline: true,
-        ));
+      testWidgets('offline chip uses tertiaryContainer from theme', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildChip(source: Freshness.live, isOffline: true),
+        );
 
         final chip = tester.widget<Chip>(find.byType(Chip));
         final scheme = WildfireA11yTheme.light.colorScheme;
@@ -288,12 +291,12 @@ void main() {
         expect(chip.side?.color, scheme.tertiary);
       });
 
-      testWidgets('dark theme has adequate contrast for demo chip',
-          (tester) async {
-        await tester.pumpWidget(buildChip(
-          source: Freshness.mock,
-          theme: WildfireA11yTheme.dark,
-        ));
+      testWidgets('dark theme has adequate contrast for demo chip', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildChip(source: Freshness.mock, theme: WildfireA11yTheme.dark),
+        );
 
         final chip = tester.widget<Chip>(find.byType(Chip));
         final scheme = WildfireA11yTheme.dark.colorScheme;
@@ -301,12 +304,12 @@ void main() {
         expect(chip.backgroundColor, scheme.tertiaryContainer);
       });
 
-      testWidgets('dark theme has adequate contrast for live chip',
-          (tester) async {
-        await tester.pumpWidget(buildChip(
-          source: Freshness.live,
-          theme: WildfireA11yTheme.dark,
-        ));
+      testWidgets('dark theme has adequate contrast for live chip', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildChip(source: Freshness.live, theme: WildfireA11yTheme.dark),
+        );
 
         final chip = tester.widget<Chip>(find.byType(Chip));
         final scheme = WildfireA11yTheme.dark.colorScheme;
@@ -314,12 +317,12 @@ void main() {
         expect(chip.backgroundColor, scheme.primaryContainer);
       });
 
-      testWidgets('dark theme has adequate contrast for cached chip',
-          (tester) async {
-        await tester.pumpWidget(buildChip(
-          source: Freshness.cached,
-          theme: WildfireA11yTheme.dark,
-        ));
+      testWidgets('dark theme has adequate contrast for cached chip', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildChip(source: Freshness.cached, theme: WildfireA11yTheme.dark),
+        );
 
         final chip = tester.widget<Chip>(find.byType(Chip));
         final scheme = WildfireA11yTheme.dark.colorScheme;

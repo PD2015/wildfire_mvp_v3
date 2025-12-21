@@ -43,10 +43,7 @@ class ConsentRecord extends Equatable {
   /// UTC timestamp when consent was given
   final DateTime acceptedAt;
 
-  const ConsentRecord({
-    required this.termsVersion,
-    required this.acceptedAt,
-  });
+  const ConsentRecord({required this.termsVersion, required this.acceptedAt});
 
   /// Check if consent is for current terms version.
   ///

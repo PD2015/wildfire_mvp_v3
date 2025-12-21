@@ -9,13 +9,7 @@ void main() {
     testWidgets('renders location pin icon', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: Stack(
-              children: [
-                CrosshairOverlay(),
-              ],
-            ),
-          ),
+          home: Scaffold(body: Stack(children: [CrosshairOverlay()])),
         ),
       );
 
@@ -26,13 +20,7 @@ void main() {
     testWidgets('uses default size of 48dp', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: Stack(
-              children: [
-                CrosshairOverlay(),
-              ],
-            ),
-          ),
+          home: Scaffold(body: Stack(children: [CrosshairOverlay()])),
         ),
       );
 
@@ -56,13 +44,7 @@ void main() {
     testWidgets('uses default icon size of 36dp', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: Stack(
-              children: [
-                CrosshairOverlay(),
-              ],
-            ),
-          ),
+          home: Scaffold(body: Stack(children: [CrosshairOverlay()])),
         ),
       );
 
@@ -73,17 +55,12 @@ void main() {
       }
     });
 
-    testWidgets('uses BrandPalette.forest600 for main icon color',
-        (tester) async {
+    testWidgets('uses BrandPalette.forest600 for main icon color', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: Stack(
-              children: [
-                CrosshairOverlay(),
-              ],
-            ),
-          ),
+          home: Scaffold(body: Stack(children: [CrosshairOverlay()])),
         ),
       );
 
@@ -91,21 +68,16 @@ void main() {
       final icons = tester.widgetList<Icon>(find.byType(Icon)).toList();
 
       // At least one icon should have forest600 color
-      final hasForestIcon =
-          icons.any((icon) => icon.color == BrandPalette.forest600);
+      final hasForestIcon = icons.any(
+        (icon) => icon.color == BrandPalette.forest600,
+      );
       expect(hasForestIcon, isTrue);
     });
 
     testWidgets('respects custom size parameter', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: Stack(
-              children: [
-                CrosshairOverlay(size: 64.0),
-              ],
-            ),
-          ),
+          home: Scaffold(body: Stack(children: [CrosshairOverlay(size: 64.0)])),
         ),
       );
 
@@ -129,11 +101,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: Stack(
-              children: [
-                CrosshairOverlay(iconSize: 42.0),
-              ],
-            ),
+            body: Stack(children: [CrosshairOverlay(iconSize: 42.0)]),
           ),
         ),
       );
@@ -147,13 +115,7 @@ void main() {
     testWidgets('is centered in parent', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: Stack(
-              children: [
-                CrosshairOverlay(),
-              ],
-            ),
-          ),
+          home: Scaffold(body: Stack(children: [CrosshairOverlay()])),
         ),
       );
 
@@ -167,17 +129,12 @@ void main() {
       );
     });
 
-    testWidgets('does not intercept touch events (IgnorePointer)',
-        (tester) async {
+    testWidgets('does not intercept touch events (IgnorePointer)', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: Stack(
-              children: [
-                CrosshairOverlay(),
-              ],
-            ),
-          ),
+          home: Scaffold(body: Stack(children: [CrosshairOverlay()])),
         ),
       );
 
@@ -194,13 +151,7 @@ void main() {
     testWidgets('has no semantic label (decorative only)', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: Stack(
-              children: [
-                CrosshairOverlay(),
-              ],
-            ),
-          ),
+          home: Scaffold(body: Stack(children: [CrosshairOverlay()])),
         ),
       );
 

@@ -133,19 +133,26 @@ void main() {
         expect(LocationUtils.isValidCoordinate(double.nan, 0.0), isFalse);
         expect(LocationUtils.isValidCoordinate(0.0, double.nan), isFalse);
         expect(
-            LocationUtils.isValidCoordinate(double.nan, double.nan), isFalse);
+          LocationUtils.isValidCoordinate(double.nan, double.nan),
+          isFalse,
+        );
       });
 
       test('returns false for Infinity coordinates', () {
         expect(LocationUtils.isValidCoordinate(double.infinity, 0.0), isFalse);
-        expect(LocationUtils.isValidCoordinate(double.negativeInfinity, 0.0),
-            isFalse);
-        expect(LocationUtils.isValidCoordinate(0.0, double.infinity), isFalse);
-        expect(LocationUtils.isValidCoordinate(0.0, double.negativeInfinity),
-            isFalse);
         expect(
-            LocationUtils.isValidCoordinate(double.infinity, double.infinity),
-            isFalse);
+          LocationUtils.isValidCoordinate(double.negativeInfinity, 0.0),
+          isFalse,
+        );
+        expect(LocationUtils.isValidCoordinate(0.0, double.infinity), isFalse);
+        expect(
+          LocationUtils.isValidCoordinate(0.0, double.negativeInfinity),
+          isFalse,
+        );
+        expect(
+          LocationUtils.isValidCoordinate(double.infinity, double.infinity),
+          isFalse,
+        );
       });
     });
 
@@ -171,8 +178,10 @@ void main() {
       });
 
       test('handles negative Infinity latitude gracefully', () {
-        final result =
-            LocationUtils.logRedact(double.negativeInfinity, -3.1883);
+        final result = LocationUtils.logRedact(
+          double.negativeInfinity,
+          -3.1883,
+        );
         expect(result, equals('Invalid location'));
       });
 
@@ -182,14 +191,18 @@ void main() {
       });
 
       test('handles negative Infinity longitude gracefully', () {
-        final result =
-            LocationUtils.logRedact(55.9533, double.negativeInfinity);
+        final result = LocationUtils.logRedact(
+          55.9533,
+          double.negativeInfinity,
+        );
         expect(result, equals('Invalid location'));
       });
 
       test('handles both Infinity coordinates gracefully', () {
-        final result =
-            LocationUtils.logRedact(double.infinity, double.infinity);
+        final result = LocationUtils.logRedact(
+          double.infinity,
+          double.infinity,
+        );
         expect(result, equals('Invalid location'));
       });
 
@@ -233,9 +246,11 @@ void main() {
           final result = LocationUtils.logRedact(testCase[0], testCase[1]);
 
           // Result should not be an error
-          expect(result, isNot(equals('Invalid location')),
-              reason:
-                  'Coordinate ${testCase[0]}, ${testCase[1]} should be valid');
+          expect(
+            result,
+            isNot(equals('Invalid location')),
+            reason: 'Coordinate ${testCase[0]}, ${testCase[1]} should be valid',
+          );
 
           // Split by comma to check each coordinate
           final parts = result.split(',');

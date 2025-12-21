@@ -41,8 +41,11 @@ void main() {
   // Skip all tests on web platform - mock services use rootBundle.loadString
   // which doesn't work in the Chrome test environment
   if (kIsWeb) {
-    test('skipped on web platform', () {},
-        skip: 'rootBundle.loadString hangs on web');
+    test(
+      'skipped on web platform',
+      () {},
+      skip: 'rootBundle.loadString hangs on web',
+    );
     return;
   }
 
@@ -68,19 +71,22 @@ void main() {
       mockBurntAreaService = MockEffisBurntAreaService();
 
       // Default stubs for location resolver
-      when(mockLocationResolver.loadCachedManualLocation())
-          .thenAnswer((_) async => null);
+      when(
+        mockLocationResolver.loadCachedManualLocation(),
+      ).thenAnswer((_) async => null);
       when(mockLocationResolver.getLatLon()).thenAnswer(
-        (_) async => const Right(ResolvedLocation(
-          coordinates: testLocation,
-          source: LocationSource.gps,
-        )),
+        (_) async => const Right(
+          ResolvedLocation(
+            coordinates: testLocation,
+            source: LocationSource.gps,
+          ),
+        ),
       );
 
       // Default stub for fire location service
-      when(mockFireLocationService.getActiveFires(any)).thenAnswer(
-        (_) async => const Right(<FireIncident>[]),
-      );
+      when(
+        mockFireLocationService.getActiveFires(any),
+      ).thenAnswer((_) async => const Right(<FireIncident>[]));
     });
 
     tearDown(() {
@@ -88,97 +94,106 @@ void main() {
     });
 
     group('Hotspot fallback', () {
-      test('uses live service when successful', () async {
-        final liveHotspots = [
-          Hotspot.test(
-            id: 'live_1',
-            location: const LatLng(57.2, -3.8),
-            frp: 50.0,
-          ),
-        ];
+      test(
+        'uses live service when successful',
+        () async {
+          final liveHotspots = [
+            Hotspot.test(
+              id: 'live_1',
+              location: const LatLng(57.2, -3.8),
+              frp: 50.0,
+            ),
+          ];
 
-        // Configure mock orchestrator to return live hotspots
-        mockHotspotOrchestrator.hotspotsToReturn = liveHotspots;
-        mockHotspotOrchestrator.sourceToReturn = HotspotDataSource.firms;
+          // Configure mock orchestrator to return live hotspots
+          mockHotspotOrchestrator.hotspotsToReturn = liveHotspots;
+          mockHotspotOrchestrator.sourceToReturn = HotspotDataSource.firms;
 
-        controller = MapController(
-          locationResolver: mockLocationResolver,
-          fireRiskService: mockFireRiskService,
-          hotspotOrchestrator: mockHotspotOrchestrator,
-          burntAreaService: mockBurntAreaService,
-        );
+          controller = MapController(
+            locationResolver: mockLocationResolver,
+            fireRiskService: mockFireRiskService,
+            hotspotOrchestrator: mockHotspotOrchestrator,
+            burntAreaService: mockBurntAreaService,
+          );
 
-        await controller!.initialize();
-        controller!.updateBounds(testBounds);
+          await controller!.initialize();
+          controller!.updateBounds(testBounds);
 
-        // Wait for async fetch
-        await Future.delayed(const Duration(milliseconds: 100));
+          // Wait for async fetch
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        // When MAP_LIVE_DATA=false, mock data is used directly (orchestrator skipped)
-        if (!FeatureFlags.mapLiveData) {
+          // When MAP_LIVE_DATA=false, mock data is used directly (orchestrator skipped)
+          if (!FeatureFlags.mapLiveData) {
+            expect(controller!.isUsingMockData, isTrue);
+            expect(mockHotspotOrchestrator.callCount, equals(0));
+          } else {
+            expect(controller!.isUsingMockData, isFalse);
+            expect(controller!.hotspots.length, equals(1));
+            expect(controller!.hotspots.first.id, equals('live_1'));
+          }
+        },
+        skip: FeatureFlags.mapLiveData
+            ? null
+            : 'Cannot test live service when MAP_LIVE_DATA=false',
+      );
+
+      test(
+        'falls back to mock when live service fails',
+        () async {
+          // Configure mock orchestrator to simulate failure/mock fallback
+          mockHotspotOrchestrator.hotspotsToReturn = [];
+          mockHotspotOrchestrator.sourceToReturn = HotspotDataSource.mock;
+
+          controller = MapController(
+            locationResolver: mockLocationResolver,
+            fireRiskService: mockFireRiskService,
+            hotspotOrchestrator: mockHotspotOrchestrator,
+            burntAreaService: mockBurntAreaService,
+          );
+
+          await controller!.initialize();
+          controller!.updateBounds(testBounds);
+
+          // Wait for async fetch + fallback
+          await Future.delayed(const Duration(milliseconds: 200));
+
+          // When MAP_LIVE_DATA=false, mock data is always used
           expect(controller!.isUsingMockData, isTrue);
-          expect(mockHotspotOrchestrator.callCount, equals(0));
-        } else {
-          expect(controller!.isUsingMockData, isFalse);
-          expect(controller!.hotspots.length, equals(1));
-          expect(controller!.hotspots.first.id, equals('live_1'));
-        }
-      },
-          skip: FeatureFlags.mapLiveData
-              ? null
-              : 'Cannot test live service when MAP_LIVE_DATA=false');
+        },
+        skip: FeatureFlags.mapLiveData
+            ? null
+            : 'MAP_LIVE_DATA=false always uses mock - no fallback to test',
+      );
 
-      test('falls back to mock when live service fails', () async {
-        // Configure mock orchestrator to simulate failure/mock fallback
-        mockHotspotOrchestrator.hotspotsToReturn = [];
-        mockHotspotOrchestrator.sourceToReturn = HotspotDataSource.mock;
+      test(
+        'uses mock data when orchestrator returns mock source',
+        () async {
+          // Configure mock orchestrator to return mock source
+          mockHotspotOrchestrator.hotspotsToReturn = [];
+          mockHotspotOrchestrator.sourceToReturn = HotspotDataSource.mock;
 
-        controller = MapController(
-          locationResolver: mockLocationResolver,
-          fireRiskService: mockFireRiskService,
-          hotspotOrchestrator: mockHotspotOrchestrator,
-          burntAreaService: mockBurntAreaService,
-        );
+          controller = MapController(
+            locationResolver: mockLocationResolver,
+            fireRiskService: mockFireRiskService,
+            hotspotOrchestrator: mockHotspotOrchestrator,
+            burntAreaService: null,
+          );
 
-        await controller!.initialize();
-        controller!.updateBounds(testBounds);
+          await controller!.initialize();
+          controller!.updateBounds(testBounds);
 
-        // Wait for async fetch + fallback
-        await Future.delayed(const Duration(milliseconds: 200));
+          // Wait for async fetch + fallback
+          await Future.delayed(const Duration(milliseconds: 200));
 
-        // When MAP_LIVE_DATA=false, mock data is always used
-        expect(controller!.isUsingMockData, isTrue);
-      },
-          skip: FeatureFlags.mapLiveData
-              ? null
-              : 'MAP_LIVE_DATA=false always uses mock - no fallback to test');
+          expect(controller!.isUsingMockData, isTrue);
 
-      test('uses mock data when orchestrator returns mock source', () async {
-        // Configure mock orchestrator to return mock source
-        mockHotspotOrchestrator.hotspotsToReturn = [];
-        mockHotspotOrchestrator.sourceToReturn = HotspotDataSource.mock;
-
-        controller = MapController(
-          locationResolver: mockLocationResolver,
-          fireRiskService: mockFireRiskService,
-          hotspotOrchestrator: mockHotspotOrchestrator,
-          burntAreaService: null,
-        );
-
-        await controller!.initialize();
-        controller!.updateBounds(testBounds);
-
-        // Wait for async fetch + fallback
-        await Future.delayed(const Duration(milliseconds: 200));
-
-        expect(controller!.isUsingMockData, isTrue);
-
-        // Wait for all async operations to complete before tearDown disposes
-        await Future.delayed(const Duration(milliseconds: 300));
-      },
-          skip: FeatureFlags.mapLiveData
-              ? null
-              : 'Orchestrator not called when MAP_LIVE_DATA=false');
+          // Wait for all async operations to complete before tearDown disposes
+          await Future.delayed(const Duration(milliseconds: 300));
+        },
+        skip: FeatureFlags.mapLiveData
+            ? null
+            : 'Orchestrator not called when MAP_LIVE_DATA=false',
+      );
     });
 
     group('Burnt area fallback', () {
@@ -190,9 +205,12 @@ void main() {
           // Set controller to null to avoid dispose() in tearDown affecting
           // the previous test's controller async operations
           controller = null;
-          expect(FeatureFlags.mapLiveData, isFalse,
-              reason:
-                  'Test skipped: requires MAP_LIVE_DATA=true. Run with --dart-define=MAP_LIVE_DATA=true');
+          expect(
+            FeatureFlags.mapLiveData,
+            isFalse,
+            reason:
+                'Test skipped: requires MAP_LIVE_DATA=true. Run with --dart-define=MAP_LIVE_DATA=true',
+          );
           return;
         }
 
@@ -209,12 +227,14 @@ void main() {
           ),
         ];
 
-        when(mockBurntAreaService.getBurntAreas(
-          bounds: anyNamed('bounds'),
-          seasonFilter: anyNamed('seasonFilter'),
-          timeout: anyNamed('timeout'),
-          maxRetries: anyNamed('maxRetries'),
-        )).thenAnswer((_) async => Right(liveBurntAreas));
+        when(
+          mockBurntAreaService.getBurntAreas(
+            bounds: anyNamed('bounds'),
+            seasonFilter: anyNamed('seasonFilter'),
+            timeout: anyNamed('timeout'),
+            maxRetries: anyNamed('maxRetries'),
+          ),
+        ).thenAnswer((_) async => Right(liveBurntAreas));
 
         controller = MapController(
           locationResolver: mockLocationResolver,
@@ -238,12 +258,14 @@ void main() {
       });
 
       test('falls back to mock when live service fails', () async {
-        when(mockBurntAreaService.getBurntAreas(
-          bounds: anyNamed('bounds'),
-          seasonFilter: anyNamed('seasonFilter'),
-          timeout: anyNamed('timeout'),
-          maxRetries: anyNamed('maxRetries'),
-        )).thenAnswer(
+        when(
+          mockBurntAreaService.getBurntAreas(
+            bounds: anyNamed('bounds'),
+            seasonFilter: anyNamed('seasonFilter'),
+            timeout: anyNamed('timeout'),
+            maxRetries: anyNamed('maxRetries'),
+          ),
+        ).thenAnswer(
           (_) async => Left(ApiError(message: 'Service unavailable')),
         );
 
@@ -297,12 +319,14 @@ void main() {
         mockHotspotOrchestrator.hotspotsToReturn = liveHotspots;
         mockHotspotOrchestrator.sourceToReturn = HotspotDataSource.firms;
 
-        when(mockBurntAreaService.getBurntAreas(
-          bounds: anyNamed('bounds'),
-          seasonFilter: anyNamed('seasonFilter'),
-          timeout: anyNamed('timeout'),
-          maxRetries: anyNamed('maxRetries'),
-        )).thenAnswer((_) async => const Right(<BurntArea>[]));
+        when(
+          mockBurntAreaService.getBurntAreas(
+            bounds: anyNamed('bounds'),
+            seasonFilter: anyNamed('seasonFilter'),
+            timeout: anyNamed('timeout'),
+            maxRetries: anyNamed('maxRetries'),
+          ),
+        ).thenAnswer((_) async => const Right(<BurntArea>[]));
 
         controller = MapController(
           locationResolver: mockLocationResolver,
@@ -340,12 +364,14 @@ void main() {
         mockHotspotOrchestrator.hotspotsToReturn = [];
         mockHotspotOrchestrator.sourceToReturn = HotspotDataSource.mock;
 
-        when(mockBurntAreaService.getBurntAreas(
-          bounds: anyNamed('bounds'),
-          seasonFilter: anyNamed('seasonFilter'),
-          timeout: anyNamed('timeout'),
-          maxRetries: anyNamed('maxRetries'),
-        )).thenAnswer((_) async => Right(liveBurntAreas));
+        when(
+          mockBurntAreaService.getBurntAreas(
+            bounds: anyNamed('bounds'),
+            seasonFilter: anyNamed('seasonFilter'),
+            timeout: anyNamed('timeout'),
+            maxRetries: anyNamed('maxRetries'),
+          ),
+        ).thenAnswer((_) async => Right(liveBurntAreas));
 
         controller = MapController(
           locationResolver: mockLocationResolver,

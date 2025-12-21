@@ -8,11 +8,7 @@ void main() {
     testWidgets('displays app title', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: WelcomePage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: WelcomePage(onContinue: () {})),
         ),
       );
 
@@ -22,11 +18,7 @@ void main() {
     testWidgets('displays subtitle', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: WelcomePage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: WelcomePage(onContinue: () {})),
         ),
       );
 
@@ -39,11 +31,7 @@ void main() {
     testWidgets('displays feature list', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: WelcomePage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: WelcomePage(onContinue: () {})),
         ),
       );
 
@@ -51,10 +39,7 @@ void main() {
         find.text('View active fires on an interactive map'),
         findsOneWidget,
       );
-      expect(
-        find.text('Check fire risk levels for your area'),
-        findsOneWidget,
-      );
+      expect(find.text('Check fire risk levels for your area'), findsOneWidget);
       expect(
         find.text('Get alerts about nearby fire activity'),
         findsOneWidget,
@@ -64,11 +49,7 @@ void main() {
     testWidgets('displays fire icon', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: WelcomePage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: WelcomePage(onContinue: () {})),
         ),
       );
 
@@ -78,11 +59,7 @@ void main() {
     testWidgets('displays Continue button', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: WelcomePage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: WelcomePage(onContinue: () {})),
         ),
       );
 
@@ -99,11 +76,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: WelcomePage(
-              onContinue: () => called = true,
-            ),
-          ),
+          home: Scaffold(body: WelcomePage(onContinue: () => called = true)),
         ),
       );
 
@@ -120,11 +93,7 @@ void main() {
     testWidgets('button has 56dp height for accessibility', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: WelcomePage(
-              onContinue: () {},
-            ),
-          ),
+          home: Scaffold(body: WelcomePage(onContinue: () {})),
         ),
       );
 

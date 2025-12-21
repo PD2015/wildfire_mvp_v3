@@ -60,16 +60,13 @@ void main() {
         ],
       );
 
-      return MaterialApp.router(
-        routerConfig: router,
-      );
+      return MaterialApp.router(routerConfig: router);
     }
 
     testWidgets('renders settings and help icons', (tester) async {
-      await tester.pumpWidget(buildTestWidget(
-        onSettingsTap: () {},
-        onHelpTap: () {},
-      ));
+      await tester.pumpWidget(
+        buildTestWidget(onSettingsTap: () {}, onHelpTap: () {}),
+      );
       await tester.pumpAndSettle();
 
       // Find the settings and help icons (outlined when not on those pages)
@@ -80,10 +77,12 @@ void main() {
     testWidgets('settings icon tap triggers callback', (tester) async {
       bool settingsTapped = false;
 
-      await tester.pumpWidget(buildTestWidget(
-        onSettingsTap: () => settingsTapped = true,
-        onHelpTap: () {},
-      ));
+      await tester.pumpWidget(
+        buildTestWidget(
+          onSettingsTap: () => settingsTapped = true,
+          onHelpTap: () {},
+        ),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.settings_outlined));
@@ -95,10 +94,12 @@ void main() {
     testWidgets('help icon tap triggers callback', (tester) async {
       bool helpTapped = false;
 
-      await tester.pumpWidget(buildTestWidget(
-        onSettingsTap: () {},
-        onHelpTap: () => helpTapped = true,
-      ));
+      await tester.pumpWidget(
+        buildTestWidget(
+          onSettingsTap: () {},
+          onHelpTap: () => helpTapped = true,
+        ),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.help_outline));
@@ -108,10 +109,9 @@ void main() {
     });
 
     testWidgets('icons have accessible touch targets (≥48dp)', (tester) async {
-      await tester.pumpWidget(buildTestWidget(
-        onSettingsTap: () {},
-        onHelpTap: () {},
-      ));
+      await tester.pumpWidget(
+        buildTestWidget(onSettingsTap: () {}, onHelpTap: () {}),
+      );
       await tester.pumpAndSettle();
 
       // IconButtons have minimum size of 48x48 by default in Material 3
@@ -121,18 +121,23 @@ void main() {
       // Verify each IconButton has adequate touch target
       for (final element in iconButtons.evaluate()) {
         final size = element.size;
-        expect(size!.width, greaterThanOrEqualTo(48.0),
-            reason: 'IconButton width should be at least 48dp');
-        expect(size.height, greaterThanOrEqualTo(48.0),
-            reason: 'IconButton height should be at least 48dp');
+        expect(
+          size!.width,
+          greaterThanOrEqualTo(48.0),
+          reason: 'IconButton width should be at least 48dp',
+        );
+        expect(
+          size.height,
+          greaterThanOrEqualTo(48.0),
+          reason: 'IconButton height should be at least 48dp',
+        );
       }
     });
 
     testWidgets('icons have semantic labels for accessibility', (tester) async {
-      await tester.pumpWidget(buildTestWidget(
-        onSettingsTap: () {},
-        onHelpTap: () {},
-      ));
+      await tester.pumpWidget(
+        buildTestWidget(onSettingsTap: () {}, onHelpTap: () {}),
+      );
       await tester.pumpAndSettle();
 
       // Find IconButtons and verify they have tooltips (which provide semantic labels)
@@ -153,13 +158,16 @@ void main() {
       expect(helpButton, findsOneWidget);
     });
 
-    testWidgets('shows filled settings icon when on settings page',
-        (tester) async {
-      await tester.pumpWidget(buildTestWidget(
-        onSettingsTap: () {},
-        onHelpTap: () {},
-        initialLocation: '/settings',
-      ));
+    testWidgets('shows filled settings icon when on settings page', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTestWidget(
+          onSettingsTap: () {},
+          onHelpTap: () {},
+          initialLocation: '/settings',
+        ),
+      );
       await tester.pumpAndSettle();
 
       // Settings icon should be filled when on /settings
@@ -170,11 +178,13 @@ void main() {
     });
 
     testWidgets('shows filled help icon when on help page', (tester) async {
-      await tester.pumpWidget(buildTestWidget(
-        onSettingsTap: () {},
-        onHelpTap: () {},
-        initialLocation: '/help',
-      ));
+      await tester.pumpWidget(
+        buildTestWidget(
+          onSettingsTap: () {},
+          onHelpTap: () {},
+          initialLocation: '/help',
+        ),
+      );
       await tester.pumpAndSettle();
 
       // Help icon should be filled when on /help

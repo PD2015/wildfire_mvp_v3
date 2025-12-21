@@ -13,18 +13,13 @@ class AboutSettingsScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('About'),
-      ),
+      appBar: AppBar(title: const Text('About')),
       body: SafeArea(
         child: ListView(
           children: [
             // Legal documents section
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: Semantics(
                 header: true,
                 child: Text(
@@ -70,10 +65,7 @@ class AboutSettingsScreen extends StatelessWidget {
 
             // Information section
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Text(
                 'These documents explain how WildFire works, your rights, and our responsibilities. Last updated December 2025.',
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -109,10 +101,7 @@ class _LegalTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return ListTile(
-      leading: Icon(
-        icon,
-        color: theme.colorScheme.onSurfaceVariant,
-      ),
+      leading: Icon(icon, color: theme.colorScheme.onSurfaceVariant),
       title: Text(title),
       subtitle: Text(
         subtitle,

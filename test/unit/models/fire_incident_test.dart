@@ -154,11 +154,13 @@ void main() {
             timestamp: pastTimestamp,
             intensity: 'low',
           ),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('id must be non-empty'),
-          )),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('id must be non-empty'),
+            ),
+          ),
         );
       });
 
@@ -172,11 +174,13 @@ void main() {
             timestamp: pastTimestamp,
             intensity: 'low',
           ),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('valid coordinates'),
-          )),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('valid coordinates'),
+            ),
+          ),
         );
       });
 
@@ -190,11 +194,13 @@ void main() {
             timestamp: DateTime.now().add(const Duration(hours: 1)),
             intensity: 'low',
           ),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('timestamp must not be in the future'),
-          )),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('timestamp must not be in the future'),
+            ),
+          ),
         );
       });
 
@@ -209,11 +215,13 @@ void main() {
             intensity: 'low',
             detectedAt: DateTime.now().add(const Duration(hours: 1)),
           ),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('detectedAt must not be in the future'),
-          )),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('detectedAt must not be in the future'),
+            ),
+          ),
         );
       });
 
@@ -227,11 +235,13 @@ void main() {
             timestamp: pastTimestamp,
             intensity: 'extreme', // Invalid
           ),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('intensity must be'),
-          )),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('intensity must be'),
+            ),
+          ),
         );
       });
 
@@ -246,11 +256,13 @@ void main() {
             intensity: 'low',
             areaHectares: 0.0,
           ),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('areaHectares must be > 0'),
-          )),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('areaHectares must be > 0'),
+            ),
+          ),
         );
 
         expect(
@@ -263,11 +275,13 @@ void main() {
             intensity: 'low',
             areaHectares: -5.0,
           ),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('areaHectares must be > 0'),
-          )),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('areaHectares must be > 0'),
+            ),
+          ),
         );
       });
 
@@ -282,11 +296,13 @@ void main() {
             intensity: 'low',
             sensorSource: '',
           ),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('sensorSource must be non-empty'),
-          )),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('sensorSource must be non-empty'),
+            ),
+          ),
         );
       });
 
@@ -301,11 +317,13 @@ void main() {
             intensity: 'low',
             confidence: -1.0,
           ),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('confidence must be between 0-100'),
-          )),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('confidence must be between 0-100'),
+            ),
+          ),
         );
 
         expect(
@@ -318,11 +336,13 @@ void main() {
             intensity: 'low',
             confidence: 100.1,
           ),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('confidence must be between 0-100'),
-          )),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('confidence must be between 0-100'),
+            ),
+          ),
         );
       });
 
@@ -337,11 +357,13 @@ void main() {
             intensity: 'low',
             frp: -0.1,
           ),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('frp must be non-negative'),
-          )),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('frp must be non-negative'),
+            ),
+          ),
         );
       });
 
@@ -360,11 +382,13 @@ void main() {
             detectedAt: detectedAt,
             lastUpdate: lastUpdateBefore,
           ),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('lastUpdate must be >= detectedAt'),
-          )),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('lastUpdate must be >= detectedAt'),
+            ),
+          ),
         );
       });
     });
@@ -407,16 +431,15 @@ void main() {
             freshness: Freshness.live,
             timestamp: pastTimestamp,
             intensity: 'low',
-            boundaryPoints: const [
-              LatLng(55.95, -3.19),
-              LatLng(55.96, -3.18),
-            ],
+            boundaryPoints: const [LatLng(55.95, -3.19), LatLng(55.96, -3.18)],
           ),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('at least 3 points'),
-          )),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('at least 3 points'),
+            ),
+          ),
         );
       });
 
@@ -456,11 +479,13 @@ void main() {
               LatLng(55.95, -3.17),
             ],
           ),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('invalid coordinates'),
-          )),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('invalid coordinates'),
+            ),
+          ),
         );
       });
 
@@ -576,12 +601,15 @@ void main() {
         final after = DateTime.now().toUtc();
 
         expect(
-            incident.timestamp
-                .isAfter(before.subtract(const Duration(seconds: 1))),
-            isTrue);
+          incident.timestamp.isAfter(
+            before.subtract(const Duration(seconds: 1)),
+          ),
+          isTrue,
+        );
         expect(
-            incident.timestamp.isBefore(after.add(const Duration(seconds: 1))),
-            isTrue);
+          incident.timestamp.isBefore(after.add(const Duration(seconds: 1))),
+          isTrue,
+        );
       });
     });
 
@@ -622,12 +650,9 @@ void main() {
           'id': 'low-1',
           'geometry': {
             'type': 'Point',
-            'coordinates': [-3.0, 55.0]
+            'coordinates': [-3.0, 55.0],
           },
-          'properties': {
-            'timestamp': '2024-01-15T10:30:00Z',
-            'area_ha': 5.0,
-          },
+          'properties': {'timestamp': '2024-01-15T10:30:00Z', 'area_ha': 5.0},
         };
         expect(FireIncident.fromJson(lowJson).intensity, 'low');
 
@@ -636,12 +661,9 @@ void main() {
           'id': 'mod-1',
           'geometry': {
             'type': 'Point',
-            'coordinates': [-3.0, 55.0]
+            'coordinates': [-3.0, 55.0],
           },
-          'properties': {
-            'timestamp': '2024-01-15T10:30:00Z',
-            'area_ha': 25.0,
-          },
+          'properties': {'timestamp': '2024-01-15T10:30:00Z', 'area_ha': 25.0},
         };
         expect(FireIncident.fromJson(modJson).intensity, 'moderate');
 
@@ -650,12 +672,9 @@ void main() {
           'id': 'high-1',
           'geometry': {
             'type': 'Point',
-            'coordinates': [-3.0, 55.0]
+            'coordinates': [-3.0, 55.0],
           },
-          'properties': {
-            'timestamp': '2024-01-15T10:30:00Z',
-            'area_ha': 50.0,
-          },
+          'properties': {'timestamp': '2024-01-15T10:30:00Z', 'area_ha': 50.0},
         };
         expect(FireIncident.fromJson(highJson).intensity, 'high');
       });
@@ -665,7 +684,7 @@ void main() {
           'id': 'mock-1',
           'geometry': {
             'type': 'Point',
-            'coordinates': [-3.0, 55.0]
+            'coordinates': [-3.0, 55.0],
           },
           'properties': {
             'timestamp': '2024-01-15T10:30:00Z',
@@ -682,7 +701,7 @@ void main() {
           'id': 'ts-1',
           'geometry': {
             'type': 'Point',
-            'coordinates': [-3.0, 55.0]
+            'coordinates': [-3.0, 55.0],
           },
           'properties': {'lastupdate': '2024-02-20T15:00:00Z'},
         };
@@ -695,7 +714,7 @@ void main() {
           'id': 'ts-2',
           'geometry': {
             'type': 'Point',
-            'coordinates': [-3.0, 55.0]
+            'coordinates': [-3.0, 55.0],
           },
           'properties': {'firedate': '2024-03-10T08:00:00Z'},
         };
@@ -710,7 +729,7 @@ void main() {
           'id': 'sensor-1',
           'geometry': {
             'type': 'Point',
-            'coordinates': [-3.0, 55.0]
+            'coordinates': [-3.0, 55.0],
           },
           'properties': {
             'timestamp': '2024-01-15T10:30:00Z',
@@ -718,14 +737,16 @@ void main() {
           },
         };
         expect(
-            FireIncident.fromJson(sensorSourceJson).sensorSource, 'SENTINEL');
+          FireIncident.fromJson(sensorSourceJson).sensorSource,
+          'SENTINEL',
+        );
 
         // Defaults to 'MODIS' when no sensor field
         final noSensorJson = {
           'id': 'sensor-2',
           'geometry': {
             'type': 'Point',
-            'coordinates': [-3.0, 55.0]
+            'coordinates': [-3.0, 55.0],
           },
           'properties': {'timestamp': '2024-01-15T10:30:00Z'},
         };
@@ -738,7 +759,7 @@ void main() {
           'id': 'top-123',
           'geometry': {
             'type': 'Point',
-            'coordinates': [-3.0, 55.0]
+            'coordinates': [-3.0, 55.0],
           },
           'properties': {'timestamp': '2024-01-15T10:30:00Z'},
         };
@@ -748,12 +769,9 @@ void main() {
         final fidJson = {
           'geometry': {
             'type': 'Point',
-            'coordinates': [-3.0, 55.0]
+            'coordinates': [-3.0, 55.0],
           },
-          'properties': {
-            'timestamp': '2024-01-15T10:30:00Z',
-            'fid': 456,
-          },
+          'properties': {'timestamp': '2024-01-15T10:30:00Z', 'fid': 456},
         };
         expect(FireIncident.fromJson(fidJson).id, '456');
 
@@ -761,7 +779,7 @@ void main() {
         final noIdJson = {
           'geometry': {
             'type': 'Point',
-            'coordinates': [-3.0, 55.0]
+            'coordinates': [-3.0, 55.0],
           },
           'properties': {'timestamp': '2024-01-15T10:30:00Z'},
         };
@@ -782,7 +800,7 @@ void main() {
                 [-3.18, 55.96],
                 [-3.20, 55.96],
                 [-3.20, 55.94], // Closed ring
-              ]
+              ],
             ],
           },
           'properties': {
@@ -815,12 +833,10 @@ void main() {
                 [-4.0, 56.0],
                 [-4.0, 55.0],
                 [-3.0, 55.0],
-              ]
+              ],
             ],
           },
-          'properties': {
-            'timestamp': '2024-01-15T10:30:00Z',
-          },
+          'properties': {'timestamp': '2024-01-15T10:30:00Z'},
         };
 
         final incident = FireIncident.fromJson(json);
@@ -844,7 +860,7 @@ void main() {
                 [-3.17, 55.96],
                 [-3.19, 55.96],
                 [-3.19, 55.95],
-              ]
+              ],
             ],
           },
           'properties': {
@@ -1073,7 +1089,9 @@ void main() {
         expect(restored.confidence, original.confidence);
         expect(restored.frp, original.frp);
         expect(
-            restored.boundaryPoints!.length, original.boundaryPoints!.length);
+          restored.boundaryPoints!.length,
+          original.boundaryPoints!.length,
+        );
         expect(restored.hasValidPolygon, original.hasValidPolygon);
       });
 
@@ -1225,10 +1243,14 @@ void main() {
       });
 
       test('different id makes instances unequal', () {
-        final incident1 =
-            FireIncident.test(id: 'id-1', location: validLocation);
-        final incident2 =
-            FireIncident.test(id: 'id-2', location: validLocation);
+        final incident1 = FireIncident.test(
+          id: 'id-1',
+          location: validLocation,
+        );
+        final incident2 = FireIncident.test(
+          id: 'id-2',
+          location: validLocation,
+        );
 
         expect(incident1, isNot(equals(incident2)));
       });

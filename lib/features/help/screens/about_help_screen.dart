@@ -56,9 +56,7 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('About WildFire'),
-      ),
+      appBar: AppBar(title: const Text('About WildFire')),
       body: SafeArea(
         child: ListView(
           children: [
@@ -140,9 +138,7 @@ class _AboutHelpScreenState extends State<AboutHelpScreen> {
                   Text(
                     'WildFire is a public awareness tool that helps people understand wildfire risk in Scotland. '
                     'It visualises publicly available fire danger data and satellite-detected hotspots.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      height: 1.5,
-                    ),
+                    style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
                   ),
                 ],
               ),
@@ -276,10 +272,7 @@ class _QuickLinkTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return ListTile(
-      leading: Icon(
-        icon,
-        color: theme.colorScheme.onSurfaceVariant,
-      ),
+      leading: Icon(icon, color: theme.colorScheme.onSurfaceVariant),
       title: Text(title),
       trailing: Icon(
         Icons.chevron_right,

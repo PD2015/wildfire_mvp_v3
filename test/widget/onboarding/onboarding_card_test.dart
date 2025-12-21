@@ -8,11 +8,7 @@ void main() {
     testWidgets('renders child content', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: OnboardingCard(
-              child: Text('Test content'),
-            ),
-          ),
+          home: Scaffold(body: OnboardingCard(child: Text('Test content'))),
         ),
       );
 
@@ -23,9 +19,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: OnboardingCard(
-              child: Container(key: const Key('child')),
-            ),
+            body: OnboardingCard(child: Container(key: const Key('child'))),
           ),
         ),
       );
@@ -70,10 +64,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: OnboardingCard(
-              icon: Icons.star,
-              child: Text('Content'),
-            ),
+            body: OnboardingCard(icon: Icons.star, child: Text('Content')),
           ),
         ),
       );
@@ -85,10 +76,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: OnboardingCard(
-              title: 'Card Title',
-              child: Text('Content'),
-            ),
+            body: OnboardingCard(title: 'Card Title', child: Text('Content')),
           ),
         ),
       );
@@ -133,9 +121,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: OnboardingCard(
-              child: Container(key: const Key('child')),
-            ),
+            body: OnboardingCard(child: Container(key: const Key('child'))),
           ),
         ),
       );
@@ -155,11 +141,7 @@ void main() {
     testWidgets('has rounded corners with 16dp radius', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: OnboardingCard(
-              child: Text('Content'),
-            ),
-          ),
+          home: Scaffold(body: OnboardingCard(child: Text('Content'))),
         ),
       );
 

@@ -25,11 +25,7 @@ class DataSourceChip extends StatelessWidget {
   /// Optional custom label text (defaults to source type description)
   final String? label;
 
-  const DataSourceChip({
-    super.key,
-    required this.sourceType,
-    this.label,
-  });
+  const DataSourceChip({super.key, required this.sourceType, this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -54,10 +50,7 @@ class DataSourceChip extends StatelessWidget {
           ),
         ),
         backgroundColor: chipData.backgroundColor,
-        side: BorderSide(
-          color: chipData.borderColor,
-          width: 1.5,
-        ),
+        side: BorderSide(color: chipData.borderColor, width: 1.5),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         visualDensity: VisualDensity.compact,

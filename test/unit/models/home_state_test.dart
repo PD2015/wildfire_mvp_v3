@@ -110,8 +110,9 @@ void main() {
 
     test('isLocationStale returns false when location is fresh (<1 hour)', () {
       // Use actual DateTime.now() and subtract 30 minutes
-      final thirtyMinutesAgo =
-          DateTime.now().subtract(const Duration(minutes: 30));
+      final thirtyMinutesAgo = DateTime.now().subtract(
+        const Duration(minutes: 30),
+      );
 
       final state = HomeStateLoading(
         startTime: DateTime.now(),
@@ -153,8 +154,9 @@ void main() {
 
     test('isLocationStale boundary: 1 hour + 1 second returns true', () {
       // Just over 1 hour old - should be stale
-      final overOneHourAgo =
-          DateTime.now().subtract(const Duration(hours: 1, seconds: 2));
+      final overOneHourAgo = DateTime.now().subtract(
+        const Duration(hours: 1, seconds: 2),
+      );
 
       final state = HomeStateLoading(
         startTime: DateTime.now(),
@@ -482,9 +484,7 @@ void main() {
       final strWithCache = stateWithCache.toString();
       expect(strWithCache, contains('hasCachedData: true'));
 
-      const stateWithoutCache = HomeStateError(
-        errorMessage: 'Network error',
-      );
+      const stateWithoutCache = HomeStateError(errorMessage: 'Network error');
 
       final strWithoutCache = stateWithoutCache.toString();
       expect(strWithoutCache, contains('hasCachedData: false'));

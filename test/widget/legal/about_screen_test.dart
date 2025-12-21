@@ -20,15 +20,13 @@ void main() {
             routes: [
               GoRoute(
                 path: 'terms',
-                builder: (context, state) => LegalDocumentScreen(
-                  document: LegalContent.termsOfService,
-                ),
+                builder: (context, state) =>
+                    LegalDocumentScreen(document: LegalContent.termsOfService),
               ),
               GoRoute(
                 path: 'privacy',
-                builder: (context, state) => LegalDocumentScreen(
-                  document: LegalContent.privacyPolicy,
-                ),
+                builder: (context, state) =>
+                    LegalDocumentScreen(document: LegalContent.privacyPolicy),
               ),
               GoRoute(
                 path: 'disclaimer',
@@ -38,9 +36,8 @@ void main() {
               ),
               GoRoute(
                 path: 'data-sources',
-                builder: (context, state) => LegalDocumentScreen(
-                  document: LegalContent.dataSources,
-                ),
+                builder: (context, state) =>
+                    LegalDocumentScreen(document: LegalContent.dataSources),
               ),
             ],
           ),
@@ -49,9 +46,7 @@ void main() {
     });
 
     Widget buildApp() {
-      return MaterialApp.router(
-        routerConfig: router,
-      );
+      return MaterialApp.router(routerConfig: router);
     }
 
     testWidgets('displays About title in AppBar', (tester) async {
@@ -129,8 +124,9 @@ void main() {
       expect(find.textContaining('UK GDPR'), findsWidgets);
     });
 
-    testWidgets('tapping Disclaimer navigates to disclaimer screen',
-        (tester) async {
+    testWidgets('tapping Disclaimer navigates to disclaimer screen', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 
@@ -143,8 +139,9 @@ void main() {
       expect(find.textContaining('Emergency Guidance'), findsWidgets);
     });
 
-    testWidgets('tapping Data Sources navigates to data sources screen',
-        (tester) async {
+    testWidgets('tapping Data Sources navigates to data sources screen', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildApp());
       await tester.pumpAndSettle();
 

@@ -31,10 +31,7 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: FireDetailsBottomSheet(
-                isLoading: true,
-                onClose: () {},
-              ),
+              body: FireDetailsBottomSheet(isLoading: true, onClose: () {}),
             ),
           ),
         );
@@ -109,8 +106,9 @@ void main() {
     });
 
     group('Material 3 Styling', () {
-      testWidgets('uses surfaceContainerHighest background color',
-          (tester) async {
+      testWidgets('uses surfaceContainerHighest background color', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.light(),
@@ -135,8 +133,9 @@ void main() {
         );
 
         final decoration = container.decoration as BoxDecoration;
-        final colorScheme =
-            Theme.of(tester.element(find.byType(Scaffold))).colorScheme;
+        final colorScheme = Theme.of(
+          tester.element(find.byType(Scaffold)),
+        ).colorScheme;
 
         // Verify Material 3 surface color
         expect(decoration.color, equals(colorScheme.surfaceContainerHighest));
@@ -168,10 +167,12 @@ void main() {
         expect(decoration.borderRadius, isNotNull);
         expect(
           decoration.borderRadius,
-          equals(const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          )),
+          equals(
+            const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
         );
       });
 
@@ -206,8 +207,9 @@ void main() {
     });
 
     group('_InfoSection Styling', () {
-      testWidgets('sections have correct container styling in light theme',
-          (tester) async {
+      testWidgets('sections have correct container styling in light theme', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.light(),
@@ -238,8 +240,9 @@ void main() {
         // (verified via visual inspection and dark theme test)
       });
 
-      testWidgets('sections have correct container styling in dark theme',
-          (tester) async {
+      testWidgets('sections have correct container styling in dark theme', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: ThemeData.dark(),
@@ -331,7 +334,9 @@ void main() {
         // Verify section icons
         expect(find.byIcon(Icons.place_outlined), findsOneWidget);
         expect(
-            find.byIcon(Icons.local_fire_department_outlined), findsOneWidget);
+          find.byIcon(Icons.local_fire_department_outlined),
+          findsOneWidget,
+        );
         expect(find.byIcon(Icons.access_time), findsWidgets); // Multiple uses
       });
     });
@@ -441,8 +446,9 @@ void main() {
         expect(find.text('Fire coordinates'), findsOneWidget);
       });
 
-      testWidgets('shows GPS unavailable messages when no user location',
-          (tester) async {
+      testWidgets('shows GPS unavailable messages when no user location', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -574,8 +580,9 @@ void main() {
         final fireIdLabel = find.bySemanticsLabel(RegExp('Fire ID.*'));
         expect(fireIdLabel, findsWidgets);
 
-        final confidenceLabel =
-            find.bySemanticsLabel(RegExp('Detection confidence.*'));
+        final confidenceLabel = find.bySemanticsLabel(
+          RegExp('Detection confidence.*'),
+        );
         expect(confidenceLabel, findsWidgets);
       });
 
@@ -595,10 +602,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Verify close button semantic label
-        expect(
-          find.bySemanticsLabel('Close fire details'),
-          findsOneWidget,
-        );
+        expect(find.bySemanticsLabel('Close fire details'), findsOneWidget);
       });
     });
 
@@ -720,8 +724,9 @@ void main() {
 
     group('Functional Behavior', () {
       group('GPS Location Handling', () {
-        testWidgets('shows GPS coordinates when user location available',
-            (tester) async {
+        testWidgets('shows GPS coordinates when user location available', (
+          tester,
+        ) async {
           await tester.pumpWidget(
             MaterialApp(
               home: Scaffold(
@@ -747,8 +752,9 @@ void main() {
           expect(find.byIcon(Icons.gps_fixed), findsOneWidget);
         });
 
-        testWidgets('shows unknown when user location unavailable',
-            (tester) async {
+        testWidgets('shows unknown when user location unavailable', (
+          tester,
+        ) async {
           await tester.pumpWidget(
             MaterialApp(
               home: Scaffold(
@@ -776,8 +782,9 @@ void main() {
           );
         });
 
-        testWidgets('displays distance and direction when GPS available',
-            (tester) async {
+        testWidgets('displays distance and direction when GPS available', (
+          tester,
+        ) async {
           await tester.pumpWidget(
             MaterialApp(
               home: Scaffold(
@@ -908,8 +915,9 @@ void main() {
       });
 
       group('Time Format Display', () {
-        testWidgets('formats time as "Today at HH:MM AM/PM UTC" for today',
-            (tester) async {
+        testWidgets('formats time as "Today at HH:MM AM/PM UTC" for today', (
+          tester,
+        ) async {
           final todayIncident = FireIncident(
             id: 'TODAY001',
             location: const LatLng(55.95, -3.19),
@@ -940,69 +948,74 @@ void main() {
         });
 
         testWidgets(
-            'formats time as "Yesterday at HH:MM AM/PM UTC" for yesterday',
-            (tester) async {
-          final yesterdayIncident = FireIncident(
-            id: 'YESTERDAY001',
-            location: const LatLng(55.95, -3.19),
-            intensity: 'high',
-            timestamp: DateTime.now().toUtc().subtract(const Duration(days: 1)),
-            detectedAt:
-                DateTime.now().toUtc().subtract(const Duration(days: 1)),
-            source: DataSource.effis,
-            freshness: Freshness.live,
-          );
+          'formats time as "Yesterday at HH:MM AM/PM UTC" for yesterday',
+          (tester) async {
+            final yesterdayIncident = FireIncident(
+              id: 'YESTERDAY001',
+              location: const LatLng(55.95, -3.19),
+              intensity: 'high',
+              timestamp: DateTime.now().toUtc().subtract(
+                    const Duration(days: 1),
+                  ),
+              detectedAt: DateTime.now().toUtc().subtract(
+                    const Duration(days: 1),
+                  ),
+              source: DataSource.effis,
+              freshness: Freshness.live,
+            );
 
-          await tester.pumpWidget(
-            MaterialApp(
-              home: Scaffold(
-                body: FireDetailsBottomSheet(
-                  incident: yesterdayIncident,
-                  userLocation: testUserLocation,
-                  onClose: () {},
+            await tester.pumpWidget(
+              MaterialApp(
+                home: Scaffold(
+                  body: FireDetailsBottomSheet(
+                    incident: yesterdayIncident,
+                    userLocation: testUserLocation,
+                    onClose: () {},
+                  ),
                 ),
               ),
-            ),
-          );
+            );
 
-          await tester.pumpAndSettle();
+            await tester.pumpAndSettle();
 
-          // Should show "Yesterday at" format
-          expect(find.textContaining('Yesterday at'), findsOneWidget);
-          expect(find.textContaining('UTC'), findsWidgets);
-        });
+            // Should show "Yesterday at" format
+            expect(find.textContaining('Yesterday at'), findsOneWidget);
+            expect(find.textContaining('UTC'), findsWidgets);
+          },
+        );
 
         testWidgets(
-            'formats time as "DD MMM at HH:MM AM/PM UTC" for older dates',
-            (tester) async {
-          final olderIncident = FireIncident(
-            id: 'OLD001',
-            location: const LatLng(55.95, -3.19),
-            intensity: 'low',
-            timestamp: DateTime(2025, 11, 20, 10, 30).toUtc(),
-            detectedAt: DateTime(2025, 11, 20, 10, 30).toUtc(),
-            source: DataSource.effis,
-            freshness: Freshness.cached,
-          );
+          'formats time as "DD MMM at HH:MM AM/PM UTC" for older dates',
+          (tester) async {
+            final olderIncident = FireIncident(
+              id: 'OLD001',
+              location: const LatLng(55.95, -3.19),
+              intensity: 'low',
+              timestamp: DateTime(2025, 11, 20, 10, 30).toUtc(),
+              detectedAt: DateTime(2025, 11, 20, 10, 30).toUtc(),
+              source: DataSource.effis,
+              freshness: Freshness.cached,
+            );
 
-          await tester.pumpWidget(
-            MaterialApp(
-              home: Scaffold(
-                body: FireDetailsBottomSheet(
-                  incident: olderIncident,
-                  userLocation: testUserLocation,
-                  onClose: () {},
+            await tester.pumpWidget(
+              MaterialApp(
+                home: Scaffold(
+                  body: FireDetailsBottomSheet(
+                    incident: olderIncident,
+                    userLocation: testUserLocation,
+                    onClose: () {},
+                  ),
                 ),
               ),
-            ),
-          );
+            );
 
-          await tester.pumpAndSettle();
+            await tester.pumpAndSettle();
 
-          // Should show date format with month name
-          expect(find.textContaining('20 Nov'), findsOneWidget);
-          expect(find.textContaining('UTC'), findsWidgets);
-        });
+            // Should show date format with month name
+            expect(find.textContaining('20 Nov'), findsOneWidget);
+            expect(find.textContaining('UTC'), findsWidgets);
+          },
+        );
 
         testWidgets('uses 12-hour format with AM/PM', (tester) async {
           final afternoonIncident = FireIncident(
@@ -1113,8 +1126,9 @@ void main() {
           expect(find.text('SEPA'), findsOneWidget);
         });
 
-        testWidgets('displays Demo Data as data source for mock',
-            (tester) async {
+        testWidgets('displays Demo Data as data source for mock', (
+          tester,
+        ) async {
           final mockIncident = FireIncident(
             id: 'MOCK001',
             location: const LatLng(55.95, -3.19),
@@ -1148,8 +1162,9 @@ void main() {
       const testUserLocation = LatLng(55.9533, -3.1883);
 
       group('fromHotspot', () {
-        testWidgets('creates bottom sheet from Hotspot with live freshness',
-            (tester) async {
+        testWidgets('creates bottom sheet from Hotspot with live freshness', (
+          tester,
+        ) async {
           final hotspot = Hotspot(
             id: 'HS001',
             location: const LatLng(55.95, -3.19),
@@ -1179,8 +1194,9 @@ void main() {
           expect(find.text('GWIS (EC JRC)'), findsOneWidget);
         });
 
-        testWidgets('creates bottom sheet from Hotspot with mock freshness',
-            (tester) async {
+        testWidgets('creates bottom sheet from Hotspot with mock freshness', (
+          tester,
+        ) async {
           final hotspot = Hotspot(
             id: 'HS002',
             location: const LatLng(55.95, -3.19),
@@ -1210,8 +1226,9 @@ void main() {
           expect(find.text('Demo Data'), findsOneWidget);
         });
 
-        testWidgets('defaults to live freshness when not specified',
-            (tester) async {
+        testWidgets('defaults to live freshness when not specified', (
+          tester,
+        ) async {
           final hotspot = Hotspot(
             id: 'HS003',
             location: const LatLng(55.95, -3.19),
@@ -1241,8 +1258,9 @@ void main() {
       });
 
       group('fromBurntArea', () {
-        testWidgets('creates bottom sheet from BurntArea with live freshness',
-            (tester) async {
+        testWidgets('creates bottom sheet from BurntArea with live freshness', (
+          tester,
+        ) async {
           final burntArea = BurntArea(
             id: 'BA001',
             boundaryPoints: const [
@@ -1277,8 +1295,9 @@ void main() {
           expect(find.text('EFFIS (EC JRC)'), findsOneWidget);
         });
 
-        testWidgets('creates bottom sheet from BurntArea with mock freshness',
-            (tester) async {
+        testWidgets('creates bottom sheet from BurntArea with mock freshness', (
+          tester,
+        ) async {
           final burntArea = BurntArea(
             id: 'BA002',
             boundaryPoints: const [
@@ -1313,8 +1332,9 @@ void main() {
           expect(find.text('Demo Data'), findsOneWidget);
         });
 
-        testWidgets('defaults to live freshness when not specified',
-            (tester) async {
+        testWidgets('defaults to live freshness when not specified', (
+          tester,
+        ) async {
           final burntArea = BurntArea(
             id: 'BA003',
             boundaryPoints: const [

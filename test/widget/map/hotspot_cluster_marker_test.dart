@@ -12,14 +12,15 @@ void main() {
     // Create test hotspots for clustering
     List<Hotspot> createTestHotspots(int count, {double baseFrp = 25.0}) {
       return List.generate(
-          count,
-          (i) => Hotspot(
-                id: 'hotspot_$i',
-                location: LatLng(55.0 + i * 0.01, -3.0 + i * 0.01),
-                detectedAt: DateTime.now(),
-                frp: baseFrp + i,
-                confidence: 75.0,
-              ));
+        count,
+        (i) => Hotspot(
+          id: 'hotspot_$i',
+          location: LatLng(55.0 + i * 0.01, -3.0 + i * 0.01),
+          detectedAt: DateTime.now(),
+          frp: baseFrp + i,
+          confidence: 75.0,
+        ),
+      );
     }
 
     group('cluster model tests', () {

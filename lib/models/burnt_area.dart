@@ -104,14 +104,16 @@ class BurntArea extends Equatable {
     }
     if (boundaryPoints.length < 3) {
       throw ArgumentError(
-          'BurntArea must have at least 3 boundary points, got ${boundaryPoints.length}');
+        'BurntArea must have at least 3 boundary points, got ${boundaryPoints.length}',
+      );
     }
     if (areaHectares < 0) {
       throw ArgumentError('BurntArea areaHectares must be non-negative');
     }
     if (seasonYear < 2000 || seasonYear > DateTime.now().year + 1) {
       throw ArgumentError(
-          'BurntArea seasonYear must be between 2000 and next year');
+        'BurntArea seasonYear must be between 2000 and next year',
+      );
     }
 
     return BurntArea(
@@ -162,10 +164,7 @@ class BurntArea extends Equatable {
         final ring = coords[0] as List;
         boundaryPoints = ring.map((coord) {
           final c = coord as List;
-          return LatLng(
-            (c[1] as num).toDouble(),
-            (c[0] as num).toDouble(),
-          );
+          return LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble());
         }).toList();
       }
     }
@@ -196,8 +195,9 @@ class BurntArea extends Equatable {
     if (properties.containsKey('lc_forest') ||
         properties.containsKey('landCoverBreakdown')) {
       if (properties['landCoverBreakdown'] is Map) {
-        landCoverBreakdown =
-            Map<String, double>.from(properties['landCoverBreakdown'] as Map);
+        landCoverBreakdown = Map<String, double>.from(
+          properties['landCoverBreakdown'] as Map,
+        );
       } else {
         landCoverBreakdown = {
           'forest': (properties['lc_forest'] as num?)?.toDouble() ?? 0.0,
@@ -274,9 +274,7 @@ class BurntArea extends Equatable {
   /// Create a simplified copy with reduced point count
   ///
   /// Used after Douglas-Peucker simplification.
-  BurntArea copyWithSimplified({
-    required List<LatLng> simplifiedPoints,
-  }) {
+  BurntArea copyWithSimplified({required List<LatLng> simplifiedPoints}) {
     return BurntArea(
       id: id,
       boundaryPoints: simplifiedPoints,

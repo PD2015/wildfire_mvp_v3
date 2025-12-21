@@ -10,10 +10,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: RadiusSelector(
-              selectedRadius: 10,
-              onChanged: (_) {},
-            ),
+            body: RadiusSelector(selectedRadius: 10, onChanged: (_) {}),
           ),
         ),
       );
@@ -30,10 +27,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: RadiusSelector(
-              selectedRadius: 25,
-              onChanged: (_) {},
-            ),
+            body: RadiusSelector(selectedRadius: 25, onChanged: (_) {}),
           ),
         ),
       );
@@ -97,10 +91,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: RadiusSelector(
-              selectedRadius: 10,
-              onChanged: (_) {},
-            ),
+            body: RadiusSelector(selectedRadius: 10, onChanged: (_) {}),
           ),
         ),
       );
@@ -114,10 +105,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: RadiusSelector(
-              selectedRadius: 10,
-              onChanged: (_) {},
-            ),
+            body: RadiusSelector(selectedRadius: 10, onChanged: (_) {}),
           ),
         ),
       );
@@ -130,10 +118,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: RadiusSelector(
-              selectedRadius: 10,
-              onChanged: (_) {},
-            ),
+            body: RadiusSelector(selectedRadius: 10, onChanged: (_) {}),
           ),
         ),
       );

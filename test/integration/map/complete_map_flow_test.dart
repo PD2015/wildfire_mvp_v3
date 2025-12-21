@@ -66,10 +66,9 @@ class MockLocationResolver implements LocationResolver {
 
     // Return mock location or default to Edinburgh
     final coords = _locationToReturn ?? const LatLng(55.9533, -3.1883);
-    return Right(ResolvedLocation(
-      coordinates: coords,
-      source: LocationSource.gps,
-    ));
+    return Right(
+      ResolvedLocation(coordinates: coords, source: LocationSource.gps),
+    );
   }
 
   @override
@@ -192,8 +191,11 @@ void main() {
   // Skip all tests on web platform - mock services use rootBundle.loadString
   // which doesn't work in the Chrome test environment
   if (kIsWeb) {
-    test('skipped on web platform', () {},
-        skip: 'rootBundle.loadString hangs on web');
+    test(
+      'skipped on web platform',
+      () {},
+      skip: 'rootBundle.loadString hangs on web',
+    );
     return;
   }
 
@@ -271,8 +273,10 @@ void main() {
         expect(find.byType(gmaps.GoogleMap), findsOneWidget);
 
         // Assert: AppBar with correct title
-        expect(find.widgetWithText(AppBar, 'Live Wildfire Fire Map'),
-            findsOneWidget);
+        expect(
+          find.widgetWithText(AppBar, 'Live Wildfire Fire Map'),
+          findsOneWidget,
+        );
 
         // Assert: Location resolver was called
         expect(mockLocationResolver.callCount, greaterThan(0));

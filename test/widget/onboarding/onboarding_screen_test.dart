@@ -35,22 +35,18 @@ void main() {
         // Stub routes for terms/privacy navigation (hit by links in terms checkbox)
         GoRoute(
           path: '/settings/about/terms',
-          builder: (context, state) => const Scaffold(
-            body: Center(child: Text('Terms Screen')),
-          ),
+          builder: (context, state) =>
+              const Scaffold(body: Center(child: Text('Terms Screen'))),
         ),
         GoRoute(
           path: '/settings/about/privacy',
-          builder: (context, state) => const Scaffold(
-            body: Center(child: Text('Privacy Screen')),
-          ),
+          builder: (context, state) =>
+              const Scaffold(body: Center(child: Text('Privacy Screen'))),
         ),
       ],
     );
 
-    return MaterialApp.router(
-      routerConfig: router,
-    );
+    return MaterialApp.router(routerConfig: router);
   }
 
   /// Helper to tap a FilledButton with ensureVisible
@@ -144,19 +140,13 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify initial page indicator (Step 1 of 4: Welcome)
-      expect(
-        find.bySemanticsLabel(RegExp(r'Step 1 of 4')),
-        findsOneWidget,
-      );
+      expect(find.bySemanticsLabel(RegExp(r'Step 1 of 4')), findsOneWidget);
 
       // Navigate to next page
       await tapFilledButton(tester, 'Continue');
 
       // Verify page indicator updated (Step 2 of 4: Safety)
-      expect(
-        find.bySemanticsLabel(RegExp(r'Step 2 of 4')),
-        findsOneWidget,
-      );
+      expect(find.bySemanticsLabel(RegExp(r'Step 2 of 4')), findsOneWidget);
     });
 
     testWidgets('calls onComplete after completing onboarding', (tester) async {
@@ -165,10 +155,12 @@ void main() {
 
       var completed = false;
 
-      await tester.pumpWidget(createTestApp(
-        prefsService: prefsService,
-        onComplete: () => completed = true,
-      ));
+      await tester.pumpWidget(
+        createTestApp(
+          prefsService: prefsService,
+          onComplete: () => completed = true,
+        ),
+      );
       await tester.pumpAndSettle();
 
       // Navigate through all pages
@@ -211,30 +203,32 @@ void main() {
       expect(consent!.termsVersion, OnboardingConfig.currentTermsVersion);
     });
 
-    testWidgets('saves default notification radius when completing onboarding',
-        (tester) async {
-      await tester.binding.setSurfaceSize(const Size(600, 1600));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+    testWidgets(
+      'saves default notification radius when completing onboarding',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(600, 1600));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(createTestApp(prefsService: prefsService));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(createTestApp(prefsService: prefsService));
+        await tester.pumpAndSettle();
 
-      // Navigate through all pages
-      await tapFilledButton(tester, 'Continue');
-      await tapFilledButton(tester, 'I Understand');
-      await tapFilledButton(tester, 'Continue');
+        // Navigate through all pages
+        await tapFilledButton(tester, 'Continue');
+        await tapFilledButton(tester, 'I Understand');
+        await tapFilledButton(tester, 'Continue');
 
-      // Accept both checkboxes
-      await tapCheckbox(tester, const Key('disclaimer_checkbox'));
-      await tapCheckbox(tester, const Key('terms_checkbox'));
+        // Accept both checkboxes
+        await tapCheckbox(tester, const Key('disclaimer_checkbox'));
+        await tapCheckbox(tester, const Key('terms_checkbox'));
 
-      // Complete
-      await tapFilledButton(tester, 'Complete Setup');
+        // Complete
+        await tapFilledButton(tester, 'Complete Setup');
 
-      // Verify default radius was saved
-      final radius = await prefsService.getNotificationRadiusKm();
-      expect(radius, OnboardingConfig.defaultRadiusKm);
-    });
+        // Verify default radius was saved
+        final radius = await prefsService.getNotificationRadiusKm();
+        expect(radius, OnboardingConfig.defaultRadiusKm);
+      },
+    );
 
     testWidgets('uses PageView for page navigation', (tester) async {
       await tester.binding.setSurfaceSize(const Size(600, 1600));
