@@ -23,8 +23,9 @@ void main() {
 
         expect(find.text('Today'), findsOneWidget);
         expect(find.text('This Week'), findsOneWidget);
-        expect(find.text('This Season'), findsNothing);
-        expect(find.text('Last Season'), findsNothing);
+        // Season year chips should not be shown in hotspots mode
+        expect(find.text(DateTime.now().year.toString()), findsNothing);
+        expect(find.text((DateTime.now().year - 1).toString()), findsNothing);
       });
 
       testWidgets('tapping This Week calls onHotspotFilterChanged', (
@@ -77,7 +78,10 @@ void main() {
     });
 
     group('burnt areas mode', () {
-      testWidgets('displays This Season and Last Season chips', (tester) async {
+      testWidgets('displays season year chips', (tester) async {
+        final thisYear = DateTime.now().year.toString();
+        final lastYear = (DateTime.now().year - 1).toString();
+
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -92,15 +96,16 @@ void main() {
           ),
         );
 
-        expect(find.text('This Season'), findsOneWidget);
-        expect(find.text('Last Season'), findsOneWidget);
+        expect(find.text(thisYear), findsOneWidget);
+        expect(find.text(lastYear), findsOneWidget);
         expect(find.text('Today'), findsNothing);
         expect(find.text('This Week'), findsNothing);
       });
 
-      testWidgets('tapping Last Season calls onBurntAreaFilterChanged', (
+      testWidgets('tapping last year calls onBurntAreaFilterChanged', (
         tester,
       ) async {
+        final lastYear = (DateTime.now().year - 1).toString();
         BurntAreaSeasonFilter? selectedFilter;
 
         await tester.pumpWidget(
@@ -117,15 +122,16 @@ void main() {
           ),
         );
 
-        await tester.tap(find.text('Last Season'));
+        await tester.tap(find.text(lastYear));
         await tester.pumpAndSettle();
 
         expect(selectedFilter, BurntAreaSeasonFilter.lastSeason);
       });
 
-      testWidgets('tapping This Season calls onBurntAreaFilterChanged', (
+      testWidgets('tapping this year calls onBurntAreaFilterChanged', (
         tester,
       ) async {
+        final thisYear = DateTime.now().year.toString();
         BurntAreaSeasonFilter? selectedFilter;
 
         await tester.pumpWidget(
@@ -142,7 +148,7 @@ void main() {
           ),
         );
 
-        await tester.tap(find.text('This Season'));
+        await tester.tap(find.text(thisYear));
         await tester.pumpAndSettle();
 
         expect(selectedFilter, BurntAreaSeasonFilter.thisSeason);
@@ -196,7 +202,7 @@ void main() {
           ),
         );
 
-        await tester.tap(find.text('Last Season'));
+        await tester.tap(find.text((DateTime.now().year - 1).toString()));
         await tester.pumpAndSettle();
 
         expect(selectedFilter, isNull);
@@ -207,6 +213,8 @@ void main() {
       testWidgets('switches from hotspots to burnt areas chips', (
         tester,
       ) async {
+        final thisYear = DateTime.now().year.toString();
+
         // Start with hotspots mode
         await tester.pumpWidget(
           MaterialApp(
@@ -223,7 +231,7 @@ void main() {
         );
 
         expect(find.text('Today'), findsOneWidget);
-        expect(find.text('This Season'), findsNothing);
+        expect(find.text(thisYear), findsNothing);
 
         // Switch to burnt areas mode
         await tester.pumpWidget(
@@ -241,7 +249,7 @@ void main() {
         );
 
         expect(find.text('Today'), findsNothing);
-        expect(find.text('This Season'), findsOneWidget);
+        expect(find.text(thisYear), findsOneWidget);
       });
     });
 
@@ -331,9 +339,11 @@ void main() {
         expect(todayText, findsOneWidget);
       });
 
-      testWidgets('This Season chip shows selected styling when active', (
+      testWidgets('this year chip shows selected styling when active', (
         tester,
       ) async {
+        final thisYear = DateTime.now().year.toString();
+
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -348,8 +358,8 @@ void main() {
           ),
         );
 
-        // Widget should render with selected This Season chip
-        final thisSeasonText = find.text('This Season');
+        // Widget should render with selected this year chip
+        final thisSeasonText = find.text(thisYear);
         expect(thisSeasonText, findsOneWidget);
       });
     });
