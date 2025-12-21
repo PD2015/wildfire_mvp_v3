@@ -36,6 +36,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   // Skip Bundle-first loading tests on web - rootBundle.loadString hangs in Chrome tests
+  // ignore: prefer_const_declarations
   final skipBundleTests =
       kIsWeb ? 'rootBundle.loadString hangs in Chrome test environment' : null;
 
