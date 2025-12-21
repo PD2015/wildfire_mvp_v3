@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:wildfire_mvp_v3/models/api_error.dart';
@@ -34,6 +35,10 @@ class MockLiveBurntAreaService implements EffisBurntAreaService {
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  // Skip Bundle-first loading tests on web - rootBundle.loadString hangs in Chrome tests
+  final skipBundleTests =
+      kIsWeb ? 'rootBundle.loadString hangs in Chrome test environment' : null;
+
   group('CachedBurntAreaService', () {
     late MockLiveBurntAreaService mockLiveService;
     late CachedBurntAreaService cachedService;
@@ -63,40 +68,45 @@ void main() {
       });
     });
 
-    group('Bundle-first loading', () {
-      test('uses bundle first, does not call live service for fresh bundle',
-          () async {
-        const bounds = LatLngBounds(
-          southwest: LatLng(56.0, -4.0),
-          northeast: LatLng(58.0, -3.0),
-        );
+    group('Bundle-first loading', skip: skipBundleTests, () {
+      test(
+        'uses bundle first, does not call live service for fresh bundle',
+        () async {
+          const bounds = LatLngBounds(
+            southwest: LatLng(56.0, -4.0),
+            northeast: LatLng(58.0, -3.0),
+          );
 
-        // Try to load 2024 data - should try bundle first
-        await cachedService.getBurntAreas(
-          bounds: bounds,
-          seasonFilter: BurntAreaSeasonFilter.lastSeason, // 2024
-        );
+          // Try to load 2024 data - should try bundle first
+          await cachedService.getBurntAreas(
+            bounds: bounds,
+            seasonFilter: BurntAreaSeasonFilter.lastSeason, // 2024
+          );
 
-        // Bundle loading may fail in test environment (no assets)
-        // but live service should NOT be called for fresh bundle
-        // (only called as fallback when bundle fails to load or is stale)
-        // Note: In production with assets, this would be 0
-      });
+          // Bundle loading may fail in test environment (no assets)
+          // but live service should NOT be called for fresh bundle
+          // (only called as fallback when bundle fails to load or is stale)
+          // Note: In production with assets, this would be 0
+        },
+      );
 
-      test('uses bundle for 2025 (current year)', () async {
-        const bounds = LatLngBounds(
-          southwest: LatLng(56.0, -4.0),
-          northeast: LatLng(58.0, -3.0),
-        );
+      test(
+        'uses bundle for 2025 (current year)',
+        () async {
+          const bounds = LatLngBounds(
+            southwest: LatLng(56.0, -4.0),
+            northeast: LatLng(58.0, -3.0),
+          );
 
-        // Both 2024 and 2025 now have bundled data
-        await cachedService.getBurntAreas(
-          bounds: bounds,
-          seasonFilter: BurntAreaSeasonFilter.thisSeason, // 2025
-        );
+          // Both 2024 and 2025 now have bundled data
+          await cachedService.getBurntAreas(
+            bounds: bounds,
+            seasonFilter: BurntAreaSeasonFilter.thisSeason, // 2025
+          );
 
-        // Should try bundle first before falling back to live
-      });
+          // Should try bundle first before falling back to live
+        },
+      );
     });
 
     group('Season filter year calculation', () {
