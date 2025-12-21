@@ -12,9 +12,10 @@ void main() {
       DateTime? lastUpdated,
       bool isOffline = false,
       VoidCallback? onTap,
+      ThemeData? theme,
     }) {
       return MaterialApp(
-        theme: WildfireA11yTheme.light,
+        theme: theme ?? WildfireA11yTheme.light,
         home: Scaffold(
           body: Center(
             child: MapSourceChip(
@@ -43,12 +44,12 @@ void main() {
         expect(find.byIcon(Icons.cloud_done), findsOneWidget);
       });
 
-      testWidgets('shows "LIVE DATA" when source is cached', (tester) async {
-        // Cached data is still considered "live" (just from cache)
+      testWidgets('shows "CACHED" when source is cached', (tester) async {
+        // Cached data now has its own distinct display
         await tester.pumpWidget(buildChip(source: Freshness.cached));
 
-        expect(find.text('LIVE DATA'), findsOneWidget);
-        expect(find.byIcon(Icons.cloud_done), findsOneWidget);
+        expect(find.text('CACHED'), findsOneWidget);
+        expect(find.byIcon(Icons.cached), findsOneWidget);
       });
 
       testWidgets('shows "OFFLINE" when isOffline is true', (tester) async {
@@ -124,6 +125,21 @@ void main() {
         expect(tapCount, 1);
       });
 
+      testWidgets('calls onTap callback when tapped (cached mode)',
+          (tester) async {
+        var tapCount = 0;
+        await tester.pumpWidget(buildChip(
+          source: Freshness.cached,
+          onTap: () => tapCount++,
+        ));
+
+        // Tap the chip
+        await tester.tap(find.text('CACHED'));
+        await tester.pump();
+
+        expect(tapCount, 1);
+      });
+
       testWidgets('offline chip is NOT tappable (no onTap wired)',
           (tester) async {
         // Offline chips don't get onTap because users need to retry, not toggle
@@ -155,6 +171,15 @@ void main() {
         // Semantic label should contain live data indication (case insensitive)
         final semantics = tester.getSemantics(find.byType(Chip));
         expect(semantics.label.toUpperCase(), contains('LIVE'));
+      });
+
+      testWidgets('cached chip has semantic label for screen readers',
+          (tester) async {
+        await tester.pumpWidget(buildChip(source: Freshness.cached));
+
+        // Semantic label should contain cached data indication (case insensitive)
+        final semantics = tester.getSemantics(find.byType(Chip));
+        expect(semantics.label.toUpperCase(), contains('CACHED'));
       });
 
       testWidgets('offline chip has semantic label for screen readers',
@@ -216,33 +241,90 @@ void main() {
       });
     });
 
-    group('Visual styling', () {
-      testWidgets('demo chip has amber/warning styling', (tester) async {
+    group('Visual styling (theme tokens)', () {
+      testWidgets('demo chip uses tertiaryContainer from theme',
+          (tester) async {
         await tester.pumpWidget(buildChip(source: Freshness.mock));
 
         final chip = tester.widget<Chip>(find.byType(Chip));
-        // Amber background for demo mode
-        expect(chip.backgroundColor, const Color(0xFFF5A623));
+        final scheme = WildfireA11yTheme.light.colorScheme;
+        // Demo uses tertiary (amber) for warning state
+        expect(chip.backgroundColor, scheme.tertiaryContainer);
+        expect(chip.side?.color, scheme.tertiary);
       });
 
-      testWidgets('live chip has green styling', (tester) async {
+      testWidgets('live chip uses primaryContainer from theme', (tester) async {
         await tester.pumpWidget(buildChip(source: Freshness.live));
 
         final chip = tester.widget<Chip>(find.byType(Chip));
-        // Green-tinted background for live mode
-        expect(chip.backgroundColor,
-            const Color(0xFF4CAF50).withValues(alpha: 0.15));
+        final scheme = WildfireA11yTheme.light.colorScheme;
+        // Live uses primary (forest green) for active state
+        expect(chip.backgroundColor, scheme.primaryContainer);
+        expect(chip.side?.color, scheme.primary);
       });
 
-      testWidgets('offline chip has amber/warning styling', (tester) async {
+      testWidgets('cached chip uses secondaryContainer from theme',
+          (tester) async {
+        await tester.pumpWidget(buildChip(source: Freshness.cached));
+
+        final chip = tester.widget<Chip>(find.byType(Chip));
+        final scheme = WildfireA11yTheme.light.colorScheme;
+        // Cached uses secondary (mint) for stale state
+        expect(chip.backgroundColor, scheme.secondaryContainer);
+        expect(chip.side?.color, scheme.secondary);
+      });
+
+      testWidgets('offline chip uses tertiaryContainer from theme',
+          (tester) async {
         await tester.pumpWidget(buildChip(
           source: Freshness.live,
           isOffline: true,
         ));
 
         final chip = tester.widget<Chip>(find.byType(Chip));
-        // Amber background for offline warning
-        expect(chip.backgroundColor, const Color(0xFFF5A623));
+        final scheme = WildfireA11yTheme.light.colorScheme;
+        // Offline uses tertiary (amber) for warning state
+        expect(chip.backgroundColor, scheme.tertiaryContainer);
+        expect(chip.side?.color, scheme.tertiary);
+      });
+
+      testWidgets('dark theme has adequate contrast for demo chip',
+          (tester) async {
+        await tester.pumpWidget(buildChip(
+          source: Freshness.mock,
+          theme: WildfireA11yTheme.dark,
+        ));
+
+        final chip = tester.widget<Chip>(find.byType(Chip));
+        final scheme = WildfireA11yTheme.dark.colorScheme;
+        // Dark theme uses same token but different resolved colors
+        expect(chip.backgroundColor, scheme.tertiaryContainer);
+      });
+
+      testWidgets('dark theme has adequate contrast for live chip',
+          (tester) async {
+        await tester.pumpWidget(buildChip(
+          source: Freshness.live,
+          theme: WildfireA11yTheme.dark,
+        ));
+
+        final chip = tester.widget<Chip>(find.byType(Chip));
+        final scheme = WildfireA11yTheme.dark.colorScheme;
+        // Dark theme uses same token but different resolved colors
+        expect(chip.backgroundColor, scheme.primaryContainer);
+      });
+
+      testWidgets('dark theme has adequate contrast for cached chip',
+          (tester) async {
+        await tester.pumpWidget(buildChip(
+          source: Freshness.cached,
+          theme: WildfireA11yTheme.dark,
+        ));
+
+        final chip = tester.widget<Chip>(find.byType(Chip));
+        final scheme = WildfireA11yTheme.dark.colorScheme;
+        // Dark theme uses same token but different resolved colors
+        expect(chip.backgroundColor, scheme.secondaryContainer);
       });
     });
   });

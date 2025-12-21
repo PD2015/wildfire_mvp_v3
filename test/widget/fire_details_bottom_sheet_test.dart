@@ -501,8 +501,8 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Verify MapSourceChip is displayed
-        expect(find.text('LIVE'), findsOneWidget);
+        // Verify MapSourceChip is displayed with LIVE DATA label
+        expect(find.text('LIVE DATA'), findsOneWidget);
       });
 
       testWidgets('shows safety warning text', (tester) async {
@@ -826,8 +826,8 @@ void main() {
 
           await tester.pumpAndSettle();
 
-          // Verify LIVE chip is displayed
-          expect(find.text('LIVE'), findsOneWidget);
+          // Verify LIVE DATA chip is displayed
+          expect(find.text('LIVE DATA'), findsOneWidget);
         });
 
         testWidgets('displays CACHED chip for cached data', (tester) async {
@@ -901,9 +901,9 @@ void main() {
 
           await tester.pumpAndSettle();
 
-          // MapSourceChip should display timestamp
+          // MapSourceChip should display LIVE DATA for live data
           // Exact format verified in MapSourceChip widget tests
-          expect(find.text('LIVE'), findsOneWidget);
+          expect(find.text('LIVE DATA'), findsOneWidget);
         });
       });
 

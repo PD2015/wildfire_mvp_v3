@@ -8,10 +8,16 @@ import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 /// - "DEMO DATA" when in demo mode (tappable to switch to live)
 /// - "OFFLINE" when live mode enabled but API failed
 /// - "LIVE DATA" when successfully fetching live data (tappable to switch to demo)
+/// - "CACHED" when displaying cached data (distinct from live)
 ///
 /// **Interactive Mode**: When `onTap` is provided, the chip becomes tappable
 /// allowing users to toggle between live and demo data modes. A small toggle
 /// icon appears to indicate interactivity.
+///
+/// **Styling**: Uses Material 3 ColorScheme tokens from theme:
+/// - Demo/Offline: tertiaryContainer (amber) for warning states
+/// - Live: primaryContainer (forest green) for active/healthy states
+/// - Cached: secondaryContainer (mint) for stale/cached states
 ///
 /// Constitutional compliance:
 /// - C3: Accessible with semantic labels and ≥44dp touch targets
@@ -36,10 +42,13 @@ class MapSourceChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Show prominent warning chip in three scenarios:
+    final scheme = Theme.of(context).colorScheme;
+
+    // Show prominent warning chip in four scenarios:
     // 1. Offline: Live mode but API failed (no data available)
     // 2. Demo mode: Deliberate testing mode with mock data
-    // 3. Mock data: source == Freshness.mock (legacy, shouldn't happen with Option C)
+    // 3. Live mode: Successfully fetching live data
+    // 4. Cached mode: Displaying cached data (stale but valid)
 
     // Offline state: Live mode enabled but API failed - no data shown
     // Not tappable when offline (need retry, not mode switch)
@@ -49,44 +58,57 @@ class MapSourceChip extends StatelessWidget {
             'Offline - Unable to fetch live fire data. Tap retry to try again.',
         child: Chip(
           visualDensity: VisualDensity.compact,
-          avatar: const Icon(
+          avatar: Icon(
             Icons.cloud_off,
             size: 16,
-            color: Color(0xFF111111), // BrandPalette.onLightHigh
+            color: scheme.onTertiaryContainer,
           ),
           label: Text(
             'OFFLINE',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF111111), // BrandPalette.onLightHigh
+                  color: scheme.onTertiaryContainer,
                   letterSpacing: 1.0,
                 ),
           ),
-          backgroundColor: const Color(0xFFF5A623), // BrandPalette.amber500
-          side: const BorderSide(
-            color: Color(0xFFE59414), // BrandPalette.amber600 (darker border)
+          backgroundColor: scheme.tertiaryContainer,
+          side: BorderSide(
+            color: scheme.tertiary,
             width: 1.5,
           ),
           elevation: 4,
-          shadowColor:
-              Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),
+          shadowColor: scheme.shadow.withValues(alpha: 0.3),
         ),
       );
     }
 
     // Demo mode: Showing mock data for testing
-    final bool isUsingMockData = source == Freshness.mock;
-    if (isUsingMockData) {
+    if (source == Freshness.mock) {
       return _buildTappableChip(
         context: context,
         label: 'DEMO DATA',
         icon: Icons.science_outlined,
-        backgroundColor: const Color(0xFFF5A623), // BrandPalette.amber500
-        borderColor: const Color(0xFFE59414), // BrandPalette.amber600
-        textColor: const Color(0xFF111111), // BrandPalette.onLightHigh
+        backgroundColor: scheme.tertiaryContainer,
+        borderColor: scheme.tertiary,
+        textColor: scheme.onTertiaryContainer,
         semanticLabel: onTap != null
             ? 'Demo Data mode - Tap to switch to Live Data'
             : 'Demo Data - For testing purposes only',
+      );
+    }
+
+    // Cached mode: Displaying cached data (stale but valid)
+    if (source == Freshness.cached) {
+      return _buildTappableChip(
+        context: context,
+        label: 'CACHED',
+        icon: Icons.cached,
+        backgroundColor: scheme.secondaryContainer,
+        borderColor: scheme.secondary,
+        textColor: scheme.onSecondaryContainer,
+        semanticLabel: onTap != null
+            ? 'Cached Data mode - Tap to switch to Demo Data'
+            : 'Cached Data - Displaying previously fetched data',
       );
     }
 
@@ -95,10 +117,9 @@ class MapSourceChip extends StatelessWidget {
       context: context,
       label: 'LIVE DATA',
       icon: Icons.cloud_done,
-      backgroundColor:
-          const Color(0xFF4CAF50).withValues(alpha: 0.15), // Green tint
-      borderColor: const Color(0xFF4CAF50), // Green
-      textColor: const Color(0xFF2E7D32), // Dark green
+      backgroundColor: scheme.primaryContainer,
+      borderColor: scheme.primary,
+      textColor: scheme.onPrimaryContainer,
       semanticLabel: onTap != null
           ? 'Live Data mode - Tap to switch to Demo Data'
           : 'Live Data - Fetching real-time fire data',
@@ -117,6 +138,7 @@ class MapSourceChip extends StatelessWidget {
   }) {
     final chip = Chip(
       visualDensity: VisualDensity.compact,
+      labelPadding: const EdgeInsets.only(left: 4, right: 2),
       avatar: Icon(
         icon,
         size: 16,
