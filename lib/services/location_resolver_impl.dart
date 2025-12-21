@@ -22,7 +22,7 @@ class LocationResolverImpl implements LocationResolver {
   /// [geolocatorService] - GPS abstraction, defaults to real implementation.
   /// Pass a fake in tests for controllable behavior.
   LocationResolverImpl({GeolocatorService? geolocatorService})
-    : _geolocatorService = geolocatorService ?? GeolocatorServiceImpl();
+      : _geolocatorService = geolocatorService ?? GeolocatorServiceImpl();
 
   final GeolocatorService _geolocatorService;
 
@@ -45,9 +45,8 @@ class LocationResolverImpl implements LocationResolver {
   /// ternary expression isn't a constant expression even though both branches
   /// are const. The analyzer incorrectly suggests const but it won't compile.
   // ignore: prefer_const_declarations
-  static final LatLng _defaultFallbackLocation = FeatureFlags.devMode
-      ? _aviemoreLocation
-      : _scotlandCentroid;
+  static final LatLng _defaultFallbackLocation =
+      FeatureFlags.devMode ? _aviemoreLocation : _scotlandCentroid;
 
   /// Cache keys for SharedPreferences persistence
   static const String _versionKey = 'manual_location_version';
@@ -170,16 +169,16 @@ class LocationResolverImpl implements LocationResolver {
   Future<Either<String, LatLng>> _tryGps() async {
     try {
       // Check if location services are enabled
-      final serviceEnabled = await _geolocatorService
-          .isLocationServiceEnabled();
+      final serviceEnabled =
+          await _geolocatorService.isLocationServiceEnabled();
       debugPrint('GPS: Location services enabled: $serviceEnabled');
       if (!serviceEnabled) {
         return const Left('Location services disabled');
       }
 
       // Check permission status
-      LocationPermission permission = await _geolocatorService
-          .checkPermission();
+      LocationPermission permission =
+          await _geolocatorService.checkPermission();
       debugPrint('GPS: Initial permission status: $permission');
 
       if (permission == LocationPermission.denied) {

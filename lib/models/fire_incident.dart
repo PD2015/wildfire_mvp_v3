@@ -42,9 +42,9 @@ class FireIncident extends Equatable {
 
   // Satellite sensor fields for fire information sheet
   final DateTime?
-  detectedAt; // When fire was first detected (defaults to timestamp)
+      detectedAt; // When fire was first detected (defaults to timestamp)
   final String?
-  sensorSource; // Satellite sensor: VIIRS, MODIS, etc (defaults to 'UNKNOWN')
+      sensorSource; // Satellite sensor: VIIRS, MODIS, etc (defaults to 'UNKNOWN')
   final double? confidence; // Detection confidence percentage 0-100
   final double? frp; // Fire Radiative Power in MW
   final DateTime? lastUpdate; // Most recent data update
@@ -67,8 +67,8 @@ class FireIncident extends Equatable {
     this.confidence,
     this.frp,
     this.lastUpdate,
-  }) : detectedAt = detectedAt ?? timestamp,
-       sensorSource = sensorSource ?? 'UNKNOWN' {
+  })  : detectedAt = detectedAt ?? timestamp,
+        sensorSource = sensorSource ?? 'UNKNOWN' {
     _validate();
   }
 
@@ -271,8 +271,7 @@ class FireIncident extends Equatable {
       seasonYear = properties['season_year'] as int?;
     } else {
       // Try to extract from timestamp/firedate
-      final dateStr =
-          properties['timestamp']?.toString() ??
+      final dateStr = properties['timestamp']?.toString() ??
           properties['firedate']?.toString();
       if (dateStr != null) {
         try {
@@ -299,8 +298,7 @@ class FireIncident extends Equatable {
             DateTime.now().toIso8601String(),
       ),
       intensity: intensity,
-      description:
-          properties['description']?.toString() ??
+      description: properties['description']?.toString() ??
           properties['country']?.toString(),
       areaHectares: areaHa?.toDouble(),
       detectedAt: DateTime.parse(
@@ -309,8 +307,7 @@ class FireIncident extends Equatable {
             properties['firedate']?.toString() ??
             DateTime.now().toIso8601String(),
       ).toUtc(),
-      sensorSource:
-          properties['sensor']?.toString() ??
+      sensorSource: properties['sensor']?.toString() ??
           properties['sensor_source']?.toString() ??
           'MODIS', // Default fallback
       confidence: (properties['confidence'] as num?)?.toDouble(),
@@ -447,21 +444,21 @@ class FireIncident extends Equatable {
 
   @override
   List<Object?> get props => [
-    id,
-    location,
-    source,
-    freshness,
-    timestamp,
-    intensity,
-    fireType,
-    seasonYear,
-    description,
-    areaHectares,
-    boundaryPoints,
-    detectedAt,
-    sensorSource,
-    confidence,
-    frp,
-    lastUpdate,
-  ];
+        id,
+        location,
+        source,
+        freshness,
+        timestamp,
+        intensity,
+        fireType,
+        seasonYear,
+        description,
+        areaHectares,
+        boundaryPoints,
+        detectedAt,
+        sensorSource,
+        confidence,
+        frp,
+        lastUpdate,
+      ];
 }

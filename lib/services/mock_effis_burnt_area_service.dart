@@ -24,7 +24,7 @@ class MockEffisBurntAreaService implements EffisBurntAreaService {
   final DateTime Function() _clock;
 
   MockEffisBurntAreaService({DateTime Function()? clock})
-    : _clock = clock ?? (() => DateTime.now());
+      : _clock = clock ?? (() => DateTime.now());
 
   /// Load and parse mock burnt area data from assets
   Future<List<BurntArea>> _loadMockData() async {

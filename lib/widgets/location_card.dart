@@ -512,10 +512,10 @@ class LocationCard extends StatelessWidget {
         label: Text(
           label,
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: scheme.onTertiaryContainer,
-            letterSpacing: 1.0,
-          ),
+                fontWeight: FontWeight.bold,
+                color: scheme.onTertiaryContainer,
+                letterSpacing: 1.0,
+              ),
         ),
         backgroundColor: scheme.tertiaryContainer,
         side: BorderSide(color: scheme.tertiary, width: 1.5),

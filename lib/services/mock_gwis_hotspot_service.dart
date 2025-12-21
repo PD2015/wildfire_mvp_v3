@@ -27,7 +27,7 @@ class MockHotspotService implements HotspotService {
   final DateTime Function() _clock;
 
   MockHotspotService({DateTime Function()? clock})
-    : _clock = clock ?? (() => DateTime.now());
+      : _clock = clock ?? (() => DateTime.now());
 
   @override
   String get serviceName => 'Mock';

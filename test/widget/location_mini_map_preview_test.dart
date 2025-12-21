@@ -5,8 +5,7 @@ import 'package:wildfire_mvp_v3/widgets/location_mini_map_preview.dart';
 
 void main() {
   group('LocationMiniMapPreview Widget Tests', () {
-    const testStaticMapUrl =
-        'https://maps.googleapis.com/maps/api/staticmap'
+    const testStaticMapUrl = 'https://maps.googleapis.com/maps/api/staticmap'
         '?center=55.95,-3.19&zoom=14&size=300x200&markers=color:red|55.95,-3.19&key=TEST_KEY';
 
     Widget buildTestWidget({

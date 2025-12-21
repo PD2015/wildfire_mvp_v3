@@ -34,10 +34,10 @@ class LocationPickerInitial extends LocationPickerState {
 
   @override
   List<Object?> get props => [
-    initialLocation,
-    initialWhat3words,
-    initialPlaceName,
-  ];
+        initialLocation,
+        initialWhat3words,
+        initialPlaceName,
+      ];
 }
 
 /// User is typing in the search field
@@ -64,11 +64,12 @@ class LocationPickerSearching extends LocationPickerState {
     String? query,
     List<PlaceSearchResult>? suggestions,
     bool? isLoading,
-  }) => LocationPickerSearching(
-    query: query ?? this.query,
-    suggestions: suggestions ?? this.suggestions,
-    isLoading: isLoading ?? this.isLoading,
-  );
+  }) =>
+      LocationPickerSearching(
+        query: query ?? this.query,
+        suggestions: suggestions ?? this.suggestions,
+        isLoading: isLoading ?? this.isLoading,
+      );
 
   @override
   List<Object?> get props => [query, suggestions, isLoading];
@@ -111,22 +112,24 @@ class LocationPickerSelected extends LocationPickerState {
     What3wordsAddress? what3words,
     bool? isResolvingWhat3words,
     bool? isResolvingPlaceName,
-  }) => LocationPickerSelected(
-    coordinates: coordinates ?? this.coordinates,
-    placeName: placeName ?? this.placeName,
-    what3words: what3words ?? this.what3words,
-    isResolvingWhat3words: isResolvingWhat3words ?? this.isResolvingWhat3words,
-    isResolvingPlaceName: isResolvingPlaceName ?? this.isResolvingPlaceName,
-  );
+  }) =>
+      LocationPickerSelected(
+        coordinates: coordinates ?? this.coordinates,
+        placeName: placeName ?? this.placeName,
+        what3words: what3words ?? this.what3words,
+        isResolvingWhat3words:
+            isResolvingWhat3words ?? this.isResolvingWhat3words,
+        isResolvingPlaceName: isResolvingPlaceName ?? this.isResolvingPlaceName,
+      );
 
   @override
   List<Object?> get props => [
-    coordinates,
-    placeName,
-    what3words,
-    isResolvingWhat3words,
-    isResolvingPlaceName,
-  ];
+        coordinates,
+        placeName,
+        what3words,
+        isResolvingWhat3words,
+        isResolvingPlaceName,
+      ];
 }
 
 /// Error state - recoverable user input errors

@@ -93,9 +93,9 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
             ? trimmed.substring(3).replaceAll('**', '').trim()
             : trimmed.substring(4).replaceAll('**', '').trim();
         currentSectionId = headerText.toLowerCase().replaceAll(
-          RegExp(r'[^a-z0-9]+'),
-          '-',
-        );
+              RegExp(r'[^a-z0-9]+'),
+              '-',
+            );
       }
 
       currentContent.writeln(line);
@@ -348,9 +348,8 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
                 entry.title,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
-                  fontWeight: entry.level == 2
-                      ? FontWeight.w500
-                      : FontWeight.normal,
+                  fontWeight:
+                      entry.level == 2 ? FontWeight.w500 : FontWeight.normal,
                 ),
               ),
             ),
@@ -429,9 +428,8 @@ class _LegalDocumentScreenState extends State<LegalDocumentScreen> {
       } else if (isMetadata) {
         // Convert to italic for secondary styling
         // Remove existing bold markers and wrap in italics
-        final cleanedLine = trimmedLine
-            .replaceAll('**', '')
-            .replaceFirst(': ', ': *');
+        final cleanedLine =
+            trimmedLine.replaceAll('**', '').replaceFirst(': ', ': *');
         processedLines.add('_$cleanedLine*_');
       } else {
         processedLines.add(line);

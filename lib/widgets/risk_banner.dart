@@ -93,9 +93,9 @@ class RiskBanner extends StatelessWidget {
         RiskBannerLoading() => _buildLoadingState(),
         RiskBannerSuccess(:final data) => _buildSuccessState(data),
         RiskBannerError(:final message, :final cached) => _buildErrorState(
-          message,
-          cached,
-        ),
+            message,
+            cached,
+          ),
       },
     );
   }

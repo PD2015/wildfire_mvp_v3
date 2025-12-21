@@ -527,8 +527,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     // Check if we should show suggestions
-    final showSuggestions =
-        state is LocationPickerSearching &&
+    final showSuggestions = state is LocationPickerSearching &&
         (state.suggestions.isNotEmpty || state.isLoading);
 
     return Column(
@@ -579,8 +578,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   /// Build search prefix icon (changes to /// for what3words input)
   Widget _buildSearchPrefixIcon() {
     final text = _searchController.text;
-    final isWhat3words =
-        text.startsWith('/') ||
+    final isWhat3words = text.startsWith('/') ||
         (text.contains('.') && text.split('.').length >= 2);
 
     if (isWhat3words) {
@@ -699,8 +697,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                   Text(
                     suggestion.name,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
+                          fontWeight: FontWeight.w500,
+                        ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -709,8 +707,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     Text(
                       suggestion.formattedAddress,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -757,16 +756,16 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
     switch (state) {
       case LocationPickerInitial(
-        :final initialLocation,
-        :final initialWhat3words,
-      ):
+          :final initialLocation,
+          :final initialWhat3words,
+        ):
         coords = initialLocation;
         w3w = initialWhat3words;
       case LocationPickerSelected(
-        :final coordinates,
-        :final what3words,
-        :final isResolvingWhat3words,
-      ):
+          :final coordinates,
+          :final what3words,
+          :final isResolvingWhat3words,
+        ):
         coords = coordinates;
         w3w = what3words;
         isLoading = isResolvingWhat3words;

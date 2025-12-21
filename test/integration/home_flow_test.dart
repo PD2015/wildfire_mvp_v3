@@ -635,10 +635,8 @@ void main() {
         // Assert - Check for semantic elements and LocationCard button
         // Updated: Button text is now "Change Location" or "Change" (no "Set")
         expect(find.byType(Semantics), findsWidgets);
-        final hasChangeLocation = find
-            .text('Change Location')
-            .evaluate()
-            .isNotEmpty;
+        final hasChangeLocation =
+            find.text('Change Location').evaluate().isNotEmpty;
         final hasChange = find.text('Change').evaluate().isNotEmpty;
         expect(
           hasChangeLocation || hasChange,

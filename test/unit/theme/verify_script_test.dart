@@ -37,15 +37,17 @@ void main() {
       // This test will FAIL initially when Colors.* exists in app chrome
       // It should PASS after T013-T017 sweep (replacing Colors.* with theme tokens)
 
-      final result = await Process.run('bash', [
-        'scripts/verify_no_adhoc_colors.sh',
-      ], workingDirectory: Directory.current.path);
+      final result = await Process.run(
+          'bash',
+          [
+            'scripts/verify_no_adhoc_colors.sh',
+          ],
+          workingDirectory: Directory.current.path);
 
       expect(
         result.exitCode,
         equals(0),
-        reason:
-            'Ad-hoc Colors.* usage found in app chrome. '
+        reason: 'Ad-hoc Colors.* usage found in app chrome. '
             'Expected after T013-T017 sweep. '
             'Excluded files (RiskPalette): risk_palette.dart, risk_banner.dart, risk_result_chip.dart',
       );

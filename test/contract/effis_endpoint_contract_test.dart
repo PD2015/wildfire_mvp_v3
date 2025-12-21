@@ -41,35 +41,33 @@ void main() {
 
         final uri = Uri.parse('https://maps.effis.emergency.copernicus.eu/gwis')
             .replace(
-              queryParameters: {
-                'SERVICE': 'WMS',
-                'VERSION': '1.3.0',
-                'REQUEST': 'GetFeatureInfo',
-                'LAYERS': 'nasa_geos5.query',
-                'QUERY_LAYERS': 'nasa_geos5.query',
-                'CRS': 'EPSG:4326',
-                'BBOX':
-                    '${lat - buffer},${lon - buffer},${lat + buffer},${lon + buffer}',
-                'WIDTH': '256',
-                'HEIGHT': '256',
-                'STYLES': '', // Required by MapServer 8.0+
-                'I': '128',
-                'J': '128',
-                'INFO_FORMAT': 'text/plain',
-                'FEATURE_COUNT': '1',
-                'TIME': currentDate,
-              },
-            );
+          queryParameters: {
+            'SERVICE': 'WMS',
+            'VERSION': '1.3.0',
+            'REQUEST': 'GetFeatureInfo',
+            'LAYERS': 'nasa_geos5.query',
+            'QUERY_LAYERS': 'nasa_geos5.query',
+            'CRS': 'EPSG:4326',
+            'BBOX':
+                '${lat - buffer},${lon - buffer},${lat + buffer},${lon + buffer}',
+            'WIDTH': '256',
+            'HEIGHT': '256',
+            'STYLES': '', // Required by MapServer 8.0+
+            'I': '128',
+            'J': '128',
+            'INFO_FORMAT': 'text/plain',
+            'FEATURE_COUNT': '1',
+            'TIME': currentDate,
+          },
+        );
 
-        final response = await httpClient
-            .get(
-              uri,
-              headers: {
-                'User-Agent': 'WildFire/0.1 (contract-test)',
-                'Accept': 'text/plain,*/*;q=0.8',
-              },
-            )
-            .timeout(const Duration(seconds: 10));
+        final response = await httpClient.get(
+          uri,
+          headers: {
+            'User-Agent': 'WildFire/0.1 (contract-test)',
+            'Accept': 'text/plain,*/*;q=0.8',
+          },
+        ).timeout(const Duration(seconds: 10));
 
         // Verify successful response (not a ServiceException)
         expect(
@@ -121,35 +119,33 @@ void main() {
         // Intentionally OMIT STYLES parameter
         final uri = Uri.parse('https://maps.effis.emergency.copernicus.eu/gwis')
             .replace(
-              queryParameters: {
-                'SERVICE': 'WMS',
-                'VERSION': '1.3.0',
-                'REQUEST': 'GetFeatureInfo',
-                'LAYERS': 'nasa_geos5.query',
-                'QUERY_LAYERS': 'nasa_geos5.query',
-                'CRS': 'EPSG:4326',
-                'BBOX':
-                    '${lat - buffer},${lon - buffer},${lat + buffer},${lon + buffer}',
-                'WIDTH': '256',
-                'HEIGHT': '256',
-                // NO STYLES parameter!
-                'I': '128',
-                'J': '128',
-                'INFO_FORMAT': 'text/plain',
-                'FEATURE_COUNT': '1',
-                'TIME': currentDate,
-              },
-            );
+          queryParameters: {
+            'SERVICE': 'WMS',
+            'VERSION': '1.3.0',
+            'REQUEST': 'GetFeatureInfo',
+            'LAYERS': 'nasa_geos5.query',
+            'QUERY_LAYERS': 'nasa_geos5.query',
+            'CRS': 'EPSG:4326',
+            'BBOX':
+                '${lat - buffer},${lon - buffer},${lat + buffer},${lon + buffer}',
+            'WIDTH': '256',
+            'HEIGHT': '256',
+            // NO STYLES parameter!
+            'I': '128',
+            'J': '128',
+            'INFO_FORMAT': 'text/plain',
+            'FEATURE_COUNT': '1',
+            'TIME': currentDate,
+          },
+        );
 
-        final response = await httpClient
-            .get(
-              uri,
-              headers: {
-                'User-Agent': 'WildFire/0.1 (contract-test)',
-                'Accept': 'text/plain,*/*;q=0.8',
-              },
-            )
-            .timeout(const Duration(seconds: 10));
+        final response = await httpClient.get(
+          uri,
+          headers: {
+            'User-Agent': 'WildFire/0.1 (contract-test)',
+            'Accept': 'text/plain,*/*;q=0.8',
+          },
+        ).timeout(const Duration(seconds: 10));
 
         // Verify this returns a ServiceException (missing STYLES)
         expect(
@@ -188,35 +184,33 @@ void main() {
 
         final uri = Uri.parse('https://maps.effis.emergency.copernicus.eu/gwis')
             .replace(
-              queryParameters: {
-                'SERVICE': 'WMS',
-                'VERSION': '1.3.0',
-                'REQUEST': 'GetFeatureInfo',
-                'LAYERS': 'nasa_geos5.query',
-                'QUERY_LAYERS': 'nasa_geos5.query',
-                'CRS': 'EPSG:4326',
-                'BBOX':
-                    '${lat - buffer},${lon - buffer},${lat + buffer},${lon + buffer}',
-                'WIDTH': '256',
-                'HEIGHT': '256',
-                'STYLES': '',
-                'I': '128',
-                'J': '128',
-                'INFO_FORMAT': 'text/plain',
-                'FEATURE_COUNT': '1',
-                'TIME': currentDate,
-              },
-            );
+          queryParameters: {
+            'SERVICE': 'WMS',
+            'VERSION': '1.3.0',
+            'REQUEST': 'GetFeatureInfo',
+            'LAYERS': 'nasa_geos5.query',
+            'QUERY_LAYERS': 'nasa_geos5.query',
+            'CRS': 'EPSG:4326',
+            'BBOX':
+                '${lat - buffer},${lon - buffer},${lat + buffer},${lon + buffer}',
+            'WIDTH': '256',
+            'HEIGHT': '256',
+            'STYLES': '',
+            'I': '128',
+            'J': '128',
+            'INFO_FORMAT': 'text/plain',
+            'FEATURE_COUNT': '1',
+            'TIME': currentDate,
+          },
+        );
 
-        final response = await httpClient
-            .get(
-              uri,
-              headers: {
-                'User-Agent': 'WildFire/0.1 (contract-test)',
-                'Accept': 'text/plain,*/*;q=0.8',
-              },
-            )
-            .timeout(const Duration(seconds: 10));
+        final response = await httpClient.get(
+          uri,
+          headers: {
+            'User-Agent': 'WildFire/0.1 (contract-test)',
+            'Accept': 'text/plain,*/*;q=0.8',
+          },
+        ).timeout(const Duration(seconds: 10));
 
         expect(response.statusCode, equals(200));
 

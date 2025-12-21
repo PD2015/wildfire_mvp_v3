@@ -162,10 +162,8 @@ void main() {
         expect(find.text('Retry'), findsNothing);
         // LocationCard button should still be present
         // Updated: Button text is now "Change Location" or "Change" (no "Set")
-        final hasChangeLocation = find
-            .text('Change Location')
-            .evaluate()
-            .isNotEmpty;
+        final hasChangeLocation =
+            find.text('Change Location').evaluate().isNotEmpty;
         final hasChange = find.text('Change').evaluate().isNotEmpty;
         expect(hasChangeLocation || hasChange, isTrue);
       });
@@ -320,10 +318,8 @@ void main() {
 
           // LocationCard shows "Change Location" or "Change" button
           // Updated: Button text no longer includes "Set"
-          final hasChangeLocation = find
-              .text('Change Location')
-              .evaluate()
-              .isNotEmpty;
+          final hasChangeLocation =
+              find.text('Change Location').evaluate().isNotEmpty;
           final hasChange = find.text('Change').evaluate().isNotEmpty;
 
           expect(
@@ -347,10 +343,8 @@ void main() {
 
         // Act & Assert - Button should be present and tappable even during loading
         // Updated: Button text is now "Change Location" or "Change" (no "Set")
-        final hasChangeLocation = find
-            .text('Change Location')
-            .evaluate()
-            .isNotEmpty;
+        final hasChangeLocation =
+            find.text('Change Location').evaluate().isNotEmpty;
         final hasChange = find.text('Change').evaluate().isNotEmpty;
         expect(
           hasChangeLocation || hasChange,
@@ -649,10 +643,8 @@ void main() {
         expect(find.text('Retry'), findsNothing);
         // LocationCard button should still be present
         // Updated: Button text is now "Change Location" or "Change" (no "Set")
-        final hasChangeLocation = find
-            .text('Change Location')
-            .evaluate()
-            .isNotEmpty;
+        final hasChangeLocation =
+            find.text('Change Location').evaluate().isNotEmpty;
         final hasChange = find.text('Change').evaluate().isNotEmpty;
         expect(hasChangeLocation || hasChange, isTrue);
       });

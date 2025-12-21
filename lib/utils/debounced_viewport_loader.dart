@@ -35,7 +35,7 @@ class DebouncedViewportLoader {
   bounds.LatLngBounds? _lastLoadedBounds; // Track last bounds we loaded for
   bool _isLoading = false;
   GoogleMapController?
-  _mapController; // Actual map controller for accurate bounds
+      _mapController; // Actual map controller for accurate bounds
 
   /// Create a debounced viewport loader.
   ///

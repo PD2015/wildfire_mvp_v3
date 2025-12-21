@@ -80,9 +80,9 @@ class HotspotServiceOrchestrator {
     HotspotService? firmsService,
     HotspotService? gwisService,
     required HotspotService mockService,
-  }) : _firmsService = firmsService,
-       _gwisService = gwisService,
-       _mockService = mockService;
+  })  : _firmsService = firmsService,
+        _gwisService = gwisService,
+        _mockService = mockService;
 
   /// Fetch hotspots with automatic fallback
   ///

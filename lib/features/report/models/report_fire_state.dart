@@ -84,11 +84,11 @@ class ReportFireLocation extends Equatable {
 
   @override
   List<Object?> get props => [
-    coordinates,
-    nearestPlaceName,
-    what3words,
-    selectedAt,
-  ];
+        coordinates,
+        nearestPlaceName,
+        what3words,
+        selectedAt,
+      ];
 
   @override
   String toString() =>

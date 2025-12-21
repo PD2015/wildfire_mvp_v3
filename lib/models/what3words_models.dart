@@ -21,10 +21,8 @@ class What3wordsAddress extends Equatable {
   /// - "///word.word.word"
   static What3wordsAddress? tryParse(String input) {
     // Remove leading slashes and whitespace, convert to lowercase
-    final cleaned = input
-        .replaceAll(RegExp(r'^/{1,3}'), '')
-        .trim()
-        .toLowerCase();
+    final cleaned =
+        input.replaceAll(RegExp(r'^/{1,3}'), '').trim().toLowerCase();
 
     if (!_isValidFormat(cleaned)) return null;
     return What3wordsAddress._(cleaned);
@@ -59,10 +57,8 @@ class What3wordsAddress extends Equatable {
   /// Returns true if the input matches the expected format.
   /// Useful for detecting what3words input in search bars.
   static bool looksLikeWhat3words(String input) {
-    final cleaned = input
-        .replaceAll(RegExp(r'^/{1,3}'), '')
-        .trim()
-        .toLowerCase();
+    final cleaned =
+        input.replaceAll(RegExp(r'^/{1,3}'), '').trim().toLowerCase();
     return _isValidFormat(cleaned);
   }
 
@@ -115,12 +111,12 @@ class What3wordsApiError extends What3wordsError {
 
   @override
   String get userMessage => switch (code) {
-    'InvalidKey' => 'what3words service unavailable',
-    'InvalidInput' => 'Invalid what3words address',
-    'QuotaExceeded' => 'what3words limit reached, try again later',
-    'BadWords' => 'what3words address not found',
-    _ => 'what3words error: $message',
-  };
+        'InvalidKey' => 'what3words service unavailable',
+        'InvalidInput' => 'Invalid what3words address',
+        'QuotaExceeded' => 'what3words limit reached, try again later',
+        'BadWords' => 'what3words address not found',
+        _ => 'what3words error: $message',
+      };
 
   @override
   String toString() =>

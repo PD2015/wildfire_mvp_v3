@@ -122,15 +122,15 @@ class LocationDisplaySuccess extends LocationDisplayState {
 
   @override
   List<Object?> get props => [
-    coordinates,
-    source,
-    placeName,
-    what3words,
-    isWhat3wordsLoading,
-    formattedLocation,
-    isGeocodingLoading,
-    lastUpdated,
-  ];
+        coordinates,
+        source,
+        placeName,
+        what3words,
+        isWhat3wordsLoading,
+        formattedLocation,
+        isGeocodingLoading,
+        lastUpdated,
+      ];
 }
 
 /// Error state when location resolution fails

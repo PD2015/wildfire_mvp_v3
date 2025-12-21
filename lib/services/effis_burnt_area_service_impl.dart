@@ -46,8 +46,8 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
   /// [httpClient] - Injectable HTTP client for network requests
   /// [random] - Injectable random generator for retry jitter
   EffisBurntAreaServiceImpl({required http.Client httpClient, Random? random})
-    : _httpClient = httpClient,
-      _random = random ?? Random();
+      : _httpClient = httpClient,
+        _random = random ?? Random();
 
   @override
   Future<Either<ApiError, List<BurntArea>>> getBurntAreas({
@@ -91,12 +91,10 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
 
     while (attempt <= maxRetries) {
       try {
-        final response = await _httpClient
-            .get(
-              Uri.parse(url),
-              headers: {'User-Agent': _userAgent, 'Accept': _acceptHeader},
-            )
-            .timeout(timeout);
+        final response = await _httpClient.get(
+          Uri.parse(url),
+          headers: {'User-Agent': _userAgent, 'Accept': _acceptHeader},
+        ).timeout(timeout);
 
         if (response.statusCode == 200) {
           // IMPORTANT: Use bodyBytes + utf8.decode instead of response.body
@@ -226,8 +224,7 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
 
     // WFS 1.1.0 GetFeature request
     // CRITICAL: Use GML3 format - JSON fails silently with bbox filters!
-    var url =
-        '$_baseUrl?'
+    var url = '$_baseUrl?'
         'service=WFS&'
         'version=1.1.0&'
         'request=GetFeature&'
@@ -316,9 +313,8 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
   /// Parse a single GML feature member to BurntArea
   BurntArea? _parseGmlFeature(xml.XmlElement featureMember) {
     // Get the actual feature element (child of featureMember)
-    final feature = featureMember.children
-        .whereType<xml.XmlElement>()
-        .firstOrNull;
+    final feature =
+        featureMember.children.whereType<xml.XmlElement>().firstOrNull;
 
     if (feature == null) return null;
 
@@ -394,12 +390,11 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
     // Look for MultiPolygon or Polygon
     final multiPolygon =
         geomElement.findAllElements('gml:MultiPolygon').firstOrNull ??
-        geomElement.findAllElements('MultiPolygon').firstOrNull;
+            geomElement.findAllElements('MultiPolygon').firstOrNull;
 
     if (multiPolygon != null) {
       // Get first polygon from MultiPolygon
-      final polygon =
-          multiPolygon.findAllElements('gml:Polygon').firstOrNull ??
+      final polygon = multiPolygon.findAllElements('gml:Polygon').firstOrNull ??
           multiPolygon.findAllElements('Polygon').firstOrNull;
       if (polygon != null) {
         return _parsePolygon(polygon);
@@ -407,8 +402,7 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
     }
 
     // Check for direct Polygon
-    final polygon =
-        geomElement.findAllElements('gml:Polygon').firstOrNull ??
+    final polygon = geomElement.findAllElements('gml:Polygon').firstOrNull ??
         geomElement.findAllElements('Polygon').firstOrNull;
     if (polygon != null) {
       return _parsePolygon(polygon);
@@ -420,22 +414,19 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
   /// Parse GML Polygon element
   List<LatLng>? _parsePolygon(xml.XmlElement polygon) {
     // Get exterior ring
-    final exterior =
-        polygon.findAllElements('gml:exterior').firstOrNull ??
+    final exterior = polygon.findAllElements('gml:exterior').firstOrNull ??
         polygon.findAllElements('exterior').firstOrNull;
 
     if (exterior == null) return null;
 
     // Get LinearRing
-    final linearRing =
-        exterior.findAllElements('gml:LinearRing').firstOrNull ??
+    final linearRing = exterior.findAllElements('gml:LinearRing').firstOrNull ??
         exterior.findAllElements('LinearRing').firstOrNull;
 
     if (linearRing == null) return null;
 
     // Get coordinates - could be posList or coordinates
-    final posList =
-        linearRing.findAllElements('gml:posList').firstOrNull ??
+    final posList = linearRing.findAllElements('gml:posList').firstOrNull ??
         linearRing.findAllElements('posList').firstOrNull;
 
     if (posList != null) {
@@ -445,7 +436,7 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
     // Try coordinates element
     final coordinates =
         linearRing.findAllElements('gml:coordinates').firstOrNull ??
-        linearRing.findAllElements('coordinates').firstOrNull;
+            linearRing.findAllElements('coordinates').firstOrNull;
 
     if (coordinates != null) {
       return _parseCoordinates(coordinates.innerText);

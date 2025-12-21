@@ -36,7 +36,7 @@ class _MockLocationResolver implements LocationResolver {
   final LatLng _mockLocation;
 
   _MockLocationResolver({LatLng? location})
-    : _mockLocation = location ?? const LatLng(55.9533, -3.1883);
+      : _mockLocation = location ?? const LatLng(55.9533, -3.1883);
 
   @override
   Future<Either<LocationError, ResolvedLocation>> getLatLon({

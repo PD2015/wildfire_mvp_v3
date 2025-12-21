@@ -235,9 +235,8 @@ void main() {
           // Web uses 10s timeout, native uses 3s timeout
           // We set response delay to trigger timeout exception quickly
           // ignore: prefer_const_declarations
-          final platformTimeout = kIsWeb
-              ? const Duration(seconds: 10)
-              : const Duration(seconds: 3);
+          final platformTimeout =
+              kIsWeb ? const Duration(seconds: 10) : const Duration(seconds: 3);
           fakeGeolocator.setResponseDelay(
             const Duration(seconds: 1),
           ); // Small delay before throwing

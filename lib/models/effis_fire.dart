@@ -56,14 +56,12 @@ class EffisFire extends Equatable {
     final lat = (coordinates[1] as num).toDouble();
 
     // Parse fire date - EFFIS uses ISO 8601 format
-    final fireDateStr =
-        properties['firedate']?.toString() ??
+    final fireDateStr = properties['firedate']?.toString() ??
         properties['lastupdate']?.toString() ??
         DateTime.now().toIso8601String();
 
     return EffisFire(
-      id:
-          json['id']?.toString() ??
+      id: json['id']?.toString() ??
           properties['fid']?.toString() ??
           'effis_fire_${DateTime.now().millisecondsSinceEpoch}',
       location: LatLng(lat, lon),
@@ -96,8 +94,7 @@ class EffisFire extends Equatable {
   /// ```
   factory EffisFire.fromGml(XmlElement member) {
     // Extract ID from gml:id attribute
-    final gmlId =
-        member.getAttribute('gml:id') ??
+    final gmlId = member.getAttribute('gml:id') ??
         member.getAttribute('id') ??
         'effis_${DateTime.now().millisecondsSinceEpoch}';
 
@@ -108,8 +105,7 @@ class EffisFire extends Equatable {
     }
 
     // Parse fire date - EFFIS uses "YYYY-MM-DD HH:MM:SS" format
-    final fireDateStr =
-        getElementText('FIREDATE') ??
+    final fireDateStr = getElementText('FIREDATE') ??
         getElementText('LASTUPDATE') ??
         DateTime.now().toIso8601String();
     final fireDate = _parseEffisDate(fireDateStr);
@@ -160,12 +156,10 @@ class EffisFire extends Equatable {
     // Try to get from boundedBy/Envelope
     final envelope = member.findAllElements('gml:Envelope').firstOrNull;
     if (envelope != null) {
-      final lowerCorner = envelope
-          .findAllElements('gml:lowerCorner')
-          .firstOrNull;
-      final upperCorner = envelope
-          .findAllElements('gml:upperCorner')
-          .firstOrNull;
+      final lowerCorner =
+          envelope.findAllElements('gml:lowerCorner').firstOrNull;
+      final upperCorner =
+          envelope.findAllElements('gml:upperCorner').firstOrNull;
 
       if (lowerCorner != null && upperCorner != null) {
         final lower = lowerCorner.innerText.split(' ');
@@ -253,11 +247,11 @@ class EffisFire extends Equatable {
 
   @override
   List<Object?> get props => [
-    id,
-    location,
-    fireDate,
-    areaHectares,
-    country,
-    boundaryPoints,
-  ];
+        id,
+        location,
+        fireDate,
+        areaHectares,
+        country,
+        boundaryPoints,
+      ];
 }

@@ -69,7 +69,7 @@ class MockLocationStateManager extends ChangeNotifier
   bool _isManualLocation = false;
 
   MockLocationStateManager({LocationDisplayState? initialState})
-    : _state = initialState ?? const LocationDisplayInitial();
+      : _state = initialState ?? const LocationDisplayInitial();
 
   @override
   LocationDisplayState get state => _state;

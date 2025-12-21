@@ -66,10 +66,10 @@ class MapSourceChip extends StatelessWidget {
           label: Text(
             'OFFLINE',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: scheme.onTertiaryContainer,
-              letterSpacing: 1.0,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: scheme.onTertiaryContainer,
+                  letterSpacing: 1.0,
+                ),
           ),
           backgroundColor: scheme.tertiaryContainer,
           side: BorderSide(color: scheme.tertiary, width: 1.5),
@@ -143,10 +143,10 @@ class MapSourceChip extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: textColor,
-              letterSpacing: 1.0,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                  letterSpacing: 1.0,
+                ),
           ),
           // Show toggle icon when tappable
           if (onTap != null) ...[

@@ -30,8 +30,7 @@ class DistanceCalculator {
     final deltaLonRad = _degreesToRadians(to.longitude - from.longitude);
 
     // Haversine formula
-    final a =
-        math.sin(deltaLatRad / 2) * math.sin(deltaLatRad / 2) +
+    final a = math.sin(deltaLatRad / 2) * math.sin(deltaLatRad / 2) +
         math.cos(lat1Rad) *
             math.cos(lat2Rad) *
             math.sin(deltaLonRad / 2) *
@@ -71,8 +70,7 @@ class DistanceCalculator {
     final deltaLonRad = _degreesToRadians(to.longitude - from.longitude);
 
     final y = math.sin(deltaLonRad) * math.cos(lat2Rad);
-    final x =
-        math.cos(lat1Rad) * math.sin(lat2Rad) -
+    final x = math.cos(lat1Rad) * math.sin(lat2Rad) -
         math.sin(lat1Rad) * math.cos(lat2Rad) * math.cos(deltaLonRad);
 
     final bearingRad = math.atan2(y, x);

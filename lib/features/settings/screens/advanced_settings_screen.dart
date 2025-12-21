@@ -117,8 +117,8 @@ class AdvancedSettingsScreen extends StatelessWidget {
       final prefs = await SharedPreferences.getInstance();
       // Clear all fire risk cache entries (they start with 'fire_risk_cache_')
       final keys = prefs.getKeys().where(
-        (k) => k.startsWith('fire_risk_cache_'),
-      );
+            (k) => k.startsWith('fire_risk_cache_'),
+          );
       for (final key in keys) {
         await prefs.remove(key);
       }

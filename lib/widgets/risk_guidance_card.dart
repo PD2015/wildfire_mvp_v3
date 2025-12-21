@@ -32,9 +32,8 @@ class RiskGuidanceCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final cardBackground = isDark
-        ? scheme.surfaceContainerHigh
-        : scheme.surfaceContainerHighest;
+    final cardBackground =
+        isDark ? scheme.surfaceContainerHigh : scheme.surfaceContainerHighest;
     final cardBorderColor = isDark
         ? level?.color ?? scheme.outline
         : level?.color ?? scheme.outlineVariant;
@@ -125,11 +124,11 @@ class RiskGuidanceCard extends StatelessWidget {
                       child: Text(
                         ScotlandRiskGuidance.emergencyFooter,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onTertiaryContainer,
-                        ),
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onTertiaryContainer,
+                            ),
                       ),
                     ),
                   ],

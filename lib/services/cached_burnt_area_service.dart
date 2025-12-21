@@ -50,7 +50,7 @@ class CachedBurntAreaService implements EffisBurntAreaService {
       'assets/cache/burnt_areas_{year}_uk.json';
 
   CachedBurntAreaService({required EffisBurntAreaService liveService})
-    : _liveService = liveService;
+      : _liveService = liveService;
 
   @override
   Future<Either<ApiError, List<BurntArea>>> getBurntAreas({

@@ -65,13 +65,13 @@ class HomeStateLoading extends HomeState {
 
   @override
   List<Object?> get props => [
-    isRetry,
-    startTime,
-    lastKnownLocation,
-    lastKnownLocationTimestamp,
-    isWhat3wordsLoading,
-    isGeocodingLoading,
-  ];
+        isRetry,
+        startTime,
+        lastKnownLocation,
+        lastKnownLocationTimestamp,
+        isWhat3wordsLoading,
+        isGeocodingLoading,
+      ];
 
   @override
   String toString() =>
@@ -155,16 +155,16 @@ class HomeStateSuccess extends HomeState {
 
   @override
   List<Object?> get props => [
-    riskData,
-    location,
-    lastUpdated,
-    locationSource,
-    placeName,
-    what3words,
-    formattedLocation,
-    isWhat3wordsLoading,
-    isGeocodingLoading,
-  ];
+        riskData,
+        location,
+        lastUpdated,
+        locationSource,
+        placeName,
+        what3words,
+        formattedLocation,
+        isWhat3wordsLoading,
+        isGeocodingLoading,
+      ];
 
   @override
   String toString() =>
@@ -202,11 +202,11 @@ class HomeStateError extends HomeState {
 
   @override
   List<Object?> get props => [
-    errorMessage,
-    cachedData,
-    cachedLocation,
-    canRetry,
-  ];
+        errorMessage,
+        cachedData,
+        cachedLocation,
+        canRetry,
+      ];
 
   @override
   String toString() =>

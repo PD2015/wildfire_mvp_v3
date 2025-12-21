@@ -37,8 +37,7 @@ class HotspotClusterer {
   }) {
     // At higher zoom levels, each pixel represents fewer meters
     // Formula: metersPerPixel = baseMetersPerPixel / 2^zoom * cos(latitude)
-    final double metersPerPixel =
-        _metersPerPixelAtZoom0 *
+    final double metersPerPixel = _metersPerPixelAtZoom0 *
         math.cos(latitude * math.pi / 180.0) /
         math.pow(2, zoom);
     return pixels * metersPerPixel;
@@ -94,7 +93,7 @@ class HotspotClusterer {
     // Calculate average latitude for more accurate radius conversion
     final avgLat =
         hotspots.fold<double>(0.0, (sum, h) => sum + h.location.latitude) /
-        hotspots.length;
+            hotspots.length;
 
     // Convert pixel radius to meters based on current zoom
     final radiusMeters = pixelsToMeters(radiusPixels, zoom, latitude: avgLat);
@@ -143,8 +142,7 @@ class HotspotClusterer {
     final double deltaLon =
         (point2.longitude - point1.longitude) * math.pi / 180.0;
 
-    final double a =
-        math.sin(deltaLat / 2) * math.sin(deltaLat / 2) +
+    final double a = math.sin(deltaLat / 2) * math.sin(deltaLat / 2) +
         math.cos(lat1Rad) *
             math.cos(lat2Rad) *
             math.sin(deltaLon / 2) *

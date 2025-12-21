@@ -170,8 +170,7 @@ class BurntArea extends Equatable {
     }
 
     // Parse area
-    final areaHectares =
-        (properties['area_ha'] as num?)?.toDouble() ??
+    final areaHectares = (properties['area_ha'] as num?)?.toDouble() ??
         (properties['areaHectares'] as num?)?.toDouble() ??
         0.0;
 
@@ -187,8 +186,7 @@ class BurntArea extends Equatable {
     }
 
     // Parse season year
-    final seasonYear =
-        (properties['year'] as num?)?.toInt() ??
+    final seasonYear = (properties['year'] as num?)?.toInt() ??
         (properties['seasonYear'] as num?)?.toInt() ??
         fireDate.year;
 
@@ -216,8 +214,7 @@ class BurntArea extends Equatable {
     final originalPointCount = properties['originalPointCount'] as int?;
 
     return BurntArea(
-      id:
-          json['id']?.toString() ??
+      id: json['id']?.toString() ??
           'ba_${DateTime.now().millisecondsSinceEpoch}',
       boundaryPoints: boundaryPoints,
       areaHectares: areaHectares,
@@ -231,22 +228,24 @@ class BurntArea extends Equatable {
 
   /// Convert to JSON for caching/serialization
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'geometry': {
-      'type': 'Polygon',
-      'coordinates': [
-        boundaryPoints.map((p) => [p.longitude, p.latitude]).toList(),
-      ],
-    },
-    'properties': {
-      'area_ha': areaHectares,
-      'firedate': fireDate.toIso8601String().split('T').first,
-      'year': seasonYear,
-      if (landCoverBreakdown != null) 'landCoverBreakdown': landCoverBreakdown,
-      'isSimplified': isSimplified,
-      if (originalPointCount != null) 'originalPointCount': originalPointCount,
-    },
-  };
+        'id': id,
+        'geometry': {
+          'type': 'Polygon',
+          'coordinates': [
+            boundaryPoints.map((p) => [p.longitude, p.latitude]).toList(),
+          ],
+        },
+        'properties': {
+          'area_ha': areaHectares,
+          'firedate': fireDate.toIso8601String().split('T').first,
+          'year': seasonYear,
+          if (landCoverBreakdown != null)
+            'landCoverBreakdown': landCoverBreakdown,
+          'isSimplified': isSimplified,
+          if (originalPointCount != null)
+            'originalPointCount': originalPointCount,
+        },
+      };
 
   /// Factory for test data with reasonable defaults
   factory BurntArea.test({
@@ -290,13 +289,13 @@ class BurntArea extends Equatable {
 
   @override
   List<Object?> get props => [
-    id,
-    boundaryPoints,
-    areaHectares,
-    fireDate,
-    seasonYear,
-    landCoverBreakdown,
-    isSimplified,
-    originalPointCount,
-  ];
+        id,
+        boundaryPoints,
+        areaHectares,
+        fireDate,
+        seasonYear,
+        landCoverBreakdown,
+        isSimplified,
+        originalPointCount,
+      ];
 }

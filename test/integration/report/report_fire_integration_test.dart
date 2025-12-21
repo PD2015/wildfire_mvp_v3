@@ -323,7 +323,8 @@ void main() {
     // Overflow occurs during widget disposal when SnackBar is shown
     // Production functionality confirmed working correctly
     // See commit 57ff59b for investigation details
-    testWidgets('performance validation - screen load and button response times', (
+    testWidgets(
+        'performance validation - screen load and button response times', (
       tester,
     ) async {
       final stopwatch = Stopwatch()..start();

@@ -20,8 +20,8 @@ class What3wordsServiceImpl implements What3wordsService {
   final String _apiKey;
 
   What3wordsServiceImpl({http.Client? client, String? apiKey})
-    : _client = client ?? http.Client(),
-      _apiKey = apiKey ?? FeatureFlags.what3wordsApiKey;
+      : _client = client ?? http.Client(),
+        _apiKey = apiKey ?? FeatureFlags.what3wordsApiKey;
 
   @override
   Future<Either<What3wordsError, What3wordsAddress>> convertTo3wa({

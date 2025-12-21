@@ -955,11 +955,11 @@ void main() {
               location: const LatLng(55.95, -3.19),
               intensity: 'high',
               timestamp: DateTime.now().toUtc().subtract(
-                const Duration(days: 1),
-              ),
+                    const Duration(days: 1),
+                  ),
               detectedAt: DateTime.now().toUtc().subtract(
-                const Duration(days: 1),
-              ),
+                    const Duration(days: 1),
+                  ),
               source: DataSource.effis,
               freshness: Freshness.live,
             );

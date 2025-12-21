@@ -30,7 +30,7 @@ class _MockLocationResolver implements LocationResolver {
   final LatLng _mockLocation;
 
   _MockLocationResolver({LatLng? location})
-    : _mockLocation = location ?? const LatLng(55.9533, -3.1883);
+      : _mockLocation = location ?? const LatLng(55.9533, -3.1883);
 
   @override
   Future<Either<LocationError, ResolvedLocation>> getLatLon({
@@ -77,7 +77,7 @@ class ControllableMockGwisService implements GwisHotspotService {
   int callCount = 0;
 
   ControllableMockGwisService({List<Hotspot>? hotspots})
-    : _hotspots = hotspots ?? [];
+      : _hotspots = hotspots ?? [];
 
   void setHotspots(List<Hotspot> hotspots) {
     _overrideResult = Right(hotspots);

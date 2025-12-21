@@ -272,9 +272,9 @@ class FireDetailsBottomSheet extends StatelessWidget {
         Text(
           'Failed to Load Fire Details',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: Theme.of(context).colorScheme.error,
-            fontWeight: FontWeight.bold,
-          ),
+                color: Theme.of(context).colorScheme.error,
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 8),
         Text(
@@ -486,8 +486,8 @@ class FireDetailsBottomSheet extends StatelessWidget {
           'These details come from satellite detections and may lag behind real-world conditions. '
           'If you are in immediate danger, call 999 without delay.',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
         ),
         const SizedBox(height: 16),
       ],
@@ -587,10 +587,10 @@ class FireDetailsBottomSheet extends StatelessWidget {
                 Text(
                   label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 13,
-                  ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                      ),
                 ),
                 const SizedBox(height: 2),
                 Semantics(
@@ -598,10 +598,10 @@ class FireDetailsBottomSheet extends StatelessWidget {
                   child: Text(
                     value,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      //fontWeight: FontWeight.w500,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
+                          //fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
                   ),
                 ),
               ],
@@ -705,15 +705,15 @@ class FireDetailsBottomSheet extends StatelessWidget {
 
     final (icon, title, description) = switch (displayType) {
       FireDataDisplayType.hotspot => (
-        Icons.local_fire_department,
-        'Active Hotspot',
-        'Satellite-detected thermal anomaly indicating possible active fire.',
-      ),
+          Icons.local_fire_department,
+          'Active Hotspot',
+          'Satellite-detected thermal anomaly indicating possible active fire.',
+        ),
       FireDataDisplayType.burntArea => (
-        Icons.layers,
-        'Verified Burnt Area',
-        'MODIS satellite-confirmed area affected by fire this season.',
-      ),
+          Icons.layers,
+          'Verified Burnt Area',
+          'MODIS satellite-confirmed area affected by fire this season.',
+        ),
       FireDataDisplayType.incident => (Icons.info_outline, '', ''),
     };
 
@@ -950,9 +950,9 @@ class _InfoSection extends StatelessWidget {
             Text(
               title,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: cs.onSurfaceVariant,
-              ),
+                    fontWeight: FontWeight.w600,
+                    color: cs.onSurfaceVariant,
+                  ),
             ),
           ],
         ),

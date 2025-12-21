@@ -50,8 +50,8 @@ class GwisWmsHotspotService implements HotspotService {
   /// [httpClient] - Injectable HTTP client for network requests
   /// [random] - Injectable random generator for retry jitter
   GwisWmsHotspotService({required http.Client httpClient, Random? random})
-    : _httpClient = httpClient,
-      _random = random ?? Random();
+      : _httpClient = httpClient,
+        _random = random ?? Random();
 
   @override
   String get serviceName => 'GWIS WMS';
@@ -187,12 +187,10 @@ class GwisWmsHotspotService implements HotspotService {
 
     while (attempt <= maxRetries) {
       try {
-        final response = await _httpClient
-            .get(
-              Uri.parse(url),
-              headers: {'User-Agent': _userAgent, 'Accept': _acceptHeader},
-            )
-            .timeout(timeout);
+        final response = await _httpClient.get(
+          Uri.parse(url),
+          headers: {'User-Agent': _userAgent, 'Accept': _acceptHeader},
+        ).timeout(timeout);
 
         if (response.statusCode == 200) {
           return _parseGmlResponse(response.body);
@@ -251,18 +249,16 @@ class GwisWmsHotspotService implements HotspotService {
     final ne = bounds.northeast;
 
     // Calculate pixel coordinates for query point within image
-    final pixelX =
-        ((queryPoint.longitude - sw.longitude) /
-                (ne.longitude - sw.longitude) *
-                _imageWidth)
-            .round()
-            .clamp(0, _imageWidth - 1);
-    final pixelY =
-        ((ne.latitude - queryPoint.latitude) /
-                (ne.latitude - sw.latitude) *
-                _imageHeight)
-            .round()
-            .clamp(0, _imageHeight - 1);
+    final pixelX = ((queryPoint.longitude - sw.longitude) /
+            (ne.longitude - sw.longitude) *
+            _imageWidth)
+        .round()
+        .clamp(0, _imageWidth - 1);
+    final pixelY = ((ne.latitude - queryPoint.latitude) /
+            (ne.latitude - sw.latitude) *
+            _imageHeight)
+        .round()
+        .clamp(0, _imageHeight - 1);
 
     // WMS 1.3.0 GetFeatureInfo request
     // Note: GWIS returns GML format for GetFeatureInfo
@@ -353,9 +349,8 @@ class GwisWmsHotspotService implements HotspotService {
   /// - satellite and instrument identifiers
   Hotspot? _parseGmlFeature(xml.XmlElement member) {
     // Find the actual feature element (child of featureMember)
-    final featureElement = member.children
-        .whereType<xml.XmlElement>()
-        .firstOrNull;
+    final featureElement =
+        member.children.whereType<xml.XmlElement>().firstOrNull;
 
     if (featureElement == null) return null;
 
@@ -364,11 +359,9 @@ class GwisWmsHotspotService implements HotspotService {
     double? longitude;
 
     // Pattern 1: Direct lat/lon elements
-    final latElement =
-        featureElement.findElements('latitude').firstOrNull ??
+    final latElement = featureElement.findElements('latitude').firstOrNull ??
         featureElement.findElements('lat').firstOrNull;
-    final lonElement =
-        featureElement.findElements('longitude').firstOrNull ??
+    final lonElement = featureElement.findElements('longitude').firstOrNull ??
         featureElement.findElements('lon').firstOrNull;
 
     if (latElement != null && lonElement != null) {
@@ -378,9 +371,8 @@ class GwisWmsHotspotService implements HotspotService {
 
     // Pattern 2: GML Point geometry
     if (latitude == null || longitude == null) {
-      final pointElement = featureElement
-          .findAllElements('gml:Point')
-          .firstOrNull;
+      final pointElement =
+          featureElement.findAllElements('gml:Point').firstOrNull;
       if (pointElement != null) {
         final posElement = pointElement.findElements('gml:pos').firstOrNull;
         if (posElement != null) {
@@ -396,9 +388,8 @@ class GwisWmsHotspotService implements HotspotService {
 
     // Pattern 3: GML coordinates element
     if (latitude == null || longitude == null) {
-      final coordsElement = featureElement
-          .findAllElements('gml:coordinates')
-          .firstOrNull;
+      final coordsElement =
+          featureElement.findAllElements('gml:coordinates').firstOrNull;
       if (coordsElement != null) {
         final coords = coordsElement.innerText.trim().split(',');
         if (coords.length >= 2) {
@@ -414,24 +405,20 @@ class GwisWmsHotspotService implements HotspotService {
     }
 
     // Extract FRP (Fire Radiative Power)
-    final frpElement =
-        featureElement.findElements('frp').firstOrNull ??
+    final frpElement = featureElement.findElements('frp').firstOrNull ??
         featureElement.findElements('FRP').firstOrNull;
-    final frp = frpElement != null
-        ? double.tryParse(frpElement.innerText) ?? 0.0
-        : 0.0;
+    final frp =
+        frpElement != null ? double.tryParse(frpElement.innerText) ?? 0.0 : 0.0;
 
     // Extract confidence
-    final confElement =
-        featureElement.findElements('confidence').firstOrNull ??
+    final confElement = featureElement.findElements('confidence').firstOrNull ??
         featureElement.findElements('CONFIDENCE').firstOrNull;
     final confidence = confElement != null
         ? double.tryParse(confElement.innerText) ?? 50.0
         : 50.0;
 
     // Extract date
-    final dateElement =
-        featureElement.findElements('firedate').firstOrNull ??
+    final dateElement = featureElement.findElements('firedate').firstOrNull ??
         featureElement.findElements('acq_date').firstOrNull ??
         featureElement.findElements('ACQ_DATE').firstOrNull;
     DateTime detectedAt;

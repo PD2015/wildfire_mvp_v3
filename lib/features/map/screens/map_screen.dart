@@ -117,9 +117,8 @@ class _MapScreenState extends State<MapScreen> {
     _controller.setUseLiveData(newMode);
 
     // Show feedback snackbar
-    final message = newMode
-        ? 'Switched to Live Data mode'
-        : 'Switched to Demo Data mode';
+    final message =
+        newMode ? 'Switched to Live Data mode' : 'Switched to Demo Data mode';
     final icon = newMode ? Icons.cloud_done : Icons.science_outlined;
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -738,8 +737,7 @@ class _MapScreenState extends State<MapScreen> {
     }
 
     // Show loading indicator in AppBar when fetching data
-    final isLoading =
-        _controller.isFetchingBurntAreas &&
+    final isLoading = _controller.isFetchingBurntAreas &&
         _controller.fireDataMode == FireDataMode.burntAreas;
 
     return Scaffold(
@@ -765,11 +763,11 @@ class _MapScreenState extends State<MapScreen> {
           // Main map content - simple switch on current state
           switch (state) {
             MapLoading() => Center(
-              child: Semantics(
-                label: 'Loading map data',
-                child: const CircularProgressIndicator(),
+                child: Semantics(
+                  label: 'Loading map data',
+                  child: const CircularProgressIndicator(),
+                ),
               ),
-            ),
             MapSuccess() => _buildMapView(state),
             MapError() => _buildErrorView(state),
           },
@@ -865,9 +863,7 @@ class _MapScreenState extends State<MapScreen> {
                           const SizedBox(height: 8),
                           // Show fire data summary based on current mode
                           if (_controller.fireDataMode == FireDataMode.hotspots)
-                            ..._controller.hotspots
-                                .take(5)
-                                .map(
+                            ..._controller.hotspots.take(5).map(
                                   (hotspot) => Padding(
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 4,
@@ -881,12 +877,12 @@ class _MapScreenState extends State<MapScreen> {
                                                   context,
                                                 ).colorScheme.error
                                               : hotspot.intensity == 'moderate'
-                                              ? Theme.of(
-                                                  context,
-                                                ).colorScheme.tertiary
-                                              : Theme.of(
-                                                  context,
-                                                ).colorScheme.primary,
+                                                  ? Theme.of(
+                                                      context,
+                                                    ).colorScheme.tertiary
+                                                  : Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
                                           size: 20,
                                         ),
                                         const SizedBox(width: 8),
@@ -903,9 +899,7 @@ class _MapScreenState extends State<MapScreen> {
                                   ),
                                 )
                           else
-                            ..._controller.burntAreas
-                                .take(5)
-                                .map(
+                            ..._controller.burntAreas.take(5).map(
                                   (area) => Padding(
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 4,
@@ -919,12 +913,12 @@ class _MapScreenState extends State<MapScreen> {
                                                   context,
                                                 ).colorScheme.error
                                               : area.intensity == 'moderate'
-                                              ? Theme.of(
-                                                  context,
-                                                ).colorScheme.tertiary
-                                              : Theme.of(
-                                                  context,
-                                                ).colorScheme.primary,
+                                                  ? Theme.of(
+                                                      context,
+                                                    ).colorScheme.tertiary
+                                                  : Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
                                           size: 20,
                                         ),
                                         const SizedBox(width: 8),
@@ -1177,8 +1171,8 @@ class _MapScreenState extends State<MapScreen> {
             Text(
               'Loading burnt areas...',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
             ),
           ],
         ),
@@ -1230,9 +1224,9 @@ class _MapScreenState extends State<MapScreen> {
         Text(
           'Fire data will appear once connection is restored',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-            fontStyle: FontStyle.italic,
-          ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
           textAlign: TextAlign.center,
         ),
       ],
@@ -1267,8 +1261,8 @@ class _MapScreenState extends State<MapScreen> {
         Text(
           'Data source: ${_controller.dataFreshness.name.toUpperCase()}',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
@@ -1286,8 +1280,8 @@ class _MapScreenState extends State<MapScreen> {
           child: Text(
             _getEmptyStateHint(),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
-            ),
+                  color: Theme.of(context).colorScheme.primary,
+                ),
           ),
         ),
       ],

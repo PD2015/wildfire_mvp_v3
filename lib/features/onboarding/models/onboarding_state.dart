@@ -103,18 +103,17 @@ class OnboardingActive extends OnboardingState {
 
   @override
   List<Object?> get props => [
-    currentPage,
-    totalPages,
-    disclaimerChecked,
-    termsChecked,
-    selectedRadiusKm,
-    locationPermissionGranted,
-    isRequestingLocation,
-  ];
+        currentPage,
+        totalPages,
+        disclaimerChecked,
+        termsChecked,
+        selectedRadiusKm,
+        locationPermissionGranted,
+        isRequestingLocation,
+      ];
 
   @override
-  String toString() =>
-      'OnboardingActive('
+  String toString() => 'OnboardingActive('
       'page: $currentPage/$totalPages, '
       'disclaimer: $disclaimerChecked, '
       'terms: $termsChecked, '

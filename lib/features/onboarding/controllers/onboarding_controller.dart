@@ -36,15 +36,15 @@ class OnboardingController extends ChangeNotifier {
 
   /// Whether the user is currently on a page that allows proceeding
   bool get canProceed => switch (_state) {
-    OnboardingActive(canProceed: final proceed) => proceed,
-    _ => false,
-  };
+        OnboardingActive(canProceed: final proceed) => proceed,
+        _ => false,
+      };
 
   /// Whether the user can complete onboarding
   bool get canComplete => switch (_state) {
-    OnboardingActive(canFinish: final finish) => finish,
-    _ => false,
-  };
+        OnboardingActive(canFinish: final finish) => finish,
+        _ => false,
+      };
 
   /// Creates an OnboardingController with required dependencies.
   ///
@@ -53,8 +53,8 @@ class OnboardingController extends ChangeNotifier {
   OnboardingController({
     required OnboardingPrefsService prefsService,
     LocationResolver? locationResolver,
-  }) : _prefsService = prefsService,
-       _locationResolver = locationResolver {
+  })  : _prefsService = prefsService,
+        _locationResolver = locationResolver {
     developer.log('OnboardingController initialized', name: 'Onboarding');
   }
 

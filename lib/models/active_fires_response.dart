@@ -205,9 +205,8 @@ class ActiveFiresResponse extends Equatable {
 
   /// Get incidents sorted by confidence (highest first)
   List<FireIncident> get incidentsByConfidence {
-    final withConfidence = incidents
-        .where((incident) => incident.confidence != null)
-        .toList();
+    final withConfidence =
+        incidents.where((incident) => incident.confidence != null).toList();
     withConfidence.sort((a, b) => b.confidence!.compareTo(a.confidence!));
     return withConfidence;
   }
@@ -224,13 +223,13 @@ class ActiveFiresResponse extends Equatable {
 
   @override
   List<Object?> get props => [
-    incidents,
-    queriedBounds,
-    responseTimeMs,
-    dataSource,
-    totalCount,
-    timestamp,
-  ];
+        incidents,
+        queriedBounds,
+        responseTimeMs,
+        dataSource,
+        totalCount,
+        timestamp,
+      ];
 
   @override
   String toString() {

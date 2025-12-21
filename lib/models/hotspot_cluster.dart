@@ -122,16 +122,14 @@ class HotspotCluster extends Equatable {
     List<Hotspot>? hotspots,
   }) {
     // Generate synthetic bounds if not provided
-    final testBounds =
-        bounds ??
+    final testBounds = bounds ??
         LatLngBounds(
           southwest: LatLng(center.latitude - 0.01, center.longitude - 0.01),
           northeast: LatLng(center.latitude + 0.01, center.longitude + 0.01),
         );
 
     // Generate synthetic hotspots if not provided
-    final testHotspots =
-        hotspots ??
+    final testHotspots = hotspots ??
         List.generate(
           count,
           (i) => Hotspot.test(

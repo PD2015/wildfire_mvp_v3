@@ -176,10 +176,10 @@ class MapController extends ChangeNotifier {
     required FireRiskService fireRiskService,
     required HotspotServiceOrchestrator hotspotOrchestrator,
     EffisBurntAreaService? burntAreaService,
-  }) : _locationResolver = locationResolver,
-       _fireRiskService = fireRiskService,
-       _hotspotOrchestrator = hotspotOrchestrator,
-       _burntAreaService = burntAreaService {
+  })  : _locationResolver = locationResolver,
+        _fireRiskService = fireRiskService,
+        _hotspotOrchestrator = hotspotOrchestrator,
+        _burntAreaService = burntAreaService {
     // Initialize mock services for MAP_LIVE_DATA=false direct use
     _mockBurntAreaService = MockEffisBurntAreaService();
     _mockHotspotService = MockHotspotService();
@@ -348,12 +348,10 @@ class MapController extends ChangeNotifier {
     } catch (e) {
       _state = MapError(
         message: 'Refresh failed: $e',
-        cachedIncidents: previousState is MapSuccess
-            ? previousState.incidents
-            : null,
-        lastKnownLocation: previousState is MapSuccess
-            ? previousState.centerLocation
-            : null,
+        cachedIncidents:
+            previousState is MapSuccess ? previousState.incidents : null,
+        lastKnownLocation:
+            previousState is MapSuccess ? previousState.centerLocation : null,
       );
       notifyListeners();
     }

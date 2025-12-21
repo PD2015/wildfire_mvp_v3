@@ -80,11 +80,11 @@ class PolygonToggleChip extends StatelessWidget {
                   Text(
                     label,
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: contentColor,
-                      fontWeight: showPolygons
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                    ),
+                          color: contentColor,
+                          fontWeight: showPolygons
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                        ),
                   ),
                 ],
               ),

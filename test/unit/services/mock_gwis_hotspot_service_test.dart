@@ -210,8 +210,7 @@ void main() {
           expect(
             diff.inMinutes,
             lessThan(5),
-            reason:
-                'Newest hotspot should be ~6 hours ago: '
+            reason: 'Newest hotspot should be ~6 hours ago: '
                 'expected $expectedNewest, got $newestDate',
           );
         }
@@ -289,11 +288,11 @@ void main() {
 
           if (commonIds.length >= 2) {
             final diff1 = h1ById[commonIds[0]]!.detectedAt.difference(
-              h1ById[commonIds[1]]!.detectedAt,
-            );
+                  h1ById[commonIds[1]]!.detectedAt,
+                );
             final diff2 = h2ById[commonIds[0]]!.detectedAt.difference(
-              h2ById[commonIds[1]]!.detectedAt,
-            );
+                  h2ById[commonIds[1]]!.detectedAt,
+                );
 
             // The relative time difference should be identical
             expect(diff1, equals(diff2));

@@ -139,12 +139,12 @@ class FireRiskServiceImpl implements FireRiskService {
     CacheService? cacheService,
     OrchestratorTelemetry? telemetry,
     Duration defaultDeadline = const Duration(seconds: 8),
-  }) : _effisService = effisService,
-       _sepaService = sepaService,
-       _cacheService = cacheService,
-       _mockService = mockService,
-       _telemetry = telemetry ?? const NoOpTelemetry(),
-       _defaultDeadline = defaultDeadline;
+  })  : _effisService = effisService,
+        _sepaService = sepaService,
+        _cacheService = cacheService,
+        _mockService = mockService,
+        _telemetry = telemetry ?? const NoOpTelemetry(),
+        _defaultDeadline = defaultDeadline;
 
   @override
   Future<Either<ApiError, FireRisk>> getCurrent({
@@ -345,9 +345,8 @@ class FireRiskServiceImpl implements FireRiskService {
     }
 
     final remainingTime = deadline - stopwatch.elapsed;
-    final timeoutDuration = remainingTime < _effisTimeout
-        ? remainingTime
-        : _effisTimeout;
+    final timeoutDuration =
+        remainingTime < _effisTimeout ? remainingTime : _effisTimeout;
 
     developer.log(
       'Attempting with ${timeoutDuration.inSeconds}s timeout (${remainingTime.inSeconds}s remaining)',
@@ -414,9 +413,8 @@ class FireRiskServiceImpl implements FireRiskService {
     if (stopwatch.elapsed >= deadline) return null;
 
     final remainingTime = deadline - stopwatch.elapsed;
-    final timeoutDuration = remainingTime < _sepaTimeout
-        ? remainingTime
-        : _sepaTimeout;
+    final timeoutDuration =
+        remainingTime < _sepaTimeout ? remainingTime : _sepaTimeout;
 
     _telemetry.onAttemptStart(TelemetrySource.sepa);
     final attemptStopwatch = Stopwatch()..start();
@@ -453,18 +451,16 @@ class FireRiskServiceImpl implements FireRiskService {
     if (stopwatch.elapsed >= deadline) return null;
 
     final remainingTime = deadline - stopwatch.elapsed;
-    final timeoutDuration = remainingTime < _cacheTimeout
-        ? remainingTime
-        : _cacheTimeout;
+    final timeoutDuration =
+        remainingTime < _cacheTimeout ? remainingTime : _cacheTimeout;
 
     _telemetry.onAttemptStart(TelemetrySource.cache);
     final attemptStopwatch = Stopwatch()..start();
 
     try {
       final cacheKey = GeographicUtils.geohash(lat, lon);
-      final result = await _cacheService!
-          .get(key: cacheKey)
-          .timeout(timeoutDuration);
+      final result =
+          await _cacheService!.get(key: cacheKey).timeout(timeoutDuration);
 
       final hasValue = result.isSome();
       _telemetry.onAttemptEnd(

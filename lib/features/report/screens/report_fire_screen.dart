@@ -286,9 +286,9 @@ class _ReportFireScreenState extends State<ReportFireScreen> {
               child: Text(
                 'This app does not contact emergency services. Always phone 999, 101 or Crimestoppers yourself.',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: cs.onSurfaceVariant,
-                  fontSize: 11,
-                ),
+                      color: cs.onSurfaceVariant,
+                      fontSize: 11,
+                    ),
               ),
             ),
           ],
@@ -388,18 +388,18 @@ class _Banner extends StatelessWidget {
                     Text(
                       title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: foreground,
-                        fontWeight: FontWeight.w700,
-                        height: 1.1,
-                      ),
+                            color: foreground,
+                            fontWeight: FontWeight.w700,
+                            height: 1.1,
+                          ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: foreground.withValues(alpha: 0.92),
-                        height: 1.3,
-                      ),
+                            color: foreground.withValues(alpha: 0.92),
+                            height: 1.3,
+                          ),
                     ),
                   ],
                 ),
