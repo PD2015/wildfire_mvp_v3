@@ -28,9 +28,35 @@ class AppBarActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentPath = GoRouterState.of(context).uri.path;
+    GoRouterState? routerState;
+    GoRouter? router;
+
+    // Gracefully handle contexts that are not under a GoRouter route (e.g. tests)
+    try {
+      routerState = GoRouterState.of(context);
+      router = GoRouter.of(context);
+    } on GoError {
+      routerState = null;
+      router = null;
+    }
+
+    final currentPath = routerState?.uri.path ?? '';
     final isOnSettings = currentPath.startsWith('/settings');
     final isOnHelp = currentPath.startsWith('/help');
+
+    VoidCallback? effectiveSettingsTap;
+    if (onSettingsTap != null) {
+      effectiveSettingsTap = onSettingsTap;
+    } else if (router != null) {
+      effectiveSettingsTap = () => router!.push('/settings');
+    }
+
+    VoidCallback? effectiveHelpTap;
+    if (onHelpTap != null) {
+      effectiveHelpTap = onHelpTap;
+    } else if (router != null) {
+      effectiveHelpTap = () => router!.push('/help');
+    }
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -41,7 +67,7 @@ class AppBarActions extends StatelessWidget {
             isOnSettings ? Icons.settings : Icons.settings_outlined,
           ),
           tooltip: 'Settings',
-          onPressed: onSettingsTap ?? () => context.push('/settings'),
+          onPressed: effectiveSettingsTap,
           style: IconButton.styleFrom(
             minimumSize: const Size(48, 48),
           ),
@@ -52,7 +78,7 @@ class AppBarActions extends StatelessWidget {
             isOnHelp ? Icons.help : Icons.help_outline,
           ),
           tooltip: 'Help and information',
-          onPressed: onHelpTap ?? () => context.push('/help'),
+          onPressed: effectiveHelpTap,
           style: IconButton.styleFrom(
             minimumSize: const Size(48, 48),
           ),

@@ -75,7 +75,7 @@ void main() {
       expect(find.byIcon(Icons.local_fire_department), findsOneWidget);
     });
 
-    testWidgets('displays Get Started button', (tester) async {
+    testWidgets('displays Continue button', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -86,11 +86,15 @@ void main() {
         ),
       );
 
-      expect(find.text('Get Started'), findsOneWidget);
+      expect(find.text('Continue'), findsOneWidget);
       expect(find.byType(FilledButton), findsOneWidget);
     });
 
     testWidgets('calls onContinue when button tapped', (tester) async {
+      // Set surface size to accommodate tall content
+      await tester.binding.setSurfaceSize(const Size(400, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       var called = false;
 
       await tester.pumpWidget(
@@ -103,7 +107,11 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('Get Started'));
+      // Ensure button is visible before tapping
+      final button = find.text('Continue');
+      await tester.ensureVisible(button);
+      await tester.pumpAndSettle();
+      await tester.tap(button);
       await tester.pump();
 
       expect(called, isTrue);

@@ -113,7 +113,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(LegalDocumentScreen), findsOneWidget);
-      expect(find.textContaining('Introduction'), findsOneWidget);
+      // Use findsWidgets because SelectableText creates multiple text instances
+      expect(find.textContaining('Introduction'), findsWidgets);
     });
 
     testWidgets('tapping Privacy navigates to privacy screen', (tester) async {
@@ -124,7 +125,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(LegalDocumentScreen), findsOneWidget);
-      expect(find.textContaining('UK GDPR'), findsOneWidget);
+      // Use findsWidgets because SelectableText creates multiple text instances
+      expect(find.textContaining('UK GDPR'), findsWidgets);
     });
 
     testWidgets('tapping Disclaimer navigates to disclaimer screen',
@@ -136,8 +138,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(LegalDocumentScreen), findsOneWidget);
+      // Use findsWidgets because SelectableText creates multiple text instances
       // Look for content that appears in disclaimer
-      expect(find.textContaining('Emergency Guidance'), findsOneWidget);
+      expect(find.textContaining('Emergency Guidance'), findsWidgets);
     });
 
     testWidgets('tapping Data Sources navigates to data sources screen',
@@ -149,7 +152,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(LegalDocumentScreen), findsOneWidget);
-      expect(find.textContaining('EFFIS'), findsOneWidget);
+      // Use findsWidgets because SelectableText creates multiple text instances
+      expect(find.textContaining('EFFIS'), findsWidgets);
     });
 
     testWidgets('displays content version', (tester) async {

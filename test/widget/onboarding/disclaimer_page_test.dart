@@ -75,7 +75,7 @@ void main() {
       );
 
       expect(
-        find.textContaining('informational data only'),
+        find.textContaining('general wildfire-risk information'),
         findsOneWidget,
       );
     });

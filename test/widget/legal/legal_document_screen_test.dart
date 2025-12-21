@@ -14,6 +14,7 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
       expect(find.text('Terms of Service'), findsOneWidget);
     });
@@ -26,10 +27,13 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
       // Look for the specific version info container text
-      expect(find.text('Version 1.0 • Effective 10 December 2025'),
-          findsOneWidget);
+      expect(
+        find.text('Version 1.0 • Effective 10 December 2025'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('displays document content', (tester) async {
@@ -40,9 +44,10 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
       // Check that key content sections appear
-      expect(find.textContaining('Introduction'), findsOneWidget);
+      expect(find.textContaining('Introduction'), findsWidgets);
     });
 
     testWidgets('content is scrollable', (tester) async {
@@ -53,6 +58,7 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
       // Find the scrollable
       final scrollable = find.byType(SingleChildScrollView);
@@ -67,6 +73,7 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
       // AppBar is present and allows navigation
       expect(find.byType(AppBar), findsOneWidget);
@@ -79,9 +86,13 @@ void main() {
             home: LegalDocumentScreen(document: doc),
           ),
         );
+        await tester.pumpAndSettle();
 
         expect(find.text(doc.title), findsOneWidget);
-        expect(find.textContaining('Version ${doc.version}'), findsOneWidget);
+        expect(
+          find.textContaining('Version ${doc.version}'),
+          findsOneWidget,
+        );
       }
     });
 
@@ -93,9 +104,10 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
       expect(find.text('Privacy Policy'), findsOneWidget);
-      expect(find.textContaining('UK GDPR'), findsOneWidget);
+      expect(find.textContaining('UK GDPR'), findsWidgets);
     });
 
     testWidgets('disclaimer displays emergency guidance', (tester) async {
@@ -106,9 +118,10 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
       expect(find.text('Emergency & Accuracy Disclaimer'), findsOneWidget);
-      expect(find.textContaining('999'), findsOneWidget);
+      expect(find.textContaining('999'), findsWidgets);
     });
 
     testWidgets('data sources displays attribution', (tester) async {
@@ -119,9 +132,11 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
       expect(find.text('Data Sources & Attribution'), findsOneWidget);
-      expect(find.textContaining('EFFIS'), findsOneWidget);
+      expect(find.textContaining('EFFIS'), findsWidgets);
+      expect(find.text('Contents'), findsOneWidget);
     });
 
     testWidgets('content is selectable', (tester) async {
@@ -132,8 +147,52 @@ void main() {
           ),
         ),
       );
+      await tester.pumpAndSettle();
 
-      expect(find.byType(SelectableText), findsOneWidget);
+      expect(find.byType(SelectableText), findsWidgets);
+    });
+
+    testWidgets('table of contents renders and toggles for rich documents', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: LegalDocumentScreen(
+            document: LegalContent.termsOfService,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Contents panel renders collapsed by default
+      final toggle = find.text('Contents');
+      expect(toggle, findsOneWidget);
+      var crossFade = tester.widget<AnimatedCrossFade>(
+        find.byType(AnimatedCrossFade),
+      );
+      expect(crossFade.crossFadeState, CrossFadeState.showFirst);
+
+      // Expand TOC
+      await tester.tap(toggle);
+      await tester.pumpAndSettle(const Duration(milliseconds: 250));
+      crossFade =
+          tester.widget<AnimatedCrossFade>(find.byType(AnimatedCrossFade));
+      expect(crossFade.crossFadeState, CrossFadeState.showSecond);
+
+      // Entries appear with indentation for subsections
+      final entry = find.descendant(
+        of: find.byType(AnimatedCrossFade),
+        matching: find.text('2. Purpose of the App'),
+      );
+      expect(entry, findsOneWidget);
+
+      // Tapping an entry collapses panel again
+      await tester.tap(entry);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      crossFade =
+          tester.widget<AnimatedCrossFade>(find.byType(AnimatedCrossFade));
+      expect(crossFade.crossFadeState, CrossFadeState.showFirst);
     });
   });
 }
