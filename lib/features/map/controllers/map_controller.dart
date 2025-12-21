@@ -68,6 +68,11 @@ class MapController extends ChangeNotifier {
   // When offline, no data is shown rather than falling back to mock
   bool _isOffline = false;
 
+  // Runtime toggle for live vs demo data mode
+  // Initialized from compile-time flag but can be toggled at runtime
+  // This allows testers to switch between live and demo data in the UI
+  bool _useLiveData = FeatureFlags.mapLiveData;
+
   // Loading state for burnt area data fetches
   // Used to show loading indicator in UI
   bool _isFetchingBurntAreas = false;
@@ -140,6 +145,30 @@ class MapController extends ChangeNotifier {
 
   /// Which service provided the current hotspot data
   HotspotDataSource get hotspotDataSource => _hotspotDataSource;
+
+  /// Whether live data mode is currently enabled
+  /// Can be toggled at runtime for testing purposes
+  bool get useLiveData => _useLiveData;
+
+  /// Toggle between live and demo data mode at runtime
+  /// Triggers a fresh data fetch with the new mode
+  void setUseLiveData(bool value) {
+    if (_useLiveData == value) return;
+    _useLiveData = value;
+    debugPrint(
+        '🗺️ MapController: Switched to ${value ? "LIVE" : "DEMO"} data mode');
+    // Clear current data and refresh with new mode
+    _hotspots = [];
+    _burntAreas = [];
+    _clusters = [];
+    _isOffline = false;
+    _isUsingMockData = !value;
+    notifyListeners();
+    // Fetch fresh data with new mode
+    if (_currentBounds != null) {
+      _fetchDataForCurrentMode();
+    }
+  }
 
   MapController({
     required LocationResolver locationResolver,
@@ -434,11 +463,11 @@ class MapController extends ChangeNotifier {
       'SW(${_currentBounds!.southwest.latitude.toStringAsFixed(2)},${_currentBounds!.southwest.longitude.toStringAsFixed(2)}) '
       'NE(${_currentBounds!.northeast.latitude.toStringAsFixed(2)},${_currentBounds!.northeast.longitude.toStringAsFixed(2)}) '
       'filter: ${_hotspotTimeFilter.name} '
-      'useLiveData: ${FeatureFlags.mapLiveData}',
+      'useLiveData: $_useLiveData',
     );
 
-    // MAP_LIVE_DATA=false: Skip all live APIs, use mock data directly
-    if (!FeatureFlags.mapLiveData) {
+    // Demo mode: Skip all live APIs, use mock data directly
+    if (!_useLiveData) {
       debugPrint('🗺️ MapController: MAP_LIVE_DATA=false, using mock hotspots');
       final mockResult = await _mockHotspotService.getHotspots(
         bounds: _currentBounds!,
@@ -523,11 +552,11 @@ class MapController extends ChangeNotifier {
       'SW(${_currentBounds!.southwest.latitude.toStringAsFixed(2)},${_currentBounds!.southwest.longitude.toStringAsFixed(2)}) '
       'NE(${_currentBounds!.northeast.latitude.toStringAsFixed(2)},${_currentBounds!.northeast.longitude.toStringAsFixed(2)}) '
       'filter: ${_burntAreaSeasonFilter.name} '
-      'useLiveData: ${FeatureFlags.mapLiveData}',
+      'useLiveData: $_useLiveData',
     );
 
     // Try live service first if available AND live data is enabled
-    if (FeatureFlags.mapLiveData && _burntAreaService != null) {
+    if (_useLiveData && _burntAreaService != null) {
       // Determine maxFeatures limit based on zoom and filter
       // Service now uses smart sorting: thisSeason=DESC, lastSeason=ASC
       // - thisSeason: Results sorted by date DESC, newest first, 2025 at top
@@ -583,9 +612,8 @@ class MapController extends ChangeNotifier {
         return;
       }
     } else {
-      if (!FeatureFlags.mapLiveData) {
-        debugPrint(
-            '🗺️ MapController: MAP_LIVE_DATA=false, using mock burnt areas');
+      if (!_useLiveData) {
+        debugPrint('🗺️ MapController: Demo mode, using mock burnt areas');
       } else {
         debugPrint(
             '🗺️ MapController: Burnt area service not available, using mock');
@@ -601,8 +629,8 @@ class MapController extends ChangeNotifier {
       return;
     }
 
-    // Fallback behavior depends on MAP_LIVE_DATA flag
-    if (FeatureFlags.mapLiveData) {
+    // Fallback behavior depends on live data mode
+    if (_useLiveData) {
       // Option C: When live data expected but API failed, show offline state
       // Don't fall back to mock - that would be misleading for safety-critical app
       debugPrint(

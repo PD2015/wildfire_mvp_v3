@@ -109,6 +109,33 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  /// Toggle between live and demo data modes
+  /// Called when user taps the MapSourceChip
+  void _toggleDataMode() {
+    final newMode = !_controller.useLiveData;
+    _controller.setUseLiveData(newMode);
+
+    // Show feedback snackbar
+    final message =
+        newMode ? 'Switched to Live Data mode' : 'Switched to Demo Data mode';
+    final icon = newMode ? Icons.cloud_done : Icons.science_outlined;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(width: 12),
+            Text(message),
+          ],
+        ),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
   /// Center map on user's GPS location, fallback to Aviemore
   Future<void> _centerOnUserLocation() async {
     // If manual location is set, center on that; otherwise use GPS or fallback
@@ -961,9 +988,18 @@ class _MapScreenState extends State<MapScreen> {
           ),
         ),
         // Source chip positioned at top-left
-        // Show when there is fire data OR when offline (to indicate offline status)
-        // When no fire data and not offline, the empty state card shows the data source
-        if (_controller.hasFireData || _controller.isOffline)
+        // Visibility logic (Option A from UX discussion):
+        // 1. hasFireData: Show chip when there's fire data to display
+        // 2. isOffline: Show chip to indicate offline/cached status
+        // 3. useLiveData: ALWAYS show when live mode is enabled, even if no
+        //    live data is available. This ensures users can toggle back to
+        //    demo mode. Without this, users who switch to live mode in an
+        //    area with no active fires would have no way to switch back.
+        // When none of these are true, the empty state card shows the data source.
+        // Tappable to toggle between live and demo data modes (disabled when offline)
+        if (_controller.hasFireData ||
+            _controller.isOffline ||
+            _controller.useLiveData)
           Positioned(
             top: 16,
             left: 16,
@@ -971,6 +1007,7 @@ class _MapScreenState extends State<MapScreen> {
               source: _controller.dataFreshness,
               lastUpdated: _controller.lastUpdated,
               isOffline: _controller.isOffline,
+              onTap: _controller.isOffline ? null : _toggleDataMode,
             ),
           ),
         // Timestamp chip positioned at bottom-left - only show when there is fire data
