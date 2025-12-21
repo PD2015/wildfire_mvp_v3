@@ -1003,28 +1003,19 @@ class _MapScreenState extends State<MapScreen> {
           ),
         ),
         // Source chip positioned at top-left
-        // Visibility logic (Option A from UX discussion):
-        // 1. hasFireData: Show chip when there's fire data to display
-        // 2. isOffline: Show chip to indicate offline/cached status
-        // 3. useLiveData: ALWAYS show when live mode is enabled, even if no
-        //    live data is available. This ensures users can toggle back to
-        //    demo mode. Without this, users who switch to live mode in an
-        //    area with no active fires would have no way to switch back.
-        // When none of these are true, the empty state card shows the data source.
-        // Tappable to toggle between live and demo data modes (disabled when offline)
-        if (_controller.hasFireData ||
-            _controller.isOffline ||
-            _controller.useLiveData)
-          Positioned(
-            top: 16,
-            left: 16,
-            child: MapSourceChip(
-              source: _controller.dataFreshness,
-              lastUpdated: _controller.lastUpdated,
-              isOffline: _controller.isOffline,
-              onTap: _controller.isOffline ? null : _toggleDataMode,
-            ),
+        // Always visible so users can toggle between live/demo modes
+        // The chip is tappable (to switch modes) unless offline
+        // Even with no fire data, users need access to mode switching
+        Positioned(
+          top: 16,
+          left: 16,
+          child: MapSourceChip(
+            source: _controller.dataFreshness,
+            lastUpdated: _controller.lastUpdated,
+            isOffline: _controller.isOffline,
+            onTap: _controller.isOffline ? null : _toggleDataMode,
           ),
+        ),
         // Timestamp chip positioned at bottom-left - only show when there is fire data
         if (_controller.hasFireData)
           Positioned(

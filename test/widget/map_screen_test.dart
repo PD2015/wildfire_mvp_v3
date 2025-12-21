@@ -749,7 +749,8 @@ void main() {
   // Chip Visibility Tests (ac6e714 - Hide chips when no fires visible)
   // ==========================================================================
   group('Chip Visibility', () {
-    testWidgets('Source and timestamp chips hidden when no incidents',
+    testWidgets(
+        'Source chip always visible, timestamp hidden when no incidents',
         (tester) async {
       // Skip on unsupported platforms (macOS desktop)
       if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
@@ -770,11 +771,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Source chip should NOT be visible when no incidents
-      expect(find.byType(MapSourceChip), findsNothing);
+      // Source chip SHOULD be visible even when no incidents
+      // (so users can switch between live/demo modes)
+      expect(find.byType(MapSourceChip), findsOneWidget);
 
       // Timestamp chip should NOT be visible when no incidents
-      // The chips are conditionally rendered with if (state.incidents.isNotEmpty)
       expect(
         find.textContaining('Updated:'),
         findsNothing,
