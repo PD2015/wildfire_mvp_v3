@@ -739,10 +739,25 @@ class _MapScreenState extends State<MapScreen> {
       return _buildUnsupportedPlatformView();
     }
 
+    // Show loading indicator in AppBar when fetching data
+    final isLoading = _controller.isFetchingBurntAreas &&
+        _controller.fireDataMode == FireDataMode.burntAreas;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Live Wildfire Fire Map'),
         centerTitle: true,
+        // Material 3 pattern: LinearProgressIndicator in AppBar bottom for loading state
+        bottom: isLoading
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(4),
+                child: LinearProgressIndicator(
+                  backgroundColor:
+                      Theme.of(context).colorScheme.surfaceContainerHighest,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              )
+            : null,
       ),
       body: Stack(
         children: [
@@ -1019,14 +1034,17 @@ class _MapScreenState extends State<MapScreen> {
               lastUpdated: _controller.lastUpdated,
             ),
           ),
-        // Loading indicator banner - shows when fetching burnt area data
+        // Loading status banner - positioned at bottom to avoid control overlap
+        // Shows when fetching burnt area data (supplements AppBar progress indicator)
         if (_controller.isFetchingBurntAreas &&
             _controller.fireDataMode == FireDataMode.burntAreas)
           Positioned(
-            top: 60,
-            left: 16,
-            right: 16,
-            child: _buildLoadingBanner(context),
+            bottom: 80,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: _buildLoadingBanner(context),
+            ),
           ),
         // Map controls positioned at top-right (fire data mode, filters, map type, GPS)
         Positioned(
