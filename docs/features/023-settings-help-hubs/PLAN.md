@@ -94,10 +94,13 @@ AppBar Icons → Settings (/settings) | Help & Info (/help)
 - [x] **T1.6** Create `HelpInfoScreen` hub (scaffold with sections)
 - [x] **T1.7** Add `/settings` and `/help` routes to `app.dart`
 
-### Phase 2: Settings Hub Implementation
-- [ ] **T2.1** Create `SettingsPrefs` service for persistence
-- [ ] **T2.2** Create `NotificationsSettingsScreen` with disabled toggles + "Coming soon"
-- [ ] **T2.3** Create `AboutSettingsScreen` (legal docs section)
+### Phase 2: Settings Hub Implementation ✅
+- [x] **T2.1** Create `SettingsPrefs` service for persistence
+- [x] **T2.2** Create `NotificationsSettingsScreen` with disabled toggles + "Coming soon"
+- [x] **T2.3** Create `AboutSettingsScreen` (legal docs section)
+- [x] **T2.4** Add nested legal routes under `/settings/about/*`
+- [x] **T2.5** Create `AdvancedSettingsScreen` with dev options
+- [x] **T2.6** Implement dev options gating (kDebugMode + tap-to-unlock in prod)
 - [ ] **T2.4** Add nested legal routes under `/settings/about/*`
 - [ ] **T2.5** Create `AdvancedSettingsScreen` with dev options
 - [ ] **T2.6** Implement dev options gating (kDebugMode + tap-to-unlock in prod)
@@ -356,6 +359,7 @@ No new dependencies required.
 | 21 Dec 2025 | Branch created | ✅ | `feature/agent-d/settings-help-hubs` |
 | 21 Dec 2025 | Planning document | ✅ | This file |
 | 21 Dec 2025 | Phase 1 complete | ✅ | T1.1-T1.7 — Routes, hubs, AppBarActions |
+| 21 Dec 2025 | Phase 2 complete | ✅ | T2.1-T2.6 — Settings screens and services |
 | | | | |
 
 ---

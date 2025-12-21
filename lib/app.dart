@@ -23,6 +23,9 @@ import 'features/settings/screens/notifications_settings_screen.dart';
 import 'features/settings/screens/about_settings_screen.dart';
 import 'features/settings/screens/advanced_settings_screen.dart';
 import 'features/help/screens/help_info_screen.dart';
+import 'features/help/screens/help_document_screen.dart';
+import 'features/help/screens/about_help_screen.dart';
+import 'features/help/content/help_content.dart';
 import 'services/location_resolver.dart';
 import 'services/location_state_manager.dart';
 import 'services/fire_location_service.dart';
@@ -252,6 +255,102 @@ class WildFireApp extends StatelessWidget {
         path: '/help',
         name: 'help',
         builder: (context, state) => const HelpInfoScreen(),
+        routes: [
+          // Getting Started section
+          GoRoute(
+            path: 'getting-started/how-to-use',
+            name: 'help-how-to-use',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.howToUse,
+            ),
+          ),
+          GoRoute(
+            path: 'getting-started/risk-levels',
+            name: 'help-risk-levels',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.riskLevels,
+            ),
+          ),
+          GoRoute(
+            path: 'getting-started/when-to-use',
+            name: 'help-when-to-use',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.whenToUse,
+            ),
+          ),
+          // Wildfire Education section
+          GoRoute(
+            path: 'wildfire-education/understanding-risk',
+            name: 'help-understanding-risk',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.understandingRisk,
+            ),
+          ),
+          GoRoute(
+            path: 'wildfire-education/weather-fuel-fire',
+            name: 'help-weather-fuel-fire',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.weatherFuelFire,
+            ),
+          ),
+          GoRoute(
+            path: 'wildfire-education/seasonal-guidance',
+            name: 'help-seasonal-guidance',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.seasonalGuidance,
+            ),
+          ),
+          // Using the Map section
+          GoRoute(
+            path: 'using-the-map/hotspots',
+            name: 'help-hotspots',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.hotspots,
+            ),
+          ),
+          GoRoute(
+            path: 'using-the-map/data-sources',
+            name: 'help-data-sources',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.dataSourcesHelp,
+            ),
+          ),
+          GoRoute(
+            path: 'using-the-map/update-frequency',
+            name: 'help-update-frequency',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.updateFrequency,
+            ),
+          ),
+          // Safety & Responsibility section
+          GoRoute(
+            path: 'safety/see-fire',
+            name: 'help-see-fire',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.seeFireAction,
+            ),
+          ),
+          GoRoute(
+            path: 'safety/limitations',
+            name: 'help-limitations',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.limitations,
+            ),
+          ),
+          GoRoute(
+            path: 'safety/emergency-guidance',
+            name: 'help-emergency-guidance',
+            builder: (context, state) => const HelpDocumentScreen(
+              document: HelpContent.emergencyGuidance,
+            ),
+          ),
+          // About section
+          GoRoute(
+            path: 'about',
+            name: 'help-about',
+            builder: (context, state) => const AboutHelpScreen(),
+          ),
+        ],
       ),
 
       // Main app shell with bottom navigation
