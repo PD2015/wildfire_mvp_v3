@@ -10,8 +10,8 @@
 
 | Phase | Status | Tasks Complete |
 |-------|--------|----------------|
-| Phase 1: Foundation | 🔲 Not Started | 0/3 |
-| Phase 2: Risk Screen | 🔲 Not Started | 0/3 |
+| Phase 1: Foundation | ✅ Complete | 3/3 |
+| Phase 2: Risk Screen | ✅ Complete | 3/3 |
 | Phase 3: Report Screen | 🔲 Not Started | 0/4 |
 | Phase 4: Cleanup | 🔲 Not Started | 0/3 |
 
@@ -20,63 +20,66 @@
 ## Phase 1: Shared Components (Foundation)
 
 ### Task 1.1: LocationChip Widget
-- [ ] Create `lib/widgets/location_chip.dart`
-- [ ] Implement place name / coordinates display
-- [ ] Implement source badge (GPS/MANUAL/CACHED)
-- [ ] Implement expand/collapse chevron with rotation
-- [ ] Implement loading state
-- [ ] Add semantic labels
-- [ ] Ensure ≥48dp touch target
-- [ ] Create `test/widget/location_chip_test.dart`
+- [x] Create `lib/widgets/location_chip.dart`
+- [x] Implement place name / coordinates display
+- [x] Implement source badge (GPS/MANUAL/CACHED)
+- [x] Implement expand/collapse chevron with rotation
+- [x] Implement loading state
+- [x] Add semantic labels
+- [x] Ensure ≥48dp touch target
+- [x] Create `test/widget/location_chip_test.dart` (21 tests)
 
 ### Task 1.2: ExpandableLocationPanel Widget
-- [ ] Create `lib/widgets/expandable_location_panel.dart`
-- [ ] Implement coordinates row (Lat/Lng)
-- [ ] Implement what3words row with tester badge
-- [ ] Integrate `LocationMiniMapPreview` for map
-- [ ] Implement Update location button
-- [ ] Implement Copy location button
-- [ ] Implement Use GPS button (conditional)
-- [ ] Wire up clipboard copy with feedback
-- [ ] Add semantic labels
-- [ ] Ensure ≥48dp touch targets
-- [ ] Create `test/widget/expandable_location_panel_test.dart`
+- [x] Create `lib/widgets/expandable_location_panel.dart`
+- [x] Implement coordinates row (Lat/Lng)
+- [x] Implement what3words row with tester badge
+- [x] Integrate `LocationMiniMapPreview` for map
+- [x] Implement Update location button
+- [x] Implement Copy location button
+- [x] Implement Use GPS button (conditional)
+- [x] Wire up clipboard copy with feedback
+- [x] Add semantic labels
+- [x] Ensure ≥48dp touch targets
+- [x] Create `test/widget/expandable_location_panel_test.dart` (24 tests)
 
 ### Task 1.3: LocationChipWithPanel Composite
-- [ ] Create `lib/widgets/location_chip_with_panel.dart`
-- [ ] Implement expand/collapse state management
-- [ ] Implement smooth height animation (≤300ms)
-- [ ] Default to collapsed state
-- [ ] Create `test/widget/location_chip_with_panel_test.dart`
+- [x] Create `lib/widgets/location_chip_with_panel.dart`
+- [x] Implement expand/collapse state management
+- [x] Implement smooth height animation (≤300ms)
+- [x] Default to collapsed state
+- [x] Create `test/widget/location_chip_with_panel_test.dart` (24 tests)
 
 ---
 
 ## Phase 2: Risk Screen Integration
 
 ### Task 2.1: Add Location Chip to RiskBanner
-- [ ] Add `locationChip` prop to `RiskBanner`
-- [ ] Position chip below `RiskScale` in success state
-- [ ] Verify chip fits within banner color scheme
-- [ ] Update existing `RiskBanner` tests
+- [x] Add `locationChip` prop to `RiskBanner`
+- [x] Position chip below `RiskScale` in success state
+- [x] Position chip below `RiskScale` in error-with-cache state
+- [x] Verify chip fits within banner color scheme
+- [x] Update existing `RiskBanner` tests (28 tests pass)
 
 ### Task 2.2: Update HomeScreen Layout
-- [ ] Remove standalone `_buildLocationCard()` from layout Column
-- [ ] Create `LocationChipWithPanel` in `_buildRiskBanner()`
-- [ ] Pass chip to `RiskBanner` as `locationChip` prop
-- [ ] Wire `onUpdateLocation` to `_showManualLocationDialog()`
-- [ ] Wire `onCopyLocation` to clipboard handler
-- [ ] Wire `onUseGps` to `_controller.useGpsLocation()`
-- [ ] Handle loading, success, and error states
-- [ ] Test manually on web/mobile
+- [x] Remove standalone `_buildLocationCard()` from layout Column
+- [x] Create `_buildLocationChip()` method returning `LocationChipWithPanel`
+- [x] Pass chip to `RiskBanner` as `locationChip` prop
+- [x] Wire `onChangeLocation` to `_showManualLocationDialog()`
+- [x] Wire `onCopyWhat3words` to clipboard handler
+- [x] Wire `onUseGps` to `_controller.useGpsLocation()`
+- [x] Handle loading, success, and error states
+- [x] Import `risk_level.dart` for color extension
+- [ ] Test manually on web/mobile (pending)
 
 ### Task 2.3: Risk Screen Widget Tests
-- [ ] Create `test/widget/risk_banner_location_chip_test.dart`
-- [ ] Test chip renders inside banner
-- [ ] Test correct place name / coordinates displayed
-- [ ] Test tap expands panel
-- [ ] Test panel shows all details
-- [ ] Test action button callbacks
-- [ ] Test accessibility semantics
+- [x] Create `test/widget/risk_banner_location_chip_integration_test.dart` (20 tests)
+- [x] Test chip renders inside banner
+- [x] Test correct location name displayed
+- [x] Test tap expands panel
+- [x] Test action button callbacks
+- [x] Test accessibility semantics
+- [x] Test visual hierarchy (chip below RiskScale)
+- [x] Test all risk level color adaptations
 
 ---
 

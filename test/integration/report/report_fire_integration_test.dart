@@ -36,12 +36,6 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 500));
     });
 
-    // TODO: Re-enable after test environment platform plugin fix
-    // Issue: 94px RenderFlex overflow + MissingPluginException for url_launcher
-    // Root cause: Test environment (macOS, CI) lacks platform plugin implementations
-    // Tests work correctly on Android/iOS physical devices and emulators
-    // Production functionality confirmed working correctly
-    // See commit 57ff59b for investigation details
     testWidgets(
         'complete user flow - navigate to report screen and test emergency buttons',
         (tester) async {
@@ -68,17 +62,17 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       // Find buttons by their text content instead of widget type
-      expect(find.text('999 – Fire Service'), findsOneWidget);
-      expect(find.text('101 – Police'), findsOneWidget);
+      expect(find.text('Call 999 — Fire Service'), findsOneWidget);
+      expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
 
       // Scroll to see third button
       await tester.drag(find.byType(ListView), const Offset(0, -300));
       await tester.pumpAndSettle();
 
-      expect(find.text('Crimestoppers'), findsOneWidget);
+      expect(find.text('Call 0800 555 111 — Crimestoppers'), findsOneWidget);
 
       // Test 999 Fire Service button (tap text directly - ElevatedButton.icon has different widget type)
-      final fireServiceButton = find.text('999 – Fire Service');
+      final fireServiceButton = find.text('Call 999 — Fire Service');
       expect(fireServiceButton, findsOneWidget);
       await tester.tap(fireServiceButton);
       await tester.pumpAndSettle();
@@ -93,7 +87,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Test 101 Police Scotland button
-      final policeButton = find.text('101 – Police');
+      final policeButton = find.text('Call 101 — Police Scotland');
       expect(policeButton, findsOneWidget);
       await tester.tap(policeButton);
       await tester.pumpAndSettle();
@@ -108,7 +102,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Test 0800 555 111 Crimestoppers button
-      final crimestoppersButton = find.text('Crimestoppers');
+      final crimestoppersButton =
+          find.text('Call 0800 555 111 — Crimestoppers');
       expect(crimestoppersButton, findsOneWidget);
       await tester.tap(crimestoppersButton);
       await tester.pumpAndSettle();
@@ -129,14 +124,8 @@ void main() {
 
       // Should be back to home screen
       expect(find.text('Report a Fire'), findsNothing);
-    }, skip: true);
+    });
 
-    // TODO: Re-enable after test environment platform plugin fix
-    // Issue: 94px RenderFlex overflow + MissingPluginException for url_launcher
-    // Root cause: Test environment (macOS, CI) lacks platform plugin implementations
-    // Tests work correctly on Android/iOS physical devices and emulators
-    // Production functionality confirmed working correctly
-    // See commit 57ff59b for investigation details
     testWidgets('screen orientation change preserves functionality',
         (tester) async {
       // Launch the app and navigate to report screen
@@ -154,8 +143,8 @@ void main() {
       // Verify initial portrait layout
       expect(find.text('Report a Fire'), findsOneWidget);
       // Verify all 3 emergency buttons are present by text
-      expect(find.text('999 – Fire Service'), findsOneWidget);
-      expect(find.text('101 – Police'), findsOneWidget);
+      expect(find.text('Call 999 — Fire Service'), findsOneWidget);
+      expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
 
       // Simulate landscape orientation
       await tester.binding.setSurfaceSize(const Size(800, 600));
@@ -164,10 +153,10 @@ void main() {
       // Verify functionality still works in landscape
       expect(find.text('Report a Fire'), findsOneWidget);
       // Verify all 3 emergency buttons are present by text
-      expect(find.text('999 – Fire Service'), findsOneWidget);
-      expect(find.text('101 – Police'), findsOneWidget);
+      expect(find.text('Call 999 — Fire Service'), findsOneWidget);
+      expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
 
-      final fireServiceButton = find.text('999 – Fire Service');
+      final fireServiceButton = find.text('Call 999 — Fire Service');
       await tester.tap(fireServiceButton);
       await tester.pumpAndSettle();
 
@@ -176,14 +165,8 @@ void main() {
       // Reset to portrait
       await tester.binding.setSurfaceSize(const Size(400, 800));
       await tester.pumpAndSettle();
-    }, skip: true);
+    });
 
-    // TODO: Re-enable after test environment font rendering fix
-    // Issue: 94px RenderFlex overflow during MissingPluginException handling
-    // Root cause: Test environment font metrics differ from production
-    // Overflow occurs during widget disposal when SnackBar is shown
-    // Production functionality confirmed working correctly
-    // See commit 57ff59b for investigation details
     testWidgets('rapid button taps do not cause crashes', (tester) async {
       // Launch the app and navigate to report screen
       app.main();
@@ -197,7 +180,7 @@ void main() {
       await tester.tap(reportButton);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      final fireServiceButton = find.text('999 – Fire Service');
+      final fireServiceButton = find.text('Call 999 — Fire Service');
 
       // Rapid tap test
       for (int i = 0; i < 10; i++) {
@@ -208,16 +191,10 @@ void main() {
       // Should handle gracefully without crashes
       expect(find.text('Report a Fire'), findsOneWidget);
       // Verify all 3 emergency buttons are present by text
-      expect(find.text('999 – Fire Service'), findsOneWidget);
-      expect(find.text('101 – Police'), findsOneWidget);
-    }, skip: true);
+      expect(find.text('Call 999 — Fire Service'), findsOneWidget);
+      expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
+    });
 
-    // TODO: Re-enable after test environment font rendering fix
-    // Issue: 94px RenderFlex overflow during MissingPluginException handling
-    // Root cause: Test environment font metrics differ from production
-    // Overflow occurs during widget disposal when SnackBar is shown
-    // Production functionality confirmed working correctly
-    // See commit 57ff59b for investigation details
     testWidgets('deep link navigation to /report works', (tester) async {
       // This test would verify deep-link functionality
       // Note: Actual deep-link testing requires platform-specific setup
@@ -239,16 +216,10 @@ void main() {
       expect(find.text('Report a Fire'), findsOneWidget);
       expect(find.byType(AppBar), findsOneWidget);
       // Verify all 3 emergency buttons are present by text
-      expect(find.text('999 – Fire Service'), findsOneWidget);
-      expect(find.text('101 – Police'), findsOneWidget);
-    }, skip: true);
+      expect(find.text('Call 999 — Fire Service'), findsOneWidget);
+      expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
+    });
 
-    // TODO: Re-enable after test environment font rendering fix
-    // Issue: 94px RenderFlex overflow during MissingPluginException handling
-    // Root cause: Test environment font metrics differ from production
-    // Overflow occurs during widget disposal when SnackBar is shown
-    // Production functionality confirmed working correctly
-    // See commit 57ff59b for investigation details
     testWidgets('screen works offline without network dependencies',
         (tester) async {
       // This test verifies offline capability
@@ -267,13 +238,13 @@ void main() {
       expect(find.text('Report a Fire'), findsOneWidget);
       expect(find.text('Act fast — stay safe.'), findsOneWidget);
       // Verify all 3 emergency buttons are present by text
-      expect(find.text('999 – Fire Service'), findsOneWidget);
-      expect(find.text('101 – Police'), findsOneWidget);
+      expect(find.text('Call 999 — Fire Service'), findsOneWidget);
+      expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
 
       // Verify all buttons are functional
       final buttons = [
-        find.text('999 – Fire Service'),
-        find.text('101 – Police'),
+        find.text('Call 999 — Fire Service'),
+        find.text('Call 101 — Police Scotland'),
       ];
 
       // Test first two buttons (visible without scroll)
@@ -282,16 +253,14 @@ void main() {
         await tester.tap(button);
         await tester.pumpAndSettle();
 
-        // In test environment, url_launcher may or may not trigger SnackBar
-        // Check if SnackBar appeared and dismiss it if present
-        final snackBarFinder = find.byType(SnackBar);
-        if (tester.any(snackBarFinder)) {
-          // SnackBar appeared - dismiss it before next test
-          final okButton = find.text('OK');
-          if (okButton.evaluate().isNotEmpty) {
-            await tester.tap(okButton);
-            await tester.pumpAndSettle();
-          }
+        // Should work offline with SnackBar fallback
+        expect(find.byType(SnackBar), findsOneWidget);
+
+        // Dismiss SnackBar before next test
+        final okButton = find.text('OK');
+        if (okButton.evaluate().isNotEmpty) {
+          await tester.tap(okButton);
+          await tester.pumpAndSettle();
         }
       }
 
@@ -299,25 +268,16 @@ void main() {
       await tester.drag(find.byType(ListView), const Offset(0, -300));
       await tester.pumpAndSettle();
 
-      final crimestoppersButton = find.text('Crimestoppers');
+      final crimestoppersButton =
+          find.text('Call 0800 555 111 — Crimestoppers');
       expect(crimestoppersButton, findsOneWidget);
       await tester.tap(crimestoppersButton);
       await tester.pumpAndSettle();
 
-      // Check if SnackBar appeared (may vary by platform/test environment)
-      final snackBarFinder = find.byType(SnackBar);
-      if (tester.any(snackBarFinder)) {
-        // SnackBar present - buttons work offline with fallback
-        expect(snackBarFinder, findsOneWidget);
-      }
-    }, skip: true);
+      // Should work offline with SnackBar fallback
+      expect(find.byType(SnackBar), findsOneWidget);
+    });
 
-    // TODO: Re-enable after test environment font rendering fix
-    // Issue: 94px RenderFlex overflow during MissingPluginException handling
-    // Root cause: Test environment font metrics differ from production
-    // Overflow occurs during widget disposal when SnackBar is shown
-    // Production functionality confirmed working correctly
-    // See commit 57ff59b for investigation details
     testWidgets(
         'performance validation - screen load and button response times',
         (tester) async {
@@ -352,7 +312,7 @@ void main() {
       expect(find.text('Report a Fire'), findsOneWidget);
 
       // Test button response time
-      final fireServiceButton = find.text('999 – Fire Service');
+      final fireServiceButton = find.text('Call 999 — Fire Service');
       final buttonTapStart = stopwatch.elapsedMilliseconds;
 
       await tester.tap(fireServiceButton);
@@ -367,6 +327,6 @@ void main() {
               'Button response should be within 100ms, took ${buttonResponseTime}ms');
 
       stopwatch.stop();
-    }, skip: true);
+    });
   });
 }

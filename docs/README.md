@@ -13,7 +13,6 @@ We follow the [Divio Documentation System](https://documentation.divio.com/) wit
 
 #### Setup
 - [Google Maps Configuration](guides/setup/google-maps.md) - Complete setup for Web, iOS, Android
-- [Material 3 Implementation Plan](guides/setup/M3_IMPLEMENTATION_PLAN.md) - Comprehensive plan for M3 compliance
 - [Firebase Configuration](FIREBASE_DEPLOYMENT.md) *(to be moved)*
 - [API Keys Management](API_KEY_SETUP.md) *(to be moved)*
 
@@ -51,9 +50,6 @@ We follow the [Divio Documentation System](https://documentation.divio.com/) wit
 - [EFFIS Service](reference/api/effis-service.md) *(pending creation)*
 - [SEPA Service](reference/api/sepa-service.md) *(pending creation)*
 - [Cache Service](reference/api/cache-service.md) *(pending creation)*
-
-#### Features
-- [Map Data Display Review](MAP_DATA_DISPLAY_REVIEW.md) - Comprehensive review of fire marker tooltips and detail sheets
 
 #### Compliance
 - [Accessibility Statement](accessibility-statement.md) *(to be moved)*
@@ -188,6 +184,6 @@ See [Documentation Strategy](DOCUMENTATION_STRATEGY.md) for complete maintenance
 
 ---
 
-**Last Updated**: 2025-10-30
-**Maintained By**: Project Team
+**Last Updated**: 2025-10-30  
+**Maintained By**: Project Team  
 **Strategy**: [DOCUMENTATION_STRATEGY.md](DOCUMENTATION_STRATEGY.md)
