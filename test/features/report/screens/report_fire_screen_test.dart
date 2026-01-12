@@ -25,14 +25,10 @@ void main() {
       // Assert
       expect(find.text('Report a Fire'), findsOneWidget);
 
-      // Check for first two button texts (visible on screen)
+      // Check for emergency buttons in the new EmergencyHeroCard layout
       expect(find.text('999 – Fire Service'), findsOneWidget);
-      expect(find.text('101 – Police'), findsOneWidget);
-
-      // Scroll down to see third button
-      await tester.drag(find.byType(ListView), const Offset(0, -200));
-      await tester.pumpAndSettle();
-
+      // Secondary buttons use shorter labels: "101 Police" and "Crimestoppers"
+      expect(find.text('101 Police'), findsOneWidget);
       expect(find.text('Crimestoppers'), findsOneWidget);
     });
 
@@ -53,18 +49,17 @@ void main() {
         MaterialApp(home: ReportFireScreen(controller: controller)),
       );
 
-      // Assert - Check for new simpler A12b layout
+      // Assert - Check for new EmergencyHeroCard layout
       expect(find.text('See smoke, flames, or a campfire?'), findsOneWidget);
-      expect(find.text('Act fast — stay safe.'), findsOneWidget);
       expect(
-        find.text('1) If the fire is spreading or unsafe:'),
+        find.textContaining('If it\'s spreading or unsafe, call 999'),
         findsOneWidget,
       );
+      // Check for disclaimer text
       expect(
-        find.text('2) If someone is lighting a fire irresponsibly:'),
+        find.textContaining('This app does not contact emergency services'),
         findsOneWidget,
       );
-      expect(find.text('3) Want to report anonymously?'), findsOneWidget);
     });
 
     testWidgets('should display footer section with safety information', (

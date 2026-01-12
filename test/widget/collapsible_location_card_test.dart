@@ -1,0 +1,477 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:wildfire_mvp_v3/features/report/widgets/collapsible_location_card.dart';
+import 'package:wildfire_mvp_v3/models/location_display_state.dart';
+import 'package:wildfire_mvp_v3/models/location_models.dart';
+
+/// Widget tests for CollapsibleLocationCard
+///
+/// Tests cover:
+/// - Header display
+/// - Location states (initial, loading, success, error)
+/// - Expand/collapse functionality
+/// - Action buttons (Copy, Update, Use GPS)
+/// - Accessibility (C3 compliance)
+void main() {
+  group('CollapsibleLocationCard', () {
+    const testCoordinates = LatLng(55.9533, -3.1883);
+    final successState = LocationDisplaySuccess(
+      coordinates: testCoordinates,
+      source: LocationSource.gps,
+      placeName: 'Edinburgh',
+      what3words: '///word.word.word',
+      lastUpdated: DateTime(2025, 1, 1),
+    );
+
+    Widget buildTestWidget({
+      LocationDisplayState locationState = const LocationDisplayInitial(),
+      VoidCallback? onCopyForCall,
+      VoidCallback? onUpdateLocation,
+      VoidCallback? onUseGps,
+      bool initiallyExpanded = false,
+    }) {
+      return MaterialApp(
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        ),
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: CollapsibleLocationCard(
+                locationState: locationState,
+                onCopyForCall: onCopyForCall,
+                onUpdateLocation: onUpdateLocation,
+                onUseGps: onUseGps,
+                initiallyExpanded: initiallyExpanded,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    group('Header display', () {
+      testWidgets('shows location icon', (tester) async {
+        await tester.pumpWidget(buildTestWidget());
+
+        expect(find.byIcon(Icons.location_on_outlined), findsOneWidget);
+      });
+
+      testWidgets('shows correct header text', (tester) async {
+        await tester.pumpWidget(buildTestWidget());
+
+        expect(find.text('Your location for the call'), findsOneWidget);
+      });
+
+      testWidgets('has header semantic', (tester) async {
+        await tester.pumpWidget(buildTestWidget());
+
+        // Find text with header semantic
+        final header = find.text('Your location for the call');
+        expect(header, findsOneWidget);
+
+        final semanticsWidget = find.ancestor(
+          of: header,
+          matching: find.byType(Semantics),
+        );
+        expect(semanticsWidget, findsWidgets);
+      });
+    });
+
+    group('Initial state', () {
+      testWidgets('shows "No location set" message', (tester) async {
+        await tester.pumpWidget(buildTestWidget());
+
+        expect(find.text('No location set'), findsOneWidget);
+      });
+
+      testWidgets('shows "Set location" button', (tester) async {
+        await tester.pumpWidget(buildTestWidget());
+
+        expect(find.text('Set location'), findsOneWidget);
+      });
+
+      testWidgets('does not show expand button', (tester) async {
+        await tester.pumpWidget(buildTestWidget());
+
+        expect(find.byIcon(Icons.keyboard_arrow_down), findsNothing);
+      });
+    });
+
+    group('Loading state', () {
+      testWidgets('shows loading indicator', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: const LocationDisplayLoading(),
+        ));
+
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      });
+
+      testWidgets('shows loading message', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: const LocationDisplayLoading(),
+        ));
+
+        expect(find.text('Finding your location...'), findsOneWidget);
+      });
+
+      testWidgets('shows last known location when available', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: const LocationDisplayLoading(
+            lastKnownLocation: testCoordinates,
+          ),
+        ));
+
+        expect(find.textContaining('Last known:'), findsOneWidget);
+      });
+    });
+
+    group('Success state', () {
+      testWidgets('shows place name', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+        ));
+
+        expect(find.text('Edinburgh'), findsOneWidget);
+      });
+
+      testWidgets('shows GPS badge for GPS source', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+        ));
+
+        expect(find.text('GPS'), findsOneWidget);
+        expect(find.byIcon(Icons.gps_fixed), findsOneWidget);
+      });
+
+      testWidgets('shows Manual badge for manual source', (tester) async {
+        final manualState = LocationDisplaySuccess(
+          coordinates: testCoordinates,
+          source: LocationSource.manual,
+          placeName: 'Test Place',
+          lastUpdated: DateTime(2025, 1, 1),
+        );
+
+        await tester.pumpWidget(buildTestWidget(
+          locationState: manualState,
+        ));
+
+        expect(find.text('Manual'), findsOneWidget);
+      });
+
+      testWidgets('shows expand button', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+        ));
+
+        expect(find.byIcon(Icons.keyboard_arrow_down), findsOneWidget);
+      });
+    });
+
+    group('Error state', () {
+      testWidgets('shows error icon', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: const LocationDisplayError(message: 'GPS failed'),
+        ));
+
+        expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      });
+
+      testWidgets('shows error message', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: const LocationDisplayError(message: 'GPS failed'),
+        ));
+
+        expect(find.text('GPS failed'), findsOneWidget);
+      });
+    });
+
+    group('Action buttons', () {
+      testWidgets('shows "Copy for your call" button when location available',
+          (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+          onCopyForCall: () {},
+        ));
+
+        expect(find.text('Copy for your call'), findsOneWidget);
+      });
+
+      testWidgets('calls onCopyForCall when tapped', (tester) async {
+        bool called = false;
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+          onCopyForCall: () => called = true,
+        ));
+
+        await tester.tap(find.text('Copy for your call'));
+        await tester.pump();
+
+        expect(called, isTrue);
+      });
+
+      testWidgets(
+          'copies location to clipboard when no callback provided (internal copy)',
+          (tester) async {
+        // Setup clipboard mock
+        String? clipboardData;
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          (methodCall) async {
+            if (methodCall.method == 'Clipboard.setData') {
+              final args = methodCall.arguments as Map<dynamic, dynamic>;
+              clipboardData = args['text'] as String?;
+            }
+            return null;
+          },
+        );
+
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+          // No onCopyForCall provided - uses internal copy
+        ));
+
+        await tester.tap(find.text('Copy for your call'));
+        await tester.pumpAndSettle();
+
+        // Verify clipboard contains location data
+        expect(clipboardData, isNotNull);
+        expect(clipboardData, contains('Edinburgh'));
+        expect(clipboardData, contains('55.95330'));
+        expect(clipboardData, contains('-3.18830'));
+        expect(clipboardData, contains('word.word.word'));
+
+        // Verify snackbar appears
+        expect(find.text('Location copied to clipboard'), findsOneWidget);
+      });
+
+      testWidgets('shows "Update location" button when location available',
+          (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+          onUpdateLocation: () {},
+        ));
+
+        expect(find.text('Update location'), findsOneWidget);
+      });
+
+      testWidgets('calls onUpdateLocation when tapped', (tester) async {
+        bool called = false;
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+          onUpdateLocation: () => called = true,
+        ));
+
+        await tester.tap(find.text('Update location'));
+        await tester.pump();
+
+        expect(called, isTrue);
+      });
+
+      testWidgets('shows "Use GPS" button for manual location', (tester) async {
+        final manualState = LocationDisplaySuccess(
+          coordinates: testCoordinates,
+          source: LocationSource.manual,
+          lastUpdated: DateTime(2025, 1, 1),
+        );
+
+        await tester.pumpWidget(buildTestWidget(
+          locationState: manualState,
+          onUseGps: () {},
+        ));
+
+        expect(find.text('Use GPS'), findsOneWidget);
+      });
+
+      testWidgets('calls onUseGps when tapped', (tester) async {
+        bool called = false;
+        final manualState = LocationDisplaySuccess(
+          coordinates: testCoordinates,
+          source: LocationSource.manual,
+          lastUpdated: DateTime(2025, 1, 1),
+        );
+
+        await tester.pumpWidget(buildTestWidget(
+          locationState: manualState,
+          onUseGps: () => called = true,
+        ));
+
+        await tester.tap(find.text('Use GPS'));
+        await tester.pump();
+
+        expect(called, isTrue);
+      });
+
+      testWidgets('does not show "Use GPS" for GPS location', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+          onUseGps: () {},
+        ));
+
+        expect(find.text('Use GPS'), findsNothing);
+      });
+    });
+
+    group('Expand/collapse', () {
+      testWidgets('starts collapsed by default', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+        ));
+
+        // When collapsed, the SizeTransition has animation value 0
+        // The expand icon should not be rotated
+        final iconRotation = find.byWidgetPredicate(
+          (widget) => widget is AnimatedRotation && widget.turns == 0,
+        );
+        expect(iconRotation, findsOneWidget);
+      });
+
+      testWidgets('can start expanded when initiallyExpanded=true',
+          (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+          initiallyExpanded: true,
+        ));
+
+        await tester.pumpAndSettle();
+
+        // When expanded, icon is rotated 0.5 turns (180 degrees)
+        final iconRotation = find.byWidgetPredicate(
+          (widget) => widget is AnimatedRotation && widget.turns == 0.5,
+        );
+        expect(iconRotation, findsOneWidget);
+
+        // Coordinates label should be in the tree
+        expect(find.text('Coordinates'), findsOneWidget);
+      });
+
+      testWidgets('expands when expand button tapped', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+        ));
+
+        // Initially collapsed - icon not rotated
+        expect(
+          find.byWidgetPredicate(
+            (widget) => widget is AnimatedRotation && widget.turns == 0,
+          ),
+          findsOneWidget,
+        );
+
+        // Tap expand button
+        await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
+        await tester.pumpAndSettle();
+
+        // Now expanded - icon rotated
+        expect(
+          find.byWidgetPredicate(
+            (widget) => widget is AnimatedRotation && widget.turns == 0.5,
+          ),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('collapses when expand button tapped again', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+          initiallyExpanded: true,
+        ));
+
+        await tester.pumpAndSettle();
+
+        // Initially expanded - icon rotated
+        expect(
+          find.byWidgetPredicate(
+            (widget) => widget is AnimatedRotation && widget.turns == 0.5,
+          ),
+          findsOneWidget,
+        );
+
+        // Tap to collapse
+        await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
+        await tester.pumpAndSettle();
+
+        // Now collapsed - icon not rotated
+        expect(
+          find.byWidgetPredicate(
+            (widget) => widget is AnimatedRotation && widget.turns == 0,
+          ),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('shows what3words in expanded state', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+          initiallyExpanded: true,
+        ));
+
+        await tester.pumpAndSettle();
+
+        expect(find.text('what3words'), findsOneWidget);
+        expect(find.text('///word.word.word'), findsOneWidget);
+      });
+
+      testWidgets('shows coordinates with 5dp precision', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+          initiallyExpanded: true,
+        ));
+
+        await tester.pumpAndSettle();
+
+        // 55.9533, -3.1883 with 5dp precision
+        expect(find.text('55.95330, -3.18830'), findsOneWidget);
+      });
+    });
+
+    group('Accessibility (C3)', () {
+      testWidgets('has container semantic label', (tester) async {
+        await tester.pumpWidget(buildTestWidget());
+
+        final semantics =
+            tester.getSemantics(find.byType(CollapsibleLocationCard));
+        expect(semantics.label, contains('Location'));
+      });
+
+      testWidgets('action buttons have minimum touch target', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+          onCopyForCall: () {},
+          onUpdateLocation: () {},
+        ));
+
+        // Find "Copy for your call" text, then check its wrapping SizedBox has height 48
+        final copyText = find.text('Copy for your call');
+        expect(copyText, findsOneWidget);
+
+        // The button should be wrapped in a SizedBox with height 48
+        final sizedBoxAncestor = find.ancestor(
+          of: copyText,
+          matching: find.byWidgetPredicate(
+            (widget) => widget is SizedBox && widget.height == 48,
+          ),
+        );
+        expect(sizedBoxAncestor, findsOneWidget);
+      });
+
+      testWidgets('expand button has semantic label', (tester) async {
+        await tester.pumpWidget(buildTestWidget(
+          locationState: successState,
+        ));
+
+        // Find Semantics widget containing expand/collapse label
+        final semanticsWithLabel = find.byWidgetPredicate(
+          (widget) =>
+              widget is Semantics &&
+              widget.properties.label != null &&
+              (widget.properties.label!.contains('Expand') ||
+                  widget.properties.label!.contains('Collapse')),
+        );
+        expect(semanticsWithLabel, findsOneWidget);
+      });
+    });
+  });
+}
