@@ -8,17 +8,18 @@ import 'package:wildfire_mvp_v3/widgets/location_mini_map_preview.dart';
 
 /// Report-specific location card optimized for emergency UX
 ///
-/// Displays location information with an expandable panel for details.
+/// Displays location information with all details visible.
 /// Unlike the Risk screen location UI, this version:
-/// - Shows Copy + Update buttons always visible (not in expanded panel)
 /// - Uses emergency-focused copy: "Copy for your call"
-/// - Collapses by default
+/// - Shows all location data at once (no expand/collapse)
 ///
 /// Layout:
 /// - Header: "Your location for the call"
-/// - Summary: Place name · Source badge
-/// - **Always visible**: Copy for your call, Update location buttons
-/// - **Expandable**: Lat/lng, what3words, map preview
+/// - Summary: Place name · Source
+/// - Coordinates: Lat/Lng boxes side-by-side
+/// - what3words: Full-width box
+/// - Map preview (if API key available)
+/// - Action buttons: Copy for your call, Change location
 ///
 /// Constitutional compliance:
 /// - C3: All touch targets ≥48dp
@@ -37,16 +38,12 @@ class CollapsibleLocationCard extends StatefulWidget {
   /// Callback when user taps "Use GPS" (shown when using manual location)
   final VoidCallback? onUseGps;
 
-  /// Whether the expandable section is initially expanded
-  final bool initiallyExpanded;
-
   const CollapsibleLocationCard({
     super.key,
     required this.locationState,
     this.onCopyForCall,
     this.onUpdateLocation,
     this.onUseGps,
-    this.initiallyExpanded = false,
   });
 
   @override
@@ -54,47 +51,7 @@ class CollapsibleLocationCard extends StatefulWidget {
       _CollapsibleLocationCardState();
 }
 
-class _CollapsibleLocationCardState extends State<CollapsibleLocationCard>
-    with SingleTickerProviderStateMixin {
-  late bool _isExpanded;
-  late AnimationController _animationController;
-  late Animation<double> _expandAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _isExpanded = widget.initiallyExpanded;
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-    _expandAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
-
-    if (_isExpanded) {
-      _animationController.value = 1.0;
-    }
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  void _toggleExpanded() {
-    setState(() {
-      _isExpanded = !_isExpanded;
-      if (_isExpanded) {
-        _animationController.forward();
-      } else {
-        _animationController.reverse();
-      }
-    });
-  }
-
+class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
   /// Copies location to clipboard for emergency call
   ///
   /// Formats: Place name, coordinates (5dp), what3words
@@ -148,15 +105,8 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard>
       container: true,
       label: 'Location card for emergency calls',
       child: Card(
-        color: cs.surfaceContainerHigh,
-        elevation: 1,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: cs.outlineVariant,
-            width: 1,
-          ),
-        ),
+        // Uses theme cardTheme (surfaceContainerLow) for consistency with EmergencyHeroCard
+        elevation: 2,
         margin: EdgeInsets.zero,
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -202,32 +152,6 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard>
             ),
           ),
         ),
-
-        // Expand/collapse button (only when there's location data)
-        if (widget.locationState is LocationDisplaySuccess)
-          Semantics(
-            button: true,
-            label: _isExpanded ? 'Collapse details' : 'Expand details',
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: _toggleExpanded,
-                borderRadius: BorderRadius.circular(24),
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: AnimatedRotation(
-                    turns: _isExpanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      Icons.keyboard_arrow_down,
-                      color: cs.onSurfaceVariant,
-                      size: 24,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
       ],
     );
   }
@@ -339,63 +263,52 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard>
       children: [
         // Summary row: Place name · Source badge
         _buildSummaryRow(theme, cs, placeName, source, formattedLocation),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
 
-        // Action buttons (always visible)
+        // Coordinates: Two separate boxes side-by-side
+        Row(
+          children: [
+            // Latitude box
+            Expanded(
+              child: _buildCoordinateBox(
+                theme,
+                cs,
+                label: 'Latitude',
+                value: coordinates.latitude.toStringAsFixed(5),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Longitude box
+            Expanded(
+              child: _buildCoordinateBox(
+                theme,
+                cs,
+                label: 'Longitude',
+                value: coordinates.longitude.toStringAsFixed(5),
+              ),
+            ),
+          ],
+        ),
+
+        // What3words: Full-width box below coordinates
+        const SizedBox(height: 12),
+        _buildWhat3wordsBox(
+          theme,
+          cs,
+          what3words: what3words,
+          isLoading: isWhat3wordsLoading,
+        ),
+
+        // Mini map preview (only if API key available)
+        _buildMapPreview(coordinates),
+
+        // Action buttons below map (full-width stacked)
+        const SizedBox(height: 16),
         _buildActionButtons(
           theme,
           cs,
           hasLocation: true,
           showUseGps: source == LocationSource.manual,
-        ),
-
-        // Expandable details section
-        SizeTransition(
-          sizeFactor: _expandAnimation,
-          axisAlignment: -1.0,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-
-              // Coordinates: Two separate boxes side-by-side
-              Row(
-                children: [
-                  // Latitude box
-                  Expanded(
-                    child: _buildCoordinateBox(
-                      theme,
-                      cs,
-                      label: 'Latitude',
-                      value: coordinates.latitude.toStringAsFixed(5),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Longitude box
-                  Expanded(
-                    child: _buildCoordinateBox(
-                      theme,
-                      cs,
-                      label: 'Longitude',
-                      value: coordinates.longitude.toStringAsFixed(5),
-                    ),
-                  ),
-                ],
-              ),
-
-              // What3words: Full-width box below coordinates
-              const SizedBox(height: 12),
-              _buildWhat3wordsBox(
-                theme,
-                cs,
-                what3words: what3words,
-                isLoading: isWhat3wordsLoading,
-              ),
-
-              // Mini map preview (only if API key available)
-              _buildMapPreview(coordinates),
-            ],
-          ),
         ),
       ],
     );
@@ -459,36 +372,32 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard>
     );
   }
 
-  /// Builds the action buttons row (always visible, same row)
+  /// Builds the action buttons (full-width stacked below map)
   Widget _buildActionButtons(
     ThemeData theme,
     ColorScheme cs, {
     required bool hasLocation,
     bool showUseGps = false,
   }) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Change location button (first)
-        Expanded(
-          child: _ActionButton(
-            icon: Icons.edit_location_outlined,
-            label: hasLocation ? 'Change location' : 'Set location',
-            onPressed: widget.onUpdateLocation,
-            isPrimary: !hasLocation,
+        // Copy for your call button (primary action)
+        if (hasLocation)
+          _ActionButton(
+            icon: Icons.copy,
+            label: 'Copy for your call',
+            onPressed: widget.onCopyForCall ?? _copyLocationToClipboard,
+            isPrimary: true,
           ),
+        if (hasLocation) const SizedBox(height: 8),
+        // Change location button (secondary)
+        _ActionButton(
+          icon: Icons.edit_location_outlined,
+          label: hasLocation ? 'Change location' : 'Set location',
+          onPressed: widget.onUpdateLocation,
+          isPrimary: !hasLocation,
         ),
-        if (hasLocation) ...[
-          const SizedBox(width: 12),
-          // Copy for your call button (second)
-          Expanded(
-            child: _ActionButton(
-              icon: Icons.copy,
-              label: 'Copy for your call',
-              onPressed: widget.onCopyForCall ?? _copyLocationToClipboard,
-              isPrimary: true,
-            ),
-          ),
-        ],
       ],
     );
   }

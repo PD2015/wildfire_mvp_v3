@@ -29,7 +29,6 @@ void main() {
       VoidCallback? onCopyForCall,
       VoidCallback? onUpdateLocation,
       VoidCallback? onUseGps,
-      bool initiallyExpanded = false,
     }) {
       return MaterialApp(
         theme: ThemeData(
@@ -44,7 +43,6 @@ void main() {
                 onCopyForCall: onCopyForCall,
                 onUpdateLocation: onUpdateLocation,
                 onUseGps: onUseGps,
-                initiallyExpanded: initiallyExpanded,
               ),
             ),
           ),
@@ -163,14 +161,6 @@ void main() {
         // New format: "Test Place · Manual"
         expect(find.text('Test Place · Manual'), findsOneWidget);
       });
-
-      testWidgets('shows expand button', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          locationState: successState,
-        ));
-
-        expect(find.byIcon(Icons.keyboard_arrow_down), findsOneWidget);
-      });
     });
 
     group('Error state', () {
@@ -277,102 +267,11 @@ void main() {
       // GPS functionality is now handled at the screen level.
     });
 
-    group('Expand/collapse', () {
-      testWidgets('starts collapsed by default', (tester) async {
+    group('Always visible content', () {
+      testWidgets('shows what3words when location available', (tester) async {
         await tester.pumpWidget(buildTestWidget(
           locationState: successState,
         ));
-
-        // When collapsed, the SizeTransition has animation value 0
-        // The expand icon should not be rotated
-        final iconRotation = find.byWidgetPredicate(
-          (widget) => widget is AnimatedRotation && widget.turns == 0,
-        );
-        expect(iconRotation, findsOneWidget);
-      });
-
-      testWidgets('can start expanded when initiallyExpanded=true',
-          (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          locationState: successState,
-          initiallyExpanded: true,
-        ));
-
-        await tester.pumpAndSettle();
-
-        // When expanded, icon is rotated 0.5 turns (180 degrees)
-        final iconRotation = find.byWidgetPredicate(
-          (widget) => widget is AnimatedRotation && widget.turns == 0.5,
-        );
-        expect(iconRotation, findsOneWidget);
-
-        // Latitude and Longitude labels should be in the tree (new box layout)
-        expect(find.text('Latitude'), findsOneWidget);
-        expect(find.text('Longitude'), findsOneWidget);
-      });
-
-      testWidgets('expands when expand button tapped', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          locationState: successState,
-        ));
-
-        // Initially collapsed - icon not rotated
-        expect(
-          find.byWidgetPredicate(
-            (widget) => widget is AnimatedRotation && widget.turns == 0,
-          ),
-          findsOneWidget,
-        );
-
-        // Tap expand button
-        await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
-        await tester.pumpAndSettle();
-
-        // Now expanded - icon rotated
-        expect(
-          find.byWidgetPredicate(
-            (widget) => widget is AnimatedRotation && widget.turns == 0.5,
-          ),
-          findsOneWidget,
-        );
-      });
-
-      testWidgets('collapses when expand button tapped again', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          locationState: successState,
-          initiallyExpanded: true,
-        ));
-
-        await tester.pumpAndSettle();
-
-        // Initially expanded - icon rotated
-        expect(
-          find.byWidgetPredicate(
-            (widget) => widget is AnimatedRotation && widget.turns == 0.5,
-          ),
-          findsOneWidget,
-        );
-
-        // Tap to collapse
-        await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
-        await tester.pumpAndSettle();
-
-        // Now collapsed - icon not rotated
-        expect(
-          find.byWidgetPredicate(
-            (widget) => widget is AnimatedRotation && widget.turns == 0,
-          ),
-          findsOneWidget,
-        );
-      });
-
-      testWidgets('shows what3words in expanded state', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          locationState: successState,
-          initiallyExpanded: true,
-        ));
-
-        await tester.pumpAndSettle();
 
         expect(find.text('what3words'), findsOneWidget);
         expect(find.text('///word.word.word'), findsOneWidget);
@@ -381,10 +280,11 @@ void main() {
       testWidgets('shows coordinates with 5dp precision', (tester) async {
         await tester.pumpWidget(buildTestWidget(
           locationState: successState,
-          initiallyExpanded: true,
         ));
 
-        await tester.pumpAndSettle();
+        // Latitude and Longitude labels should be visible
+        expect(find.text('Latitude'), findsOneWidget);
+        expect(find.text('Longitude'), findsOneWidget);
 
         // 55.9533, -3.1883 with 5dp precision in separate boxes
         expect(find.text('55.95330'), findsOneWidget); // Latitude value
@@ -420,22 +320,6 @@ void main() {
           ),
         );
         expect(sizedBoxAncestor, findsOneWidget);
-      });
-
-      testWidgets('expand button has semantic label', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          locationState: successState,
-        ));
-
-        // Find Semantics widget containing expand/collapse label
-        final semanticsWithLabel = find.byWidgetPredicate(
-          (widget) =>
-              widget is Semantics &&
-              widget.properties.label != null &&
-              (widget.properties.label!.contains('Expand') ||
-                  widget.properties.label!.contains('Collapse')),
-        );
-        expect(semanticsWithLabel, findsOneWidget);
       });
     });
   });
