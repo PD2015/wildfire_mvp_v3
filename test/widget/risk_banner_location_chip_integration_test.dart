@@ -295,7 +295,7 @@ void main() {
     });
 
     group('Visual Hierarchy', () {
-      testWidgets('RiskScale appears before LocationChip in widget tree',
+      testWidgets('LocationChip appears before RiskScale in widget tree',
           (tester) async {
         await tester.pumpWidget(buildTestWidget(
           state: RiskBannerSuccess(testRisk),
@@ -307,8 +307,8 @@ void main() {
         final scalePosition = tester.getTopLeft(find.byType(RiskScale)).dy;
         final chipPosition = tester.getTopLeft(find.byType(LocationChip)).dy;
 
-        // RiskScale should be above (smaller Y) LocationChip
-        expect(scalePosition, lessThan(chipPosition));
+        // LocationChip should be above (smaller Y) RiskScale (Phase 5 change)
+        expect(chipPosition, lessThan(scalePosition));
       });
 
       testWidgets('LocationChip is visually distinct from RiskScale',
@@ -319,10 +319,10 @@ void main() {
         ));
         await tester.pump();
 
-        // Verify there's spacing between them (via SizedBox in RiskBanner)
-        final scaleBottom = tester.getBottomLeft(find.byType(RiskScale)).dy;
-        final chipTop = tester.getTopLeft(find.byType(LocationChip)).dy;
-        final gap = chipTop - scaleBottom;
+        // Verify there's spacing between them
+        final chipBottom = tester.getBottomLeft(find.byType(LocationChip)).dy;
+        final scaleTop = tester.getTopLeft(find.byType(RiskScale)).dy;
+        final gap = scaleTop - chipBottom;
 
         // Should have at least 8dp spacing
         expect(gap, greaterThanOrEqualTo(8.0));

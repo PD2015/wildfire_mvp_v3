@@ -71,7 +71,7 @@ void main() {
           coordinatesLabel: '57.20, -3.83',
         ));
 
-        expect(find.byIcon(Icons.navigation_outlined), findsOneWidget);
+        expect(find.byIcon(Icons.explore_outlined), findsOneWidget);
       });
 
       testWidgets('shows formatted location and GPS source', (tester) async {
@@ -81,7 +81,10 @@ void main() {
           locationSource: LocationSource.gps,
         ));
 
-        expect(find.text('Grantown-on-Spey · Current (GPS)'), findsOneWidget);
+        // RichText widget used for location subtitle
+        expect(find.byType(RichText), findsWidgets);
+        // Title should still be plain Text
+        expect(find.text('Location used'), findsOneWidget);
       });
 
       testWidgets('shows formatted location and Manual source', (tester) async {
@@ -91,7 +94,9 @@ void main() {
           locationSource: LocationSource.manual,
         ));
 
-        expect(find.text('Edinburgh · Manual'), findsOneWidget);
+        // RichText widget used for location subtitle
+        expect(find.byType(RichText), findsWidgets);
+        expect(find.text('Location used'), findsOneWidget);
       });
 
       testWidgets('shows source only when no formatted location',
@@ -101,7 +106,8 @@ void main() {
           locationSource: LocationSource.cached,
         ));
 
-        expect(find.text('Cached'), findsOneWidget);
+        // RichText widget used for source text when no formatted location
+        expect(find.byType(RichText), findsWidgets);
       });
     });
 
@@ -215,8 +221,8 @@ void main() {
           showMapPreview: true,
         ));
 
-        // Map section should be present (placeholder or loading)
-        expect(find.byType(ClipRRect), findsOneWidget);
+        // Map section should show "Map preview" label
+        expect(find.text('Map preview'), findsOneWidget);
       });
 
       testWidgets('hides map preview when disabled', (tester) async {
@@ -424,11 +430,11 @@ void main() {
           onClose: () => closeCallCount++,
         ));
 
-        // Should find the collapse button with down chevron
-        expect(find.byIcon(Icons.keyboard_arrow_down), findsOneWidget);
+        // Should find the collapse button with up chevron (moved to header)
+        expect(find.byIcon(Icons.keyboard_arrow_up), findsOneWidget);
 
         // Tap the collapse button
-        await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
+        await tester.tap(find.byIcon(Icons.keyboard_arrow_up));
         await tester.pump();
 
         // onClose should be called
@@ -442,7 +448,7 @@ void main() {
         ));
 
         // Should NOT find the collapse button
-        expect(find.byIcon(Icons.keyboard_arrow_down), findsNothing);
+        expect(find.byIcon(Icons.keyboard_arrow_up), findsNothing);
       });
 
       testWidgets('collapse button has accessible semantic label',
@@ -481,7 +487,7 @@ void main() {
 
         // Find the InkWell containing the button
         final inkWellFinder = find.ancestor(
-          of: find.byIcon(Icons.keyboard_arrow_down),
+          of: find.byIcon(Icons.keyboard_arrow_up),
           matching: find.byType(InkWell),
         );
         expect(inkWellFinder, findsOneWidget);

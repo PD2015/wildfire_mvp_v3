@@ -202,6 +202,12 @@ class RiskBanner extends StatelessWidget {
               ),
               const SizedBox(height: 8.0),
 
+              // Location chip (moved before timestamp for visual hierarchy)
+              if (locationChip != null) ...[
+                locationChip!,
+                const SizedBox(height: 8.0),
+              ],
+
               // Combined timestamp and data source
               Text(
                 '$timeText · From $sourceName', // "Updated just now · From EFFIS"
@@ -222,12 +228,6 @@ class RiskBanner extends StatelessWidget {
                 currentLevel: data.level,
                 textColor: textColor,
               ),
-
-              // Location chip (if provided)
-              if (locationChip != null) ...[
-                const SizedBox(height: 12.0),
-                locationChip!,
-              ],
 
               // Weather panel (only if enabled in config)
               if (config.showWeatherPanel) ...[

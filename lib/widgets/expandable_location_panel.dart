@@ -192,43 +192,7 @@ class ExpandableLocationPanel extends StatelessWidget {
 
           // Action buttons
           if (showActions) _buildActionButtons(theme, colors),
-
-          // Collapse button (only when onClose is provided)
-          if (onClose != null) ...[
-            const SizedBox(height: 12),
-            _buildCollapseButton(colors),
-          ],
         ],
-      ),
-    );
-  }
-
-  /// Builds the collapse button with down chevron and dark circular background
-  Widget _buildCollapseButton(dynamic colors) {
-    return Center(
-      child: Semantics(
-        label: 'Collapse location details',
-        button: true,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onClose,
-            borderRadius: BorderRadius.circular(24),
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.25),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.keyboard_arrow_down,
-                color: Colors.white.withValues(alpha: 0.9),
-                size: 28,
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -245,37 +209,77 @@ class ExpandableLocationPanel extends StatelessWidget {
     };
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(
-          Icons.navigation_outlined,
-          size: 20,
+          Icons.explore_outlined, // Compass-like icon
+          size: 24,
           color: colors.icon,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Location used',
-                style: theme.textTheme.titleSmall?.copyWith(
+                style: theme.textTheme.titleMedium?.copyWith(
                   color: colors.text,
                   fontWeight: FontWeight.w600,
+                  fontSize: 18,
                 ),
               ),
               if (formattedLocation != null || sourceText.isNotEmpty)
-                Text(
-                  [
-                    if (formattedLocation != null) formattedLocation!,
-                    if (sourceText.isNotEmpty) sourceText,
-                  ].join(' · '),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colors.textMuted,
+                RichText(
+                  text: TextSpan(
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colors.textMuted,
+                    ),
+                    children: [
+                      if (formattedLocation != null)
+                        TextSpan(text: formattedLocation!),
+                      if (formattedLocation != null && sourceText.isNotEmpty)
+                        const TextSpan(text: ' · '),
+                      if (sourceText.isNotEmpty)
+                        TextSpan(
+                          text: sourceText,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: colors.text,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
             ],
           ),
         ),
+        // Collapse button in top-right corner
+        if (onClose != null)
+          Semantics(
+            label: 'Collapse location details',
+            button: true,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onClose,
+                borderRadius: BorderRadius.circular(24),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.keyboard_arrow_up,
+                    color: Colors.white.withValues(alpha: 0.9),
+                    size: 28,
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -410,48 +414,60 @@ class ExpandableLocationPanel extends StatelessWidget {
     );
   }
 
-  /// Builds the static map preview
+  /// Builds the static map preview with label header
   Widget _buildMapPreview(dynamic colors) {
     final hasMap = staticMapUrl != null;
     final hasLocation = _hasValidCoordinates;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        height: 100,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: colors.surface,
-          border: Border.all(
-            color: colors.divider,
-            width: 1,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Map preview label
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            'Map preview',
+            style: TextStyle(
+              color: colors.textMuted,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-          borderRadius: BorderRadius.circular(8),
         ),
-        child: hasMap
-            ? LocationMiniMapPreview(
-                staticMapUrl: staticMapUrl,
-                isLoading: false,
-              )
-            : isMapLoading || hasLocation
-                ? Center(
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation(colors.textMuted),
+        // Map container with consistent styling
+        Container(
+          height: 120,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: hasMap
+              ? LocationMiniMapPreview(
+                  staticMapUrl: staticMapUrl,
+                  isLoading: false,
+                )
+              : isMapLoading || hasLocation
+                  ? Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation(colors.textMuted),
+                        ),
+                      ),
+                    )
+                  : Center(
+                      child: Icon(
+                        Icons.map_outlined,
+                        size: 32,
+                        color: colors.textMuted,
                       ),
                     ),
-                  )
-                : Center(
-                    child: Icon(
-                      Icons.map_outlined,
-                      size: 32,
-                      color: colors.textMuted,
-                    ),
-                  ),
-      ),
+        ),
+      ],
     );
   }
 
@@ -500,7 +516,7 @@ class ExpandableLocationPanel extends StatelessWidget {
     );
   }
 
-  /// Builds an individual action button
+  /// Builds an individual action button with improved visibility
   Widget _buildActionButton({
     required String label,
     required IconData icon,
@@ -509,6 +525,12 @@ class ExpandableLocationPanel extends StatelessWidget {
     required dynamic colors,
     bool fullWidth = false,
   }) {
+    // Use darker background for better visibility on risk colors
+    final buttonBackground = isPrimary
+        ? Colors.black.withValues(alpha: 0.25)
+        : Colors.black.withValues(alpha: 0.15);
+    final borderColor = Colors.white.withValues(alpha: 0.3);
+
     return Semantics(
       label: label,
       button: true,
@@ -516,25 +538,23 @@ class ExpandableLocationPanel extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           child: Container(
             constraints: const BoxConstraints(
-              minHeight: 44, // C3: Accessibility minimum
+              minHeight: 48, // C3: Accessibility minimum
             ),
             width: fullWidth ? double.infinity : null,
             padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 10,
+              horizontal: 16,
+              vertical: 12,
             ),
             decoration: BoxDecoration(
-              color: isPrimary
-                  ? colors.text.withValues(alpha: 0.15)
-                  : Colors.transparent,
+              color: buttonBackground,
               border: Border.all(
-                color: colors.text.withValues(alpha: 0.3),
-                width: 1,
+                color: borderColor,
+                width: 1.5,
               ),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -542,16 +562,16 @@ class ExpandableLocationPanel extends StatelessWidget {
               children: [
                 Icon(
                   icon,
-                  size: 16,
+                  size: 18,
                   color: colors.text,
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Text(
                   label,
                   style: TextStyle(
                     color: colors.text,
                     fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
