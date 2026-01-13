@@ -218,6 +218,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Theme.of(context).colorScheme.surfaceContainerHighest,
           isLoading: true,
           onChangeLocation: _showManualLocationDialog,
+          embeddedInRiskBanner: true,
         );
 
       case HomeStateSuccess(
@@ -258,6 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onUseGps: locationSource == LocationSource.manual
               ? () => _controller.useGpsLocation()
               : null,
+          embeddedInRiskBanner: true,
         );
 
       case HomeStateError(:final cachedLocation, :final cachedData)
@@ -275,6 +277,7 @@ class _HomeScreenState extends State<HomeScreen> {
           locationSource: LocationSource.cached,
           parentBackgroundColor: backgroundColor,
           onChangeLocation: _showManualLocationDialog,
+          embeddedInRiskBanner: true,
         );
 
       case HomeStateError():

@@ -130,8 +130,8 @@ void main() {
         // Always shows location_on_outlined icon (doesn't change with source)
         // Note: findsWidgets because both chip and collapsed panel contain this icon
         expect(find.byIcon(Icons.location_on_outlined), findsWidgets);
-        // Source shown as text
-        expect(find.text('Manual'), findsOneWidget);
+        // Source shown as text - may appear in both chip and panel header
+        expect(find.text('Manual'), findsWidgets);
       });
 
       testWidgets('LocationChip expands on tap', (tester) async {

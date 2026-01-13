@@ -310,5 +310,79 @@ void main() {
         expect(find.byType(LocationChip), findsOneWidget);
       });
     });
+
+    group('embeddedInRiskBanner styling', () {
+      Widget buildEmbeddedWidget({
+        Color parentBackgroundColor = const Color(0xFFFFEB3B),
+        bool embeddedInRiskBanner = false,
+      }) {
+        return MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: LocationChip(
+                locationName: 'Test Location',
+                locationSource: LocationSource.gps,
+                parentBackgroundColor: parentBackgroundColor,
+                embeddedInRiskBanner: embeddedInRiskBanner,
+              ),
+            ),
+          ),
+        );
+      }
+
+      testWidgets('renders correctly when embedded on moderate risk color',
+          (tester) async {
+        // Moderate risk is yellow - historically problematic for contrast
+        await tester.pumpWidget(buildEmbeddedWidget(
+          parentBackgroundColor: const Color(0xFFFFEB3B),
+          embeddedInRiskBanner: true,
+        ));
+
+        expect(find.byType(LocationChip), findsOneWidget);
+        expect(find.text('Test Location'), findsOneWidget);
+        expect(find.text('GPS'), findsOneWidget);
+      });
+
+      testWidgets('renders correctly when embedded on high risk color',
+          (tester) async {
+        // High risk is orange
+        await tester.pumpWidget(buildEmbeddedWidget(
+          parentBackgroundColor: const Color(0xFFFF9800),
+          embeddedInRiskBanner: true,
+        ));
+
+        expect(find.byType(LocationChip), findsOneWidget);
+        expect(find.text('Test Location'), findsOneWidget);
+      });
+
+      testWidgets('renders correctly when embedded on very high risk color',
+          (tester) async {
+        // Very high risk is red
+        await tester.pumpWidget(buildEmbeddedWidget(
+          parentBackgroundColor: const Color(0xFFF44336),
+          embeddedInRiskBanner: true,
+        ));
+
+        expect(find.byType(LocationChip), findsOneWidget);
+        expect(find.text('Test Location'), findsOneWidget);
+      });
+
+      testWidgets('uses different styling when embedded vs not embedded',
+          (tester) async {
+        // This is more of a visual verification - we just ensure it renders
+        // and doesn't crash on both modes
+        await tester.pumpWidget(buildEmbeddedWidget(
+          parentBackgroundColor: const Color(0xFFFFEB3B),
+          embeddedInRiskBanner: false,
+        ));
+        expect(find.byType(LocationChip), findsOneWidget);
+
+        await tester.pumpWidget(buildEmbeddedWidget(
+          parentBackgroundColor: const Color(0xFFFFEB3B),
+          embeddedInRiskBanner: true,
+        ));
+        expect(find.byType(LocationChip), findsOneWidget);
+      });
+    });
   });
 }

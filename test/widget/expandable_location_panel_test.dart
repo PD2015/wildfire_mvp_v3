@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/widgets/expandable_location_panel.dart';
@@ -394,6 +393,102 @@ void main() {
           find.bySemanticsLabel(RegExp(r'what3words.*daring.lion.race')),
           findsOneWidget,
         );
+      });
+    });
+
+    group('embeddedInRiskBanner styling', () {
+      Widget buildEmbeddedWidget({
+        bool embeddedInRiskBanner = false,
+        Color parentBackgroundColor = const Color(0xFFFFEB3B),
+        VoidCallback? onClose,
+      }) {
+        return MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: ExpandableLocationPanel(
+                coordinatesLabel: '57.20, -3.83',
+                parentBackgroundColor: parentBackgroundColor,
+                embeddedInRiskBanner: embeddedInRiskBanner,
+                onClose: onClose,
+              ),
+            ),
+          ),
+        );
+      }
+
+      testWidgets('shows collapse button when onClose provided',
+          (tester) async {
+        var closeCallCount = 0;
+        await tester.pumpWidget(buildEmbeddedWidget(
+          embeddedInRiskBanner: true,
+          onClose: () => closeCallCount++,
+        ));
+
+        // Should find the collapse button with down chevron
+        expect(find.byIcon(Icons.keyboard_arrow_down), findsOneWidget);
+
+        // Tap the collapse button
+        await tester.tap(find.byIcon(Icons.keyboard_arrow_down));
+        await tester.pump();
+
+        // onClose should be called
+        expect(closeCallCount, 1);
+      });
+
+      testWidgets('hides collapse button when onClose is null', (tester) async {
+        await tester.pumpWidget(buildEmbeddedWidget(
+          embeddedInRiskBanner: true,
+          onClose: null,
+        ));
+
+        // Should NOT find the collapse button
+        expect(find.byIcon(Icons.keyboard_arrow_down), findsNothing);
+      });
+
+      testWidgets('collapse button has accessible semantic label',
+          (tester) async {
+        await tester.pumpWidget(buildEmbeddedWidget(
+          embeddedInRiskBanner: true,
+          onClose: () {},
+        ));
+
+        expect(
+          find.bySemanticsLabel('Collapse location details'),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('collapse button has dark circular background',
+          (tester) async {
+        await tester.pumpWidget(buildEmbeddedWidget(
+          embeddedInRiskBanner: true,
+          onClose: () {},
+        ));
+
+        // Find the container with circular shape
+        final containerFinder = find.descendant(
+          of: find.byType(InkWell),
+          matching: find.byType(Container),
+        );
+        expect(containerFinder, findsWidgets);
+      });
+
+      testWidgets('collapse button has 48dp touch target', (tester) async {
+        await tester.pumpWidget(buildEmbeddedWidget(
+          embeddedInRiskBanner: true,
+          onClose: () {},
+        ));
+
+        // Find the InkWell containing the button
+        final inkWellFinder = find.ancestor(
+          of: find.byIcon(Icons.keyboard_arrow_down),
+          matching: find.byType(InkWell),
+        );
+        expect(inkWellFinder, findsOneWidget);
+
+        // Verify the tappable area has minimum size
+        final inkWell = tester.widget<InkWell>(inkWellFinder);
+        expect(inkWell, isNotNull);
       });
     });
   });

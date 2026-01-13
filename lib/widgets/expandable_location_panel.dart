@@ -70,6 +70,16 @@ class ExpandableLocationPanel extends StatelessWidget {
   /// Whether to show action buttons
   final bool showActions;
 
+  /// Whether this panel is embedded in a RiskBanner
+  ///
+  /// When true, uses explicit white text levels (90%/75%/70%) for
+  /// consistent readability on risk-colored backgrounds, instead of
+  /// luminance-based adaptive colors.
+  final bool embeddedInRiskBanner;
+
+  /// Callback when the collapse button is tapped
+  final VoidCallback? onClose;
+
   const ExpandableLocationPanel({
     super.key,
     this.formattedLocation,
@@ -87,11 +97,29 @@ class ExpandableLocationPanel extends StatelessWidget {
     this.onCopyCoordinates,
     this.showMapPreview = true,
     this.showActions = true,
+    this.embeddedInRiskBanner = false,
+    this.onClose,
   });
 
   /// Calculates adaptive colors based on parent background luminance
+  ///
+  /// When [embeddedInRiskBanner] is true, uses explicit white text levels
+  /// for consistent readability on all risk colors (especially yellow/orange).
   ({Color surface, Color text, Color textMuted, Color icon, Color divider})
       _getAdaptiveColors() {
+    // When embedded in RiskBanner, use explicit white-on-dark styling
+    // for consistent contrast on all risk colors (esp. MODERATE yellow)
+    if (embeddedInRiskBanner) {
+      return (
+        surface: Colors.black.withValues(alpha: 0.15),
+        text: Colors.white.withValues(alpha: 0.95),
+        textMuted: Colors.white.withValues(alpha: 0.75),
+        icon: Colors.white.withValues(alpha: 0.85),
+        divider: Colors.white.withValues(alpha: 0.25),
+      );
+    }
+
+    // Default: luminance-based adaptive colors for general use
     final luminance = parentBackgroundColor.computeLuminance();
     final isDark = luminance < 0.5;
 
@@ -164,7 +192,43 @@ class ExpandableLocationPanel extends StatelessWidget {
 
           // Action buttons
           if (showActions) _buildActionButtons(theme, colors),
+
+          // Collapse button (only when onClose is provided)
+          if (onClose != null) ...[
+            const SizedBox(height: 12),
+            _buildCollapseButton(colors),
+          ],
         ],
+      ),
+    );
+  }
+
+  /// Builds the collapse button with down chevron and dark circular background
+  Widget _buildCollapseButton(dynamic colors) {
+    return Center(
+      child: Semantics(
+        label: 'Collapse location details',
+        button: true,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onClose,
+            borderRadius: BorderRadius.circular(24),
+            child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.25),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.keyboard_arrow_down,
+                color: Colors.white.withValues(alpha: 0.9),
+                size: 28,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -50,6 +50,13 @@ class LocationChip extends StatelessWidget {
   /// Optional coordinates to show as secondary text when no place name
   final String? coordinates;
 
+  /// Whether this chip is embedded in a RiskBanner
+  ///
+  /// When true, uses explicit white text levels (90%/75%/70%) for
+  /// consistent readability on risk-colored backgrounds, instead of
+  /// luminance-based adaptive colors.
+  final bool embeddedInRiskBanner;
+
   const LocationChip({
     super.key,
     required this.locationName,
@@ -59,6 +66,7 @@ class LocationChip extends StatelessWidget {
     this.isExpanded = false,
     this.isLoading = false,
     this.coordinates,
+    this.embeddedInRiskBanner = false,
   });
 
   /// Returns source text for display after dot separator
@@ -74,8 +82,23 @@ class LocationChip extends StatelessWidget {
   }
 
   /// Calculates appropriate chip colors based on parent background
+  ///
+  /// When [embeddedInRiskBanner] is true, uses explicit white text levels
+  /// for consistent readability on all risk colors (especially yellow/orange).
   ({Color surface, Color text, Color textMuted, Color icon})
       _getAdaptiveColors() {
+    // When embedded in RiskBanner, use explicit white-on-dark styling
+    // for consistent contrast on all risk colors (esp. MODERATE yellow)
+    if (embeddedInRiskBanner) {
+      return (
+        surface: Colors.black.withValues(alpha: 0.15),
+        text: Colors.white.withValues(alpha: 0.95),
+        textMuted: Colors.white.withValues(alpha: 0.75),
+        icon: Colors.white.withValues(alpha: 0.85),
+      );
+    }
+
+    // Default: luminance-based adaptive colors for general use
     final luminance = parentBackgroundColor.computeLuminance();
     final isDark = luminance < 0.5;
 

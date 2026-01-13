@@ -202,34 +202,6 @@ class RiskBanner extends StatelessWidget {
               ),
               const SizedBox(height: 8.0),
 
-              // Location row (if locationLabel is provided)
-              if (locationLabel != null) ...[
-                Row(
-                  children: [
-                    Icon(Icons.location_on_outlined,
-                        color: textColor, size: 16.0),
-                    const SizedBox(width: 4.0),
-                    Text(
-                      "Location: ", // Note the space after colon
-                      style: TextStyle(
-                        color: textColor.withValues(alpha: 0.8),
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        locationLabel!,
-                        style: TextStyle(color: textColor, fontSize: 14.0),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8.0),
-              ],
-
               // Combined timestamp and data source
               Text(
                 '$timeText · From $sourceName', // "Updated just now · From EFFIS"
@@ -257,7 +229,7 @@ class RiskBanner extends StatelessWidget {
                 locationChip!,
               ],
 
-              // Weather panel (if enabled)
+              // Weather panel (only if enabled in config)
               if (config.showWeatherPanel) ...[
                 const SizedBox(height: 12.0),
                 _buildWeatherPanel(textColor),

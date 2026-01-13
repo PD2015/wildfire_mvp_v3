@@ -88,6 +88,12 @@ class LocationChipWithPanel extends StatefulWidget {
   /// Callback when expand state changes
   final ValueChanged<bool>? onExpandedChanged;
 
+  /// Whether this widget is embedded in a RiskBanner
+  ///
+  /// When true, uses explicit white text levels for consistent
+  /// readability on risk-colored backgrounds.
+  final bool embeddedInRiskBanner;
+
   const LocationChipWithPanel({
     super.key,
     required this.locationName,
@@ -109,6 +115,7 @@ class LocationChipWithPanel extends StatefulWidget {
     this.showActions = true,
     this.initiallyExpanded = false,
     this.onExpandedChanged,
+    this.embeddedInRiskBanner = false,
   });
 
   @override
@@ -182,6 +189,7 @@ class _LocationChipWithPanelState extends State<LocationChipWithPanel>
           isExpanded: _isExpanded,
           isLoading: widget.isLoading,
           coordinates: widget.coordinatesLabel,
+          embeddedInRiskBanner: widget.embeddedInRiskBanner,
         ),
 
         // Animated expanded panel
@@ -208,6 +216,8 @@ class _LocationChipWithPanelState extends State<LocationChipWithPanel>
                 onCopyCoordinates: widget.onCopyCoordinates,
                 showMapPreview: widget.showMapPreview,
                 showActions: widget.showActions,
+                embeddedInRiskBanner: widget.embeddedInRiskBanner,
+                onClose: _toggleExpanded,
               ),
             ),
           ),
@@ -320,6 +330,9 @@ class LocationChipWithPanelControlled extends StatefulWidget {
   /// Whether to show action buttons
   final bool showActions;
 
+  /// Whether this widget is embedded in a RiskBanner
+  final bool embeddedInRiskBanner;
+
   const LocationChipWithPanelControlled({
     super.key,
     required this.controller,
@@ -340,6 +353,7 @@ class LocationChipWithPanelControlled extends StatefulWidget {
     this.onCopyCoordinates,
     this.showMapPreview = true,
     this.showActions = true,
+    this.embeddedInRiskBanner = false,
   });
 
   @override
@@ -419,6 +433,7 @@ class _LocationChipWithPanelControlledState
           isExpanded: widget.controller.isExpanded,
           isLoading: widget.isLoading,
           coordinates: widget.coordinatesLabel,
+          embeddedInRiskBanner: widget.embeddedInRiskBanner,
         ),
         SizeTransition(
           sizeFactor: _expandAnimation,
@@ -443,6 +458,8 @@ class _LocationChipWithPanelControlledState
                 onCopyCoordinates: widget.onCopyCoordinates,
                 showMapPreview: widget.showMapPreview,
                 showActions: widget.showActions,
+                embeddedInRiskBanner: widget.embeddedInRiskBanner,
+                onClose: widget.controller.collapse,
               ),
             ),
           ),
