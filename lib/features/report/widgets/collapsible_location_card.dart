@@ -179,31 +179,23 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard>
   /// Builds the header row with title and expand button
   Widget _buildHeader(ThemeData theme, ColorScheme cs) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Location pin icon
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: cs.secondaryContainer,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Icon(
-            Icons.location_on_outlined,
-            color: cs.onSecondaryContainer,
-            size: 20,
-          ),
+        // Location pin icon (no background)
+        Icon(
+          Icons.location_on_outlined,
+          color: cs.onSurface,
+          size: 24,
         ),
         const SizedBox(width: 12),
 
-        // Title
+        // Title (matches EmergencyHeroCard heading)
         Expanded(
           child: Semantics(
             header: true,
             child: Text(
               'Your location for the call',
-              style: theme.textTheme.titleSmall?.copyWith(
+              style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: cs.onSurface,
               ),
@@ -365,31 +357,40 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              Divider(color: cs.outlineVariant, height: 1),
-              const SizedBox(height: 16),
 
-              // Coordinates with 5dp precision
-              _buildDetailRow(
-                theme,
-                cs,
-                icon: Icons.grid_on,
-                label: 'Coordinates',
-                value:
-                    '${coordinates.latitude.toStringAsFixed(5)}, ${coordinates.longitude.toStringAsFixed(5)}',
+              // Coordinates: Two separate boxes side-by-side
+              Row(
+                children: [
+                  // Latitude box
+                  Expanded(
+                    child: _buildCoordinateBox(
+                      theme,
+                      cs,
+                      label: 'Latitude',
+                      value: coordinates.latitude.toStringAsFixed(5),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  // Longitude box
+                  Expanded(
+                    child: _buildCoordinateBox(
+                      theme,
+                      cs,
+                      label: 'Longitude',
+                      value: coordinates.longitude.toStringAsFixed(5),
+                    ),
+                  ),
+                ],
               ),
 
-              // What3words
-              if (what3words != null || isWhat3wordsLoading) ...[
-                const SizedBox(height: 12),
-                _buildDetailRow(
-                  theme,
-                  cs,
-                  icon: Icons.tag,
-                  label: 'what3words',
-                  value: isWhat3wordsLoading ? 'Loading...' : what3words ?? '',
-                  isLoading: isWhat3wordsLoading,
-                ),
-              ],
+              // What3words: Full-width box below coordinates
+              const SizedBox(height: 12),
+              _buildWhat3wordsBox(
+                theme,
+                cs,
+                what3words: what3words,
+                isLoading: isWhat3wordsLoading,
+              ),
 
               // Mini map preview (only if API key available)
               _buildMapPreview(coordinates),
@@ -429,7 +430,7 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard>
     );
   }
 
-  /// Builds the summary row with place name and source badge
+  /// Builds the summary row with place name · source format (consistent with RiskBanner)
   Widget _buildSummaryRow(
     ThemeData theme,
     ColorScheme cs,
@@ -440,148 +441,146 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard>
     // Determine display text
     final displayText = placeName ?? formattedLocation ?? 'Location set';
 
-    // Source badge text and icon
-    final (badgeText, badgeIcon) = switch (source) {
-      LocationSource.gps => ('GPS', Icons.gps_fixed),
-      LocationSource.manual => ('Manual', Icons.edit_location_outlined),
-      LocationSource.cached => ('Cached', Icons.cached),
-      LocationSource.defaultFallback => ('Default', Icons.public),
+    // Source text (no icon, no pill - matches LocationChip format)
+    final sourceText = switch (source) {
+      LocationSource.gps => 'GPS',
+      LocationSource.manual => 'Manual',
+      LocationSource.cached => 'Cached',
+      LocationSource.defaultFallback => 'Default',
     };
 
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            displayText,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: cs.onSurface,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        const SizedBox(width: 8),
-
-        // Source badge
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: cs.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                badgeIcon,
-                size: 14,
-                color: cs.onSurfaceVariant,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                badgeText,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: cs.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return Text(
+      '$displayText · $sourceText',
+      style: theme.textTheme.bodyMedium?.copyWith(
+        color: cs.onSurfaceVariant,
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 
-  /// Builds the action buttons row (always visible)
+  /// Builds the action buttons row (always visible, same row)
   Widget _buildActionButtons(
     ThemeData theme,
     ColorScheme cs, {
     required bool hasLocation,
     bool showUseGps = false,
   }) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+    return Row(
       children: [
-        // Copy for your call button (primary when location available)
-        if (hasLocation)
-          _ActionButton(
-            icon: Icons.copy,
-            label: 'Copy for your call',
-            onPressed: widget.onCopyForCall ?? _copyLocationToClipboard,
-            isPrimary: true,
+        // Change location button (first)
+        Expanded(
+          child: _ActionButton(
+            icon: Icons.edit_location_outlined,
+            label: hasLocation ? 'Change location' : 'Set location',
+            onPressed: widget.onUpdateLocation,
+            isPrimary: !hasLocation,
           ),
-
-        // Update location button
-        _ActionButton(
-          icon: Icons.edit_location_outlined,
-          label: hasLocation ? 'Update location' : 'Set location',
-          onPressed: widget.onUpdateLocation,
-          isPrimary: !hasLocation,
         ),
-
-        // Use GPS button (only when manual location)
-        if (showUseGps && widget.onUseGps != null)
-          _ActionButton(
-            icon: Icons.gps_fixed,
-            label: 'Use GPS',
-            onPressed: widget.onUseGps,
-            isPrimary: false,
+        if (hasLocation) ...[
+          const SizedBox(width: 12),
+          // Copy for your call button (second)
+          Expanded(
+            child: _ActionButton(
+              icon: Icons.copy,
+              label: 'Copy for your call',
+              onPressed: widget.onCopyForCall ?? _copyLocationToClipboard,
+              isPrimary: true,
+            ),
           ),
+        ],
       ],
     );
   }
 
-  /// Builds a detail row in the expanded section
-  Widget _buildDetailRow(
+  /// Builds a coordinate box (Latitude or Longitude) with label and value
+  Widget _buildCoordinateBox(
     ThemeData theme,
     ColorScheme cs, {
-    required IconData icon,
     required String label,
     required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: cs.outline.withValues(alpha: 0.15),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: cs.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 4),
+          SelectableText(
+            value,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: cs.onSurface,
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Builds the what3words box (full width)
+  Widget _buildWhat3wordsBox(
+    ThemeData theme,
+    ColorScheme cs, {
+    String? what3words,
     bool isLoading = false,
   }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(
-          icon,
-          size: 18,
-          color: cs.onSurfaceVariant,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: cs.outline.withValues(alpha: 0.15),
+          width: 1,
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: cs.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 2),
-              if (isLoading)
-                SizedBox(
-                  width: 80,
-                  height: 16,
-                  child: LinearProgressIndicator(
-                    backgroundColor: cs.surfaceContainerHighest,
-                    color: cs.primary,
-                  ),
-                )
-              else
-                SelectableText(
-                  value,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: cs.onSurface,
-                    fontFamily: 'monospace',
-                  ),
-                ),
-            ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'what3words',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: cs.onSurfaceVariant,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 4),
+          if (isLoading)
+            SizedBox(
+              width: 120,
+              height: 20,
+              child: LinearProgressIndicator(
+                backgroundColor: cs.surfaceContainerHighest,
+                color: cs.primary,
+              ),
+            )
+          else
+            SelectableText(
+              what3words ?? '/// Unavailable',
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: cs.onSurface,
+                fontFamily: 'monospace',
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -677,8 +676,9 @@ class _ActionButton extends StatelessWidget {
                 icon: Icon(icon, size: 18),
                 label: Text(label),
                 style: FilledButton.styleFrom(
+                  // 12dp radius matches theme baseline
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   tapTargetSize: MaterialTapTargetSize.padded,
                 ),
@@ -690,8 +690,9 @@ class _ActionButton extends StatelessWidget {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: cs.onSurface,
                   side: BorderSide(color: cs.outline),
+                  // 12dp radius matches theme baseline
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   tapTargetSize: MaterialTapTargetSize.padded,
                 ),

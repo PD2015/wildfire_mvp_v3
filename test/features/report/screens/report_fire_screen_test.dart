@@ -102,7 +102,7 @@ void main() {
 
       // Check banner and tips icons are present
       expect(
-        find.byIcon(Icons.local_fire_department),
+        find.byIcon(Icons.warning_amber_outlined),
         findsOneWidget,
       ); // Banner
     });

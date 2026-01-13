@@ -84,24 +84,16 @@ class EmergencyHeroCard extends StatelessWidget {
     );
   }
 
-  /// Builds the header with fire icon and headline
+  /// Builds the header with warning icon and headline
   Widget _buildHeader(ColorScheme cs, TextTheme textTheme) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Fire icon in circle
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: cs.tertiaryContainer,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Icon(
-            Icons.local_fire_department,
-            color: cs.onTertiaryContainer,
-            size: 24,
-          ),
+        // Warning icon (no background)
+        Icon(
+          Icons.warning_amber_outlined,
+          color: cs.onSurface,
+          size: 24,
         ),
         const SizedBox(width: 12),
 
@@ -112,7 +104,7 @@ class EmergencyHeroCard extends StatelessWidget {
             child: Text(
               'See smoke, flames, or a campfire?',
               style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.bold,
                 color: cs.onSurface,
               ),
             ),

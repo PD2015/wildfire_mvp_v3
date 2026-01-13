@@ -129,24 +129,26 @@ void main() {
     });
 
     group('Success state', () {
-      testWidgets('shows place name', (tester) async {
+      testWidgets('shows place name with source in combined format',
+          (tester) async {
         await tester.pumpWidget(buildTestWidget(
           locationState: successState,
         ));
 
-        expect(find.text('Edinburgh'), findsOneWidget);
+        // New format: "Edinburgh · GPS"
+        expect(find.text('Edinburgh · GPS'), findsOneWidget);
       });
 
-      testWidgets('shows GPS badge for GPS source', (tester) async {
+      testWidgets('shows location icon in header', (tester) async {
         await tester.pumpWidget(buildTestWidget(
           locationState: successState,
         ));
 
-        expect(find.text('GPS'), findsOneWidget);
-        expect(find.byIcon(Icons.gps_fixed), findsOneWidget);
+        // Header uses location_on_outlined icon (no separate source icons)
+        expect(find.byIcon(Icons.location_on_outlined), findsOneWidget);
       });
 
-      testWidgets('shows Manual badge for manual source', (tester) async {
+      testWidgets('shows Manual source in combined format', (tester) async {
         final manualState = LocationDisplaySuccess(
           coordinates: testCoordinates,
           source: LocationSource.manual,
@@ -158,7 +160,8 @@ void main() {
           locationState: manualState,
         ));
 
-        expect(find.text('Manual'), findsOneWidget);
+        // New format: "Test Place · Manual"
+        expect(find.text('Test Place · Manual'), findsOneWidget);
       });
 
       testWidgets('shows expand button', (tester) async {
@@ -247,14 +250,14 @@ void main() {
         expect(find.text('Location copied to clipboard'), findsOneWidget);
       });
 
-      testWidgets('shows "Update location" button when location available',
+      testWidgets('shows "Change location" button when location available',
           (tester) async {
         await tester.pumpWidget(buildTestWidget(
           locationState: successState,
           onUpdateLocation: () {},
         ));
 
-        expect(find.text('Update location'), findsOneWidget);
+        expect(find.text('Change location'), findsOneWidget);
       });
 
       testWidgets('calls onUpdateLocation when tapped', (tester) async {
@@ -264,54 +267,14 @@ void main() {
           onUpdateLocation: () => called = true,
         ));
 
-        await tester.tap(find.text('Update location'));
+        await tester.tap(find.text('Change location'));
         await tester.pump();
 
         expect(called, isTrue);
       });
 
-      testWidgets('shows "Use GPS" button for manual location', (tester) async {
-        final manualState = LocationDisplaySuccess(
-          coordinates: testCoordinates,
-          source: LocationSource.manual,
-          lastUpdated: DateTime(2025, 1, 1),
-        );
-
-        await tester.pumpWidget(buildTestWidget(
-          locationState: manualState,
-          onUseGps: () {},
-        ));
-
-        expect(find.text('Use GPS'), findsOneWidget);
-      });
-
-      testWidgets('calls onUseGps when tapped', (tester) async {
-        bool called = false;
-        final manualState = LocationDisplaySuccess(
-          coordinates: testCoordinates,
-          source: LocationSource.manual,
-          lastUpdated: DateTime(2025, 1, 1),
-        );
-
-        await tester.pumpWidget(buildTestWidget(
-          locationState: manualState,
-          onUseGps: () => called = true,
-        ));
-
-        await tester.tap(find.text('Use GPS'));
-        await tester.pump();
-
-        expect(called, isTrue);
-      });
-
-      testWidgets('does not show "Use GPS" for GPS location', (tester) async {
-        await tester.pumpWidget(buildTestWidget(
-          locationState: successState,
-          onUseGps: () {},
-        ));
-
-        expect(find.text('Use GPS'), findsNothing);
-      });
+      // Note: 'Use GPS' button was removed from this widget in the redesign.
+      // GPS functionality is now handled at the screen level.
     });
 
     group('Expand/collapse', () {
@@ -343,8 +306,9 @@ void main() {
         );
         expect(iconRotation, findsOneWidget);
 
-        // Coordinates label should be in the tree
-        expect(find.text('Coordinates'), findsOneWidget);
+        // Latitude and Longitude labels should be in the tree (new box layout)
+        expect(find.text('Latitude'), findsOneWidget);
+        expect(find.text('Longitude'), findsOneWidget);
       });
 
       testWidgets('expands when expand button tapped', (tester) async {
@@ -422,8 +386,9 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // 55.9533, -3.1883 with 5dp precision
-        expect(find.text('55.95330, -3.18830'), findsOneWidget);
+        // 55.9533, -3.1883 with 5dp precision in separate boxes
+        expect(find.text('55.95330'), findsOneWidget); // Latitude value
+        expect(find.text('-3.18830'), findsOneWidget); // Longitude value
       });
     });
 
