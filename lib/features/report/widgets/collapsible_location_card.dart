@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 import 'package:wildfire_mvp_v3/models/location_display_state.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
+import 'package:wildfire_mvp_v3/theme/wildfire_a11y_theme.dart';
 import 'package:wildfire_mvp_v3/utils/location_utils.dart';
 import 'package:wildfire_mvp_v3/widgets/location_mini_map_preview.dart';
 
@@ -416,14 +417,7 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
   }) {
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: cs.outline.withValues(alpha: 0.15),
-          width: 1,
-        ),
-      ),
+      decoration: WildfireA11yTheme.fieldDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -457,14 +451,7 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: cs.outline.withValues(alpha: 0.15),
-          width: 1,
-        ),
-      ),
+      decoration: WildfireA11yTheme.fieldDecoration(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -514,7 +501,7 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
       children: [
         const SizedBox(height: 16),
         ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(WildfireA11yTheme.radiusCard),
           child: SizedBox(
             height: 120,
             width: double.infinity,

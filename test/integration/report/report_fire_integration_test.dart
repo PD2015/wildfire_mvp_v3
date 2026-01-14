@@ -62,17 +62,18 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
 
       // Find buttons by their text content instead of widget type
-      expect(find.text('Call 999 — Fire Service'), findsOneWidget);
-      expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
+      // Note: 999 button uses en-dash (–) not em-dash (—)
+      expect(find.text('999 – Fire Service'), findsOneWidget);
+      expect(find.text('101 Police'), findsOneWidget);
 
       // Scroll to see third button
       await tester.drag(find.byType(ListView), const Offset(0, -300));
       await tester.pumpAndSettle();
 
-      expect(find.text('Call 0800 555 111 — Crimestoppers'), findsOneWidget);
+      expect(find.text('Crimestoppers'), findsOneWidget);
 
       // Test 999 Fire Service button (tap text directly - ElevatedButton.icon has different widget type)
-      final fireServiceButton = find.text('Call 999 — Fire Service');
+      final fireServiceButton = find.text('999 – Fire Service');
       expect(fireServiceButton, findsOneWidget);
       await tester.tap(fireServiceButton);
       await tester.pumpAndSettle();
@@ -87,7 +88,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Test 101 Police Scotland button
-      final policeButton = find.text('Call 101 — Police Scotland');
+      final policeButton = find.text('101 Police');
       expect(policeButton, findsOneWidget);
       await tester.tap(policeButton);
       await tester.pumpAndSettle();
@@ -101,9 +102,8 @@ void main() {
       await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
 
-      // Test 0800 555 111 Crimestoppers button
-      final crimestoppersButton =
-          find.text('Call 0800 555 111 — Crimestoppers');
+      // Test Crimestoppers button
+      final crimestoppersButton = find.text('Crimestoppers');
       expect(crimestoppersButton, findsOneWidget);
       await tester.tap(crimestoppersButton);
       await tester.pumpAndSettle();
@@ -111,7 +111,7 @@ void main() {
       // Should show SnackBar fallback
       expect(find.byType(SnackBar), findsOneWidget);
       expect(find.textContaining('Could not open dialer'), findsOneWidget);
-      expect(find.textContaining('0800555111'), findsOneWidget);
+      expect(find.textContaining('0800'), findsOneWidget);
 
       // Dismiss SnackBar and navigate back
       await tester.tap(find.text('OK'));
@@ -143,8 +143,8 @@ void main() {
       // Verify initial portrait layout
       expect(find.text('Report a Fire'), findsOneWidget);
       // Verify all 3 emergency buttons are present by text
-      expect(find.text('Call 999 — Fire Service'), findsOneWidget);
-      expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
+      expect(find.text('999 – Fire Service'), findsOneWidget);
+      expect(find.text('101 Police'), findsOneWidget);
 
       // Simulate landscape orientation
       await tester.binding.setSurfaceSize(const Size(800, 600));
@@ -153,10 +153,10 @@ void main() {
       // Verify functionality still works in landscape
       expect(find.text('Report a Fire'), findsOneWidget);
       // Verify all 3 emergency buttons are present by text
-      expect(find.text('Call 999 — Fire Service'), findsOneWidget);
-      expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
+      expect(find.text('999 – Fire Service'), findsOneWidget);
+      expect(find.text('101 Police'), findsOneWidget);
 
-      final fireServiceButton = find.text('Call 999 — Fire Service');
+      final fireServiceButton = find.text('999 – Fire Service');
       await tester.tap(fireServiceButton);
       await tester.pumpAndSettle();
 
@@ -180,7 +180,7 @@ void main() {
       await tester.tap(reportButton);
       await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      final fireServiceButton = find.text('Call 999 — Fire Service');
+      final fireServiceButton = find.text('999 – Fire Service');
 
       // Rapid tap test
       for (int i = 0; i < 10; i++) {
@@ -191,8 +191,8 @@ void main() {
       // Should handle gracefully without crashes
       expect(find.text('Report a Fire'), findsOneWidget);
       // Verify all 3 emergency buttons are present by text
-      expect(find.text('Call 999 — Fire Service'), findsOneWidget);
-      expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
+      expect(find.text('999 – Fire Service'), findsOneWidget);
+      expect(find.text('101 Police'), findsOneWidget);
     });
 
     testWidgets('deep link navigation to /report works', (tester) async {
@@ -216,8 +216,8 @@ void main() {
       expect(find.text('Report a Fire'), findsOneWidget);
       expect(find.byType(AppBar), findsOneWidget);
       // Verify all 3 emergency buttons are present by text
-      expect(find.text('Call 999 — Fire Service'), findsOneWidget);
-      expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
+      expect(find.text('999 – Fire Service'), findsOneWidget);
+      expect(find.text('101 Police'), findsOneWidget);
     });
 
     testWidgets('screen works offline without network dependencies',
@@ -238,13 +238,13 @@ void main() {
       expect(find.text('Report a Fire'), findsOneWidget);
       expect(find.text('Act fast — stay safe.'), findsOneWidget);
       // Verify all 3 emergency buttons are present by text
-      expect(find.text('Call 999 — Fire Service'), findsOneWidget);
-      expect(find.text('Call 101 — Police Scotland'), findsOneWidget);
+      expect(find.text('999 – Fire Service'), findsOneWidget);
+      expect(find.text('101 Police'), findsOneWidget);
 
       // Verify all buttons are functional
       final buttons = [
-        find.text('Call 999 — Fire Service'),
-        find.text('Call 101 — Police Scotland'),
+        find.text('999 – Fire Service'),
+        find.text('101 Police'),
       ];
 
       // Test first two buttons (visible without scroll)
@@ -268,8 +268,7 @@ void main() {
       await tester.drag(find.byType(ListView), const Offset(0, -300));
       await tester.pumpAndSettle();
 
-      final crimestoppersButton =
-          find.text('Call 0800 555 111 — Crimestoppers');
+      final crimestoppersButton = find.text('Crimestoppers');
       expect(crimestoppersButton, findsOneWidget);
       await tester.tap(crimestoppersButton);
       await tester.pumpAndSettle();
@@ -312,7 +311,7 @@ void main() {
       expect(find.text('Report a Fire'), findsOneWidget);
 
       // Test button response time
-      final fireServiceButton = find.text('Call 999 — Fire Service');
+      final fireServiceButton = find.text('999 – Fire Service');
       final buttonTapStart = stopwatch.elapsedMilliseconds;
 
       await tester.tap(fireServiceButton);

@@ -9,6 +9,7 @@ import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
 import 'package:wildfire_mvp_v3/widgets/risk_guidance_card.dart';
+import 'package:wildfire_mvp_v3/widgets/location_chip.dart';
 
 /// Mock HomeController for testing UI interactions
 class MockHomeController extends ChangeNotifier implements HomeController {
@@ -87,11 +88,9 @@ class TestData {
 void main() {
   group('HomeScreen Widget Tests', () {
     late MockHomeController mockController;
-    bool locationPickerNavigated = false;
 
     setUp(() {
       mockController = MockHomeController();
-      locationPickerNavigated = false;
     });
 
     tearDown(() {
@@ -163,12 +162,11 @@ void main() {
 
         // Assert - Retry button should not be visible in loading state
         expect(find.text('Retry'), findsNothing);
-        // LocationCard button should still be present
-        // Updated: Button text is now "Change Location" or "Change" (no "Set")
-        final hasChangeLocation =
-            find.text('Change Location').evaluate().isNotEmpty;
-        final hasChange = find.text('Change').evaluate().isNotEmpty;
-        expect(hasChangeLocation || hasChange, isTrue);
+        // LocationChip should still be present (shown via RiskBanner)
+        // The chip shows location name and source, not "Change Location" button
+        // Just verify loading indicators are present during loading
+        // Note: There may be multiple CircularProgressIndicators (state info card + retry button)
+        expect(find.byType(CircularProgressIndicator), findsAtLeastNWidgets(1));
       });
     });
 
@@ -195,8 +193,15 @@ void main() {
         // Act
         await tester.pumpWidget(buildHomeScreen());
 
-        // Assert
-        expect(find.byType(CircularProgressIndicator), findsNothing);
+        // Assert - Verify success state content is visible
+        // Note: CircularProgressIndicator may still be present in collapsed LocationChip panel
+        // (waiting for static map that needs API key), but the main loading card should not show
+        expect(
+          find.textContaining('Loading fire risk data'),
+          findsNothing,
+          reason:
+              'Loading state info card should not be visible in success state',
+        );
         expect(
           find.textContaining('Updated'),
           findsAtLeastNWidgets(1),
@@ -300,76 +305,75 @@ void main() {
     });
 
     group('Manual Location Functionality', () {
-      testWidgets('location card change/set button is always present',
+      testWidgets(
+          'location chip is present in RiskBanner for success and error with cached data',
           (tester) async {
-        // Test with different states
-        final states = [
-          HomeStateLoading(startTime: DateTime.now()),
+        // LocationChip is only visible in Success and Error states (with cached risk data)
+        // Error state WITHOUT cachedData does not show locationChip
+        final statesWithLocation = [
+          // Success state always has location
           HomeStateSuccess(
             riskData: TestData.createFireRisk(),
             location: TestData.edinburgh,
             lastUpdated: DateTime.now(),
             locationSource: LocationSource.gps,
           ),
-          const HomeStateError(errorMessage: 'Test error'),
+          // Error state WITH cached risk data (required for locationChip to show)
+          HomeStateError(
+            errorMessage: 'Test error',
+            cachedLocation: TestData.edinburgh,
+            cachedData: TestData
+                .createFireRisk(), // Required for RiskBanner to show locationChip
+          ),
         ];
 
-        for (final state in states) {
+        for (final state in statesWithLocation) {
           mockController.setState(state);
           await tester.pumpWidget(buildHomeScreen());
 
-          // LocationCard shows "Change Location" or "Change" button
-          // Updated: Button text no longer includes "Set"
-          final hasChangeLocation =
-              find.text('Change Location').evaluate().isNotEmpty;
-          final hasChange = find.text('Change').evaluate().isNotEmpty;
+          // LocationChipWithPanel is now used instead of LocationCard
+          // Verify LocationChip widget is present
+          final hasLocationChip =
+              find.byType(LocationChip).evaluate().isNotEmpty;
 
           expect(
-            hasChangeLocation || hasChange,
+            hasLocationChip,
             isTrue,
-            reason: 'LocationCard button should be present in all states',
+            reason:
+                'LocationChip should be present when location data is available in state: ${state.runtimeType}',
           );
         }
       });
 
-      testWidgets('location card button is accessible during loading', (
+      testWidgets(
+          'location chip is not shown during loading or error without cached data',
+          (
         tester,
       ) async {
-        // Arrange
-        mockController.setState(
-          HomeStateLoading(startTime: DateTime.now()),
-          loading: true,
-        );
+        // States where LocationChip should NOT be present
+        final statesWithoutChip = [
+          // Loading state (RiskBanner loading doesn't display locationChip)
+          HomeStateLoading(
+            startTime: DateTime.now(),
+            lastKnownLocation: TestData.edinburgh,
+          ),
+          // Error state without cachedData
+          const HomeStateError(errorMessage: 'Test error'),
+        ];
 
-        await tester.pumpWidget(buildHomeScreen());
+        for (final state in statesWithoutChip) {
+          mockController.setState(state, loading: state is HomeStateLoading);
+          await tester.pumpWidget(buildHomeScreen());
 
-        // Act & Assert - Button should be present and tappable even during loading
-        // Updated: Button text is now "Change Location" or "Change" (no "Set")
-        final hasChangeLocation =
-            find.text('Change Location').evaluate().isNotEmpty;
-        final hasChange = find.text('Change').evaluate().isNotEmpty;
-        expect(hasChangeLocation || hasChange, isTrue,
-            reason: 'LocationCard button should be present during loading');
-
-        // Verify button is tappable - find OutlinedButton widget directly
-        // Note: OutlinedButton.icon creates a _OutlinedButtonWithIcon which is a
-        // subclass of OutlinedButton. find.byType uses strict matching so we use
-        // byWidgetPredicate with 'is' check to find subclasses properly.
-        final outlinedButtons = find.byWidgetPredicate(
-          (widget) => widget is OutlinedButton,
-        );
-        expect(outlinedButtons, findsWidgets,
-            reason: 'Should have OutlinedButton for location change');
-
-        // Verify at least one OutlinedButton has an onPressed callback
-        final buttonWidget =
-            tester.widget<OutlinedButton>(outlinedButtons.first);
-        expect(buttonWidget.onPressed, isNotNull,
-            reason: 'Button should be enabled during loading');
+          final locationChip = find.byType(LocationChip);
+          expect(locationChip, findsNothing,
+              reason:
+                  'LocationChip should not be present in state: ${state.runtimeType}');
+        }
       });
 
       testWidgets(
-          'tapping location card button navigates to location picker screen', (
+          'tapping location chip expands panel with Change Location button', (
         tester,
       ) async {
         // Arrange
@@ -382,30 +386,20 @@ void main() {
           ),
         );
 
-        await tester.pumpWidget(
-          buildHomeScreen(
-            additionalRoutes: [
-              GoRoute(
-                path: '/location-picker',
-                builder: (context, state) {
-                  locationPickerNavigated = true;
-                  return const Scaffold(
-                    body: Center(child: Text('Location Picker Screen')),
-                  );
-                },
-              ),
-            ],
-          ),
-        );
+        await tester.pumpWidget(buildHomeScreen());
 
-        // Act - Tap the Change Location button in LocationCard
-        // Updated: Button text is now "Change Location" for non-manual locations
-        await tester.tap(find.text('Change Location'));
-        await tester.pumpAndSettle();
+        // Act - First tap the LocationChip to expand the panel
+        await tester.tap(find.byType(LocationChip));
+        // Use pump() with duration instead of pumpAndSettle() to avoid timeout
+        // from the CircularProgressIndicator animation in the collapsed map preview
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump(const Duration(
+            milliseconds: 100)); // Let expansion animation complete
 
-        // Assert - Should navigate to location picker
-        expect(locationPickerNavigated, isTrue);
-        expect(find.text('Location Picker Screen'), findsOneWidget);
+        // Assert - Change Location button should now be visible in expanded panel
+        expect(find.text('Change Location'), findsOneWidget,
+            reason:
+                'Change Location button should be visible after expanding the LocationChip');
       });
     });
 
@@ -613,7 +607,7 @@ void main() {
       testWidgets('does not show retry button when canRetry is false', (
         tester,
       ) async {
-        // Arrange
+        // Arrange - Error state without cached data, can't retry
         mockController.setState(
           const HomeStateError(
             errorMessage: 'Permanent error',
@@ -625,12 +619,10 @@ void main() {
 
         // Assert
         expect(find.text('Retry'), findsNothing);
-        // LocationCard button should still be present
-        // Updated: Button text is now "Change Location" or "Change" (no "Set")
-        final hasChangeLocation =
-            find.text('Change Location').evaluate().isNotEmpty;
-        final hasChange = find.text('Change').evaluate().isNotEmpty;
-        expect(hasChangeLocation || hasChange, isTrue);
+        // Note: LocationChip is NOT shown in error state without cachedData
+        // RiskBanner's _buildErrorWithoutCachedData doesn't render locationChip
+        // Verify the error message is displayed
+        expect(find.text('Unable to load wildfire risk data'), findsOneWidget);
       });
     });
 

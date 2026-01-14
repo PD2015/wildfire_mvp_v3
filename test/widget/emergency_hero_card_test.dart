@@ -56,17 +56,22 @@ void main() {
     });
 
     group('Instruction text', () {
-      testWidgets('shows emergency instructions', (tester) async {
+      testWidgets('shows emergency instructions in RichText', (tester) async {
         await tester.pumpWidget(buildTestWidget());
 
-        expect(
-          find.textContaining('If it\'s spreading or unsafe'),
-          findsOneWidget,
-        );
-        expect(
-          find.textContaining('call 999 immediately'),
-          findsOneWidget,
-        );
+        // Instructions are in a RichText widget, so we need to find by RichText type
+        // and verify the text content exists
+        expect(find.byType(RichText), findsWidgets);
+
+        // Alternative: use byWidgetPredicate to find text content in RichText
+        final richTextFinder = find.byWidgetPredicate((widget) {
+          if (widget is RichText) {
+            final text = widget.text.toPlainText();
+            return text.contains('spreading') && text.contains('999');
+          }
+          return false;
+        });
+        expect(richTextFinder, findsOneWidget);
       });
     });
 
@@ -163,39 +168,52 @@ void main() {
         expect(find.text('Not an emergency?'), findsOneWidget);
       });
 
-      testWidgets('shows 101 guidance for campfires and peat', (tester) async {
+      testWidgets('shows 101 guidance for irresponsible fires', (tester) async {
         await tester.pumpWidget(buildTestWidget());
 
-        expect(
-          find.textContaining('campfire or smouldering peat'),
-          findsOneWidget,
-        );
+        // Text is in RichText/TextSpan, so use byWidgetPredicate
+        final richTextFinder = find.byWidgetPredicate((widget) {
+          if (widget is RichText) {
+            final text = widget.text.toPlainText();
+            return text.contains('lighting a fire irresponsibly');
+          }
+          return false;
+        });
+        expect(richTextFinder, findsOneWidget);
       });
 
       testWidgets('shows Crimestoppers guidance', (tester) async {
         await tester.pumpWidget(buildTestWidget());
 
-        expect(
-          find.textContaining('Suspicious activity'),
-          findsOneWidget,
-        );
+        // Text is in RichText/TextSpan, so use byWidgetPredicate
+        final richTextFinder = find.byWidgetPredicate((widget) {
+          if (widget is RichText) {
+            final text = widget.text.toPlainText();
+            return text.contains('report anonymously');
+          }
+          return false;
+        });
+        expect(richTextFinder, findsOneWidget);
       });
 
       testWidgets('shows "Learn more" link', (tester) async {
         await tester.pumpWidget(buildTestWidget());
 
+        // Text without arrow - arrow is now a separate Icon widget
         expect(
-          find.text('When to call each number →'),
+          find.text('When to call each number'),
           findsOneWidget,
         );
+        // Arrow icon is separate
+        expect(find.byIcon(Icons.arrow_forward), findsOneWidget);
       });
 
       testWidgets('"Learn more" link has semantic label', (tester) async {
         await tester.pumpWidget(buildTestWidget());
 
-        // Find InkWell with the link text
+        // Find InkWell with the link text (without arrow character)
         final inkWell =
-            find.widgetWithText(InkWell, 'When to call each number →');
+            find.widgetWithText(InkWell, 'When to call each number');
         expect(inkWell, findsOneWidget);
       });
     });
