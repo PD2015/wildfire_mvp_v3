@@ -10,7 +10,7 @@ import 'package:wildfire_mvp_v3/widgets/location_mini_map_preview.dart';
 ///
 /// Displays location information with all details visible.
 /// Unlike the Risk screen location UI, this version:
-/// - Uses emergency-focused copy: "Copy for your call"
+/// - Uses emergency-focused copy: "Copy location details"
 /// - Shows all location data at once (no expand/collapse)
 ///
 /// Layout:
@@ -118,7 +118,11 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
               const SizedBox(height: 16),
 
               // Location content based on state
-              _buildLocationContent(theme, cs),
+              // Left padding aligns with header title (icon 24 + spacing 12 = 36)
+              Padding(
+                padding: const EdgeInsets.only(left: 36),
+                child: _buildLocationContent(theme, cs),
+              ),
             ],
           ),
         ),
@@ -382,11 +386,11 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Copy for your call button (primary action)
+        // Copy location details button (primary action)
         if (hasLocation)
           _ActionButton(
             icon: Icons.copy,
-            label: 'Copy for your call',
+            label: 'Copy location details',
             onPressed: widget.onCopyForCall ?? _copyLocationToClipboard,
             isPrimary: true,
           ),

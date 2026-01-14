@@ -182,14 +182,15 @@ void main() {
     });
 
     group('Action buttons', () {
-      testWidgets('shows "Copy for your call" button when location available',
+      testWidgets(
+          'shows "Copy location details" button when location available',
           (tester) async {
         await tester.pumpWidget(buildTestWidget(
           locationState: successState,
           onCopyForCall: () {},
         ));
 
-        expect(find.text('Copy for your call'), findsOneWidget);
+        expect(find.text('Copy location details'), findsOneWidget);
       });
 
       testWidgets('calls onCopyForCall when tapped', (tester) async {
@@ -199,7 +200,7 @@ void main() {
           onCopyForCall: () => called = true,
         ));
 
-        await tester.tap(find.text('Copy for your call'));
+        await tester.tap(find.text('Copy location details'));
         await tester.pump();
 
         expect(called, isTrue);
@@ -226,7 +227,7 @@ void main() {
           // No onCopyForCall provided - uses internal copy
         ));
 
-        await tester.tap(find.text('Copy for your call'));
+        await tester.tap(find.text('Copy location details'));
         await tester.pumpAndSettle();
 
         // Verify clipboard contains location data
@@ -308,8 +309,8 @@ void main() {
           onUpdateLocation: () {},
         ));
 
-        // Find "Copy for your call" text, then check its wrapping SizedBox has height 48
-        final copyText = find.text('Copy for your call');
+        // Find "Copy location details" text, then check its wrapping SizedBox has height 48
+        final copyText = find.text('Copy location details');
         expect(copyText, findsOneWidget);
 
         // The button should be wrapped in a SizedBox with height 48

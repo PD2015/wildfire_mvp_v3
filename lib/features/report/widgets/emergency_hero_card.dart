@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:wildfire_mvp_v3/features/report/models/emergency_contact.dart';
 import 'package:wildfire_mvp_v3/features/report/widgets/emergency_button.dart';
 
@@ -69,6 +70,10 @@ class EmergencyHeroCard extends StatelessWidget {
                 contact: EmergencyContact.fireService,
                 onPressed: onCall999,
               ),
+              const SizedBox(height: 16),
+
+              // Non-emergency guidance with "Learn more" link
+              _buildNonEmergencyGuidance(context, cs, textTheme),
               const SizedBox(height: 12),
 
               // Secondary buttons row: 101 and Crimestoppers
@@ -122,6 +127,62 @@ class EmergencyHeroCard extends StatelessWidget {
       style: textTheme.bodyMedium?.copyWith(
         color: cs.onSurfaceVariant,
       ),
+    );
+  }
+
+  /// Builds non-emergency guidance text with "Learn more" link
+  ///
+  /// Provides brief inline context for when to use 101 vs Crimestoppers,
+  /// with a link to detailed help content for scenarios like:
+  /// - Unattended campfires
+  /// - Smouldering peat needing monitoring
+  /// - Suspicious activity
+  Widget _buildNonEmergencyGuidance(
+    BuildContext context,
+    ColorScheme cs,
+    TextTheme textTheme,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Not an emergency?',
+          style: textTheme.labelMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: cs.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '• Unattended campfire or smouldering peat → 101\n'
+          '• Suspicious activity → Crimestoppers',
+          style: textTheme.bodySmall?.copyWith(
+            color: cs.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 8),
+        // "Learn more" link - 48dp touch target for C3 compliance
+        Semantics(
+          link: true,
+          label: 'Learn more about when to call each number',
+          child: InkWell(
+            onTap: () =>
+                GoRouter.of(context).push('/help/safety/emergency-guidance'),
+            borderRadius: BorderRadius.circular(4),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'When to call each number →',
+                style: textTheme.bodySmall?.copyWith(
+                  color: cs.primary,
+                  decoration: TextDecoration.underline,
+                  decorationColor: cs.primary,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

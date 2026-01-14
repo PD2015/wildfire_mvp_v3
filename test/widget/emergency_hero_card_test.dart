@@ -39,10 +39,10 @@ void main() {
     }
 
     group('Header display', () {
-      testWidgets('shows fire icon', (tester) async {
+      testWidgets('shows warning icon', (tester) async {
         await tester.pumpWidget(buildTestWidget());
 
-        expect(find.byIcon(Icons.local_fire_department), findsOneWidget);
+        expect(find.byIcon(Icons.warning_amber_outlined), findsOneWidget);
       });
 
       testWidgets('shows headline text', (tester) async {
@@ -153,6 +153,50 @@ void main() {
         // Both 101 Police and Crimestoppers buttons exist
         expect(find.text('101 Police'), findsOneWidget);
         expect(find.text('Crimestoppers'), findsOneWidget);
+      });
+    });
+
+    group('Non-emergency guidance', () {
+      testWidgets('shows "Not an emergency?" heading', (tester) async {
+        await tester.pumpWidget(buildTestWidget());
+
+        expect(find.text('Not an emergency?'), findsOneWidget);
+      });
+
+      testWidgets('shows 101 guidance for campfires and peat', (tester) async {
+        await tester.pumpWidget(buildTestWidget());
+
+        expect(
+          find.textContaining('campfire or smouldering peat'),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('shows Crimestoppers guidance', (tester) async {
+        await tester.pumpWidget(buildTestWidget());
+
+        expect(
+          find.textContaining('Suspicious activity'),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('shows "Learn more" link', (tester) async {
+        await tester.pumpWidget(buildTestWidget());
+
+        expect(
+          find.text('When to call each number →'),
+          findsOneWidget,
+        );
+      });
+
+      testWidgets('"Learn more" link has semantic label', (tester) async {
+        await tester.pumpWidget(buildTestWidget());
+
+        // Find InkWell with the link text
+        final inkWell =
+            find.widgetWithText(InkWell, 'When to call each number →');
+        expect(inkWell, findsOneWidget);
       });
     });
 
