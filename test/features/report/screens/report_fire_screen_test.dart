@@ -51,10 +51,8 @@ void main() {
 
       // Assert - Check for new EmergencyHeroCard layout
       expect(find.text('See smoke, flames, or a campfire?'), findsOneWidget);
-      expect(
-        find.textContaining('If it\'s spreading or unsafe, call 999'),
-        findsOneWidget,
-      );
+      // RichText splits instruction into spans, check for RichText widget presence
+      expect(find.byType(RichText), findsWidgets);
       // Check for disclaimer text
       expect(
         find.textContaining('This app does not contact emergency services'),

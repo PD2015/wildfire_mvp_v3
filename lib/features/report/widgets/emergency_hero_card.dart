@@ -119,13 +119,27 @@ class EmergencyHeroCard extends StatelessWidget {
     );
   }
 
-  /// Builds the emergency instruction text
+  /// Builds the emergency instruction text with bold emphasis on key action
   Widget _buildInstruction(ColorScheme cs, TextTheme textTheme) {
-    return Text(
-      'If it\'s spreading or unsafe, call 999 immediately.\n'
-      'Give your location, what\'s burning, and a safe access point.',
-      style: textTheme.bodyMedium?.copyWith(
-        color: cs.onSurfaceVariant,
+    final baseStyle = textTheme.bodyMedium?.copyWith(
+      color: cs.onSurfaceVariant,
+    );
+    final boldStyle = baseStyle?.copyWith(
+      fontWeight: FontWeight.bold,
+      color: cs.onSurface,
+    );
+
+    return RichText(
+      text: TextSpan(
+        style: baseStyle,
+        children: [
+          const TextSpan(text: 'If it\'s spreading or unsafe,\n'),
+          TextSpan(text: 'call 999 immediately.', style: boldStyle),
+          const TextSpan(
+            text:
+                '\n\nGive your location, what\'s burning,\nand a safe access point.',
+          ),
+        ],
       ),
     );
   }
@@ -145,40 +159,114 @@ class EmergencyHeroCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Divider to separate from 999 button
+        Divider(
+          color: cs.outlineVariant.withValues(alpha: 0.3),
+          height: 1,
+        ),
+        const SizedBox(height: 16),
+
+        // Title - white and bold to stand out
         Text(
           'Not an emergency?',
-          style: textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: cs.onSurfaceVariant,
+          style: textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: cs.onSurface,
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          '• Unattended campfire or smouldering peat → 101\n'
-          '• Suspicious activity → Crimestoppers',
-          style: textTheme.bodySmall?.copyWith(
-            color: cs.onSurfaceVariant,
-          ),
+        const SizedBox(height: 12),
+
+        // Bullet points with highlighted numbers
+        _buildBulletItem(
+          cs,
+          textTheme,
+          text:
+              'Someone lighting a fire irresponsibly? Call Police Scotland on ',
+          highlightedNumber: '101',
         ),
         const SizedBox(height: 8),
-        // "Learn more" link - 48dp touch target for C3 compliance
+        _buildBulletItem(
+          cs,
+          textTheme,
+          text: 'Want to report anonymously? Call ',
+          highlightedNumber: 'Crimestoppers',
+        ),
+
+        const SizedBox(height: 12),
+
+        // "Learn more" link with icon - 48dp touch target for C3 compliance
         Semantics(
           link: true,
           label: 'Learn more about when to call each number',
           child: InkWell(
             onTap: () =>
                 GoRouter.of(context).push('/help/safety/emergency-guidance'),
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(8),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                'When to call each number →',
-                style: textTheme.bodySmall?.copyWith(
-                  color: cs.primary,
-                  decoration: TextDecoration.underline,
-                  decorationColor: cs.primary,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.help_outline,
+                    size: 16,
+                    color: cs.primary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'When to call each number',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: cs.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.arrow_forward,
+                    size: 14,
+                    color: cs.primary,
+                  ),
+                ],
               ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Builds a bullet item with highlighted number/text
+  Widget _buildBulletItem(
+    ColorScheme cs,
+    TextTheme textTheme, {
+    required String text,
+    required String highlightedNumber,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '•  ',
+          style: textTheme.bodySmall?.copyWith(
+            color: cs.onSurfaceVariant,
+          ),
+        ),
+        Expanded(
+          child: RichText(
+            text: TextSpan(
+              style: textTheme.bodySmall?.copyWith(
+                color: cs.onSurfaceVariant,
+              ),
+              children: [
+                TextSpan(text: text),
+                TextSpan(
+                  text: highlightedNumber,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: cs.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ),
         ),

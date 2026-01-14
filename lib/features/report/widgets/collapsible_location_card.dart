@@ -118,11 +118,8 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
               const SizedBox(height: 16),
 
               // Location content based on state
-              // Left padding aligns with header title (icon 24 + spacing 12 = 36)
-              Padding(
-                padding: const EdgeInsets.only(left: 36),
-                child: _buildLocationContent(theme, cs),
-              ),
+              // Content aligned with card padding (no extra left padding)
+              _buildLocationContent(theme, cs),
             ],
           ),
         ),
@@ -438,7 +435,7 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
             style: theme.textTheme.bodyLarge?.copyWith(
               color: cs.onSurface,
               fontFamily: 'monospace',
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],
@@ -489,7 +486,7 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: cs.onSurface,
                 fontFamily: 'monospace',
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.bold,
               ),
             ),
         ],

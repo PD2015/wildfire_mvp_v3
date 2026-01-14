@@ -167,37 +167,23 @@ class _TipsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header row with icon
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.lightbulb, color: cs.onSecondaryContainer),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Safety Tips',
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: cs.onSecondaryContainer,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '• Use What3Words or GPS for your location\n'
-                        '• Never fight wildfires yourself\n'
-                        '• If smoke approaches, move uphill and upwind\n'
-                        '• Keep vehicle access clear for fire engines',
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: cs.onSecondaryContainer,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            // Safety Tips header and content (no icon)
+            Text(
+              'Safety Tips',
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: cs.onSecondaryContainer,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '• Use What3Words or GPS for your location\n'
+              '• Never fight wildfires yourself\n'
+              '• If smoke approaches, move uphill and upwind\n'
+              '• Keep vehicle access clear for fire engines',
+              style: textTheme.bodyMedium?.copyWith(
+                color: cs.onSecondaryContainer,
+              ),
             ),
 
             const SizedBox(height: 12),
