@@ -342,8 +342,6 @@ class _SecondaryEmergencyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     // Shorter label for row layout
     final label = switch (contact) {
       EmergencyContact.policeScotland => '101 Police',
@@ -363,9 +361,6 @@ class _SecondaryEmergencyButton extends StatelessWidget {
           icon: const Icon(Icons.call, size: 18),
           label: Text(
             label,
-            style: theme.textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
             overflow: TextOverflow.ellipsis,
           ),
           style: OutlinedButton.styleFrom(
