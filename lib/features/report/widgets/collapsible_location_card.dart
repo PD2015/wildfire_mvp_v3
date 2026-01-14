@@ -115,7 +115,7 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
             children: [
               // Header row
               _buildHeader(theme, cs),
-              const SizedBox(height: 16),
+              const SizedBox(height: 4),
 
               // Location content based on state
               // Content aligned with card padding (no extra left padding)
@@ -262,9 +262,9 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Summary row: Place name · Source badge
+        // Summary row: Place name · Source badge (tight to header)
         _buildSummaryRow(theme, cs, placeName, source, formattedLocation),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
 
         // Coordinates: Two separate boxes side-by-side
         Row(
@@ -363,13 +363,17 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
       LocationSource.defaultFallback => 'Default',
     };
 
-    return Text(
-      '$displayText · $sourceText',
-      style: theme.textTheme.bodyMedium?.copyWith(
-        color: cs.onSurfaceVariant,
+    // Left padding aligns with header title (icon 24 + spacing 12 = 36)
+    return Padding(
+      padding: const EdgeInsets.only(left: 36),
+      child: Text(
+        '$displayText · $sourceText',
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: cs.onSurfaceVariant,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
     );
   }
 
@@ -571,9 +575,6 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
     return Semantics(
       button: true,
       label: label,
@@ -598,12 +599,7 @@ class _ActionButton extends StatelessWidget {
                 icon: Icon(icon, size: 18),
                 label: Text(label),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: cs.onSurface,
-                  side: BorderSide(color: cs.outline),
-                  // 12dp radius matches theme baseline
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                  // Only override tap target; theme handles colors and border
                   tapTargetSize: MaterialTapTargetSize.padded,
                 ),
               ),

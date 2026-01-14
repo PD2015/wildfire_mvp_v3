@@ -133,11 +133,11 @@ class EmergencyHeroCard extends StatelessWidget {
       text: TextSpan(
         style: baseStyle,
         children: [
-          const TextSpan(text: 'If it\'s spreading or unsafe,\n'),
-          TextSpan(text: 'call 999 immediately.', style: boldStyle),
+          const TextSpan(text: 'If it\'s spreading or unsafe, '),
+          TextSpan(text: 'call 999 immediately. ', style: boldStyle),
           const TextSpan(
             text:
-                '\n\nGive your location, what\'s burning,\nand a safe access point.',
+                'Give your location, what\'s burning, and a safe access point.',
           ),
         ],
       ),
@@ -161,7 +161,7 @@ class EmergencyHeroCard extends StatelessWidget {
       children: [
         // Divider to separate from 999 button
         Divider(
-          color: cs.outlineVariant.withValues(alpha: 0.3),
+          color: cs.outlineVariant,
           height: 1,
         ),
         const SizedBox(height: 16),
@@ -210,13 +210,13 @@ class EmergencyHeroCard extends StatelessWidget {
                   Icon(
                     Icons.help_outline,
                     size: 16,
-                    color: cs.primary,
+                    color: cs.onSurface,
                   ),
                   const SizedBox(width: 6),
                   Text(
                     'When to call each number',
                     style: textTheme.bodySmall?.copyWith(
-                      color: cs.primary,
+                      color: cs.onSurface,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -224,7 +224,7 @@ class EmergencyHeroCard extends StatelessWidget {
                   Icon(
                     Icons.arrow_forward,
                     size: 14,
-                    color: cs.primary,
+                    color: cs.onSurface,
                   ),
                 ],
               ),
@@ -247,21 +247,21 @@ class EmergencyHeroCard extends StatelessWidget {
       children: [
         Text(
           '•  ',
-          style: textTheme.bodySmall?.copyWith(
+          style: textTheme.bodyMedium?.copyWith(
             color: cs.onSurfaceVariant,
           ),
         ),
         Expanded(
           child: RichText(
             text: TextSpan(
-              style: textTheme.bodySmall?.copyWith(
+              style: textTheme.bodyMedium?.copyWith(
                 color: cs.onSurfaceVariant,
               ),
               children: [
                 TextSpan(text: text),
                 TextSpan(
                   text: highlightedNumber,
-                  style: textTheme.bodySmall?.copyWith(
+                  style: textTheme.bodyMedium?.copyWith(
                     color: cs.onSurface,
                     fontWeight: FontWeight.bold,
                   ),
@@ -343,7 +343,6 @@ class _SecondaryEmergencyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
 
     // Shorter label for row layout
     final label = switch (contact) {
@@ -370,11 +369,7 @@ class _SecondaryEmergencyButton extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           style: OutlinedButton.styleFrom(
-            foregroundColor: cs.onSurface,
-            side: BorderSide(color: cs.outline),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            // Only override size/tap target; theme handles colors and border
             minimumSize: const Size(0, 48),
             tapTargetSize: MaterialTapTargetSize.padded,
           ),
