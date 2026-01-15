@@ -50,16 +50,20 @@ void main() {
     });
 
     group('Bundled year detection', () {
-      test('2024 has bundled data', () {
-        expect(CachedBurntAreaService.hasBundledData(2024), isTrue);
+      test('current year has bundled data', () {
+        final currentYear = DateTime.now().year;
+        expect(CachedBurntAreaService.hasBundledData(currentYear), isTrue);
       });
 
-      test('2025 has bundled data', () {
-        expect(CachedBurntAreaService.hasBundledData(2025), isTrue);
+      test('previous year has bundled data', () {
+        final previousYear = DateTime.now().year - 1;
+        expect(CachedBurntAreaService.hasBundledData(previousYear), isTrue);
       });
 
-      test('2023 does not have bundled data', () {
-        expect(CachedBurntAreaService.hasBundledData(2023), isFalse);
+      test('year before previous does not have bundled data', () {
+        final yearBeforePrevious = DateTime.now().year - 2;
+        expect(
+            CachedBurntAreaService.hasBundledData(yearBeforePrevious), isFalse);
       });
 
       test('bundledYears contains current and previous year', () {
@@ -91,29 +95,36 @@ void main() {
         },
       );
 
-      test('uses bundle for 2025 (current year)', () async {
-        const bounds = LatLngBounds(
-          southwest: LatLng(56.0, -4.0),
-          northeast: LatLng(58.0, -3.0),
-        );
+      test(
+        'uses bundle for current year (thisSeason)',
+        () async {
+          const bounds = LatLngBounds(
+            southwest: LatLng(56.0, -4.0),
+            northeast: LatLng(58.0, -3.0),
+          );
 
-        // Both 2024 and 2025 now have bundled data
-        await cachedService.getBurntAreas(
-          bounds: bounds,
-          seasonFilter: BurntAreaSeasonFilter.thisSeason, // 2025
-        );
+          // Current and previous year have bundled data
+          await cachedService.getBurntAreas(
+            bounds: bounds,
+            seasonFilter: BurntAreaSeasonFilter.thisSeason, // current year
+          );
 
-        // Should try bundle first before falling back to live
-      });
+          // Should try bundle first before falling back to live
+        },
+      );
     });
 
     group('Season filter year calculation', () {
-      test('thisSeason returns current year (2025)', () {
-        expect(BurntAreaSeasonFilter.thisSeason.year, 2025);
+      test('thisSeason returns current year', () {
+        // Use DateTime.now() to make test date-agnostic
+        final currentYear = DateTime.now().year;
+        expect(BurntAreaSeasonFilter.thisSeason.year, currentYear);
       });
 
-      test('lastSeason returns previous year (2024)', () {
-        expect(BurntAreaSeasonFilter.lastSeason.year, 2024);
+      test('lastSeason returns previous year', () {
+        // Use DateTime.now() to make test date-agnostic
+        final currentYear = DateTime.now().year;
+        expect(BurntAreaSeasonFilter.lastSeason.year, currentYear - 1);
       });
     });
 
@@ -134,13 +145,15 @@ void main() {
       });
 
       test('getBundleTimestamp returns null for unloaded years', () {
-        expect(cachedService.getBundleTimestamp(2024), isNull);
-        expect(cachedService.getBundleTimestamp(2025), isNull);
+        final currentYear = DateTime.now().year;
+        expect(cachedService.getBundleTimestamp(currentYear - 1), isNull);
+        expect(cachedService.getBundleTimestamp(currentYear), isNull);
       });
 
       test('isBundleStale returns false for unloaded bundles', () {
-        expect(cachedService.isBundleStale(2024), isFalse);
-        expect(cachedService.isBundleStale(2025), isFalse);
+        final currentYear = DateTime.now().year;
+        expect(cachedService.isBundleStale(currentYear - 1), isFalse);
+        expect(cachedService.isBundleStale(currentYear), isFalse);
       });
     });
   });

@@ -62,6 +62,9 @@ class RiskBannerError extends RiskBannerState {
 /// This is a pure StatelessWidget that consumes RiskBannerState without
 /// performing any data fetching. It handles all UI states: loading, success,
 /// and error with proper accessibility support.
+///
+/// The optional [locationChip] widget is displayed below the RiskScale in
+/// success state, allowing compact location display that can expand for details.
 class RiskBanner extends StatelessWidget {
   /// Current state of the risk banner
   final RiskBannerState state;
@@ -75,12 +78,20 @@ class RiskBanner extends StatelessWidget {
   /// Configuration for banner features
   final RiskBannerConfig config;
 
+  /// Optional compact location chip to display below risk scale
+  ///
+  /// When provided, displays the LocationChipWithPanel widget below the
+  /// RiskScale, allowing users to see location context without it
+  /// dominating the visual hierarchy.
+  final Widget? locationChip;
+
   const RiskBanner({
     super.key,
     required this.state,
     this.onRetry,
     this.locationLabel,
     this.config = const RiskBannerConfig(),
+    this.locationChip,
   });
 
   @override
@@ -161,15 +172,25 @@ class RiskBanner extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Main risk level title
-              Text(
-                'WILDFIRE RISK',
-                style: TextStyle(
-                  color: textColor,
-                  fontSize: 13.0,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.5,
-                ),
+              // Header with fire icon and title
+              Row(
+                children: [
+                  Icon(
+                    Icons.local_fire_department_outlined,
+                    color: textColor,
+                    size: 18.0,
+                  ),
+                  const SizedBox(width: 6.0),
+                  Text(
+                    'WILDFIRE RISK',
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 13.0,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
               ),
               Text(
                 levelName.toUpperCase(), // The actual risk level
@@ -181,30 +202,9 @@ class RiskBanner extends StatelessWidget {
               ),
               const SizedBox(height: 8.0),
 
-              // Location row (if locationLabel is provided)
-              if (locationLabel != null) ...[
-                Row(
-                  children: [
-                    Icon(Icons.location_on, color: textColor, size: 16.0),
-                    const SizedBox(width: 4.0),
-                    Text(
-                      "Location: ", // Note the space after colon
-                      style: TextStyle(
-                        color: textColor.withValues(alpha: 0.8),
-                        fontSize: 14.0,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        locationLabel!,
-                        style: TextStyle(color: textColor, fontSize: 14.0),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ),
-                  ],
-                ),
+              // Location chip (moved before timestamp for visual hierarchy)
+              if (locationChip != null) ...[
+                locationChip!,
                 const SizedBox(height: 8.0),
               ],
 
@@ -226,7 +226,7 @@ class RiskBanner extends StatelessWidget {
               // Risk scale
               RiskScale(currentLevel: data.level, textColor: textColor),
 
-              // Weather panel (if enabled)
+              // Weather panel (only if enabled in config)
               if (config.showWeatherPanel) ...[
                 const SizedBox(height: 12.0),
                 _buildWeatherPanel(textColor),
@@ -410,6 +410,12 @@ class RiskBanner extends StatelessWidget {
 
               // Risk scale
               RiskScale(currentLevel: cached.level, textColor: textColor),
+
+              // Location chip (if provided)
+              if (locationChip != null) ...[
+                const SizedBox(height: 12.0),
+                locationChip!,
+              ],
 
               const SizedBox(height: 12.0),
 
