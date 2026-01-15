@@ -18,7 +18,10 @@ void main() {
   group('Polygon Rendering Performance Tests (T044)', () {
     /// Generate a test polygon with specified number of points
     List<LatLng> generatePolygon(
-        int pointCount, LatLng center, double radiusDegrees) {
+      int pointCount,
+      LatLng center,
+      double radiusDegrees,
+    ) {
       final points = <LatLng>[];
       for (int i = 0; i < pointCount; i++) {
         final angle = (2 * 3.14159 * i) / pointCount;
@@ -70,7 +73,8 @@ void main() {
       stopwatch.stop();
 
       print(
-          '✅ 50 simplified polygons processed in ${stopwatch.elapsedMilliseconds}ms');
+        '✅ 50 simplified polygons processed in ${stopwatch.elapsedMilliseconds}ms',
+      );
 
       expect(
         stopwatch.elapsedMilliseconds,
@@ -100,7 +104,8 @@ void main() {
       stopwatch.stop();
 
       print(
-          '✅ 100 hotspot squares processed in ${stopwatch.elapsedMilliseconds}ms');
+        '✅ 100 hotspot squares processed in ${stopwatch.elapsedMilliseconds}ms',
+      );
 
       expect(
         stopwatch.elapsedMilliseconds,
@@ -125,7 +130,8 @@ void main() {
         stopwatch.stop();
 
         print(
-            '✅ "$intensity" style: 10000 calls in ${stopwatch.elapsedMilliseconds}ms');
+          '✅ "$intensity" style: 10000 calls in ${stopwatch.elapsedMilliseconds}ms',
+        );
 
         // 10000 calls should be < 50ms (O(1) lookup)
         expect(
@@ -155,7 +161,8 @@ void main() {
         times.add(stopwatch.elapsedMilliseconds);
 
         print(
-            '✅ Centroid calculation ($size points): 1000 calls in ${stopwatch.elapsedMilliseconds}ms');
+          '✅ Centroid calculation ($size points): 1000 calls in ${stopwatch.elapsedMilliseconds}ms',
+        );
       }
 
       // Verify all calculations complete in reasonable time
@@ -181,7 +188,8 @@ void main() {
       stopwatch.stop();
 
       print(
-          '✅ Intensity calculation: 10000 calls in ${stopwatch.elapsedMilliseconds}ms');
+        '✅ Intensity calculation: 10000 calls in ${stopwatch.elapsedMilliseconds}ms',
+      );
 
       // 10000 calls should be < 10ms (simple comparison)
       expect(
@@ -199,7 +207,8 @@ void main() {
       stopwatch.stop();
 
       print(
-          '✅ 500-point polygon centroid in ${stopwatch.elapsedMilliseconds}ms');
+        '✅ 500-point polygon centroid in ${stopwatch.elapsedMilliseconds}ms',
+      );
 
       expect(
         stopwatch.elapsedMilliseconds,

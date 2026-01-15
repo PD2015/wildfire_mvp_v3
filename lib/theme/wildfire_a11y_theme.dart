@@ -115,13 +115,15 @@ class WildfireA11yTheme {
       onSurface: BrandPalette.onLightHigh,
       surfaceContainerHighest: const Color(0xFFE7F1EF),
       surfaceContainerLowest: Colors.white,
-      surfaceContainerLow:
-          const Color(0xFFF8F8F8), // Between white and offWhite for cards
+      surfaceContainerLow: const Color(
+        0xFFF8F8F8,
+      ), // Between white and offWhite for cards
       onSurfaceVariant: BrandPalette.onLightMedium,
       error: Colors.red.shade700,
       onError: BrandPalette.onDarkHigh,
       outline: const Color(
-          0xFF6B8A82), // Darker for 3:1 contrast on white (web-compatible)
+        0xFF6B8A82,
+      ), // Darker for 3:1 contrast on white (web-compatible)
       outlineVariant: BrandPalette.neutralGrey100,
       shadow: Colors.black,
       scrim: Colors.black54,
@@ -172,10 +174,7 @@ class WildfireA11yTheme {
           foregroundColor: BrandPalette.forest700,
 
           // 🌲 Forest-based outline (your built-in outline)
-          side: const BorderSide(
-            color: BrandPalette.outline,
-            width: 1.5,
-          ),
+          side: const BorderSide(color: BrandPalette.outline, width: 1.5),
 
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -219,8 +218,10 @@ class WildfireA11yTheme {
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
 
       // ChipTheme: sufficient padding for ≥44dp height
@@ -234,8 +235,10 @@ class WildfireA11yTheme {
       // SnackBarTheme: accessible colors and spacing
       snackBarTheme: const SnackBarThemeData(
         backgroundColor: BrandPalette.forest900,
-        contentTextStyle:
-            TextStyle(color: BrandPalette.onDarkHigh, fontSize: 16),
+        contentTextStyle: TextStyle(
+          color: BrandPalette.onDarkHigh,
+          fontSize: 16,
+        ),
         behavior: SnackBarBehavior.floating,
         actionTextColor: BrandPalette.mint400,
       ),
@@ -268,7 +271,9 @@ class WildfireA11yTheme {
             return const IconThemeData(color: BrandPalette.forest900, size: 24);
           }
           return const IconThemeData(
-              color: BrandPalette.onDarkMedium, size: 24);
+            color: BrandPalette.onDarkMedium,
+            size: 24,
+          );
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
@@ -291,15 +296,10 @@ class WildfireA11yTheme {
       ),
 
       // DividerTheme: subtle separation
-      dividerTheme: DividerThemeData(
-        color: colorScheme.outline,
-        thickness: 1,
-      ),
+      dividerTheme: DividerThemeData(color: colorScheme.outline, thickness: 1),
 
       // IconTheme: default icon color
-      iconTheme: IconThemeData(
-        color: colorScheme.onSurfaceVariant,
-      ),
+      iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
 
       // CardTheme: elevated surface with outline
       cardTheme: CardThemeData(
@@ -341,7 +341,8 @@ class WildfireA11yTheme {
       error: Color(0xFFFF5252), // Red accent for error (M3 proper semantic)
       onError: BrandPalette.onDarkHigh,
       outline: Color(
-          0xFF8BC6B6), // Lighter for 3:1 contrast on forest500 (web-compatible)
+        0xFF8BC6B6,
+      ), // Lighter for 3:1 contrast on forest500 (web-compatible)
       outlineVariant: BrandPalette.forest700,
       shadow: Colors.black,
       scrim: Colors.black54,
@@ -431,8 +432,10 @@ class WildfireA11yTheme {
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
 
       // ChipTheme: sufficient padding for ≥44dp height
@@ -483,7 +486,9 @@ class WildfireA11yTheme {
             return const IconThemeData(color: BrandPalette.forest900, size: 24);
           }
           return const IconThemeData(
-              color: BrandPalette.onDarkMedium, size: 24);
+            color: BrandPalette.onDarkMedium,
+            size: 24,
+          );
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
@@ -506,23 +511,16 @@ class WildfireA11yTheme {
       ),
 
       // DividerTheme: subtle separation
-      dividerTheme: DividerThemeData(
-        color: colorScheme.outline,
-        thickness: 1,
-      ),
+      dividerTheme: DividerThemeData(color: colorScheme.outline, thickness: 1),
 
       // IconTheme: default icon color
-      iconTheme: IconThemeData(
-        color: colorScheme.onSurfaceVariant,
-      ),
+      iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
 
       // CardTheme: elevated surface with outline
       cardTheme: CardThemeData(
         color: colorScheme.surfaceContainerLow,
         elevation: 1,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

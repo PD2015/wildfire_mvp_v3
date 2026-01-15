@@ -91,23 +91,20 @@ void main() {
         },
       );
 
-      test(
-        'uses bundle for 2025 (current year)',
-        () async {
-          const bounds = LatLngBounds(
-            southwest: LatLng(56.0, -4.0),
-            northeast: LatLng(58.0, -3.0),
-          );
+      test('uses bundle for 2025 (current year)', () async {
+        const bounds = LatLngBounds(
+          southwest: LatLng(56.0, -4.0),
+          northeast: LatLng(58.0, -3.0),
+        );
 
-          // Both 2024 and 2025 now have bundled data
-          await cachedService.getBurntAreas(
-            bounds: bounds,
-            seasonFilter: BurntAreaSeasonFilter.thisSeason, // 2025
-          );
+        // Both 2024 and 2025 now have bundled data
+        await cachedService.getBurntAreas(
+          bounds: bounds,
+          seasonFilter: BurntAreaSeasonFilter.thisSeason, // 2025
+        );
 
-          // Should try bundle first before falling back to live
-        },
-      );
+        // Should try bundle first before falling back to live
+      });
     });
 
     group('Season filter year calculation', () {

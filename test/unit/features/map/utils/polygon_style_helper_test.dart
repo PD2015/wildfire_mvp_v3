@@ -9,22 +9,32 @@ void main() {
 
     group('burntAreaStrokeColor', () {
       test('returns veryHigh red color', () {
-        expect(PolygonStyleHelper.burntAreaStrokeColor,
-            equals(RiskPalette.veryHigh));
+        expect(
+          PolygonStyleHelper.burntAreaStrokeColor,
+          equals(RiskPalette.veryHigh),
+        );
       });
     });
 
     group('getStrokeColor (deprecated)', () {
       test('returns veryHigh color for any intensity', () {
         // All intensities now return the same red color
-        expect(PolygonStyleHelper.getStrokeColor('high'),
-            equals(RiskPalette.veryHigh));
-        expect(PolygonStyleHelper.getStrokeColor('moderate'),
-            equals(RiskPalette.veryHigh));
-        expect(PolygonStyleHelper.getStrokeColor('low'),
-            equals(RiskPalette.veryHigh));
-        expect(PolygonStyleHelper.getStrokeColor('unknown'),
-            equals(RiskPalette.veryHigh));
+        expect(
+          PolygonStyleHelper.getStrokeColor('high'),
+          equals(RiskPalette.veryHigh),
+        );
+        expect(
+          PolygonStyleHelper.getStrokeColor('moderate'),
+          equals(RiskPalette.veryHigh),
+        );
+        expect(
+          PolygonStyleHelper.getStrokeColor('low'),
+          equals(RiskPalette.veryHigh),
+        );
+        expect(
+          PolygonStyleHelper.getStrokeColor('unknown'),
+          equals(RiskPalette.veryHigh),
+        );
       });
     });
 

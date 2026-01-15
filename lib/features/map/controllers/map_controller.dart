@@ -156,7 +156,8 @@ class MapController extends ChangeNotifier {
     if (_useLiveData == value) return;
     _useLiveData = value;
     debugPrint(
-        '🗺️ MapController: Switched to ${value ? "LIVE" : "DEMO"} data mode');
+      '🗺️ MapController: Switched to ${value ? "LIVE" : "DEMO"} data mode',
+    );
     // Clear current data and refresh with new mode
     _hotspots = [];
     _burntAreas = [];
@@ -232,7 +233,8 @@ class MapController extends ChangeNotifier {
           (error) {
             _userGpsLocation = null;
             debugPrint(
-                '🗺️ GPS unavailable - distance calculations will be disabled');
+              '🗺️ GPS unavailable - distance calculations will be disabled',
+            );
           },
           (resolved) {
             _userGpsLocation = resolved.coordinates;
@@ -246,23 +248,28 @@ class MapController extends ChangeNotifier {
         _isManualLocation = false;
         final locationResult = await _locationResolver.getLatLon();
 
-        centerLocation = locationResult.fold((error) {
-          // GPS unavailable - use test region but don't set as user GPS location
-          _userGpsLocation = null;
-          final testCenter = _getTestRegionCenter();
-          debugPrint(
-            '🗺️ Using test region: ${FeatureFlags.testRegion} at ${testCenter.latitude},${testCenter.longitude}',
-          );
-          debugPrint(
-              '🗺️ GPS unavailable - distance calculations will be disabled');
-          return testCenter;
-        }, (resolved) {
-          // GPS available - store as user's actual location
-          _userGpsLocation = resolved.coordinates;
-          debugPrint(
-              '🗺️ Location acquired: ${resolved.coordinates.latitude},${resolved.coordinates.longitude} (source: ${resolved.source.name})');
-          return resolved.coordinates;
-        });
+        centerLocation = locationResult.fold(
+          (error) {
+            // GPS unavailable - use test region but don't set as user GPS location
+            _userGpsLocation = null;
+            final testCenter = _getTestRegionCenter();
+            debugPrint(
+              '🗺️ Using test region: ${FeatureFlags.testRegion} at ${testCenter.latitude},${testCenter.longitude}',
+            );
+            debugPrint(
+              '🗺️ GPS unavailable - distance calculations will be disabled',
+            );
+            return testCenter;
+          },
+          (resolved) {
+            // GPS available - store as user's actual location
+            _userGpsLocation = resolved.coordinates;
+            debugPrint(
+              '🗺️ Location acquired: ${resolved.coordinates.latitude},${resolved.coordinates.longitude} (source: ${resolved.source.name})',
+            );
+            return resolved.coordinates;
+          },
+        );
       }
 
       // Step 2: Create default bbox around location (~220km radius to cover all of Scotland)
@@ -616,7 +623,8 @@ class MapController extends ChangeNotifier {
         debugPrint('🗺️ MapController: Demo mode, using mock burnt areas');
       } else {
         debugPrint(
-            '🗺️ MapController: Burnt area service not available, using mock');
+          '🗺️ MapController: Burnt area service not available, using mock',
+        );
       }
     }
 
@@ -690,7 +698,8 @@ class MapController extends ChangeNotifier {
 
     // Debug: log zoom level changes
     debugPrint(
-        '🔍 Zoom: ${zoom.toStringAsFixed(1)} (clusters: ${zoom < HotspotClusterer.maxClusterZoom ? "ON" : "OFF"})');
+      '🔍 Zoom: ${zoom.toStringAsFixed(1)} (clusters: ${zoom < HotspotClusterer.maxClusterZoom ? "ON" : "OFF"})',
+    );
 
     // Recluster if zoom changed significantly (0.5 zoom levels)
     // This balances responsiveness with performance

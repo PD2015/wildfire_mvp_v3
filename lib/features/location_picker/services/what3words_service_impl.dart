@@ -19,10 +19,8 @@ class What3wordsServiceImpl implements What3wordsService {
   final http.Client _client;
   final String _apiKey;
 
-  What3wordsServiceImpl({
-    http.Client? client,
-    String? apiKey,
-  })  : _client = client ?? http.Client(),
+  What3wordsServiceImpl({http.Client? client, String? apiKey})
+      : _client = client ?? http.Client(),
         _apiKey = apiKey ?? FeatureFlags.what3wordsApiKey;
 
   @override
@@ -31,21 +29,21 @@ class What3wordsServiceImpl implements What3wordsService {
     required double lon,
   }) async {
     if (_apiKey.isEmpty) {
-      return const Left(What3wordsApiError(
-        code: 'NoApiKey',
-        message: 'what3words API key not configured',
-      ));
+      return const Left(
+        What3wordsApiError(
+          code: 'NoApiKey',
+          message: 'what3words API key not configured',
+        ),
+      );
     }
 
-    final url = Uri.parse('$_baseUrl/convert-to-3wa').replace(
-      queryParameters: {
-        'coordinates': '$lat,$lon',
-        'key': _apiKey,
-      },
-    );
+    final url = Uri.parse(
+      '$_baseUrl/convert-to-3wa',
+    ).replace(queryParameters: {'coordinates': '$lat,$lon', 'key': _apiKey});
 
     debugPrint(
-        'What3words: Converting ${LocationUtils.logRedact(lat, lon)} to address');
+      'What3words: Converting ${LocationUtils.logRedact(lat, lon)} to address',
+    );
 
     try {
       final response = await _client.get(url).timeout(_timeout);
@@ -55,18 +53,22 @@ class What3wordsServiceImpl implements What3wordsService {
 
         if (json.containsKey('error')) {
           final error = json['error'] as Map<String, dynamic>;
-          return Left(What3wordsApiError(
-            code: error['code'] as String? ?? 'Unknown',
-            message: error['message'] as String? ?? 'Unknown API error',
-          ));
+          return Left(
+            What3wordsApiError(
+              code: error['code'] as String? ?? 'Unknown',
+              message: error['message'] as String? ?? 'Unknown API error',
+            ),
+          );
         }
 
         final words = json['words'] as String?;
         if (words == null) {
-          return const Left(What3wordsApiError(
-            code: 'InvalidResponse',
-            message: 'Invalid response: missing words',
-          ));
+          return const Left(
+            What3wordsApiError(
+              code: 'InvalidResponse',
+              message: 'Invalid response: missing words',
+            ),
+          );
         }
 
         final address = What3wordsAddress.tryParse(words);
@@ -77,23 +79,29 @@ class What3wordsServiceImpl implements What3wordsService {
         debugPrint('What3words: Resolved to ${address.words}');
         return Right(address);
       } else if (response.statusCode == 401) {
-        return const Left(What3wordsApiError(
-          code: 'InvalidKey',
-          message: 'Invalid API key',
-          statusCode: 401,
-        ));
+        return const Left(
+          What3wordsApiError(
+            code: 'InvalidKey',
+            message: 'Invalid API key',
+            statusCode: 401,
+          ),
+        );
       } else if (response.statusCode == 429) {
-        return const Left(What3wordsApiError(
-          code: 'QuotaExceeded',
-          message: 'Rate limit exceeded',
-          statusCode: 429,
-        ));
+        return const Left(
+          What3wordsApiError(
+            code: 'QuotaExceeded',
+            message: 'Rate limit exceeded',
+            statusCode: 429,
+          ),
+        );
       } else {
-        return Left(What3wordsApiError(
-          code: 'HttpError',
-          message: 'API error: ${response.statusCode}',
-          statusCode: response.statusCode,
-        ));
+        return Left(
+          What3wordsApiError(
+            code: 'HttpError',
+            message: 'API error: ${response.statusCode}',
+            statusCode: response.statusCode,
+          ),
+        );
       }
     } on http.ClientException catch (e) {
       debugPrint('What3words: Network error - $e');
@@ -109,10 +117,12 @@ class What3wordsServiceImpl implements What3wordsService {
     required String words,
   }) async {
     if (_apiKey.isEmpty) {
-      return const Left(What3wordsApiError(
-        code: 'NoApiKey',
-        message: 'what3words API key not configured',
-      ));
+      return const Left(
+        What3wordsApiError(
+          code: 'NoApiKey',
+          message: 'what3words API key not configured',
+        ),
+      );
     }
 
     // Validate format before API call
@@ -121,12 +131,9 @@ class What3wordsServiceImpl implements What3wordsService {
       return Left(What3wordsInvalidAddressError(words));
     }
 
-    final url = Uri.parse('$_baseUrl/convert-to-coordinates').replace(
-      queryParameters: {
-        'words': address.words,
-        'key': _apiKey,
-      },
-    );
+    final url = Uri.parse(
+      '$_baseUrl/convert-to-coordinates',
+    ).replace(queryParameters: {'words': address.words, 'key': _apiKey});
 
     debugPrint('What3words: Converting ${address.words} to coordinates');
 
@@ -145,51 +152,64 @@ class What3wordsServiceImpl implements What3wordsService {
             return Left(What3wordsInvalidAddressError(words));
           }
 
-          return Left(What3wordsApiError(
-            code: code ?? 'Unknown',
-            message: error['message'] as String? ?? 'Unknown API error',
-          ));
+          return Left(
+            What3wordsApiError(
+              code: code ?? 'Unknown',
+              message: error['message'] as String? ?? 'Unknown API error',
+            ),
+          );
         }
 
         final coords = json['coordinates'] as Map<String, dynamic>?;
         if (coords == null) {
-          return const Left(What3wordsApiError(
-            code: 'InvalidResponse',
-            message: 'Invalid response: missing coordinates',
-          ));
+          return const Left(
+            What3wordsApiError(
+              code: 'InvalidResponse',
+              message: 'Invalid response: missing coordinates',
+            ),
+          );
         }
 
         final lat = (coords['lat'] as num?)?.toDouble();
         final lng = (coords['lng'] as num?)?.toDouble();
 
         if (lat == null || lng == null) {
-          return const Left(What3wordsApiError(
-            code: 'InvalidResponse',
-            message: 'Invalid response: missing lat/lng',
-          ));
+          return const Left(
+            What3wordsApiError(
+              code: 'InvalidResponse',
+              message: 'Invalid response: missing lat/lng',
+            ),
+          );
         }
 
         debugPrint(
-            'What3words: Resolved to ${LocationUtils.logRedact(lat, lng)}');
+          'What3words: Resolved to ${LocationUtils.logRedact(lat, lng)}',
+        );
         return Right(LatLng(lat, lng));
       } else if (response.statusCode == 401) {
-        return const Left(What3wordsApiError(
-          code: 'InvalidKey',
-          message: 'Invalid API key',
-          statusCode: 401,
-        ));
+        return const Left(
+          What3wordsApiError(
+            code: 'InvalidKey',
+            message: 'Invalid API key',
+            statusCode: 401,
+          ),
+        );
       } else if (response.statusCode == 429) {
-        return const Left(What3wordsApiError(
-          code: 'QuotaExceeded',
-          message: 'Rate limit exceeded',
-          statusCode: 429,
-        ));
+        return const Left(
+          What3wordsApiError(
+            code: 'QuotaExceeded',
+            message: 'Rate limit exceeded',
+            statusCode: 429,
+          ),
+        );
       } else {
-        return Left(What3wordsApiError(
-          code: 'HttpError',
-          message: 'API error: ${response.statusCode}',
-          statusCode: response.statusCode,
-        ));
+        return Left(
+          What3wordsApiError(
+            code: 'HttpError',
+            message: 'API error: ${response.statusCode}',
+            statusCode: response.statusCode,
+          ),
+        );
       }
     } on http.ClientException catch (e) {
       debugPrint('What3words: Network error - $e');

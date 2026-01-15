@@ -104,10 +104,7 @@ class FireDataModeToggle extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           child: Container(
             // Ensure minimum 44dp touch target
-            constraints: const BoxConstraints(
-              minHeight: 36,
-              minWidth: 44,
-            ),
+            constraints: const BoxConstraints(minHeight: 36, minWidth: 44),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
               mainAxisSize: MainAxisSize.min,

@@ -74,7 +74,8 @@ class MarkerIconHelper {
 
     if (!_isInitialized) {
       debugPrint(
-          '⚠️ MarkerIconHelper: Icons not initialized, using default marker');
+        '⚠️ MarkerIconHelper: Icons not initialized, using default marker',
+      );
       return _getFallbackMarker(normalizedIntensity);
     }
 
@@ -93,7 +94,8 @@ class MarkerIconHelper {
 
     if (!_isInitialized) {
       debugPrint(
-          '⚠️ MarkerIconHelper: Icons not initialized, using default marker');
+        '⚠️ MarkerIconHelper: Icons not initialized, using default marker',
+      );
       return _getFallbackMarker(normalizedIntensity);
     }
 
@@ -123,12 +125,14 @@ class MarkerIconHelper {
         return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
       case 'moderate':
         return BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueOrange);
+          BitmapDescriptor.hueOrange,
+        );
       case 'low':
         return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
       default:
         return BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueViolet);
+          BitmapDescriptor.hueViolet,
+        );
     }
   }
 
@@ -199,7 +203,9 @@ class MarkerIconHelper {
 
   /// Create a marker icon from Material Icons.local_fire_department
   static Future<void> _createIconFromMaterial(
-      String intensity, Color color) async {
+    String intensity,
+    Color color,
+  ) async {
     try {
       final bytes = await _renderMaterialIcon(
         Icons.local_fire_department,

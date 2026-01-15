@@ -47,9 +47,7 @@ class AdvancedSettingsScreen extends StatelessWidget {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Onboarding reset. Redirecting...'),
-          ),
+          const SnackBar(content: Text('Onboarding reset. Redirecting...')),
         );
         context.go('/onboarding');
       }
@@ -86,11 +84,9 @@ class AdvancedSettingsScreen extends StatelessWidget {
       await prefs.remove('manual_location_place');
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Location cache cleared'),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Location cache cleared')));
       }
     }
   }
@@ -120,17 +116,16 @@ class AdvancedSettingsScreen extends StatelessWidget {
     if (confirmed == true && context.mounted) {
       final prefs = await SharedPreferences.getInstance();
       // Clear all fire risk cache entries (they start with 'fire_risk_cache_')
-      final keys =
-          prefs.getKeys().where((k) => k.startsWith('fire_risk_cache_'));
+      final keys = prefs.getKeys().where(
+            (k) => k.startsWith('fire_risk_cache_'),
+          );
       for (final key in keys) {
         await prefs.remove(key);
       }
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Cleared ${keys.length} cached entries'),
-          ),
+          SnackBar(content: Text('Cleared ${keys.length} cached entries')),
         );
       }
     }
@@ -141,9 +136,7 @@ class AdvancedSettingsScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Developer Options'),
-      ),
+      appBar: AppBar(title: const Text('Developer Options')),
       body: SafeArea(
         child: ListView(
           children: [
@@ -177,10 +170,7 @@ class AdvancedSettingsScreen extends StatelessWidget {
 
             // Data management section
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Semantics(
                 header: true,
                 child: Text(
@@ -219,10 +209,7 @@ class AdvancedSettingsScreen extends StatelessWidget {
 
             // Debug info section
             Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Semantics(
                 header: true,
                 child: Text(
@@ -257,8 +244,9 @@ class AdvancedSettingsScreen extends StatelessWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
               title: const Text('Platform'),
-              subtitle:
-                  Text(Theme.of(context).platform.toString().split('.').last),
+              subtitle: Text(
+                Theme.of(context).platform.toString().split('.').last,
+              ),
             ),
 
             const SizedBox(height: 24),
@@ -288,24 +276,15 @@ class _DevOptionTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return ListTile(
-      leading: Icon(
-        icon,
-        color: theme.colorScheme.error,
-      ),
-      title: Text(
-        title,
-        style: TextStyle(color: theme.colorScheme.error),
-      ),
+      leading: Icon(icon, color: theme.colorScheme.error),
+      title: Text(title, style: TextStyle(color: theme.colorScheme.error)),
       subtitle: Text(
         subtitle,
         style: theme.textTheme.bodySmall?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
         ),
       ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: theme.colorScheme.error,
-      ),
+      trailing: Icon(Icons.chevron_right, color: theme.colorScheme.error),
       onTap: onTap,
     );
   }

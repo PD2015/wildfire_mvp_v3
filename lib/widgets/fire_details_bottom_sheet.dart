@@ -558,10 +558,7 @@ class FireDetailsBottomSheet extends StatelessWidget {
   }
 
   Widget _buildChips(FireIncident inc) {
-    return MapSourceChip(
-      source: inc.freshness,
-      lastUpdated: inc.timestamp,
-    );
+    return MapSourceChip(source: inc.freshness, lastUpdated: inc.timestamp);
   }
 
   Widget _buildDetailRow({
@@ -655,7 +652,7 @@ class FireDetailsBottomSheet extends StatelessWidget {
       'Sep',
       'Oct',
       'Nov',
-      'Dec'
+      'Dec',
     ];
     final monthName = months[utcTime.month - 1];
     return '${utcTime.day} $monthName ${utcTime.year} at $timeString UTC';
@@ -717,11 +714,7 @@ class FireDetailsBottomSheet extends StatelessWidget {
           'Verified Burnt Area',
           'MODIS satellite-confirmed area affected by fire this season.',
         ),
-      FireDataDisplayType.incident => (
-          Icons.info_outline,
-          '',
-          '',
-        ),
+      FireDataDisplayType.incident => (Icons.info_outline, '', ''),
     };
 
     if (title.isEmpty) return const SizedBox.shrink();
@@ -735,8 +728,9 @@ class FireDetailsBottomSheet extends StatelessWidget {
           decoration: BoxDecoration(
             color: colorScheme.primaryContainer.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(12),
-            border:
-                Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
+            border: Border.all(
+              color: colorScheme.primary.withValues(alpha: 0.3),
+            ),
           ),
           child: Row(
             children: [
@@ -854,10 +848,7 @@ class FireDetailsBottomSheet extends StatelessWidget {
           children: [
             SizedBox(
               width: 80,
-              child: Text(
-                label,
-                style: theme.textTheme.bodySmall,
-              ),
+              child: Text(label, style: theme.textTheme.bodySmall),
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -935,11 +926,7 @@ class FireDetailsBottomSheet extends StatelessWidget {
 
 /// Section wrapper for clearer grouping of fire details
 class _InfoSection extends StatelessWidget {
-  const _InfoSection({
-    required this.title,
-    required this.children,
-    this.icon,
-  });
+  const _InfoSection({required this.title, required this.children, this.icon});
 
   final String title;
   final List<Widget> children;

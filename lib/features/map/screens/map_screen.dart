@@ -165,10 +165,7 @@ class _MapScreenState extends State<MapScreen> {
 
     await _mapController?.animateCamera(
       CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: targetLocation,
-          zoom: _defaultZoom,
-        ),
+        CameraPosition(target: targetLocation, zoom: _defaultZoom),
       ),
     );
 
@@ -193,7 +190,8 @@ class _MapScreenState extends State<MapScreen> {
     _viewportLoader.setMapController(controller);
 
     debugPrint(
-        '🗺️ MapScreen: GoogleMapController initialized, viewport loader configured');
+      '🗺️ MapScreen: GoogleMapController initialized, viewport loader configured',
+    );
   }
 
   /// Update markers based on current fire data mode
@@ -277,10 +275,7 @@ class _MapScreenState extends State<MapScreen> {
       final hotspot = cluster.hotspots.first;
       return Marker(
         markerId: MarkerId('hotspot_${hotspot.id}'),
-        position: LatLng(
-          hotspot.location.latitude,
-          hotspot.location.longitude,
-        ),
+        position: LatLng(hotspot.location.latitude, hotspot.location.longitude),
         icon: MarkerIconHelper.getIcon(hotspot.intensity),
         anchor: const Offset(0.5, 1.0),
         infoWindow: InfoWindow(
@@ -313,10 +308,14 @@ class _MapScreenState extends State<MapScreen> {
     _mapController!.animateCamera(
       CameraUpdate.newLatLngBounds(
         LatLngBounds(
-          southwest:
-              LatLng(bounds.southwest.latitude, bounds.southwest.longitude),
-          northeast:
-              LatLng(bounds.northeast.latitude, bounds.northeast.longitude),
+          southwest: LatLng(
+            bounds.southwest.latitude,
+            bounds.southwest.longitude,
+          ),
+          northeast: LatLng(
+            bounds.northeast.latitude,
+            bounds.northeast.longitude,
+          ),
         ),
         50.0, // padding
       ),
@@ -341,10 +340,7 @@ class _MapScreenState extends State<MapScreen> {
     _markers = hotspots.map((hotspot) {
       return Marker(
         markerId: MarkerId('hotspot_${hotspot.id}'),
-        position: LatLng(
-          hotspot.location.latitude,
-          hotspot.location.longitude,
-        ),
+        position: LatLng(hotspot.location.latitude, hotspot.location.longitude),
         icon: MarkerIconHelper.getIcon(hotspot.intensity),
         anchor: const Offset(0.5, 1.0),
         infoWindow: InfoWindow(
@@ -393,8 +389,9 @@ class _MapScreenState extends State<MapScreen> {
       return Marker(
         markerId: MarkerId('burnt_area_${area.id}'),
         position: LatLng(centroid.latitude, centroid.longitude),
-        icon:
-            MarkerIconHelper.getIcon('high'), // All burnt areas use red marker
+        icon: MarkerIconHelper.getIcon(
+          'high',
+        ), // All burnt areas use red marker
         anchor: const Offset(0.5, 1.0),
         infoWindow: InfoWindow(
           title: 'Burnt Area',
@@ -408,7 +405,8 @@ class _MapScreenState extends State<MapScreen> {
     }).toSet();
 
     debugPrint(
-        '🔶 Burnt Areas mode: created ${_markers.length} centroid markers');
+      '🔶 Burnt Areas mode: created ${_markers.length} centroid markers',
+    );
   }
 
   /// Build info window snippet for burnt area marker from BurntArea model
@@ -433,7 +431,7 @@ class _MapScreenState extends State<MapScreen> {
       'Sep',
       'Oct',
       'Nov',
-      'Dec'
+      'Dec',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
@@ -574,7 +572,8 @@ class _MapScreenState extends State<MapScreen> {
     }).toSet();
 
     debugPrint(
-        '🔶 Updated ${_polygons.length} polygons from ${burntAreas.length} burnt areas');
+      '🔶 Updated ${_polygons.length} polygons from ${burntAreas.length} burnt areas',
+    );
   }
 
   /// Update polygon overlays for hotspots mode
@@ -693,10 +692,7 @@ class _MapScreenState extends State<MapScreen> {
 
       await _mapController!.animateCamera(
         CameraUpdate.newCameraPosition(
-          CameraPosition(
-            target: targetLocation,
-            zoom: 10.0,
-          ),
+          CameraPosition(target: targetLocation, zoom: 10.0),
         ),
       );
 
@@ -753,8 +749,9 @@ class _MapScreenState extends State<MapScreen> {
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(4),
                 child: LinearProgressIndicator(
-                  backgroundColor:
-                      Theme.of(context).colorScheme.surfaceContainerHighest,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest,
                   color: Theme.of(context).colorScheme.primary,
                 ),
               )
@@ -790,10 +787,9 @@ class _MapScreenState extends State<MapScreen> {
                   });
                 },
                 child: Container(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .scrim
-                      .withValues(alpha: 0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.scrim.withValues(alpha: 0.5),
                   child: GestureDetector(
                     onTap: () {}, // Prevent tap from closing when tapping sheet
                     child: _buildBottomSheet(),
@@ -824,9 +820,11 @@ class _MapScreenState extends State<MapScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.map_outlined,
-                  size: 64.0,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.map_outlined,
+                size: 64.0,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(height: 16.0),
               Text(
                 'Map Not Available',
@@ -875,25 +873,25 @@ class _MapScreenState extends State<MapScreen> {
                                         Icon(
                                           Icons.local_fire_department,
                                           color: hotspot.intensity == 'high'
-                                              ? Theme.of(context)
-                                                  .colorScheme
-                                                  .error
+                                              ? Theme.of(
+                                                  context,
+                                                ).colorScheme.error
                                               : hotspot.intensity == 'moderate'
-                                                  ? Theme.of(context)
-                                                      .colorScheme
-                                                      .tertiary
-                                                  : Theme.of(context)
-                                                      .colorScheme
-                                                      .primary,
+                                                  ? Theme.of(
+                                                      context,
+                                                    ).colorScheme.tertiary
+                                                  : Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
                                           size: 20,
                                         ),
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
                                             'Hotspot: FRP ${hotspot.frp.toStringAsFixed(1)} MW',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium,
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.bodyMedium,
                                           ),
                                         ),
                                       ],
@@ -911,25 +909,25 @@ class _MapScreenState extends State<MapScreen> {
                                         Icon(
                                           Icons.terrain,
                                           color: area.intensity == 'high'
-                                              ? Theme.of(context)
-                                                  .colorScheme
-                                                  .error
+                                              ? Theme.of(
+                                                  context,
+                                                ).colorScheme.error
                                               : area.intensity == 'moderate'
-                                                  ? Theme.of(context)
-                                                      .colorScheme
-                                                      .tertiary
-                                                  : Theme.of(context)
-                                                      .colorScheme
-                                                      .primary,
+                                                  ? Theme.of(
+                                                      context,
+                                                    ).colorScheme.tertiary
+                                                  : Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
                                           size: 20,
                                         ),
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
                                             'Burnt Area: ${area.areaHectares.toStringAsFixed(1)} ha',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium,
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.bodyMedium,
                                           ),
                                         ),
                                       ],
@@ -1024,9 +1022,7 @@ class _MapScreenState extends State<MapScreen> {
           Positioned(
             bottom: 16,
             left: 16,
-            child: IncidentsTimestampChip(
-              lastUpdated: _controller.lastUpdated,
-            ),
+            child: IncidentsTimestampChip(lastUpdated: _controller.lastUpdated),
           ),
         // Loading status banner - positioned at bottom to avoid control overlap
         // Shows when fetching burnt area data (supplements AppBar progress indicator)
@@ -1036,9 +1032,7 @@ class _MapScreenState extends State<MapScreen> {
             bottom: 80,
             left: 0,
             right: 0,
-            child: Center(
-              child: _buildLoadingBanner(context),
-            ),
+            child: Center(child: _buildLoadingBanner(context)),
           ),
         // Map controls positioned at top-right (fire data mode, filters, map type, GPS)
         Positioned(
@@ -1126,19 +1120,19 @@ class _MapScreenState extends State<MapScreen> {
               ),
               const SizedBox(height: 8),
               // Custom zoom controls - themed to match other map buttons
-              MapZoomControls(
-                onZoomIn: _zoomIn,
-                onZoomOut: _zoomOut,
-              ),
+              MapZoomControls(onZoomIn: _zoomIn, onZoomOut: _zoomOut),
             ],
           ),
         ),
         // Empty state message if no fire data - mode-specific messaging
         // Different UX for offline (API failure) vs normal empty state
+        // Positioned lower to avoid blocking zoom controls (right side)
         if (!_controller.hasFireData)
-          Center(
+          Positioned(
+            left: 24,
+            right: 24,
+            bottom: 100, // Above bottom nav, below zoom controls
             child: Card(
-              margin: const EdgeInsets.all(24),
               elevation: 2,
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -1202,9 +1196,9 @@ class _MapScreenState extends State<MapScreen> {
         const SizedBox(height: 12),
         Text(
           'Unable to Load Fire Data',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
@@ -1252,9 +1246,9 @@ class _MapScreenState extends State<MapScreen> {
         const SizedBox(height: 12),
         Text(
           _getEmptyStateTitle(),
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
@@ -1300,7 +1294,8 @@ class _MapScreenState extends State<MapScreen> {
       case FireDataMode.hotspots:
         return 'No Active Fires Detected';
       case FireDataMode.burntAreas:
-        return 'No Burnt Areas This Season';
+        final year = _controller.burntAreaSeasonFilter.year;
+        return 'No Burnt Areas in $year in Map Area';
     }
   }
 
@@ -1310,7 +1305,8 @@ class _MapScreenState extends State<MapScreen> {
       case FireDataMode.hotspots:
         return 'No satellite-detected hotspots in the last 24 hours within the current view. This is good news!';
       case FireDataMode.burntAreas:
-        return 'No verified burnt areas have been recorded for the current fire season in this region.';
+        final year = _controller.burntAreaSeasonFilter.year;
+        return 'No satellite-verified burnt areas have been recorded in this map area for $year.';
     }
   }
 

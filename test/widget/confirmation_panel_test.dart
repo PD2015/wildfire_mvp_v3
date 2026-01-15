@@ -153,7 +153,9 @@ void main() {
         );
 
         expect(
-            find.byKey(const Key('confirm_location_button')), findsOneWidget);
+          find.byKey(const Key('confirm_location_button')),
+          findsOneWidget,
+        );
       });
 
       testWidgets('triggers onConfirm callback when tapped', (tester) async {
@@ -266,20 +268,25 @@ void main() {
           find.byKey(const Key('cancel_location_button')),
         );
         final cancelStyle = cancelButton.style;
-        expect(cancelStyle?.padding?.resolve({})?.vertical,
-            greaterThanOrEqualTo(32)); // 16 * 2
+        expect(
+          cancelStyle?.padding?.resolve({})?.vertical,
+          greaterThanOrEqualTo(32),
+        ); // 16 * 2
 
         // Verify Confirm button has adequate touch target
         final confirmButton = tester.widget<FilledButton>(
           find.byKey(const Key('confirm_location_button')),
         );
         final confirmStyle = confirmButton.style;
-        expect(confirmStyle?.padding?.resolve({})?.vertical,
-            greaterThanOrEqualTo(32)); // 16 * 2
+        expect(
+          confirmStyle?.padding?.resolve({})?.vertical,
+          greaterThanOrEqualTo(32),
+        ); // 16 * 2
       });
 
-      testWidgets('emergency banner uses error colors for visibility',
-          (tester) async {
+      testWidgets('emergency banner uses error colors for visibility', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -298,8 +305,9 @@ void main() {
     });
 
     group('layout', () {
-      testWidgets('Cancel button takes 1x flex, Confirm takes 2x flex',
-          (tester) async {
+      testWidgets('Cancel button takes 1x flex, Confirm takes 2x flex', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(

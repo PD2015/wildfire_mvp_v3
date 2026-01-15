@@ -27,7 +27,9 @@ void main() {
         expect(state.disclaimerChecked, isFalse);
         expect(state.termsChecked, isFalse);
         expect(
-            state.selectedRadiusKm, equals(OnboardingConfig.defaultRadiusKm));
+          state.selectedRadiusKm,
+          equals(OnboardingConfig.defaultRadiusKm),
+        );
         expect(state.locationPermissionGranted, isFalse);
         expect(state.isRequestingLocation, isFalse);
       });
@@ -245,10 +247,14 @@ void main() {
 
         expect(state.props, contains(2)); // currentPage
         expect(state.props, contains(4)); // totalPages
-        expect(state.props,
-            contains(true)); // disclaimerChecked or locationPermissionGranted
-        expect(state.props,
-            contains(false)); // termsChecked or isRequestingLocation
+        expect(
+          state.props,
+          contains(true),
+        ); // disclaimerChecked or locationPermissionGranted
+        expect(
+          state.props,
+          contains(false),
+        ); // termsChecked or isRequestingLocation
         expect(state.props, contains(25)); // selectedRadiusKm
         expect(state.props.length, equals(7));
       });
@@ -289,38 +295,23 @@ void main() {
 
   group('OnboardingMigration', () {
     test('stores version information', () {
-      const state = OnboardingMigration(
-        previousVersion: 1,
-        currentVersion: 2,
-      );
+      const state = OnboardingMigration(previousVersion: 1, currentVersion: 2);
 
       expect(state.previousVersion, equals(1));
       expect(state.currentVersion, equals(2));
     });
 
     test('equality based on versions', () {
-      const state1 = OnboardingMigration(
-        previousVersion: 1,
-        currentVersion: 2,
-      );
-      const state2 = OnboardingMigration(
-        previousVersion: 1,
-        currentVersion: 2,
-      );
-      const state3 = OnboardingMigration(
-        previousVersion: 1,
-        currentVersion: 3,
-      );
+      const state1 = OnboardingMigration(previousVersion: 1, currentVersion: 2);
+      const state2 = OnboardingMigration(previousVersion: 1, currentVersion: 2);
+      const state3 = OnboardingMigration(previousVersion: 1, currentVersion: 3);
 
       expect(state1, equals(state2));
       expect(state1, isNot(equals(state3)));
     });
 
     test('props contains both versions', () {
-      const state = OnboardingMigration(
-        previousVersion: 1,
-        currentVersion: 2,
-      );
+      const state = OnboardingMigration(previousVersion: 1, currentVersion: 2);
 
       expect(state.props, contains(1));
       expect(state.props, contains(2));
@@ -328,10 +319,7 @@ void main() {
     });
 
     test('toString includes version info', () {
-      const state = OnboardingMigration(
-        previousVersion: 1,
-        currentVersion: 2,
-      );
+      const state = OnboardingMigration(previousVersion: 1, currentVersion: 2);
 
       final str = state.toString();
       expect(str, contains('OnboardingMigration'));

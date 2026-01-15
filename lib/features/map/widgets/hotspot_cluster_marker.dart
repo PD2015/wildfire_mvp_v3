@@ -35,20 +35,22 @@ class HotspotClusterMarker {
     for (final cluster in clusters) {
       final icon = await _getClusterIcon(cluster);
 
-      markers.add(gmap.Marker(
-        markerId: gmap.MarkerId('cluster_${cluster.id}'),
-        position: gmap.LatLng(
-          cluster.center.latitude,
-          cluster.center.longitude,
+      markers.add(
+        gmap.Marker(
+          markerId: gmap.MarkerId('cluster_${cluster.id}'),
+          position: gmap.LatLng(
+            cluster.center.latitude,
+            cluster.center.longitude,
+          ),
+          icon: icon,
+          anchor: const Offset(0.5, 0.5),
+          onTap: () => onTap(cluster),
+          infoWindow: gmap.InfoWindow(
+            title: '${cluster.count} fire detections',
+            snippet: 'Tap to zoom in',
+          ),
         ),
-        icon: icon,
-        anchor: const Offset(0.5, 0.5),
-        onTap: () => onTap(cluster),
-        infoWindow: gmap.InfoWindow(
-          title: '${cluster.count} fire detections',
-          snippet: 'Tap to zoom in',
-        ),
-      ));
+      );
     }
 
     return markers;
@@ -58,8 +60,9 @@ class HotspotClusterMarker {
   static Future<gmap.BitmapDescriptor> _getClusterIcon(
     HotspotCluster cluster,
   ) async {
-    final sizeCategory =
-        HotspotStyleHelper.getClusterSizeCategory(cluster.count);
+    final sizeCategory = HotspotStyleHelper.getClusterSizeCategory(
+      cluster.count,
+    );
     final color = HotspotStyleHelper.getClusterColor(cluster.maxFrp);
     final cacheKey = '${sizeCategory}_${color.toARGB32()}';
 
@@ -91,11 +94,7 @@ class HotspotClusterMarker {
       ..color = color
       ..style = PaintingStyle.fill;
 
-    canvas.drawCircle(
-      Offset(radius, radius),
-      radius,
-      paint,
-    );
+    canvas.drawCircle(Offset(radius, radius), radius, paint);
 
     // Draw white border
     final borderPaint = Paint()
@@ -103,11 +102,7 @@ class HotspotClusterMarker {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0;
 
-    canvas.drawCircle(
-      Offset(radius, radius),
-      radius - 1,
-      borderPaint,
-    );
+    canvas.drawCircle(Offset(radius, radius), radius - 1, borderPaint);
 
     // Draw count text
     final textPainter = TextPainter(
@@ -125,10 +120,7 @@ class HotspotClusterMarker {
     textPainter.layout();
     textPainter.paint(
       canvas,
-      Offset(
-        radius - textPainter.width / 2,
-        radius - textPainter.height / 2,
-      ),
+      Offset(radius - textPainter.width / 2, radius - textPainter.height / 2),
     );
 
     // Convert to image

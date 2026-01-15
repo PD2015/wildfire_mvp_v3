@@ -33,8 +33,11 @@ class LocationPickerInitial extends LocationPickerState {
   });
 
   @override
-  List<Object?> get props =>
-      [initialLocation, initialWhat3words, initialPlaceName];
+  List<Object?> get props => [
+        initialLocation,
+        initialWhat3words,
+        initialPlaceName,
+      ];
 }
 
 /// User is typing in the search field

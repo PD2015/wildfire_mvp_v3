@@ -52,16 +52,21 @@ class BrandPalette {
   BrandPalette._(); // Prevent instantiation
 
   // Forest gradient (primary tones)
-  static const Color forest900 =
-      Color(0xFF0D4F48); // Darkest - WCAG AA verified
-  static const Color forest800 =
-      Color(0xFF0F5A52); // Updated to match screenshot
-  static const Color forest700 =
-      Color(0xFF17645B); // Updated to match screenshot
-  static const Color forest600 =
-      Color(0xFF1B6B61); // Primary - Updated to match screenshot
-  static const Color forest500 =
-      Color(0xFF246F65); // Updated to match screenshot
+  static const Color forest900 = Color(
+    0xFF0D4F48,
+  ); // Darkest - WCAG AA verified
+  static const Color forest800 = Color(
+    0xFF0F5A52,
+  ); // Updated to match screenshot
+  static const Color forest700 = Color(
+    0xFF17645B,
+  ); // Updated to match screenshot
+  static const Color forest600 = Color(
+    0xFF1B6B61,
+  ); // Primary - Updated to match screenshot
+  static const Color forest500 = Color(
+    0xFF246F65,
+  ); // Updated to match screenshot
   static const Color forest400 = Color(0xFF2E786E); // Dark mode primary
   static const Color outline = Color(0xFF3E8277); // UI component outlines
 
@@ -72,22 +77,28 @@ class BrandPalette {
   static const Color amber600 = Color(0xFFE59414); // Darker amber
 
   // Surface colors
-  static const Color offWhite =
-      Color(0xFFF4F4F4); // Light mode surface - Updated to match screenshot
+  static const Color offWhite = Color(
+    0xFFF4F4F4,
+  ); // Light mode surface - Updated to match screenshot
   static const Color neutralGrey100 = Color(0xFFE0E0E0);
-  static const Color neutralGrey200 =
-      Color(0xFF757575); // ≥3:1 contrast on offWhite (WCAG AA UI)
+  static const Color neutralGrey200 = Color(
+    0xFF757575,
+  ); // ≥3:1 contrast on offWhite (WCAG AA UI)
 
   // On-colors (text on colored backgrounds) - solid colors for better consistency
   static const Color onDarkHigh = Color(0xFFFFFFFF); // White - high emphasis
-  static const Color onDarkMedium =
-      Color(0xFFDCEFEB); // Teal-tinted white - medium emphasis (solid color)
-  static const Color onDarkLow =
-      Color(0xFFB8D8D2); // Low emphasis on dark backgrounds
-  static const Color onLightHigh =
-      Color(0xFF111111); // Near-black - high emphasis
-  static const Color onLightMedium =
-      Color(0xFF333333); // Dark grey - medium emphasis (solid color)
+  static const Color onDarkMedium = Color(
+    0xFFDCEFEB,
+  ); // Teal-tinted white - medium emphasis (solid color)
+  static const Color onDarkLow = Color(
+    0xFFB8D8D2,
+  ); // Low emphasis on dark backgrounds
+  static const Color onLightHigh = Color(
+    0xFF111111,
+  ); // Near-black - high emphasis
+  static const Color onLightMedium = Color(
+    0xFF333333,
+  ); // Dark grey - medium emphasis (solid color)
 
   /// Get appropriate on-color for given background
   ///

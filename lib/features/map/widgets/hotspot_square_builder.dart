@@ -82,13 +82,21 @@ class HotspotSquareBuilder {
     // Calculate corners (clockwise from southwest)
     return [
       gmap.LatLng(
-          center.latitude - halfSizeLat, center.longitude - halfSizeLon), // SW
+        center.latitude - halfSizeLat,
+        center.longitude - halfSizeLon,
+      ), // SW
       gmap.LatLng(
-          center.latitude + halfSizeLat, center.longitude - halfSizeLon), // NW
+        center.latitude + halfSizeLat,
+        center.longitude - halfSizeLon,
+      ), // NW
       gmap.LatLng(
-          center.latitude + halfSizeLat, center.longitude + halfSizeLon), // NE
+        center.latitude + halfSizeLat,
+        center.longitude + halfSizeLon,
+      ), // NE
       gmap.LatLng(
-          center.latitude - halfSizeLat, center.longitude + halfSizeLon), // SE
+        center.latitude - halfSizeLat,
+        center.longitude + halfSizeLon,
+      ), // SE
     ];
   }
 

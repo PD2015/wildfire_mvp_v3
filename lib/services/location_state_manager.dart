@@ -111,14 +111,16 @@ class LocationStateManager extends ChangeNotifier {
       );
 
       // Update state with the new location
-      _updateState(LocationDisplaySuccess(
-        coordinates: location,
-        source: LocationSource.manual,
-        placeName: placeName,
-        lastUpdated: DateTime.now(),
-        isWhat3wordsLoading: _what3wordsService != null,
-        isGeocodingLoading: _geocodingService != null,
-      ));
+      _updateState(
+        LocationDisplaySuccess(
+          coordinates: location,
+          source: LocationSource.manual,
+          placeName: placeName,
+          lastUpdated: DateTime.now(),
+          isWhat3wordsLoading: _what3wordsService != null,
+          isGeocodingLoading: _geocodingService != null,
+        ),
+      );
 
       // Fetch enrichment data (what3words, geocoding)
       _fetchEnrichmentData(location);
@@ -127,10 +129,12 @@ class LocationStateManager extends ChangeNotifier {
         'Failed to set manual location: $e',
         name: 'LocationStateManager',
       );
-      _updateState(LocationDisplayError(
-        message: 'Failed to save location: ${e.toString()}',
-        canRetry: true,
-      ));
+      _updateState(
+        LocationDisplayError(
+          message: 'Failed to save location: ${e.toString()}',
+          canRetry: true,
+        ),
+      );
     }
   }
 
@@ -169,10 +173,12 @@ class LocationStateManager extends ChangeNotifier {
       lastPlaceName = success.formattedLocation ?? success.placeName;
     }
 
-    _updateState(LocationDisplayLoading(
-      lastKnownLocation: lastKnown,
-      lastKnownPlaceName: lastPlaceName,
-    ));
+    _updateState(
+      LocationDisplayLoading(
+        lastKnownLocation: lastKnown,
+        lastKnownPlaceName: lastPlaceName,
+      ),
+    );
 
     try {
       // First check for cached manual location (persisted across navigation)
@@ -186,14 +192,16 @@ class LocationStateManager extends ChangeNotifier {
           name: 'LocationStateManager',
         );
 
-        _updateState(LocationDisplaySuccess(
-          coordinates: location,
-          source: LocationSource.manual,
-          placeName: placeName,
-          lastUpdated: DateTime.now(),
-          isWhat3wordsLoading: _what3wordsService != null,
-          isGeocodingLoading: _geocodingService != null,
-        ));
+        _updateState(
+          LocationDisplaySuccess(
+            coordinates: location,
+            source: LocationSource.manual,
+            placeName: placeName,
+            lastUpdated: DateTime.now(),
+            isWhat3wordsLoading: _what3wordsService != null,
+            isGeocodingLoading: _geocodingService != null,
+          ),
+        );
 
         // Fetch enrichment data
         _fetchEnrichmentData(location);
@@ -214,14 +222,16 @@ class LocationStateManager extends ChangeNotifier {
             name: 'LocationStateManager',
           );
 
-          _updateState(LocationDisplaySuccess(
-            coordinates: location,
-            source: resolved.source,
-            placeName: resolved.placeName,
-            lastUpdated: DateTime.now(),
-            isWhat3wordsLoading: _what3wordsService != null,
-            isGeocodingLoading: _geocodingService != null,
-          ));
+          _updateState(
+            LocationDisplaySuccess(
+              coordinates: location,
+              source: resolved.source,
+              placeName: resolved.placeName,
+              lastUpdated: DateTime.now(),
+              isWhat3wordsLoading: _what3wordsService != null,
+              isGeocodingLoading: _geocodingService != null,
+            ),
+          );
 
           // Fetch enrichment data
           _fetchEnrichmentData(location);
@@ -231,22 +241,26 @@ class LocationStateManager extends ChangeNotifier {
             'Location resolution failed: $value',
             name: 'LocationStateManager',
           );
-          _updateState(LocationDisplayError(
-            message: _getErrorMessage(value),
-            canRetry: true,
-            cachedLocation: lastKnown,
-          ));
+          _updateState(
+            LocationDisplayError(
+              message: _getErrorMessage(value),
+              canRetry: true,
+              cachedLocation: lastKnown,
+            ),
+          );
       }
     } catch (e) {
       developer.log(
         'Unexpected error fetching location: $e',
         name: 'LocationStateManager',
       );
-      _updateState(LocationDisplayError(
-        message: 'Unexpected error: ${e.toString()}',
-        canRetry: true,
-        cachedLocation: lastKnown,
-      ));
+      _updateState(
+        LocationDisplayError(
+          message: 'Unexpected error: ${e.toString()}',
+          canRetry: true,
+          cachedLocation: lastKnown,
+        ),
+      );
     }
   }
 
@@ -268,10 +282,12 @@ class LocationStateManager extends ChangeNotifier {
                 'What3words resolved for ${LocationUtils.logRedact(location.latitude, location.longitude)}',
                 name: 'LocationStateManager',
               );
-              _updateState(state.copyWith(
-                what3words: value.displayFormat,
-                isWhat3wordsLoading: false,
-              ));
+              _updateState(
+                state.copyWith(
+                  what3words: value.displayFormat,
+                  isWhat3wordsLoading: false,
+                ),
+              );
             case Left(:final value):
               developer.log(
                 'What3words failed: ${value.userMessage}',
@@ -296,10 +312,12 @@ class LocationStateManager extends ChangeNotifier {
                 'Geocoding resolved: $value',
                 name: 'LocationStateManager',
               );
-              _updateState(state.copyWith(
-                formattedLocation: value,
-                isGeocodingLoading: false,
-              ));
+              _updateState(
+                state.copyWith(
+                  formattedLocation: value,
+                  isGeocodingLoading: false,
+                ),
+              );
             case Left(:final value):
               developer.log(
                 'Geocoding failed: $value',
@@ -330,8 +348,10 @@ class LocationStateManager extends ChangeNotifier {
 
   @override
   void dispose() {
-    developer.log('LocationStateManager disposed',
-        name: 'LocationStateManager');
+    developer.log(
+      'LocationStateManager disposed',
+      name: 'LocationStateManager',
+    );
     super.dispose();
   }
 }

@@ -51,10 +51,12 @@ void main() async {
   // Log DEV_MODE status for developer awareness
   if (FeatureFlags.devMode) {
     debugPrint(
-        '🔧 DEV_MODE enabled - using Aviemore (57.2, -3.8) as fallback location');
+      '🔧 DEV_MODE enabled - using Aviemore (57.2, -3.8) as fallback location',
+    );
   } else {
     debugPrint(
-        '🏭 Production mode - using Scotland centroid (55.86, -4.25) as fallback location');
+      '🏭 Production mode - using Scotland centroid (55.86, -4.25) as fallback location',
+    );
   }
 
   // Clear cached location for testing Portugal coordinates

@@ -354,10 +354,12 @@ class FireIncident extends Equatable {
     if (json['boundaryPoints'] != null) {
       final pointsList = json['boundaryPoints'] as List<dynamic>;
       boundaryPoints = pointsList
-          .map((p) => LatLng(
-                (p as Map<String, dynamic>)['latitude'] as double,
-                p['longitude'] as double,
-              ))
+          .map(
+            (p) => LatLng(
+              (p as Map<String, dynamic>)['latitude'] as double,
+              p['longitude'] as double,
+            ),
+          )
           .toList();
     }
 

@@ -75,11 +75,7 @@ class PolygonToggleChip extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    iconData,
-                    size: 24,
-                    color: contentColor,
-                  ),
+                  Icon(iconData, size: 24, color: contentColor),
                   const SizedBox(width: 8),
                   Text(
                     label,

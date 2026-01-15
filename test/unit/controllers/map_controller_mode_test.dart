@@ -17,10 +17,12 @@ class _MockLocationResolver implements LocationResolver {
   Future<Either<LocationError, ResolvedLocation>> getLatLon({
     bool allowDefault = true,
   }) async {
-    return const Right(ResolvedLocation(
-      coordinates: LatLng(55.9533, -3.1883),
-      source: LocationSource.gps,
-    ));
+    return const Right(
+      ResolvedLocation(
+        coordinates: LatLng(55.9533, -3.1883),
+        source: LocationSource.gps,
+      ),
+    );
   }
 
   @override
@@ -41,13 +43,15 @@ class _MockFireRiskService implements FireRiskService {
     required double lon,
     Duration? deadline,
   }) async {
-    return Right(FireRisk(
-      level: RiskLevel.low,
-      fwi: 5.0,
-      source: DataSource.mock,
-      observedAt: DateTime.now().toUtc(),
-      freshness: Freshness.mock,
-    ));
+    return Right(
+      FireRisk(
+        level: RiskLevel.low,
+        fwi: 5.0,
+        source: DataSource.mock,
+        observedAt: DateTime.now().toUtc(),
+        freshness: Freshness.mock,
+      ),
+    );
   }
 }
 
@@ -83,7 +87,9 @@ void main() {
 
       test('defaults to this season filter for burnt areas', () {
         expect(
-            controller.burntAreaSeasonFilter, BurntAreaSeasonFilter.thisSeason);
+          controller.burntAreaSeasonFilter,
+          BurntAreaSeasonFilter.thisSeason,
+        );
       });
 
       test('starts with empty hotspots list', () {
@@ -171,8 +177,9 @@ void main() {
         var notifyCount = 0;
         controller.addListener(() => notifyCount++);
 
-        controller
-            .setHotspotTimeFilter(HotspotTimeFilter.today); // Same as default
+        controller.setHotspotTimeFilter(
+          HotspotTimeFilter.today,
+        ); // Same as default
 
         expect(notifyCount, 0);
       });
@@ -182,7 +189,9 @@ void main() {
       test('changes filter from thisSeason to lastSeason', () {
         controller.setBurntAreaSeasonFilter(BurntAreaSeasonFilter.lastSeason);
         expect(
-            controller.burntAreaSeasonFilter, BurntAreaSeasonFilter.lastSeason);
+          controller.burntAreaSeasonFilter,
+          BurntAreaSeasonFilter.lastSeason,
+        );
       });
 
       test('notifies listeners on filter change', () {
@@ -198,8 +207,9 @@ void main() {
         var notifyCount = 0;
         controller.addListener(() => notifyCount++);
 
-        controller
-            .setBurntAreaSeasonFilter(BurntAreaSeasonFilter.thisSeason); // Same
+        controller.setBurntAreaSeasonFilter(
+          BurntAreaSeasonFilter.thisSeason,
+        ); // Same
 
         expect(notifyCount, 0);
       });

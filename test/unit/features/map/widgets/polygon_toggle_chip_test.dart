@@ -4,15 +4,13 @@ import 'package:wildfire_mvp_v3/features/map/widgets/polygon_toggle_chip.dart';
 
 void main() {
   group('PolygonToggleChip', () {
-    testWidgets('shows "Hide burn areas" when showPolygons is true',
-        (tester) async {
+    testWidgets('shows "Hide burn areas" when showPolygons is true', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PolygonToggleChip(
-              showPolygons: true,
-              onToggle: () {},
-            ),
+            body: PolygonToggleChip(showPolygons: true, onToggle: () {}),
           ),
         ),
       );
@@ -22,15 +20,13 @@ void main() {
       expect(find.byIcon(Icons.local_fire_department), findsOneWidget);
     });
 
-    testWidgets('shows "Show burn areas" when showPolygons is false',
-        (tester) async {
+    testWidgets('shows "Show burn areas" when showPolygons is false', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PolygonToggleChip(
-              showPolygons: false,
-              onToggle: () {},
-            ),
+            body: PolygonToggleChip(showPolygons: false, onToggle: () {}),
           ),
         ),
       );
@@ -89,10 +85,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PolygonToggleChip(
-              showPolygons: true,
-              onToggle: () {},
-            ),
+            body: PolygonToggleChip(showPolygons: true, onToggle: () {}),
           ),
         ),
       );
@@ -106,10 +99,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PolygonToggleChip(
-              showPolygons: true,
-              onToggle: () {},
-            ),
+            body: PolygonToggleChip(showPolygons: true, onToggle: () {}),
           ),
         ),
       );
@@ -127,10 +117,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: PolygonToggleChip(
-              showPolygons: false,
-              onToggle: () {},
-            ),
+            body: PolygonToggleChip(showPolygons: false, onToggle: () {}),
           ),
         ),
       );
@@ -159,8 +146,9 @@ void main() {
       );
 
       // Get icon color for enabled state
-      final enabledIcon =
-          tester.widget<Icon>(find.byIcon(Icons.local_fire_department));
+      final enabledIcon = tester.widget<Icon>(
+        find.byIcon(Icons.local_fire_department),
+      );
       final enabledOpacity = enabledIcon.color?.a ?? 1.0;
 
       // Disabled state
@@ -176,8 +164,9 @@ void main() {
         ),
       );
 
-      final disabledIcon =
-          tester.widget<Icon>(find.byIcon(Icons.local_fire_department));
+      final disabledIcon = tester.widget<Icon>(
+        find.byIcon(Icons.local_fire_department),
+      );
       final disabledOpacity = disabledIcon.color?.a ?? 1.0;
 
       // Disabled state should have lower opacity
