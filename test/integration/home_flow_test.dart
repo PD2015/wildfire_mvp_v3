@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dartz/dartz.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:wildfire_mvp_v3/controllers/home_controller.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
@@ -11,6 +10,7 @@ import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/screens/home_screen.dart';
+import 'package:wildfire_mvp_v3/widgets/location_chip.dart';
 
 /// Mock LocationResolver for controlled testing
 class MockLocationResolver implements LocationResolver {
@@ -206,37 +206,6 @@ void main() {
       );
     }
 
-    /// Helper to build app with GoRouter (for navigation tests)
-    Widget buildTestAppWithRouter(
-      HomeController controller, {
-      required bool Function() onLocationPickerNavigated,
-    }) {
-      final router = GoRouter(
-        initialLocation: '/',
-        routes: [
-          GoRoute(
-            path: '/',
-            builder: (context, state) => HomeScreen(controller: controller),
-          ),
-          GoRoute(
-            path: '/location-picker',
-            builder: (context, state) {
-              onLocationPickerNavigated();
-              return const Scaffold(
-                body: Center(child: Text('Location Picker Screen')),
-              );
-            },
-          ),
-        ],
-      );
-      return MaterialApp.router(
-        title: 'WildFire Test',
-        theme: ThemeData.light(),
-        darkTheme: ThemeData.dark(),
-        routerConfig: router,
-      );
-    }
-
     /// Helper to create FireRisk test data
     FireRisk createFireRisk({
       RiskLevel level = RiskLevel.moderate,
@@ -252,13 +221,8 @@ void main() {
       );
     }
 
-    // TODO(023-compact-location-ui): Update tests for new LocationChip UI pattern
-    // Tests skip due to:
-    // 1. pumpAndSettle timeout - LocationChip has animated CircularProgressIndicator
-    // 2. "Change Location" button moved inside ExpandableLocationPanel (requires chip tap first)
-    // Tracked in: https://github.com/PD2015/wildfire_mvp_v3/issues/77
-    group('Scenario 1: EFFIS Success Flow',
-        skip: 'Needs LocationChip UI update', () {
+    // Tests for EFFIS service success flow
+    group('Scenario 1: EFFIS Success Flow', () {
       testWidgets('shows live data with EFFIS source chip', (tester) async {
         // Arrange
         final testRisk = createFireRisk(
@@ -274,9 +238,8 @@ void main() {
 
         // Act
         await tester.pumpWidget(buildTestApp(homeController));
-        await tester.pumpAndSettle(); // Wait for all async operations
-
-        // Debug: Print widget tree
+        // Use pump() with duration instead of pumpAndSettle() to avoid animation timeouts
+        await tester.pump(const Duration(milliseconds: 300));
 
         // Assert - Should show success state with data source
         expect(find.textContaining('From'), findsAtLeastNWidgets(1));
@@ -308,8 +271,7 @@ void main() {
       });
     });
 
-    group('Scenario 2: SEPA Success Flow (Scotland)',
-        skip: 'Needs LocationChip UI update', () {
+    group('Scenario 2: SEPA Success Flow (Scotland)', () {
       testWidgets('shows SEPA source chip for Scotland coordinates', (
         tester,
       ) async {
@@ -327,7 +289,8 @@ void main() {
 
         // Act
         await tester.pumpWidget(buildTestApp(homeController));
-        await tester.pumpAndSettle(); // Wait for all async operations
+        // Use pump() with duration instead of pumpAndSettle() to avoid animation timeouts
+        await tester.pump(const Duration(milliseconds: 300));
 
         // Assert - Should show data source
         expect(find.textContaining('From'), findsAtLeastNWidgets(1));
@@ -358,9 +321,7 @@ void main() {
       });
     });
 
-    // Skipped: Needs LocationChip UI update - pumpAndSettle timeout with animated indicators
-    group('Scenario 3b: Cache Fallback - Retry Flow',
-        skip: 'Needs LocationChip UI update', () {
+    group('Scenario 3b: Cache Fallback - Retry Flow', () {
       testWidgets('retry button works after error', (tester) async {
         // Arrange
         mockLocationResolver.mockSuccessWithLocation(edinburgh);
@@ -383,7 +344,8 @@ void main() {
 
         // Act - Tap retry button
         await tester.tap(find.text('Retry'));
-        await tester.pumpAndSettle(); // Wait for all async operations
+        // Use pump() with duration instead of pumpAndSettle() to avoid animation timeouts
+        await tester.pump(const Duration(milliseconds: 300));
 
         // Assert - Should transition to success
         expect(find.textContaining('From'), findsAtLeastNWidgets(1));
@@ -410,39 +372,60 @@ void main() {
       });
     });
 
-    group('Scenario 5: GPS Denied → Manual Entry Flow',
-        skip:
-            'Needs LocationChip UI update - Change Location button moved to expanded panel',
-        () {
-      testWidgets('navigates to location picker when location denied', (
+    group('Scenario 5: GPS Denied → Manual Entry Flow', () {
+      testWidgets('LocationChip is tappable and expands panel in success state',
+          (
         tester,
       ) async {
-        // Arrange
-        mockLocationResolver.mockError(LocationError.permissionDenied);
-        bool locationPickerNavigated = false;
+        // Arrange - Start with successful state (LocationChip visible)
+        mockLocationResolver.mockSuccessWithLocation(edinburgh);
+        mockFireRiskService.mockSuccess(
+          createFireRisk(source: DataSource.effis),
+        );
 
         homeController = createController();
 
         // Act
-        await tester.pumpWidget(
-          buildTestAppWithRouter(
-            homeController,
-            onLocationPickerNavigated: () {
-              locationPickerNavigated = true;
-              return locationPickerNavigated;
-            },
-          ),
+        await tester.pumpWidget(buildTestApp(homeController));
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // Verify LocationChip is present in success state
+        final locationChip = find.byType(LocationChip);
+        expect(locationChip, findsOneWidget,
+            reason: 'LocationChip should be visible in success state');
+
+        // Tap LocationChip to expand panel
+        await tester.tap(locationChip.first);
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // Verify the panel expansion shows 'Change Location' button
+        // (Button may be off-screen, but should exist in widget tree)
+        expect(
+          find.text('Change Location'),
+          findsOneWidget,
+          reason: 'Change Location button should appear in expanded panel',
         );
+      });
+
+      testWidgets('error state shows retry button (no LocationChip)', (
+        tester,
+      ) async {
+        // Arrange - GPS denied with no cached location means no LocationChip
+        mockLocationResolver.mockError(LocationError.permissionDenied);
+        mockFireRiskService.mockError(ApiError(message: 'Location error'));
+
+        homeController = createController();
+        await tester.pumpWidget(buildTestApp(homeController));
         await tester.pump(const Duration(milliseconds: 100));
 
-        // Tap the "Change Location" button in LocationCard
-        // Updated: Button text is now "Change Location" (no "Set" button)
-        await tester.tap(find.text('Change Location'));
-        await tester.pumpAndSettle();
-
-        // Assert - Should navigate to location picker screen
-        expect(locationPickerNavigated, isTrue);
-        expect(find.text('Location Picker Screen'), findsOneWidget);
+        // In new UI, error state without cached location shows Retry button
+        // but no LocationChip (since there's no location to display)
+        expect(find.text('Retry'), findsOneWidget);
+        expect(
+          find.byType(LocationChip),
+          findsNothing,
+          reason: 'No LocationChip when no location is available',
+        );
       });
 
       testWidgets('succeeds after manual location entry', (tester) async {
@@ -454,11 +437,10 @@ void main() {
 
         homeController = createController();
         await tester.pumpWidget(buildTestApp(homeController));
-        await tester.pump(); // Initial render
+        await tester.pump(const Duration(milliseconds: 100));
 
-        // Should show error state with LocationCard Change Location button
-        // Updated: Button text is now "Change Location" (no "Set" button)
-        expect(find.text('Change Location'), findsOneWidget);
+        // Should show error state - verify error message or retry button
+        expect(find.text('Retry'), findsOneWidget);
 
         // Act - Set manual location (this updates the location resolver mock)
         mockLocationResolver.reset();
@@ -466,17 +448,14 @@ void main() {
 
         // Trigger retry which will use the updated location
         await tester.tap(find.text('Retry'));
-        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pump(const Duration(milliseconds: 300));
 
         // Assert - Should show success with EFFIS data
         expect(mockFireRiskService.getCurrentCallCount, greaterThan(0));
-        // Note: May not find 'EFFIS' text due to UI rendering timing, but service should be called
       });
     });
 
-    // Skipped: Needs LocationChip UI update - pumpAndSettle timeout with animated indicators
-    group('Scenario 6: Error → Retry → Success Flow',
-        skip: 'Needs LocationChip UI update', () {
+    group('Scenario 6: Error → Retry → Success Flow', () {
       testWidgets('retry button appears and works after error', (tester) async {
         // Arrange
         mockLocationResolver.mockSuccessWithLocation(edinburgh);
@@ -499,9 +478,10 @@ void main() {
 
         // Act - Tap retry
         await tester.tap(find.text('Retry'));
-        await tester.pumpAndSettle(); // Wait for all async operations
+        // Use pump() with duration instead of pumpAndSettle() to avoid animation timeouts
+        await tester.pump(const Duration(milliseconds: 300));
 
-        // Assert - Should succeed
+        // Assert - Should succeed (check for success indicators)
         expect(find.textContaining('From'), findsAtLeastNWidgets(1));
         expect(find.text('Retry'), findsNothing);
       });
@@ -531,7 +511,7 @@ void main() {
       });
     });
 
-    group('8s Deadline Enforcement', skip: 'Needs LocationChip UI update', () {
+    group('8s Deadline Enforcement', () {
       testWidgets('handles slow responses gracefully', (tester) async {
         // Arrange
         mockLocationResolver.mockSuccessWithLocation(edinburgh);
@@ -547,8 +527,8 @@ void main() {
         // Should show loading state
         expect(find.byType(CircularProgressIndicator), findsWidgets);
 
-        // Wait for response and settle
-        await tester.pumpAndSettle();
+        // Wait for response with explicit duration
+        await tester.pump(const Duration(seconds: 3));
 
         // Should complete successfully
         expect(find.textContaining('From'), findsAtLeastNWidgets(1));
@@ -640,30 +620,30 @@ void main() {
       });
     });
 
-    // Skipped: Needs LocationChip UI update - looks for old LocationCard button
-    group('Accessibility Compliance - LocationCard semantics',
-        skip: 'Needs LocationChip UI update', () {
-      testWidgets('semantic labels are present', (tester) async {
-        // Arrange
+    group('Accessibility Compliance - LocationChip semantics', () {
+      testWidgets('semantic labels are present in success state', (
+        tester,
+      ) async {
+        // Arrange - Use success state where LocationChip is displayed
         mockLocationResolver.mockSuccessWithLocation(edinburgh);
-        mockFireRiskService.mockError(ApiError(message: 'Test error'));
+        mockFireRiskService.mockSuccess(
+          createFireRisk(source: DataSource.effis),
+        );
 
         homeController = createController();
 
         // Act
         await tester.pumpWidget(buildTestApp(homeController));
-        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pump(const Duration(milliseconds: 300));
 
-        // Assert - Check for semantic elements and LocationCard button
-        // Updated: Button text is now "Change Location" or "Change" (no "Set")
+        // Assert - Check for semantic elements
         expect(find.byType(Semantics), findsWidgets);
-        final hasChangeLocation =
-            find.text('Change Location').evaluate().isNotEmpty;
-        final hasChange = find.text('Change').evaluate().isNotEmpty;
+
+        // New LocationChip UI: Verify LocationChip is present in success state
         expect(
-          hasChangeLocation || hasChange,
-          isTrue,
-          reason: 'LocationCard should have Change Location or Change button',
+          find.byType(LocationChip),
+          findsOneWidget,
+          reason: 'LocationChip should be visible in success state',
         );
       });
     });
