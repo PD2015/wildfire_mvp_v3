@@ -361,8 +361,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return switch (homeState) {
       // Success state: Show guidance for current risk level
-      HomeStateSuccess(:final riskData) =>
-        RiskGuidanceCard(level: riskData.level),
+      HomeStateSuccess(:final riskData) => RiskGuidanceCard(
+          level: riskData.level,
+        ),
 
       // Error state with cached data: Show guidance for cached risk level
       HomeStateError(:final cachedData) when cachedData != null =>
@@ -518,10 +519,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final state = _controller.state;
 
     switch (state) {
-      case HomeStateLoading(
-          :final lastKnownLocation,
-          :final isLocationStale,
-        ):
+      case HomeStateLoading(:final lastKnownLocation, :final isLocationStale):
         // Determine subtitle based on staleness
         String subtitle;
         if (lastKnownLocation != null) {

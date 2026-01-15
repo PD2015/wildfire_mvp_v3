@@ -64,11 +64,23 @@ class MapTypeSelector extends StatelessWidget {
           onSelected: onMapTypeChanged,
           itemBuilder: (context) => [
             _buildMapTypeMenuItem(
-                context, MapType.terrain, 'Terrain', Icons.terrain),
+              context,
+              MapType.terrain,
+              'Terrain',
+              Icons.terrain,
+            ),
             _buildMapTypeMenuItem(
-                context, MapType.satellite, 'Satellite', Icons.satellite_alt),
+              context,
+              MapType.satellite,
+              'Satellite',
+              Icons.satellite_alt,
+            ),
             _buildMapTypeMenuItem(
-                context, MapType.hybrid, 'Hybrid', Icons.layers),
+              context,
+              MapType.hybrid,
+              'Hybrid',
+              Icons.layers,
+            ),
             _buildMapTypeMenuItem(context, MapType.normal, 'Normal', Icons.map),
           ],
         ),
@@ -90,10 +102,7 @@ class MapTypeSelector extends StatelessWidget {
       value: type,
       child: Row(
         children: [
-          Icon(
-            icon,
-            color: isSelected ? primaryColor : null,
-          ),
+          Icon(icon, color: isSelected ? primaryColor : null),
           const SizedBox(width: 12),
           Text(
             label,
@@ -104,11 +113,7 @@ class MapTypeSelector extends StatelessWidget {
           ),
           if (isSelected) ...[
             const Spacer(),
-            Icon(
-              Icons.check,
-              color: primaryColor,
-              size: 20,
-            ),
+            Icon(Icons.check, color: primaryColor, size: 20),
           ],
         ],
       ),

@@ -28,13 +28,8 @@ import 'package:wildfire_mvp_v3/services/onboarding_prefs.dart' as _i3;
 // ignore_for_file: invalid_use_of_internal_member
 
 class _FakeEither_0<L, R> extends _i1.SmartFake implements _i2.Either<L, R> {
-  _FakeEither_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeEither_0(Object parent, Invocation parentInvocation)
+      : super(parent, parentInvocation);
 }
 
 /// A class which mocks [OnboardingPrefsService].
@@ -48,66 +43,44 @@ class MockOnboardingPrefsService extends _i1.Mock
 
   @override
   _i4.Future<bool> isOnboardingRequired() => (super.noSuchMethod(
-        Invocation.method(
-          #isOnboardingRequired,
-          [],
-        ),
+        Invocation.method(#isOnboardingRequired, []),
         returnValue: _i4.Future<bool>.value(false),
       ) as _i4.Future<bool>);
 
   @override
   _i4.Future<bool> isMigrationRequired() => (super.noSuchMethod(
-        Invocation.method(
-          #isMigrationRequired,
-          [],
-        ),
+        Invocation.method(#isMigrationRequired, []),
         returnValue: _i4.Future<bool>.value(false),
       ) as _i4.Future<bool>);
 
   @override
   _i4.Future<int> getOnboardingVersion() => (super.noSuchMethod(
-        Invocation.method(
-          #getOnboardingVersion,
-          [],
-        ),
+        Invocation.method(#getOnboardingVersion, []),
         returnValue: _i4.Future<int>.value(0),
       ) as _i4.Future<int>);
 
   @override
   _i4.Future<_i5.ConsentRecord?> getConsentRecord() => (super.noSuchMethod(
-        Invocation.method(
-          #getConsentRecord,
-          [],
-        ),
+        Invocation.method(#getConsentRecord, []),
         returnValue: _i4.Future<_i5.ConsentRecord?>.value(),
       ) as _i4.Future<_i5.ConsentRecord?>);
 
   @override
   _i4.Future<int> getNotificationRadiusKm() => (super.noSuchMethod(
-        Invocation.method(
-          #getNotificationRadiusKm,
-          [],
-        ),
+        Invocation.method(#getNotificationRadiusKm, []),
         returnValue: _i4.Future<int>.value(0),
       ) as _i4.Future<int>);
 
   @override
   _i4.Future<int> getPreviousVersion() => (super.noSuchMethod(
-        Invocation.method(
-          #getPreviousVersion,
-          [],
-        ),
+        Invocation.method(#getPreviousVersion, []),
         returnValue: _i4.Future<int>.value(0),
       ) as _i4.Future<int>);
 
   @override
   _i4.Future<void> completeOnboarding({required int? radiusKm}) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #completeOnboarding,
-          [],
-          {#radiusKm: radiusKm},
-        ),
+        Invocation.method(#completeOnboarding, [], {#radiusKm: radiusKm}),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
@@ -115,11 +88,9 @@ class MockOnboardingPrefsService extends _i1.Mock
   @override
   _i4.Future<void> updateNotificationRadius({required int? radiusKm}) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #updateNotificationRadius,
-          [],
-          {#radiusKm: radiusKm},
-        ),
+        Invocation.method(#updateNotificationRadius, [], {
+          #radiusKm: radiusKm,
+        }),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
@@ -134,47 +105,33 @@ class MockLocationResolver extends _i1.Mock implements _i6.LocationResolver {
   }
 
   @override
-  _i4.Future<_i2.Either<_i7.LocationError, _i7.ResolvedLocation>> getLatLon(
-          {bool? allowDefault = true}) =>
+  _i4.Future<_i2.Either<_i7.LocationError, _i7.ResolvedLocation>> getLatLon({
+    bool? allowDefault = true,
+  }) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #getLatLon,
-          [],
-          {#allowDefault: allowDefault},
-        ),
+        Invocation.method(#getLatLon, [], {#allowDefault: allowDefault}),
         returnValue: _i4
             .Future<_i2.Either<_i7.LocationError, _i7.ResolvedLocation>>.value(
-            _FakeEither_0<_i7.LocationError, _i7.ResolvedLocation>(
-          this,
-          Invocation.method(
-            #getLatLon,
-            [],
-            {#allowDefault: allowDefault},
+          _FakeEither_0<_i7.LocationError, _i7.ResolvedLocation>(
+            this,
+            Invocation.method(#getLatLon, [], {
+              #allowDefault: allowDefault,
+            }),
           ),
-        )),
+        ),
       ) as _i4.Future<_i2.Either<_i7.LocationError, _i7.ResolvedLocation>>);
 
   @override
-  _i4.Future<void> saveManual(
-    _i7.LatLng? location, {
-    String? placeName,
-  }) =>
+  _i4.Future<void> saveManual(_i7.LatLng? location, {String? placeName}) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #saveManual,
-          [location],
-          {#placeName: placeName},
-        ),
+        Invocation.method(#saveManual, [location], {#placeName: placeName}),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
 
   @override
   _i4.Future<void> clearManualLocation() => (super.noSuchMethod(
-        Invocation.method(
-          #clearManualLocation,
-          [],
-        ),
+        Invocation.method(#clearManualLocation, []),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
@@ -182,10 +139,7 @@ class MockLocationResolver extends _i1.Mock implements _i6.LocationResolver {
   @override
   _i4.Future<(_i7.LatLng, String?)?> loadCachedManualLocation() =>
       (super.noSuchMethod(
-        Invocation.method(
-          #loadCachedManualLocation,
-          [],
-        ),
+        Invocation.method(#loadCachedManualLocation, []),
         returnValue: _i4.Future<(_i7.LatLng, String?)?>.value(),
       ) as _i4.Future<(_i7.LatLng, String?)?>);
 }

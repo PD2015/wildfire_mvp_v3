@@ -21,8 +21,10 @@ class MockLocationResolver implements LocationResolver {
   int getLatLonCallCount = 0;
   List<LatLng> savedLocations = [];
 
-  void mockSuccessWithLocation(LatLng location,
-      {LocationSource source = LocationSource.gps}) {
+  void mockSuccessWithLocation(
+    LatLng location, {
+    LocationSource source = LocationSource.gps,
+  }) {
     _returnError = false;
     _successLocation = location;
     _successSource = source;
@@ -53,17 +55,21 @@ class MockLocationResolver implements LocationResolver {
     }
 
     if (_successLocation != null) {
-      return Right(ResolvedLocation(
-        coordinates: _successLocation!,
-        source: _successSource,
-      ));
+      return Right(
+        ResolvedLocation(
+          coordinates: _successLocation!,
+          source: _successSource,
+        ),
+      );
     }
 
     // Default to Edinburgh
-    return const Right(ResolvedLocation(
-      coordinates: LatLng(55.9533, -3.1883),
-      source: LocationSource.gps,
-    ));
+    return const Right(
+      ResolvedLocation(
+        coordinates: LatLng(55.9533, -3.1883),
+        source: LocationSource.gps,
+      ),
+    );
   }
 
   @override
@@ -402,13 +408,15 @@ void main() {
         homeController = createController();
 
         // Act
-        await tester.pumpWidget(buildTestAppWithRouter(
-          homeController,
-          onLocationPickerNavigated: () {
-            locationPickerNavigated = true;
-            return locationPickerNavigated;
-          },
-        ));
+        await tester.pumpWidget(
+          buildTestAppWithRouter(
+            homeController,
+            onLocationPickerNavigated: () {
+              locationPickerNavigated = true;
+              return locationPickerNavigated;
+            },
+          ),
+        );
         await tester.pump(const Duration(milliseconds: 100));
 
         // Tap the "Change Location" button in LocationCard
@@ -630,9 +638,11 @@ void main() {
         final hasChangeLocation =
             find.text('Change Location').evaluate().isNotEmpty;
         final hasChange = find.text('Change').evaluate().isNotEmpty;
-        expect(hasChangeLocation || hasChange, isTrue,
-            reason:
-                'LocationCard should have Change Location or Change button');
+        expect(
+          hasChangeLocation || hasChange,
+          isTrue,
+          reason: 'LocationCard should have Change Location or Change button',
+        );
       });
     });
   });

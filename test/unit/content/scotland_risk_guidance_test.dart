@@ -13,10 +13,7 @@ void main() {
   group('ScotlandRiskGuidance', () {
     group('guidanceByLevel map', () {
       test('contains all 6 risk levels', () {
-        expect(
-          ScotlandRiskGuidance.guidanceByLevel.length,
-          equals(6),
-        );
+        expect(ScotlandRiskGuidance.guidanceByLevel.length, equals(6));
         expect(
           ScotlandRiskGuidance.guidanceByLevel.keys,
           containsAll(RiskLevel.values),

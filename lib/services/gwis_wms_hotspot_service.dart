@@ -101,24 +101,23 @@ class GwisWmsHotspotService implements HotspotService {
     );
 
     // Execute queries in parallel
-    final futures = queryPoints.map((point) => _queryPoint(
-          bounds: bounds,
-          queryPoint: point,
-          timeFilter: timeFilter,
-          timeout: perRequestTimeout,
-          maxRetries: maxRetries,
-        ));
+    final futures = queryPoints.map(
+      (point) => _queryPoint(
+        bounds: bounds,
+        queryPoint: point,
+        timeFilter: timeFilter,
+        timeout: perRequestTimeout,
+        maxRetries: maxRetries,
+      ),
+    );
 
     final results = await Future.wait(futures);
 
     for (final result in results) {
-      result.fold(
-        (error) => errors.add(error.message),
-        (hotspots) {
-          successCount++;
-          allHotspots.addAll(hotspots);
-        },
-      );
+      result.fold((error) => errors.add(error.message), (hotspots) {
+        successCount++;
+        allHotspots.addAll(hotspots);
+      });
     }
 
     developer.log(
@@ -129,9 +128,11 @@ class GwisWmsHotspotService implements HotspotService {
 
     // If all queries failed, return error
     if (successCount == 0) {
-      return Left(ApiError(
-        message: 'All GWIS WMS queries failed: ${errors.take(3).join("; ")}',
-      ));
+      return Left(
+        ApiError(
+          message: 'All GWIS WMS queries failed: ${errors.take(3).join("; ")}',
+        ),
+      );
     }
 
     // Deduplicate hotspots by ID
@@ -158,10 +159,9 @@ class GwisWmsHotspotService implements HotspotService {
 
     for (int row = 1; row <= _gridSize; row++) {
       for (int col = 1; col <= _gridSize; col++) {
-        points.add(LatLng(
-          sw.latitude + (row * latStep),
-          sw.longitude + (col * lngStep),
-        ));
+        points.add(
+          LatLng(sw.latitude + (row * latStep), sw.longitude + (col * lngStep)),
+        );
       }
     }
 
@@ -189,10 +189,7 @@ class GwisWmsHotspotService implements HotspotService {
       try {
         final response = await _httpClient.get(
           Uri.parse(url),
-          headers: {
-            'User-Agent': _userAgent,
-            'Accept': _acceptHeader,
-          },
+          headers: {'User-Agent': _userAgent, 'Accept': _acceptHeader},
         ).timeout(timeout);
 
         if (response.statusCode == 200) {
@@ -213,10 +210,13 @@ class GwisWmsHotspotService implements HotspotService {
         }
 
         // Non-retriable error
-        return Left(ApiError(
-          message: 'GWIS WMS request failed with status ${response.statusCode}',
-          statusCode: response.statusCode,
-        ));
+        return Left(
+          ApiError(
+            message:
+                'GWIS WMS request failed with status ${response.statusCode}',
+            statusCode: response.statusCode,
+          ),
+        );
       } on TimeoutException {
         lastError = ApiError(message: 'GWIS WMS request timed out');
         attempt++;

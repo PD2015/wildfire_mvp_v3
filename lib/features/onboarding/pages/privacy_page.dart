@@ -169,10 +169,7 @@ class _PrivacyItem extends StatelessWidget {
   final String text;
   final bool isPositive;
 
-  const _PrivacyItem({
-    required this.text,
-    required this.isPositive,
-  });
+  const _PrivacyItem({required this.text, required this.isPositive});
 
   @override
   Widget build(BuildContext context) {
@@ -189,12 +186,7 @@ class _PrivacyItem extends StatelessWidget {
               : theme.colorScheme.outline,
         ),
         const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: theme.textTheme.bodyMedium,
-          ),
-        ),
+        Expanded(child: Text(text, style: theme.textTheme.bodyMedium)),
       ],
     );
   }

@@ -53,10 +53,7 @@ class MockHotspotOrchestrator implements HotspotServiceOrchestrator {
       throw errorToThrow!;
     }
 
-    return HotspotResult(
-      hotspots: hotspotsToReturn,
-      source: sourceToReturn,
-    );
+    return HotspotResult(hotspots: hotspotsToReturn, source: sourceToReturn);
   }
 
   @override

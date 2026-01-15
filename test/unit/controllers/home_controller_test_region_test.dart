@@ -189,10 +189,12 @@ class MockLocationResolver implements LocationResolver {
     bool allowDefault = true,
   }) async {
     return _getLatLonResult ??
-        const Right(ResolvedLocation(
-          coordinates: LatLng(55.9533, -3.1883),
-          source: LocationSource.gps,
-        ));
+        const Right(
+          ResolvedLocation(
+            coordinates: LatLng(55.9533, -3.1883),
+            source: LocationSource.gps,
+          ),
+        );
   }
 
   @override

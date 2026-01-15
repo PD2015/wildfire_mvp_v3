@@ -93,10 +93,7 @@ class HotspotCluster extends Equatable {
       }
     }
 
-    final center = LatLng(
-      sumLat / hotspots.length,
-      sumLon / hotspots.length,
-    );
+    final center = LatLng(sumLat / hotspots.length, sumLon / hotspots.length);
 
     // Add small padding to bounds for better zoom-to-fit
     const padding = 0.005; // ~500m at mid-latitudes
@@ -169,9 +166,7 @@ class HotspotClusterBuilder {
   /// Default 0.75km (750m) per action plan specification.
   final double distanceThresholdKm;
 
-  const HotspotClusterBuilder({
-    this.distanceThresholdKm = 0.75,
-  });
+  const HotspotClusterBuilder({this.distanceThresholdKm = 0.75});
 
   /// Build clusters from a list of hotspots
   ///
@@ -182,12 +177,7 @@ class HotspotClusterBuilder {
   List<HotspotCluster> buildClusters(List<Hotspot> hotspots) {
     if (hotspots.isEmpty) return [];
     if (hotspots.length == 1) {
-      return [
-        HotspotCluster.fromHotspots(
-          id: 'cluster_0',
-          hotspots: hotspots,
-        ),
-      ];
+      return [HotspotCluster.fromHotspots(id: 'cluster_0', hotspots: hotspots)];
     }
 
     final clusters = <HotspotCluster>[];
@@ -216,10 +206,12 @@ class HotspotClusterBuilder {
         }
       }
 
-      clusters.add(HotspotCluster.fromHotspots(
-        id: 'cluster_${clusters.length}',
-        hotspots: clusterHotspots,
-      ));
+      clusters.add(
+        HotspotCluster.fromHotspots(
+          id: 'cluster_${clusters.length}',
+          hotspots: clusterHotspots,
+        ),
+      );
     }
 
     return clusters;

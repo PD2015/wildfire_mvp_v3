@@ -224,10 +224,7 @@ class RiskBanner extends StatelessWidget {
               ],
 
               // Risk scale
-              RiskScale(
-                currentLevel: data.level,
-                textColor: textColor,
-              ),
+              RiskScale(currentLevel: data.level, textColor: textColor),
 
               // Weather panel (only if enabled in config)
               if (config.showWeatherPanel) ...[
@@ -412,10 +409,7 @@ class RiskBanner extends StatelessWidget {
               const CachedBadge(),
 
               // Risk scale
-              RiskScale(
-                currentLevel: cached.level,
-                textColor: textColor,
-              ),
+              RiskScale(currentLevel: cached.level, textColor: textColor),
 
               // Location chip (if provided)
               if (locationChip != null) ...[

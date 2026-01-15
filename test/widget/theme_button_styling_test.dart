@@ -106,8 +106,9 @@ void main() {
     });
 
     group('Widget inheritance verification', () {
-      testWidgets('OutlinedButton without explicit style inherits theme',
-          (tester) async {
+      testWidgets('OutlinedButton without explicit style inherits theme', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             theme: WildfireA11yTheme.light,
@@ -128,93 +129,99 @@ void main() {
 
         // Verify it's using theme defaults (no explicit style)
         final button = tester.widget<OutlinedButton>(buttonFinder);
-        expect(button.style,
-            isNull); // No explicit style means full theme inheritance
+        expect(
+          button.style,
+          isNull,
+        ); // No explicit style means full theme inheritance
       });
 
       testWidgets(
-          'OutlinedButton text uses theme foregroundColor in light mode',
-          (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            theme: WildfireA11yTheme.light,
-            home: Scaffold(
-              body: Center(
-                child: OutlinedButton(
-                  onPressed: () {},
-                  child: const Text('Test Button'),
-                ),
-              ),
-            ),
-          ),
-        );
-
-        // The Text widget should inherit the theme's foreground color
-        final textFinder = find.text('Test Button');
-        expect(textFinder, findsOneWidget);
-
-        // Verify button is rendered
-        final buttonFinder = find.byType(OutlinedButton);
-        expect(buttonFinder, findsOneWidget);
-      });
-
-      testWidgets('OutlinedButton text uses theme foregroundColor in dark mode',
-          (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            theme: WildfireA11yTheme.dark,
-            home: Scaffold(
-              body: Center(
-                child: OutlinedButton(
-                  onPressed: () {},
-                  child: const Text('Test Button'),
-                ),
-              ),
-            ),
-          ),
-        );
-
-        // The Text widget should inherit the theme's foreground color
-        final textFinder = find.text('Test Button');
-        expect(textFinder, findsOneWidget);
-
-        // Verify button is rendered
-        final buttonFinder = find.byType(OutlinedButton);
-        expect(buttonFinder, findsOneWidget);
-      });
-
-      testWidgets(
-          'OutlinedButton with padding-only override preserves theme colors',
-          (tester) async {
-        await tester.pumpWidget(
-          MaterialApp(
-            theme: WildfireA11yTheme.light,
-            home: Scaffold(
-              body: Center(
-                child: OutlinedButton(
-                  onPressed: () {},
-                  // Only override padding - colors should come from theme
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
+        'OutlinedButton text uses theme foregroundColor in light mode',
+        (tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: WildfireA11yTheme.light,
+              home: Scaffold(
+                body: Center(
+                  child: OutlinedButton(
+                    onPressed: () {},
+                    child: const Text('Test Button'),
                   ),
-                  child: const Text('Custom Padding Button'),
                 ),
               ),
             ),
-          ),
-        );
+          );
 
-        final buttonFinder = find.byType(OutlinedButton);
-        final button = tester.widget<OutlinedButton>(buttonFinder);
+          // The Text widget should inherit the theme's foreground color
+          final textFinder = find.text('Test Button');
+          expect(textFinder, findsOneWidget);
 
-        // Button has custom style for padding
-        expect(button.style, isNotNull);
+          // Verify button is rendered
+          final buttonFinder = find.byType(OutlinedButton);
+          expect(buttonFinder, findsOneWidget);
+        },
+      );
 
-        // But the style only specifies padding, so colors come from theme
-        // (This is the pattern used in confirmation_panel.dart)
-        final customPadding = button.style!.padding?.resolve({});
-        expect(customPadding?.vertical, equals(40)); // 20 * 2
-      });
+      testWidgets(
+        'OutlinedButton text uses theme foregroundColor in dark mode',
+        (tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: WildfireA11yTheme.dark,
+              home: Scaffold(
+                body: Center(
+                  child: OutlinedButton(
+                    onPressed: () {},
+                    child: const Text('Test Button'),
+                  ),
+                ),
+              ),
+            ),
+          );
+
+          // The Text widget should inherit the theme's foreground color
+          final textFinder = find.text('Test Button');
+          expect(textFinder, findsOneWidget);
+
+          // Verify button is rendered
+          final buttonFinder = find.byType(OutlinedButton);
+          expect(buttonFinder, findsOneWidget);
+        },
+      );
+
+      testWidgets(
+        'OutlinedButton with padding-only override preserves theme colors',
+        (tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: WildfireA11yTheme.light,
+              home: Scaffold(
+                body: Center(
+                  child: OutlinedButton(
+                    onPressed: () {},
+                    // Only override padding - colors should come from theme
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                    ),
+                    child: const Text('Custom Padding Button'),
+                  ),
+                ),
+              ),
+            ),
+          );
+
+          final buttonFinder = find.byType(OutlinedButton);
+          final button = tester.widget<OutlinedButton>(buttonFinder);
+
+          // Button has custom style for padding
+          expect(button.style, isNotNull);
+
+          // But the style only specifies padding, so colors come from theme
+          // (This is the pattern used in confirmation_panel.dart)
+          final customPadding = button.style!.padding?.resolve({});
+          expect(customPadding?.vertical, equals(40)); // 20 * 2
+        },
+      );
     });
   });
 

@@ -36,10 +36,8 @@ class FirmsHotspotService implements HotspotService {
   ///
   /// [apiKey] - NASA FIRMS MAP_KEY (get from firms.modaps.eosdis.nasa.gov/api/map_key/)
   /// [httpClient] - Injectable HTTP client for network requests
-  FirmsHotspotService({
-    required String apiKey,
-    required http.Client httpClient,
-  })  : _apiKey = apiKey,
+  FirmsHotspotService({required String apiKey, required http.Client httpClient})
+      : _apiKey = apiKey,
         _httpClient = httpClient;
 
   @override
@@ -84,12 +82,8 @@ class FirmsHotspotService implements HotspotService {
     );
 
     try {
-      final response = await _httpClient.get(
-        Uri.parse(url),
-        headers: {
-          'User-Agent': _userAgent,
-        },
-      ).timeout(timeout);
+      final response = await _httpClient.get(Uri.parse(url),
+          headers: {'User-Agent': _userAgent}).timeout(timeout);
 
       if (response.statusCode == 200) {
         return _parseCsvResponse(response.body);
@@ -97,23 +91,29 @@ class FirmsHotspotService implements HotspotService {
 
       // Handle error responses
       if (response.statusCode == 401 || response.statusCode == 403) {
-        return Left(ApiError(
-          message: 'FIRMS API key invalid or expired',
-          statusCode: response.statusCode,
-        ));
+        return Left(
+          ApiError(
+            message: 'FIRMS API key invalid or expired',
+            statusCode: response.statusCode,
+          ),
+        );
       }
 
       if (response.statusCode == 429) {
-        return Left(ApiError(
-          message: 'FIRMS rate limit exceeded',
-          statusCode: response.statusCode,
-        ));
+        return Left(
+          ApiError(
+            message: 'FIRMS rate limit exceeded',
+            statusCode: response.statusCode,
+          ),
+        );
       }
 
-      return Left(ApiError(
-        message: 'FIRMS request failed with status ${response.statusCode}',
-        statusCode: response.statusCode,
-      ));
+      return Left(
+        ApiError(
+          message: 'FIRMS request failed with status ${response.statusCode}',
+          statusCode: response.statusCode,
+        ),
+      );
     } on TimeoutException {
       return Left(ApiError(message: 'FIRMS request timed out'));
     } catch (e) {
@@ -150,10 +150,12 @@ class FirmsHotspotService implements HotspotService {
 
       // Validate required columns exist
       if (latIdx == -1 || lonIdx == -1) {
-        return Left(ApiError(
-          message:
-              'FIRMS response missing required columns (latitude, longitude)',
-        ));
+        return Left(
+          ApiError(
+            message:
+                'FIRMS response missing required columns (latitude, longitude)',
+          ),
+        );
       }
 
       final hotspots = <Hotspot>[];
@@ -188,13 +190,15 @@ class FirmsHotspotService implements HotspotService {
               'firms_${lat.toStringAsFixed(5)}_${lon.toStringAsFixed(5)}_'
               '${detectedAt.millisecondsSinceEpoch}';
 
-          hotspots.add(Hotspot(
-            id: id,
-            location: LatLng(lat, lon),
-            detectedAt: detectedAt,
-            frp: frp,
-            confidence: confidence,
-          ));
+          hotspots.add(
+            Hotspot(
+              id: id,
+              location: LatLng(lat, lon),
+              detectedAt: detectedAt,
+              frp: frp,
+              confidence: confidence,
+            ),
+          );
         } catch (e) {
           // Skip malformed rows but continue parsing
           developer.log(

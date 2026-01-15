@@ -246,6 +246,12 @@ class EffisFire extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [id, location, fireDate, areaHectares, country, boundaryPoints];
+  List<Object?> get props => [
+        id,
+        location,
+        fireDate,
+        areaHectares,
+        country,
+        boundaryPoints,
+      ];
 }

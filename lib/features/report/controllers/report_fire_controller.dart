@@ -30,9 +30,8 @@ class ReportFireController extends ChangeNotifier {
   /// Whether the location picker is currently open
   bool _isPickerOpen = false;
 
-  ReportFireController({
-    required LocationStateManager locationStateManager,
-  }) : _locationStateManager = locationStateManager {
+  ReportFireController({required LocationStateManager locationStateManager})
+      : _locationStateManager = locationStateManager {
     // Listen to location state changes and forward to our listeners
     _locationStateManager.addListener(_onLocationStateChanged);
   }

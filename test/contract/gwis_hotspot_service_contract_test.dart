@@ -46,74 +46,98 @@ void main() {
         expect(result.isLeft() || result.isRight(), isTrue);
       });
 
-      test('hotspots have required fields when present', () async {
-        // Use Portugal/Spain region - more likely to have active fires
-        const bounds = LatLngBounds(
-          southwest: LatLng(36.0, -10.0),
-          northeast: LatLng(44.0, 0.0),
-        );
+      test(
+        'hotspots have required fields when present',
+        () async {
+          // Use Portugal/Spain region - more likely to have active fires
+          const bounds = LatLngBounds(
+            southwest: LatLng(36.0, -10.0),
+            northeast: LatLng(44.0, 0.0),
+          );
 
-        final result = await service.getHotspots(
-          bounds: bounds,
-          timeFilter: HotspotTimeFilter.thisWeek,
-          timeout: const Duration(seconds: 15),
-        );
+          final result = await service.getHotspots(
+            bounds: bounds,
+            timeFilter: HotspotTimeFilter.thisWeek,
+            timeout: const Duration(seconds: 15),
+          );
 
-        result.fold(
-          (error) {
-            // API error is acceptable - service may be temporarily unavailable
-            expect(error.message, isNotEmpty);
-          },
-          (hotspots) {
-            // If we got hotspots, verify required fields
-            for (final hotspot in hotspots) {
-              expect(hotspot.id, isNotEmpty, reason: 'id is required');
-              expect(hotspot.location.latitude, inInclusiveRange(-90, 90),
-                  reason: 'latitude must be valid');
-              expect(hotspot.location.longitude, inInclusiveRange(-180, 180),
-                  reason: 'longitude must be valid');
-              expect(
-                  hotspot.detectedAt
-                      .isBefore(DateTime.now().add(const Duration(hours: 1))),
+          result.fold(
+            (error) {
+              // API error is acceptable - service may be temporarily unavailable
+              expect(error.message, isNotEmpty);
+            },
+            (hotspots) {
+              // If we got hotspots, verify required fields
+              for (final hotspot in hotspots) {
+                expect(hotspot.id, isNotEmpty, reason: 'id is required');
+                expect(
+                  hotspot.location.latitude,
+                  inInclusiveRange(-90, 90),
+                  reason: 'latitude must be valid',
+                );
+                expect(
+                  hotspot.location.longitude,
+                  inInclusiveRange(-180, 180),
+                  reason: 'longitude must be valid',
+                );
+                expect(
+                  hotspot.detectedAt.isBefore(
+                    DateTime.now().add(const Duration(hours: 1)),
+                  ),
                   isTrue,
-                  reason: 'detectedAt should not be in future');
-              expect(hotspot.confidence, inInclusiveRange(0, 100),
-                  reason: 'confidence must be 0-100');
-              expect(hotspot.frp, greaterThanOrEqualTo(0),
-                  reason: 'FRP cannot be negative');
-              expect(['low', 'moderate', 'high'], contains(hotspot.intensity),
-                  reason: 'intensity must be low, moderate, or high');
-            }
-          },
-        );
-      },
-          skip:
-              'Live API test - run manually with: flutter test --name="hotspots have required fields"');
+                  reason: 'detectedAt should not be in future',
+                );
+                expect(
+                  hotspot.confidence,
+                  inInclusiveRange(0, 100),
+                  reason: 'confidence must be 0-100',
+                );
+                expect(
+                  hotspot.frp,
+                  greaterThanOrEqualTo(0),
+                  reason: 'FRP cannot be negative',
+                );
+                expect(
+                  ['low', 'moderate', 'high'],
+                  contains(hotspot.intensity),
+                  reason: 'intensity must be low, moderate, or high',
+                );
+              }
+            },
+          );
+        },
+        skip:
+            'Live API test - run manually with: flutter test --name="hotspots have required fields"',
+      );
 
-      test('returns empty list for Antarctic viewport (no fires)', () async {
-        // Remote Antarctic region - no fires expected
-        const bounds = LatLngBounds(
-          southwest: LatLng(-75.0, -60.0),
-          northeast: LatLng(-70.0, -50.0),
-        );
+      test(
+        'returns empty list for Antarctic viewport (no fires)',
+        () async {
+          // Remote Antarctic region - no fires expected
+          const bounds = LatLngBounds(
+            southwest: LatLng(-75.0, -60.0),
+            northeast: LatLng(-70.0, -50.0),
+          );
 
-        final result = await service.getHotspots(
-          bounds: bounds,
-          timeFilter: HotspotTimeFilter.today,
-          timeout: const Duration(seconds: 15),
-        );
+          final result = await service.getHotspots(
+            bounds: bounds,
+            timeFilter: HotspotTimeFilter.today,
+            timeout: const Duration(seconds: 15),
+          );
 
-        result.fold(
-          (error) {
-            // API error is acceptable for edge case regions
-            expect(error.message, isNotEmpty);
-          },
-          (hotspots) {
-            // Should be empty - no fires in Antarctica
-            expect(hotspots, isEmpty);
-          },
-        );
-      }, skip: 'Live API test - run manually');
+          result.fold(
+            (error) {
+              // API error is acceptable for edge case regions
+              expect(error.message, isNotEmpty);
+            },
+            (hotspots) {
+              // Should be empty - no fires in Antarctica
+              expect(hotspots, isEmpty);
+            },
+          );
+        },
+        skip: 'Live API test - run manually',
+      );
     });
 
     group('Layer Selection Contract', () {
@@ -123,7 +147,9 @@ void main() {
 
       test('HotspotTimeFilter.thisWeek maps to viirs.hs.week layer', () {
         expect(
-            HotspotTimeFilter.thisWeek.gwisLayerName, equals('viirs.hs.week'));
+          HotspotTimeFilter.thisWeek.gwisLayerName,
+          equals('viirs.hs.week'),
+        );
       });
     });
 
@@ -168,37 +194,46 @@ void main() {
     });
 
     group('Coordinate Order Contract', () {
-      test('hotspot location uses lat,lon order (not lon,lat from GML)',
-          () async {
-        // This test verifies that coordinate swapping is correctly applied
-        // GWIS returns lon,lat but our LatLng expects lat,lon
-        const bounds = LatLngBounds(
-          southwest: LatLng(55.0, -5.0),
-          northeast: LatLng(58.0, -2.0),
-        );
+      test(
+        'hotspot location uses lat,lon order (not lon,lat from GML)',
+        () async {
+          // This test verifies that coordinate swapping is correctly applied
+          // GWIS returns lon,lat but our LatLng expects lat,lon
+          const bounds = LatLngBounds(
+            southwest: LatLng(55.0, -5.0),
+            northeast: LatLng(58.0, -2.0),
+          );
 
-        final result = await service.getHotspots(
-          bounds: bounds,
-          timeFilter: HotspotTimeFilter.today,
-          timeout: const Duration(seconds: 15),
-        );
+          final result = await service.getHotspots(
+            bounds: bounds,
+            timeFilter: HotspotTimeFilter.today,
+            timeout: const Duration(seconds: 15),
+          );
 
-        result.fold(
-          (error) {
-            // API error is acceptable
-          },
-          (hotspots) {
-            for (final hotspot in hotspots) {
-              // Scotland is roughly 55-59°N, 2-8°W
-              // If coordinates were swapped wrong, lat would be negative
-              expect(hotspot.location.latitude, greaterThan(0),
-                  reason: 'Scotland hotspots should have positive latitude');
-              expect(hotspot.location.longitude, lessThan(0),
-                  reason: 'Scotland hotspots should have negative longitude');
-            }
-          },
-        );
-      }, skip: 'Live API test - run manually');
+          result.fold(
+            (error) {
+              // API error is acceptable
+            },
+            (hotspots) {
+              for (final hotspot in hotspots) {
+                // Scotland is roughly 55-59°N, 2-8°W
+                // If coordinates were swapped wrong, lat would be negative
+                expect(
+                  hotspot.location.latitude,
+                  greaterThan(0),
+                  reason: 'Scotland hotspots should have positive latitude',
+                );
+                expect(
+                  hotspot.location.longitude,
+                  lessThan(0),
+                  reason: 'Scotland hotspots should have negative longitude',
+                );
+              }
+            },
+          );
+        },
+        skip: 'Live API test - run manually',
+      );
     });
   });
 }

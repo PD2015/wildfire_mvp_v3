@@ -40,45 +40,75 @@ void main() {
 
   group('BrandPalette WCAG AA Contrast Compliance', () {
     test('forest600 + onDarkHigh >= 4.5:1', () {
-      final ratio =
-          contrastRatio(BrandPalette.forest600, BrandPalette.onDarkHigh);
-      expect(ratio, greaterThanOrEqualTo(4.5),
-          reason: 'Primary color must have AA contrast on white');
+      final ratio = contrastRatio(
+        BrandPalette.forest600,
+        BrandPalette.onDarkHigh,
+      );
+      expect(
+        ratio,
+        greaterThanOrEqualTo(4.5),
+        reason: 'Primary color must have AA contrast on white',
+      );
     });
 
     test('mint400 + onLightHigh >= 4.5:1', () {
-      final ratio =
-          contrastRatio(BrandPalette.mint400, BrandPalette.onLightHigh);
-      expect(ratio, greaterThanOrEqualTo(4.5),
-          reason: 'Secondary color must have AA contrast on black');
+      final ratio = contrastRatio(
+        BrandPalette.mint400,
+        BrandPalette.onLightHigh,
+      );
+      expect(
+        ratio,
+        greaterThanOrEqualTo(4.5),
+        reason: 'Secondary color must have AA contrast on black',
+      );
     });
 
     test('amber500 + onLightHigh >= 4.5:1', () {
-      final ratio =
-          contrastRatio(BrandPalette.amber500, BrandPalette.onLightHigh);
-      expect(ratio, greaterThanOrEqualTo(4.5),
-          reason: 'Tertiary color must have AA contrast on black');
+      final ratio = contrastRatio(
+        BrandPalette.amber500,
+        BrandPalette.onLightHigh,
+      );
+      expect(
+        ratio,
+        greaterThanOrEqualTo(4.5),
+        reason: 'Tertiary color must have AA contrast on black',
+      );
     });
 
     test('neutralGrey200 + offWhite >= 3:1 (UI component)', () {
-      final ratio =
-          contrastRatio(BrandPalette.neutralGrey200, BrandPalette.offWhite);
-      expect(ratio, greaterThanOrEqualTo(3.0),
-          reason: 'Outline borders must be visible against light surface');
+      final ratio = contrastRatio(
+        BrandPalette.neutralGrey200,
+        BrandPalette.offWhite,
+      );
+      expect(
+        ratio,
+        greaterThanOrEqualTo(3.0),
+        reason: 'Outline borders must be visible against light surface',
+      );
     });
 
     test('forest900 + onDarkHigh >= 4.5:1', () {
-      final ratio =
-          contrastRatio(BrandPalette.forest900, BrandPalette.onDarkHigh);
-      expect(ratio, greaterThanOrEqualTo(4.5),
-          reason: 'Dark surface must have AA contrast with white text');
+      final ratio = contrastRatio(
+        BrandPalette.forest900,
+        BrandPalette.onDarkHigh,
+      );
+      expect(
+        ratio,
+        greaterThanOrEqualTo(4.5),
+        reason: 'Dark surface must have AA contrast with white text',
+      );
     });
 
     test('forest400 + onDarkHigh >= 4.5:1', () {
-      final ratio =
-          contrastRatio(BrandPalette.forest400, BrandPalette.onDarkHigh);
-      expect(ratio, greaterThanOrEqualTo(4.5),
-          reason: 'Dark mode primary must have AA contrast on white');
+      final ratio = contrastRatio(
+        BrandPalette.forest400,
+        BrandPalette.onDarkHigh,
+      );
+      expect(
+        ratio,
+        greaterThanOrEqualTo(4.5),
+        reason: 'Dark mode primary must have AA contrast on white',
+      );
     });
   });
 
@@ -100,10 +130,14 @@ void main() {
       expect(lightColor.computeLuminance(), greaterThan(0.5));
       expect(darkColor.computeLuminance(), lessThan(0.5));
 
-      expect(BrandPalette.onColorFor(lightColor),
-          equals(BrandPalette.onLightHigh));
       expect(
-          BrandPalette.onColorFor(darkColor), equals(BrandPalette.onDarkHigh));
+        BrandPalette.onColorFor(lightColor),
+        equals(BrandPalette.onLightHigh),
+      );
+      expect(
+        BrandPalette.onColorFor(darkColor),
+        equals(BrandPalette.onDarkHigh),
+      );
     });
   });
 }

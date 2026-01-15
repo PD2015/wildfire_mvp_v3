@@ -25,18 +25,16 @@ import '../../helpers/mock_hotspot_orchestrator.dart';
 class _MockLocationResolver implements LocationResolver {
   final LatLng _mockLocation;
 
-  _MockLocationResolver({
-    LatLng? location,
-  }) : _mockLocation = location ?? const LatLng(55.9533, -3.1883);
+  _MockLocationResolver({LatLng? location})
+      : _mockLocation = location ?? const LatLng(55.9533, -3.1883);
 
   @override
   Future<Either<LocationError, ResolvedLocation>> getLatLon({
     bool allowDefault = true,
   }) async {
-    return Right(ResolvedLocation(
-      coordinates: _mockLocation,
-      source: LocationSource.gps,
-    ));
+    return Right(
+      ResolvedLocation(coordinates: _mockLocation, source: LocationSource.gps),
+    );
   }
 
   @override
@@ -59,10 +57,12 @@ class _MockFireRiskService implements FireRiskService {
     required double lon,
     Duration? deadline,
   }) async {
-    return Right(FireRisk.fromMock(
-      level: RiskLevel.low,
-      observedAt: DateTime.now().toUtc(),
-    ));
+    return Right(
+      FireRisk.fromMock(
+        level: RiskLevel.low,
+        observedAt: DateTime.now().toUtc(),
+      ),
+    );
   }
 }
 
@@ -72,9 +72,8 @@ class ControllableMockBurntAreaService implements EffisBurntAreaService {
   Either<ApiError, List<BurntArea>>? _overrideResult;
   int callCount = 0;
 
-  ControllableMockBurntAreaService({
-    List<BurntArea>? burntAreas,
-  }) : _burntAreas = burntAreas ?? [];
+  ControllableMockBurntAreaService({List<BurntArea>? burntAreas})
+      : _burntAreas = burntAreas ?? [];
 
   void setBurntAreas(List<BurntArea> burntAreas) {
     _overrideResult = Right(burntAreas);
@@ -287,12 +286,14 @@ void main() {
         expect(burntArea.originalPointCount, isNull);
       });
 
-      test('simplified polygon has isSimplified = true and originalPointCount',
-          () {
-        final burntArea = testBurntAreas.last;
-        expect(burntArea.isSimplified, isTrue);
-        expect(burntArea.originalPointCount, equals(1200));
-      });
+      test(
+        'simplified polygon has isSimplified = true and originalPointCount',
+        () {
+          final burntArea = testBurntAreas.last;
+          expect(burntArea.isSimplified, isTrue);
+          expect(burntArea.originalPointCount, equals(1200));
+        },
+      );
 
       test('simplified polygon has fewer points than original', () {
         final burntArea = testBurntAreas.last;

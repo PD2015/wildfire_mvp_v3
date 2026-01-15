@@ -32,8 +32,10 @@ void main() {
 
         expect(name.displayName, equals('55.95, -3.19'));
         expect(name.rawAddress, isNull);
-        expect(name.detailLevel,
-            equals(LocationNameDetailLevel.coordinatesFallback));
+        expect(
+          name.detailLevel,
+          equals(LocationNameDetailLevel.coordinatesFallback),
+        );
       });
 
       test('rounds coordinates to 2 decimal places for privacy', () {
@@ -165,15 +167,16 @@ void main() {
     test('has expected values', () {
       expect(LocationNameDetailLevel.values, hasLength(6));
       expect(
-          LocationNameDetailLevel.values,
-          containsAll([
-            LocationNameDetailLevel.locality,
-            LocationNameDetailLevel.postalTown,
-            LocationNameDetailLevel.sublocality,
-            LocationNameDetailLevel.naturalFeature,
-            LocationNameDetailLevel.adminArea,
-            LocationNameDetailLevel.coordinatesFallback,
-          ]));
+        LocationNameDetailLevel.values,
+        containsAll([
+          LocationNameDetailLevel.locality,
+          LocationNameDetailLevel.postalTown,
+          LocationNameDetailLevel.sublocality,
+          LocationNameDetailLevel.naturalFeature,
+          LocationNameDetailLevel.adminArea,
+          LocationNameDetailLevel.coordinatesFallback,
+        ]),
+      );
     });
   });
 }

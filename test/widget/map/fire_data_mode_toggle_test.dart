@@ -39,8 +39,9 @@ void main() {
         expect(find.byIcon(Icons.layers), findsOneWidget);
       });
 
-      testWidgets('shows hotspots as selected when mode is hotspots',
-          (tester) async {
+      testWidgets('shows hotspots as selected when mode is hotspots', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -69,8 +70,9 @@ void main() {
         expect(burntAreasChip.color, equals(Colors.transparent));
       });
 
-      testWidgets('shows burnt areas as selected when mode is burntAreas',
-          (tester) async {
+      testWidgets('shows burnt areas as selected when mode is burntAreas', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -100,8 +102,9 @@ void main() {
     });
 
     group('interactions', () {
-      testWidgets('calls onModeChanged when burnt areas is tapped',
-          (tester) async {
+      testWidgets('calls onModeChanged when burnt areas is tapped', (
+        tester,
+      ) async {
         FireDataMode? selectedMode;
 
         await tester.pumpWidget(
@@ -121,8 +124,9 @@ void main() {
         expect(selectedMode, FireDataMode.burntAreas);
       });
 
-      testWidgets('calls onModeChanged when hotspots is tapped',
-          (tester) async {
+      testWidgets('calls onModeChanged when hotspots is tapped', (
+        tester,
+      ) async {
         FireDataMode? selectedMode;
 
         await tester.pumpWidget(
@@ -142,8 +146,9 @@ void main() {
         expect(selectedMode, FireDataMode.hotspots);
       });
 
-      testWidgets('tapping already selected segment still calls callback',
-          (tester) async {
+      testWidgets('tapping already selected segment still calls callback', (
+        tester,
+      ) async {
         // Note: Custom chip implementation fires callback on every tap,
         // unlike SegmentedButton which only fires on actual selection change.
         // This is intentional to allow parent widget to handle re-taps if needed.
@@ -225,10 +230,7 @@ void main() {
         );
 
         // Ensure the container has the semantic label
-        expect(
-          find.bySemanticsLabel('Fire data display mode'),
-          findsOneWidget,
-        );
+        expect(find.bySemanticsLabel('Fire data display mode'), findsOneWidget);
       });
 
       testWidgets('chips have tooltips for accessibility', (tester) async {
@@ -315,10 +317,7 @@ void main() {
 
         expect(decoration, isNotNull);
         expect(decoration!.borderRadius, isNotNull);
-        expect(
-          decoration.borderRadius,
-          equals(BorderRadius.circular(24)),
-        );
+        expect(decoration.borderRadius, equals(BorderRadius.circular(24)));
       });
     });
   });

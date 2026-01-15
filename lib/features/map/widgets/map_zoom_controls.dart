@@ -74,11 +74,7 @@ class MapZoomControls extends StatelessWidget {
           // Divider between buttons
           // Uses `outline` instead of `outlineVariant` for visibility in dark theme
           // (outlineVariant in dark theme is same as surface color)
-          Container(
-            width: 32,
-            height: 1,
-            color: colorScheme.outline,
-          ),
+          Container(width: 32, height: 1, color: colorScheme.outline),
           // Zoom out button
           Semantics(
             button: true,

@@ -93,10 +93,7 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
       try {
         final response = await _httpClient.get(
           Uri.parse(url),
-          headers: {
-            'User-Agent': _userAgent,
-            'Accept': _acceptHeader,
-          },
+          headers: {'User-Agent': _userAgent, 'Accept': _acceptHeader},
         ).timeout(timeout);
 
         if (response.statusCode == 200) {
@@ -142,10 +139,12 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
         }
 
         // Non-retriable error
-        return Left(ApiError(
-          message: 'EFFIS request failed with status ${response.statusCode}',
-          statusCode: response.statusCode,
-        ));
+        return Left(
+          ApiError(
+            message: 'EFFIS request failed with status ${response.statusCode}',
+            statusCode: response.statusCode,
+          ),
+        );
       } on TimeoutException {
         lastError = ApiError(message: 'EFFIS request timed out');
         attempt++;

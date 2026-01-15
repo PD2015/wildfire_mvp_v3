@@ -85,9 +85,7 @@ class MockHotspotService implements HotspotService {
 
     // Apply offset to all hotspots
     return rawHotspots.map((hotspot) {
-      return hotspot.copyWith(
-        detectedAt: hotspot.detectedAt.add(offset),
-      );
+      return hotspot.copyWith(detectedAt: hotspot.detectedAt.add(offset));
     }).toList();
   }
 

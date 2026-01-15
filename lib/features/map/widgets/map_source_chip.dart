@@ -72,10 +72,7 @@ class MapSourceChip extends StatelessWidget {
                 ),
           ),
           backgroundColor: scheme.tertiaryContainer,
-          side: BorderSide(
-            color: scheme.tertiary,
-            width: 1.5,
-          ),
+          side: BorderSide(color: scheme.tertiary, width: 1.5),
           elevation: 4,
           shadowColor: scheme.shadow.withValues(alpha: 0.3),
         ),
@@ -139,11 +136,7 @@ class MapSourceChip extends StatelessWidget {
     final chip = Chip(
       visualDensity: VisualDensity.compact,
       labelPadding: const EdgeInsets.only(left: 4, right: 2),
-      avatar: Icon(
-        icon,
-        size: 16,
-        color: textColor,
-      ),
+      avatar: Icon(icon, size: 16, color: textColor),
       label: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -167,10 +160,7 @@ class MapSourceChip extends StatelessWidget {
         ],
       ),
       backgroundColor: backgroundColor,
-      side: BorderSide(
-        color: borderColor,
-        width: 1.5,
-      ),
+      side: BorderSide(color: borderColor, width: 1.5),
       elevation: 4,
       shadowColor: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.3),
     );
@@ -191,9 +181,6 @@ class MapSourceChip extends StatelessWidget {
       );
     }
 
-    return Semantics(
-      label: semanticLabel,
-      child: chip,
-    );
+    return Semantics(label: semanticLabel, child: chip);
   }
 }

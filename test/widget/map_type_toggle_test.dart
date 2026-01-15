@@ -6,8 +6,9 @@ import 'package:wildfire_mvp_v3/features/location_picker/widgets/map_type_toggle
 
 void main() {
   group('MapTypeToggle', () {
-    testWidgets('displays terrain icon when mapType is terrain',
-        (tester) async {
+    testWidgets('displays terrain icon when mapType is terrain', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -22,8 +23,9 @@ void main() {
       expect(find.byIcon(Icons.terrain), findsOneWidget);
     });
 
-    testWidgets('displays satellite icon when mapType is satellite',
-        (tester) async {
+    testWidgets('displays satellite icon when mapType is satellite', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -192,8 +194,9 @@ void main() {
       );
     });
 
-    testWidgets('handles normal map type (fallback to terrain)',
-        (tester) async {
+    testWidgets('handles normal map type (fallback to terrain)', (
+      tester,
+    ) async {
       MapType? newMapType;
 
       await tester.pumpWidget(
@@ -236,8 +239,9 @@ void main() {
       );
     });
 
-    testWidgets('has elevated surface (Material with elevation)',
-        (tester) async {
+    testWidgets('has elevated surface (Material with elevation)', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

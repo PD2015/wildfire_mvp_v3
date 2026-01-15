@@ -211,42 +211,44 @@ void main() {
       expect(result.isLeft(), true);
     });
 
-    test('uses same layer for all season filters (client-side filtering)',
-        () async {
-      String? capturedUrl;
-      final client = MockClient((request) async {
-        capturedUrl = request.url.toString();
-        return http.Response(_emptyGmlResponse, 200);
-      });
+    test(
+      'uses same layer for all season filters (client-side filtering)',
+      () async {
+        String? capturedUrl;
+        final client = MockClient((request) async {
+          capturedUrl = request.url.toString();
+          return http.Response(_emptyGmlResponse, 200);
+        });
 
-      final service = EffisBurntAreaServiceImpl(httpClient: client);
+        final service = EffisBurntAreaServiceImpl(httpClient: client);
 
-      // Test thisSeason - uses generic poly layer (no season-specific layer exists in EFFIS)
-      await service.getBurntAreas(
-        bounds: const LatLngBounds(
-          southwest: LatLng(57.0, -4.0),
-          northeast: LatLng(58.0, -3.0),
-        ),
-        seasonFilter: BurntAreaSeasonFilter.thisSeason,
-      );
-      // Should use generic modis.ba.poly layer for all queries
-      expect(capturedUrl, contains('typeName=ms:modis.ba.poly'));
-      // Note: EFFIS doesn't have a modis.ba.poly.season layer
-      expect(capturedUrl, isNot(contains('modis.ba.poly.season')));
+        // Test thisSeason - uses generic poly layer (no season-specific layer exists in EFFIS)
+        await service.getBurntAreas(
+          bounds: const LatLngBounds(
+            southwest: LatLng(57.0, -4.0),
+            northeast: LatLng(58.0, -3.0),
+          ),
+          seasonFilter: BurntAreaSeasonFilter.thisSeason,
+        );
+        // Should use generic modis.ba.poly layer for all queries
+        expect(capturedUrl, contains('typeName=ms:modis.ba.poly'));
+        // Note: EFFIS doesn't have a modis.ba.poly.season layer
+        expect(capturedUrl, isNot(contains('modis.ba.poly.season')));
 
-      // Test lastSeason - also uses generic layer (client-side year filtering)
-      await service.getBurntAreas(
-        bounds: const LatLngBounds(
-          southwest: LatLng(57.0, -4.0),
-          northeast: LatLng(58.0, -3.0),
-        ),
-        seasonFilter: BurntAreaSeasonFilter.lastSeason,
-      );
-      // Should use same generic modis.ba.poly layer
-      expect(capturedUrl, contains('typeName=ms:modis.ba.poly'));
-      // No CQL_FILTER - we rely on client-side year filtering
-      expect(capturedUrl, isNot(contains('CQL_FILTER')));
-    });
+        // Test lastSeason - also uses generic layer (client-side year filtering)
+        await service.getBurntAreas(
+          bounds: const LatLngBounds(
+            southwest: LatLng(57.0, -4.0),
+            northeast: LatLng(58.0, -3.0),
+          ),
+          seasonFilter: BurntAreaSeasonFilter.lastSeason,
+        );
+        // Should use same generic modis.ba.poly layer
+        expect(capturedUrl, contains('typeName=ms:modis.ba.poly'));
+        // No CQL_FILTER - we rely on client-side year filtering
+        expect(capturedUrl, isNot(contains('CQL_FILTER')));
+      },
+    );
 
     test('uses correct sort direction based on season filter', () async {
       String? thisSeasoncapturedUrl;
@@ -257,8 +259,9 @@ void main() {
         thisSeasoncapturedUrl = request.url.toString();
         return http.Response(_emptyGmlResponse, 200);
       });
-      final thisSeasonService =
-          EffisBurntAreaServiceImpl(httpClient: thisSeasonClient);
+      final thisSeasonService = EffisBurntAreaServiceImpl(
+        httpClient: thisSeasonClient,
+      );
       await thisSeasonService.getBurntAreas(
         bounds: const LatLngBounds(
           southwest: LatLng(57.0, -4.0),
@@ -274,8 +277,9 @@ void main() {
         lastSeasonCapturedUrl = request.url.toString();
         return http.Response(_emptyGmlResponse, 200);
       });
-      final lastSeasonService =
-          EffisBurntAreaServiceImpl(httpClient: lastSeasonClient);
+      final lastSeasonService = EffisBurntAreaServiceImpl(
+        httpClient: lastSeasonClient,
+      );
       await lastSeasonService.getBurntAreas(
         bounds: const LatLngBounds(
           southwest: LatLng(57.0, -4.0),

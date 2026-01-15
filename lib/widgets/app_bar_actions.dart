@@ -20,11 +20,7 @@ class AppBarActions extends StatelessWidget {
   /// Optional callback when help is tapped (for testing)
   final VoidCallback? onHelpTap;
 
-  const AppBarActions({
-    super.key,
-    this.onSettingsTap,
-    this.onHelpTap,
-  });
+  const AppBarActions({super.key, this.onSettingsTap, this.onHelpTap});
 
   @override
   Widget build(BuildContext context) {
@@ -63,25 +59,17 @@ class AppBarActions extends StatelessWidget {
       children: [
         // Settings button
         IconButton(
-          icon: Icon(
-            isOnSettings ? Icons.settings : Icons.settings_outlined,
-          ),
+          icon: Icon(isOnSettings ? Icons.settings : Icons.settings_outlined),
           tooltip: 'Settings',
           onPressed: effectiveSettingsTap,
-          style: IconButton.styleFrom(
-            minimumSize: const Size(48, 48),
-          ),
+          style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
         ),
         // Help button
         IconButton(
-          icon: Icon(
-            isOnHelp ? Icons.help : Icons.help_outline,
-          ),
+          icon: Icon(isOnHelp ? Icons.help : Icons.help_outline),
           tooltip: 'Help and information',
           onPressed: effectiveHelpTap,
-          style: IconButton.styleFrom(
-            minimumSize: const Size(48, 48),
-          ),
+          style: IconButton.styleFrom(minimumSize: const Size(48, 48)),
         ),
       ],
     );

@@ -17,8 +17,10 @@ void main() {
         final mockClient = MockClient((request) async {
           expect(request.url.host, equals('maps.googleapis.com'));
           expect(request.url.path, equals('/maps/api/geocode/json'));
-          expect(request.url.queryParameters['latlng'],
-              equals('$testLat,$testLon'));
+          expect(
+            request.url.queryParameters['latlng'],
+            equals('$testLat,$testLon'),
+          );
           expect(request.url.queryParameters['key'], equals(testApiKey));
 
           return http.Response(
@@ -59,12 +61,11 @@ void main() {
         final result = await service.reverseGeocode(lat: testLat, lon: testLon);
 
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Expected success, got error: $error'),
-          (placeName) {
-            expect(placeName, equals('Edinburgh'));
-          },
-        );
+        result.fold((error) => fail('Expected success, got error: $error'), (
+          placeName,
+        ) {
+          expect(placeName, equals('Edinburgh'));
+        });
       });
 
       test('prioritizes locality over admin areas', () async {
@@ -102,12 +103,9 @@ void main() {
         final result = await service.reverseGeocode(lat: testLat, lon: testLon);
 
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Expected success'),
-          (placeName) {
-            expect(placeName, equals('Aviemore')); // locality first
-          },
-        );
+        result.fold((error) => fail('Expected success'), (placeName) {
+          expect(placeName, equals('Aviemore')); // locality first
+        });
       });
 
       test('falls back to admin_area_level_2 when no locality', () async {
@@ -145,52 +143,51 @@ void main() {
         final result = await service.reverseGeocode(lat: testLat, lon: testLon);
 
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Expected success'),
-          (placeName) {
-            expect(placeName, equals('Highland'));
-          },
-        );
-      });
-
-      test('falls back to formatted_address when no components match',
-          () async {
-        final mockClient = MockClient((request) async {
-          return http.Response(
-            jsonEncode({
-              'status': 'OK',
-              'results': [
-                {
-                  'formatted_address': 'Middle of Nowhere, UK',
-                  'address_components': [
-                    {
-                      'long_name': 'United Kingdom',
-                      'short_name': 'UK',
-                      'types': ['country', 'political'],
-                    },
-                  ],
-                },
-              ],
-            }),
-            200,
-          );
+        result.fold((error) => fail('Expected success'), (placeName) {
+          expect(placeName, equals('Highland'));
         });
-
-        final service = GeocodingServiceImpl(
-          client: mockClient,
-          apiKey: testApiKey,
-        );
-
-        final result = await service.reverseGeocode(lat: testLat, lon: testLon);
-
-        expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Expected success'),
-          (placeName) {
-            expect(placeName, equals('Middle of Nowhere, UK'));
-          },
-        );
       });
+
+      test(
+        'falls back to formatted_address when no components match',
+        () async {
+          final mockClient = MockClient((request) async {
+            return http.Response(
+              jsonEncode({
+                'status': 'OK',
+                'results': [
+                  {
+                    'formatted_address': 'Middle of Nowhere, UK',
+                    'address_components': [
+                      {
+                        'long_name': 'United Kingdom',
+                        'short_name': 'UK',
+                        'types': ['country', 'political'],
+                      },
+                    ],
+                  },
+                ],
+              }),
+              200,
+            );
+          });
+
+          final service = GeocodingServiceImpl(
+            client: mockClient,
+            apiKey: testApiKey,
+          );
+
+          final result = await service.reverseGeocode(
+            lat: testLat,
+            lon: testLon,
+          );
+
+          expect(result.isRight(), isTrue);
+          result.fold((error) => fail('Expected success'), (placeName) {
+            expect(placeName, equals('Middle of Nowhere, UK'));
+          });
+        },
+      );
 
       test('returns error when API key is empty', () async {
         var clientCalled = false;
@@ -199,21 +196,15 @@ void main() {
           return http.Response('', 500);
         });
 
-        final service = GeocodingServiceImpl(
-          client: mockClient,
-          apiKey: '',
-        );
+        final service = GeocodingServiceImpl(client: mockClient, apiKey: '');
 
         final result = await service.reverseGeocode(lat: testLat, lon: testLon);
 
         expect(clientCalled, isFalse);
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<GeocodingApiError>());
-          },
-          (name) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<GeocodingApiError>());
+        }, (name) => fail('Expected error'));
       });
 
       test('returns error on ZERO_RESULTS', () async {
@@ -232,12 +223,9 @@ void main() {
         final result = await service.reverseGeocode(lat: testLat, lon: testLon);
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<GeocodingNoResultsError>());
-          },
-          (name) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<GeocodingNoResultsError>());
+        }, (name) => fail('Expected error'));
       });
 
       test('returns error on REQUEST_DENIED', () async {
@@ -259,12 +247,9 @@ void main() {
         final result = await service.reverseGeocode(lat: testLat, lon: testLon);
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<GeocodingApiError>());
-          },
-          (name) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<GeocodingApiError>());
+        }, (name) => fail('Expected error'));
       });
 
       test('returns network error on HTTP exception', () async {
@@ -280,14 +265,13 @@ void main() {
         final result = await service.reverseGeocode(lat: testLat, lon: testLon);
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<GeocodingNetworkError>());
-            expect((error as GeocodingNetworkError).message,
-                contains('Connection refused'));
-          },
-          (name) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<GeocodingNetworkError>());
+          expect(
+            (error as GeocodingNetworkError).message,
+            contains('Connection refused'),
+          );
+        }, (name) => fail('Expected error'));
       });
 
       test('returns error on HTTP errors', () async {
@@ -303,13 +287,10 @@ void main() {
         final result = await service.reverseGeocode(lat: testLat, lon: testLon);
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<GeocodingApiError>());
-            expect((error as GeocodingApiError).statusCode, equals(503));
-          },
-          (name) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<GeocodingApiError>());
+          expect((error as GeocodingApiError).statusCode, equals(503));
+        }, (name) => fail('Expected error'));
       });
 
       test('formats natural features with Near prefix', () async {
@@ -348,12 +329,9 @@ void main() {
         final result = await service.reverseGeocode(lat: testLat, lon: testLon);
 
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Expected success'),
-          (placeName) {
-            expect(placeName, equals('Near Ben Wyvis'));
-          },
-        );
+        result.fold((error) => fail('Expected success'), (placeName) {
+          expect(placeName, equals('Near Ben Wyvis'));
+        });
       });
 
       test('prefers postal_town over admin areas', () async {
@@ -397,12 +375,9 @@ void main() {
         final result = await service.reverseGeocode(lat: testLat, lon: testLon);
 
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Expected success'),
-          (placeName) {
-            expect(placeName, equals('Aviemore'));
-          },
-        );
+        result.fold((error) => fail('Expected success'), (placeName) {
+          expect(placeName, equals('Aviemore'));
+        });
       });
 
       test('skips council-style admin names when Scotland available', () async {
@@ -441,13 +416,10 @@ void main() {
         final result = await service.reverseGeocode(lat: testLat, lon: testLon);
 
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Expected success'),
-          (placeName) {
-            // Should prefer "Scotland" over "Highland Council"
-            expect(placeName, equals('Scotland'));
-          },
-        );
+        result.fold((error) => fail('Expected success'), (placeName) {
+          // Should prefer "Scotland" over "Highland Council"
+          expect(placeName, equals('Scotland'));
+        });
       });
 
       test('extracts best name from multiple results', () async {
@@ -494,13 +466,10 @@ void main() {
         final result = await service.reverseGeocode(lat: testLat, lon: testLon);
 
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Expected success'),
-          (placeName) {
-            // Should extract locality from second result
-            expect(placeName, equals('Aviemore'));
-          },
-        );
+        result.fold((error) => fail('Expected success'), (placeName) {
+          // Should extract locality from second result
+          expect(placeName, equals('Aviemore'));
+        });
       });
     });
 
@@ -542,15 +511,14 @@ void main() {
         final result = await service.searchPlaces(query: 'Edinburgh');
 
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Expected success, got error: $error'),
-          (places) {
-            expect(places.length, equals(1));
-            expect(places.first.name, equals('Edinburgh'));
-            expect(places.first.coordinates?.latitude, equals(55.9533));
-            expect(places.first.coordinates?.longitude, equals(-3.1883));
-          },
-        );
+        result.fold((error) => fail('Expected success, got error: $error'), (
+          places,
+        ) {
+          expect(places.length, equals(1));
+          expect(places.first.name, equals('Edinburgh'));
+          expect(places.first.coordinates?.latitude, equals(55.9533));
+          expect(places.first.coordinates?.longitude, equals(-3.1883));
+        });
       });
 
       test('returns empty list on ZERO_RESULTS', () async {
@@ -569,12 +537,9 @@ void main() {
         final result = await service.searchPlaces(query: 'nonexistent place');
 
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Expected success'),
-          (places) {
-            expect(places, isEmpty);
-          },
-        );
+        result.fold((error) => fail('Expected success'), (places) {
+          expect(places, isEmpty);
+        });
       });
 
       test('returns empty list for empty query', () async {
@@ -593,12 +558,9 @@ void main() {
 
         expect(clientCalled, isFalse);
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Expected success'),
-          (places) {
-            expect(places, isEmpty);
-          },
-        );
+        result.fold((error) => fail('Expected success'), (places) {
+          expect(places, isEmpty);
+        });
       });
 
       test('respects maxResults parameter', () async {
@@ -626,12 +588,9 @@ void main() {
         final result = await service.searchPlaces(query: 'test', maxResults: 2);
 
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Expected success'),
-          (places) {
-            expect(places.length, equals(2));
-          },
-        );
+        result.fold((error) => fail('Expected success'), (places) {
+          expect(places.length, equals(2));
+        });
       });
 
       test('returns error on OVER_QUERY_LIMIT', () async {
@@ -653,14 +612,13 @@ void main() {
         final result = await service.searchPlaces(query: 'test');
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<GeocodingApiError>());
-            expect((error as GeocodingApiError).message,
-                contains('quota exceeded'));
-          },
-          (places) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<GeocodingApiError>());
+          expect(
+            (error as GeocodingApiError).message,
+            contains('quota exceeded'),
+          );
+        }, (places) => fail('Expected error'));
       });
     });
 
@@ -693,13 +651,12 @@ void main() {
         final result = await service.getPlaceCoordinates(placeId: placeId);
 
         expect(result.isRight(), isTrue);
-        result.fold(
-          (error) => fail('Expected success, got error: $error'),
-          (coords) {
-            expect(coords.latitude, equals(55.9533));
-            expect(coords.longitude, equals(-3.1883));
-          },
-        );
+        result.fold((error) => fail('Expected success, got error: $error'), (
+          coords,
+        ) {
+          expect(coords.latitude, equals(55.9533));
+          expect(coords.longitude, equals(-3.1883));
+        });
       });
 
       test('returns error on ZERO_RESULTS', () async {
@@ -715,16 +672,14 @@ void main() {
           apiKey: testApiKey,
         );
 
-        final result =
-            await service.getPlaceCoordinates(placeId: 'invalid_place_id');
+        final result = await service.getPlaceCoordinates(
+          placeId: 'invalid_place_id',
+        );
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<GeocodingNoResultsError>());
-          },
-          (coords) => fail('Expected error'),
-        );
+        result.fold((error) {
+          expect(error, isA<GeocodingNoResultsError>());
+        }, (coords) => fail('Expected error'));
       });
 
       test('returns error when API key is empty', () async {
@@ -734,10 +689,7 @@ void main() {
           return http.Response('', 500);
         });
 
-        final service = GeocodingServiceImpl(
-          client: mockClient,
-          apiKey: '',
-        );
+        final service = GeocodingServiceImpl(client: mockClient, apiKey: '');
 
         final result = await service.getPlaceCoordinates(placeId: 'test');
 
@@ -750,10 +702,7 @@ void main() {
       test('builds URL with required parameters', () {
         final service = GeocodingServiceImpl(apiKey: testApiKey);
 
-        final url = service.buildStaticMapUrl(
-          lat: testLat,
-          lon: testLon,
-        );
+        final url = service.buildStaticMapUrl(lat: testLat, lon: testLon);
 
         expect(url, contains('maps.googleapis.com'));
         expect(url, contains('staticmap'));
@@ -781,10 +730,7 @@ void main() {
       test('includes scale parameter for retina', () {
         final service = GeocodingServiceImpl(apiKey: testApiKey);
 
-        final url = service.buildStaticMapUrl(
-          lat: testLat,
-          lon: testLon,
-        );
+        final url = service.buildStaticMapUrl(lat: testLat, lon: testLon);
 
         expect(url, contains('scale=2'));
       });
@@ -804,17 +750,11 @@ void main() {
         final result = await service.reverseGeocode(lat: testLat, lon: testLon);
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<GeocodingApiError>());
-            final apiError = error as GeocodingApiError;
-            expect(
-              apiError.message,
-              contains('API key not configured'),
-            );
-          },
-          (_) => fail('Expected error, got success'),
-        );
+        result.fold((error) {
+          expect(error, isA<GeocodingApiError>());
+          final apiError = error as GeocodingApiError;
+          expect(apiError.message, contains('API key not configured'));
+        }, (_) => fail('Expected error, got success'));
       });
 
       test('searchPlaces returns error when API key is empty', () async {
@@ -823,17 +763,11 @@ void main() {
         final result = await service.searchPlaces(query: 'Edinburgh');
 
         expect(result.isLeft(), isTrue);
-        result.fold(
-          (error) {
-            expect(error, isA<GeocodingApiError>());
-            final apiError = error as GeocodingApiError;
-            expect(
-              apiError.message,
-              contains('API key not configured'),
-            );
-          },
-          (_) => fail('Expected error, got success'),
-        );
+        result.fold((error) {
+          expect(error, isA<GeocodingApiError>());
+          final apiError = error as GeocodingApiError;
+          expect(apiError.message, contains('API key not configured'));
+        }, (_) => fail('Expected error, got success'));
       });
 
       test('buildStaticMapUrl handles empty API key gracefully', () {

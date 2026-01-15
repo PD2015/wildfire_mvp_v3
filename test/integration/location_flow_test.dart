@@ -94,8 +94,10 @@ void main() {
           final expectedLocation = expectedLocationForGpsSetup(
             TestData.edinburgh,
           );
-          expect(location.coordinates.latitude,
-              closeTo(expectedLocation.latitude, 0.001));
+          expect(
+            location.coordinates.latitude,
+            closeTo(expectedLocation.latitude, 0.001),
+          );
           expect(
             location.coordinates.longitude,
             closeTo(expectedLocation.longitude, 0.001),
@@ -132,10 +134,14 @@ void main() {
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.aviemoreResolved);
         final expectedLocation = expectedLocationForGpsSetup(TestData.glasgow);
-        expect(location.coordinates.latitude,
-            closeTo(expectedLocation.latitude, 0.001));
-        expect(location.coordinates.longitude,
-            closeTo(expectedLocation.longitude, 0.001));
+        expect(
+          location.coordinates.latitude,
+          closeTo(expectedLocation.latitude, 0.001),
+        );
+        expect(
+          location.coordinates.longitude,
+          closeTo(expectedLocation.longitude, 0.001),
+        );
       });
 
       test('Tier 3: Cached manual location when GPS fails', () async {
@@ -157,8 +163,10 @@ void main() {
         // Assert
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.aviemoreResolved);
-        expect(location.coordinates.latitude,
-            closeTo(TestData.edinburgh.latitude, 0.001));
+        expect(
+          location.coordinates.latitude,
+          closeTo(TestData.edinburgh.latitude, 0.001),
+        );
         expect(
           location.coordinates.longitude,
           closeTo(TestData.edinburgh.longitude, 0.001),
@@ -318,10 +326,14 @@ void main() {
         // Assert
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.aviemoreResolved);
-        expect(location.coordinates.latitude,
-            closeTo(testLocation.latitude, 0.001));
-        expect(location.coordinates.longitude,
-            closeTo(testLocation.longitude, 0.001));
+        expect(
+          location.coordinates.latitude,
+          closeTo(testLocation.latitude, 0.001),
+        );
+        expect(
+          location.coordinates.longitude,
+          closeTo(testLocation.longitude, 0.001),
+        );
 
         // Verify place name is also persisted
         final cache = LocationCache();
@@ -381,10 +393,14 @@ void main() {
         final expectedLocation = expectedLocationForGpsSetup(
           TestData.edinburgh,
         );
-        expect(location.coordinates.latitude,
-            closeTo(expectedLocation.latitude, 0.001));
-        expect(location.coordinates.longitude,
-            closeTo(expectedLocation.longitude, 0.001));
+        expect(
+          location.coordinates.latitude,
+          closeTo(expectedLocation.latitude, 0.001),
+        );
+        expect(
+          location.coordinates.longitude,
+          closeTo(expectedLocation.longitude, 0.001),
+        );
       });
 
       test(
@@ -526,8 +542,10 @@ void main() {
         for (final result in results) {
           expect(result.isRight(), isTrue);
           final location = result.getOrElse(() => TestData.aviemoreResolved);
-          expect(location.coordinates.latitude,
-              closeTo(expectedLocation.latitude, 0.001));
+          expect(
+            location.coordinates.latitude,
+            closeTo(expectedLocation.latitude, 0.001),
+          );
           expect(
             location.coordinates.longitude,
             closeTo(expectedLocation.longitude, 0.001),
@@ -555,10 +573,14 @@ void main() {
           // Assert
           expect(result.isRight(), isTrue);
           final location = result.getOrElse(() => TestData.aviemoreResolved);
-          expect(location.coordinates.latitude,
-              closeTo(testLocation.latitude, 0.001));
-          expect(location.coordinates.longitude,
-              closeTo(testLocation.longitude, 0.001));
+          expect(
+            location.coordinates.latitude,
+            closeTo(testLocation.latitude, 0.001),
+          );
+          expect(
+            location.coordinates.longitude,
+            closeTo(testLocation.longitude, 0.001),
+          );
         },
       );
 
@@ -606,10 +628,14 @@ void main() {
         final expectedLocation = expectedLocationForGpsSetup(
           TestData.edinburgh,
         );
-        expect(location.coordinates.latitude,
-            closeTo(expectedLocation.latitude, 0.001));
-        expect(location.coordinates.longitude,
-            closeTo(expectedLocation.longitude, 0.001));
+        expect(
+          location.coordinates.latitude,
+          closeTo(expectedLocation.latitude, 0.001),
+        );
+        expect(
+          location.coordinates.longitude,
+          closeTo(expectedLocation.longitude, 0.001),
+        );
       });
 
       test(
