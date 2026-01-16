@@ -20,24 +20,39 @@ void main() {
     }
 
     test('BrandPalette forest600 + white >= 4.5:1 (normal text)', () {
-      final ratio =
-          contrastRatio(BrandPalette.forest600, BrandPalette.onDarkHigh);
-      expect(ratio, greaterThanOrEqualTo(4.5),
-          reason: 'Forest600 on white must meet AA normal text contrast');
+      final ratio = contrastRatio(
+        BrandPalette.forest600,
+        BrandPalette.onDarkHigh,
+      );
+      expect(
+        ratio,
+        greaterThanOrEqualTo(4.5),
+        reason: 'Forest600 on white must meet AA normal text contrast',
+      );
     });
 
     test('BrandPalette mint400 + black >= 4.5:1 (normal text)', () {
-      final ratio =
-          contrastRatio(BrandPalette.mint400, BrandPalette.onLightHigh);
-      expect(ratio, greaterThanOrEqualTo(4.5),
-          reason: 'Mint400 on black must meet AA normal text contrast');
+      final ratio = contrastRatio(
+        BrandPalette.mint400,
+        BrandPalette.onLightHigh,
+      );
+      expect(
+        ratio,
+        greaterThanOrEqualTo(4.5),
+        reason: 'Mint400 on black must meet AA normal text contrast',
+      );
     });
 
     test('BrandPalette amber500 + black >= 4.5:1 (normal text)', () {
-      final ratio =
-          contrastRatio(BrandPalette.amber500, BrandPalette.onLightHigh);
-      expect(ratio, greaterThanOrEqualTo(4.5),
-          reason: 'Amber500 on black must meet AA normal text contrast');
+      final ratio = contrastRatio(
+        BrandPalette.amber500,
+        BrandPalette.onLightHigh,
+      );
+      expect(
+        ratio,
+        greaterThanOrEqualTo(4.5),
+        reason: 'Amber500 on black must meet AA normal text contrast',
+      );
     });
 
     test('Light theme primary + onPrimary >= 4.5:1', () {
@@ -46,8 +61,11 @@ void main() {
         theme.colorScheme.primary,
         theme.colorScheme.onPrimary,
       );
-      expect(ratio, greaterThanOrEqualTo(4.5),
-          reason: 'Light theme primary/onPrimary contrast insufficient');
+      expect(
+        ratio,
+        greaterThanOrEqualTo(4.5),
+        reason: 'Light theme primary/onPrimary contrast insufficient',
+      );
     });
 
     test('Light theme surface + onSurface >= 4.5:1', () {
@@ -56,8 +74,11 @@ void main() {
         theme.colorScheme.surface,
         theme.colorScheme.onSurface,
       );
-      expect(ratio, greaterThanOrEqualTo(4.5),
-          reason: 'Light theme surface/onSurface contrast insufficient');
+      expect(
+        ratio,
+        greaterThanOrEqualTo(4.5),
+        reason: 'Light theme surface/onSurface contrast insufficient',
+      );
     });
 
     test('Dark theme primary + onPrimary >= 4.5:1', () {
@@ -66,8 +87,11 @@ void main() {
         theme.colorScheme.primary,
         theme.colorScheme.onPrimary,
       );
-      expect(ratio, greaterThanOrEqualTo(4.5),
-          reason: 'Dark theme primary/onPrimary contrast insufficient');
+      expect(
+        ratio,
+        greaterThanOrEqualTo(4.5),
+        reason: 'Dark theme primary/onPrimary contrast insufficient',
+      );
     });
 
     test('Dark theme surface + onSurface >= 4.5:1', () {
@@ -76,8 +100,11 @@ void main() {
         theme.colorScheme.surface,
         theme.colorScheme.onSurface,
       );
-      expect(ratio, greaterThanOrEqualTo(4.5),
-          reason: 'Dark theme surface/onSurface contrast insufficient');
+      expect(
+        ratio,
+        greaterThanOrEqualTo(4.5),
+        reason: 'Dark theme surface/onSurface contrast insufficient',
+      );
     });
   });
 
@@ -96,8 +123,11 @@ void main() {
         theme.colorScheme.outline,
         theme.colorScheme.surface,
       );
-      expect(ratio, greaterThanOrEqualTo(3.0),
-          reason: 'Outline borders must be visible against surface');
+      expect(
+        ratio,
+        greaterThanOrEqualTo(3.0),
+        reason: 'Outline borders must be visible against surface',
+      );
     });
 
     test('Dark theme outline + surface >= 3:1', () {
@@ -106,8 +136,11 @@ void main() {
         theme.colorScheme.outline,
         theme.colorScheme.surface,
       );
-      expect(ratio, greaterThanOrEqualTo(3.0),
-          reason: 'Outline borders must be visible against surface');
+      expect(
+        ratio,
+        greaterThanOrEqualTo(3.0),
+        reason: 'Outline borders must be visible against surface',
+      );
     });
   });
 }

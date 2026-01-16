@@ -1,0 +1,947 @@
+/// Help document metadata and content for WildFire app.
+///
+/// Contains all help and educational content as embedded Dart strings for:
+/// - Offline access
+/// - Consistent presentation
+/// - Easy updates without backend
+library;
+
+/// A help document with metadata for display.
+class HelpDocument {
+  /// Unique identifier for the document
+  final String id;
+
+  /// Display title for the document
+  final String title;
+
+  /// Short description for list view
+  final String description;
+
+  /// Full document content (Markdown formatted)
+  final String content;
+
+  const HelpDocument({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.content,
+  });
+}
+
+/// Static access to all help documents.
+///
+/// Usage:
+/// ```dart
+/// final doc = HelpContent.howToUse;
+/// print(doc.title); // "How to Use WildFire"
+/// ```
+class HelpContent {
+  HelpContent._();
+
+  // ─────────────────────────────────────────────────────────────
+  // Getting Started Section
+  // ─────────────────────────────────────────────────────────────
+
+  /// How to use WildFire app
+  static const howToUse = HelpDocument(
+    id: 'how-to-use',
+    title: 'How to Use WildFire',
+    description: 'Getting started with the app',
+    content: _howToUseContent,
+  );
+
+  /// What the risk levels mean
+  static const riskLevels = HelpDocument(
+    id: 'risk-levels',
+    title: 'What the Risk Levels Mean',
+    description: 'Understanding fire danger levels',
+    content: _riskLevelsContent,
+  );
+
+  /// When to use this app
+  static const whenToUse = HelpDocument(
+    id: 'when-to-use',
+    title: 'When to Use This App',
+    description: 'Best practices for using WildFire',
+    content: _whenToUseContent,
+  );
+
+  // ─────────────────────────────────────────────────────────────
+  // Wildfire Education Section
+  // ─────────────────────────────────────────────────────────────
+
+  /// Understanding wildfire risk
+  static const understandingRisk = HelpDocument(
+    id: 'understanding-risk',
+    title: 'Understanding Wildfire Risk',
+    description: 'How wildfire risk is calculated',
+    content: _understandingRiskContent,
+  );
+
+  /// Weather, fuel, and fire
+  static const weatherFuelFire = HelpDocument(
+    id: 'weather-fuel-fire',
+    title: 'Weather, Fuel, and Fire',
+    description: 'How conditions affect fire danger',
+    content: _weatherFuelFireContent,
+  );
+
+  /// Seasonal guidance
+  static const seasonalGuidance = HelpDocument(
+    id: 'seasonal-guidance',
+    title: 'Seasonal Guidance',
+    description: 'Fire risk through the year',
+    content: _seasonalGuidanceContent,
+  );
+
+  // ─────────────────────────────────────────────────────────────
+  // Using the Map Section
+  // ─────────────────────────────────────────────────────────────
+
+  /// What hotspots show
+  static const hotspots = HelpDocument(
+    id: 'hotspots',
+    title: 'What Hotspots Show',
+    description: 'Understanding map markers',
+    content: _hotspotsContent,
+  );
+
+  /// Data sources explained
+  static const dataSourcesHelp = HelpDocument(
+    id: 'data-sources-help',
+    title: 'Data Sources Explained',
+    description: 'Where our data comes from',
+    content: _dataSourcesHelpContent,
+  );
+
+  /// Update frequency and limits
+  static const updateFrequency = HelpDocument(
+    id: 'update-frequency',
+    title: 'Update Frequency & Limits',
+    description: 'How often data refreshes',
+    content: _updateFrequencyContent,
+  );
+
+  // ─────────────────────────────────────────────────────────────
+  // Safety & Responsibility Section
+  // ─────────────────────────────────────────────────────────────
+
+  /// What to do if you see fire
+  static const seeFireAction = HelpDocument(
+    id: 'see-fire',
+    title: 'What to Do if You See Fire',
+    description: 'Emergency response guidance',
+    content: _seeFireContent,
+  );
+
+  /// Important limitations
+  static const limitations = HelpDocument(
+    id: 'limitations',
+    title: 'Important Limitations',
+    description: 'What this app can and cannot do',
+    content: _limitationsContent,
+  );
+
+  /// Emergency guidance
+  static const emergencyGuidance = HelpDocument(
+    id: 'emergency-guidance',
+    title: 'Emergency Guidance',
+    description: 'Emergency contacts and resources',
+    content: _emergencyGuidanceContent,
+  );
+
+  // ─────────────────────────────────────────────────────────────
+  // About Section
+  // ─────────────────────────────────────────────────────────────
+
+  /// About WildFire app
+  static const aboutApp = HelpDocument(
+    id: 'about-app',
+    title: 'About WildFire',
+    description: 'App information and credits',
+    content: _aboutAppContent,
+  );
+
+  /// All documents for iteration
+  static const List<HelpDocument> all = [
+    howToUse,
+    riskLevels,
+    whenToUse,
+    understandingRisk,
+    weatherFuelFire,
+    seasonalGuidance,
+    hotspots,
+    dataSourcesHelp,
+    updateFrequency,
+    seeFireAction,
+    limitations,
+    emergencyGuidance,
+    aboutApp,
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────
+// Content Definitions
+// ─────────────────────────────────────────────────────────────
+
+const _howToUseContent = '''
+# How to Use WildFire
+
+WildFire helps you stay informed about wildfire risk in Scotland. Here's how to get started:
+
+## Home Screen
+
+The main screen shows your current **Fire Weather Index (FWI)** — a measure of how dangerous fire conditions are right now at your location.
+
+- **Location**: Shows your current location or the location you've set
+- **Risk Level**: Shows the current fire danger level from Very Low to Extreme
+- **FWI Value**: The numerical Fire Weather Index value
+
+## Viewing the Map
+
+Tap the **Map** tab to see:
+- Active fire hotspots detected by satellite
+- Your current location
+- Burnt area polygons (when zoomed in)
+
+Hotspots are updated throughout the day as satellite data becomes available.
+
+## Reporting Fires
+
+If you see a fire, use the **Report** feature to:
+1. Share your current location or pick a point on the map
+2. Provide details about what you've observed
+3. Submit the report for review
+
+**Remember**: This is for awareness only. Always call **999** for emergencies.
+
+## Tips
+
+- Check the app before outdoor activities like hiking or camping
+- Pay attention to seasonal fire bans during high-risk periods
+- Share information with friends and family in rural areas
+''';
+
+const _riskLevelsContent = '''
+# What the Risk Levels Mean
+
+WildFire uses the Fire Weather Index (FWI) system used by fire services across Europe. Here's what each level means:
+
+## 🟢 Very Low (FWI 0-4.9)
+Fires are unlikely to start or spread. Normal outdoor activities are generally safe.
+
+## 🟡 Low (FWI 5-11.9)
+Fire conditions are marginal. Some caution advised with open flames.
+
+## 🟠 Moderate (FWI 12-20.9)
+Fires can start and spread under certain conditions. Be careful with any ignition sources.
+
+## 🔴 High (FWI 21-37.9)
+**Significant fire risk**. Fires start easily and spread quickly.
+- Avoid open burning
+- Be extremely careful with any equipment that could spark
+- Consider postponing outdoor activities
+
+## 🟣 Very High (FWI 38-49.9)
+**Dangerous conditions**. Fires can spread rapidly and be difficult to control.
+- No open burning
+- Stay vigilant for smoke or flames
+- Check for local restrictions
+
+## ⚫ Extreme (FWI 50+)
+**Emergency conditions**. Fire behaviour can be extreme and unpredictable.
+- Evacuate if authorities advise
+- Follow all emergency instructions
+- Be ready to leave at short notice
+
+## Important Notes
+
+- These levels are based on weather conditions and vegetation moisture
+- Local conditions may vary from general forecasts
+- Always follow official guidance from Scottish Fire and Rescue Service
+''';
+
+const _whenToUseContent = '''
+# When to Use This App
+
+WildFire is designed for **awareness and planning**, not emergency response.
+
+## Good Times to Check
+
+### Before Outdoor Activities
+- Check fire risk before hiking, camping, or countryside visits
+- Plan routes away from high-risk areas during dry periods
+- Know the conditions before using BBQs or campfires
+
+### During Fire Season
+- Scotland's main fire season is typically February–May and July–September
+- Check more frequently during dry, windy weather
+- Monitor conditions if you live in rural or moorland areas
+
+### When Planning Land Management
+- Muirburn and controlled burning have legal seasons
+- Check conditions before any managed burning activities
+- Ensure you have appropriate permissions
+
+## When NOT to Rely on This App
+
+### In an Emergency
+- **Call 999 immediately** if you see an uncontrolled fire
+- Don't wait for app confirmation — report what you see
+- Follow instructions from emergency services
+
+### For Official Decisions
+- This app is for awareness only
+- Official fire bans come from local authorities
+- Land management decisions need professional assessment
+
+### When Conditions Change Rapidly
+- Weather can change faster than satellite updates
+- Local conditions may differ from general forecasts
+- Use common sense alongside app information
+''';
+
+const _understandingRiskContent = '''
+# Understanding Wildfire Risk
+
+Wildfire risk depends on multiple factors working together. Here's what you need to know:
+
+## The Fire Weather Index (FWI)
+
+FWI is a scientifically validated system that combines:
+
+1. **Temperature** — Higher temperatures dry out vegetation
+2. **Humidity** — Low humidity means drier conditions
+3. **Wind Speed** — Wind spreads fire and increases evaporation
+4. **Precipitation** — Recent rain affects fuel moisture
+
+## Components of FWI
+
+### Fine Fuel Moisture Code (FFMC)
+Measures moisture in surface litter and fine fuels (leaves, needles, grass)
+- Updates quickly with weather changes
+- Key indicator of how easily fires start
+
+### Duff Moisture Code (DMC)
+Measures moisture in moderate-depth organic layers
+- Changes more slowly than FFMC
+- Affects how deeply fires burn
+
+### Drought Code (DC)
+Measures deep soil moisture and large fuel moisture
+- Changes slowly over weeks
+- Indicates drought stress and deep burning potential
+
+## Why Risk Varies by Location
+
+- **Vegetation type** — Heather and moorland vs. forest
+- **Elevation** — Different weather patterns at altitude
+- **Aspect** — South-facing slopes dry faster
+- **Recent weather** — Days since last rain
+
+## Limitations
+
+The FWI system is a guide based on general conditions:
+- Actual fire behaviour depends on local factors
+- Microclimates can create different conditions
+- Human activity remains the main cause of wildfires
+''';
+
+const _weatherFuelFireContent = '''
+# Weather, Fuel, and Fire
+
+Three things must come together for wildfire: **heat, fuel, and oxygen**. Weather affects all three.
+
+## Weather Factors
+
+### Temperature
+- Warm weather dries vegetation
+- Heat waves create dangerous conditions
+- Even cool spring days can be risky after dry spells
+
+### Wind
+- Spreads flames and embers
+- Increases evaporation from plants
+- Changes fire direction unpredictably
+- Strong winds make fires very dangerous
+
+### Humidity
+- Low humidity = dry vegetation
+- Morning humidity often higher than afternoon
+- Coastal areas may have lower risk than inland
+
+### Precipitation
+- Recent rain reduces immediate risk
+- Effects are temporary — a few dry days can reset risk
+- Light rain may not penetrate deep vegetation
+
+## Fuel Types in Scotland
+
+### Moorland and Heather
+- Primary wildfire fuel in Scotland
+- Burns readily when dry
+- Traditional muirburn season for management
+
+### Grassland
+- Cures quickly in dry weather
+- Fast-spreading fires
+- Common along roadsides and field margins
+
+### Woodland
+- Ground litter can carry fire
+- Crown fires possible in extreme conditions
+- Conifer plantations can burn intensely
+
+## The Fire Triangle
+
+**Heat** → Ignition source (human activity, lightning)
+**Fuel** → Vegetation (moisture determines flammability)
+**Oxygen** → Wind (supplies oxygen, spreads flames)
+
+Remove any element and fire cannot sustain. This is why:
+- Fire bans remove ignition sources
+- Firebreaks remove fuel
+- Firefighters may remove oxygen (smothering)
+''';
+
+const _seasonalGuidanceContent = '''
+# Seasonal Guidance
+
+Wildfire risk in Scotland varies throughout the year. Here's what to expect:
+
+## Spring (February–May)
+
+**Highest risk season**
+
+Why:
+- Dead grass from winter
+- Vegetation hasn't greened up
+- Dry east winds common
+- Low humidity periods
+
+Actions:
+- Check fire risk before countryside visits
+- Be extra careful with any ignition sources
+- Traditional muirburn season — watch for controlled burns
+
+## Summer (June–August)
+
+**Variable risk**
+
+Why:
+- Vegetation is green but drought possible
+- Tourism increases ignition risk
+- BBQs and campfires more common
+- Longer days = more outdoor activity
+
+Actions:
+- Check for local BBQ bans during dry spells
+- Be careful with glass (can focus sunlight)
+- Ensure campfires are fully extinguished
+- Dispose of cigarettes properly
+
+## Autumn (September–November)
+
+**Secondary peak season**
+
+Why:
+- Vegetation curing (dying back)
+- Dry conditions can persist from summer
+- Stubble burning season on farms
+- Dead bracken and ferns
+
+Actions:
+- Continue checking fire risk
+- Be aware of agricultural burning
+- Report any suspicious fires
+
+## Winter (December–January)
+
+**Generally lower risk**
+
+Why:
+- Wet, cool conditions
+- Short days limit outdoor activity
+- Snow cover in many areas
+
+However:
+- Dry cold spells can still create risk
+- East coast can have dry winter periods
+- Don't assume winter = no risk
+
+## Key Dates
+
+- **1 October–15 April**: Muirburn permitted (with conditions)
+- **Scottish Outdoor Access Code**: Applies year-round
+- **Local fire bans**: Check council announcements during high risk
+''';
+
+const _hotspotsContent = '''
+# What Hotspots Show
+
+The map displays **thermal hotspots** detected by satellites. Here's what they mean:
+
+## What Are Hotspots?
+
+Satellites equipped with thermal sensors detect unusually high temperatures on Earth's surface. These show as markers on our map.
+
+**Important**: Not all hotspots are wildfires!
+
+## What Causes Hotspots
+
+### Actual Fires
+- Wildfires
+- Controlled burns
+- Stubble burning
+- Industrial operations
+
+### False Positives
+- Hot industrial sites
+- Sun-heated surfaces
+- Volcanic activity (not in Scotland!)
+- Sensor glitches
+
+## Hotspot Information
+
+Each marker shows:
+- **Location** — Where the heat was detected
+- **Confidence** — How likely it's a real fire
+- **Detection time** — When satellite passed over
+- **Intensity** — Relative heat level
+
+## Understanding Confidence
+
+- **High confidence** — Very likely to be real fire activity
+- **Moderate confidence** — Probable fire, some uncertainty
+- **Low confidence** — Heat detected, may not be fire
+
+## Limitations
+
+- Satellites pass over at specific times, not continuously
+- Cloud cover can block detection
+- Small fires may not be detected
+- Indoor/underground fires won't appear
+- Detection is typically 6-24 hours behind real-time
+
+## What to Do
+
+**If you see a hotspot near you:**
+1. Don't panic — it may be legitimate activity
+2. Look for smoke or fire yourself
+3. If you see an uncontrolled fire, call 999
+4. Don't rely solely on app data
+
+**If you see fire not on the map:**
+1. The map may not be updated yet
+2. Call 999 if it's uncontrolled
+3. Use the Report feature for awareness
+''';
+
+const _dataSourcesHelpContent = '''
+# Data Sources Explained
+
+WildFire uses authoritative data sources to provide fire risk and hotspot information.
+
+## Fire Weather Index Data
+
+**Source**: European Forest Fire Information System (EFFIS)
+
+EFFIS is operated by the European Commission's Joint Research Centre and provides:
+- Daily fire danger forecasts
+- Fire weather index calculations
+- Coverage across Europe including Scotland
+
+**Update frequency**: Daily (typically updated by 12:00 UTC)
+
+## Satellite Hotspot Data
+
+**Source**: NASA FIRMS (Fire Information for Resource Management System)
+
+FIRMS processes data from:
+- **MODIS** (Moderate Resolution Imaging Spectroradiometer)
+- **VIIRS** (Visible Infrared Imaging Radiometer Suite)
+
+These sensors are on NASA and NOAA satellites.
+
+**Update frequency**: Multiple times daily as satellites pass over
+
+## Location Data
+
+**Source**: Your device's GPS (with your permission)
+
+Used for:
+- Showing fire risk at your location
+- Centering the map
+- Calculating distances to hotspots
+
+**Privacy**: Location data stays on your device. See our Privacy Policy.
+
+## Limitations
+
+- Forecast data is a model, not direct measurement
+- Satellite detection has inherent delays
+- Data may not reflect very recent changes
+- Local conditions can differ from regional forecasts
+
+## Acknowledgments
+
+We gratefully acknowledge:
+- EFFIS/JRC for fire danger data
+- NASA FIRMS for hotspot detection
+- OpenStreetMap contributors for map tiles
+- The Scottish Fire and Rescue Service for guidance
+''';
+
+const _updateFrequencyContent = '''
+# Update Frequency & Limits
+
+Understanding how often data updates helps you use WildFire effectively.
+
+## Fire Weather Index
+
+- **Source updates**: Daily, typically by 12:00 UTC
+- **App checks**: When you open the app or pull to refresh
+- **Cache**: Data cached for up to 6 hours
+
+The FWI is a forecast based on weather data, so values don't change minute-by-minute.
+
+## Satellite Hotspots
+
+- **Source updates**: Multiple times daily
+- **Typical delay**: 6-24 hours from fire start to appearance
+- **App checks**: When you open the map or refresh
+
+Why the delay?
+1. Satellites orbit Earth, not hovering in place
+2. Processing time for thermal imagery
+3. Quality checks before data release
+
+## Map Tiles
+
+- **Background maps**: Cached locally
+- **Updates**: Infrequently (roads, places don't change often)
+- **First load**: May take a moment to download
+
+## App Data Usage
+
+WildFire is designed to be efficient:
+- Minimal data transfer
+- Works well on mobile connections
+- Can function offline with cached data
+
+## What This Means for You
+
+### Don't Expect Real-Time
+- The map is not a live video feed
+- A fire could exist that isn't shown yet
+- Use your own observations alongside the app
+
+### Check Before Activities
+- Check in the morning for daily planning
+- Refresh before heading out
+- Don't assume yesterday's data is current
+
+### Report What You See
+- Your reports help fill gaps in satellite coverage
+- Community awareness supplements official data
+- Always call 999 for actual emergencies
+''';
+
+const _seeFireContent = '''
+# What to Do if You See Fire
+
+If you see an uncontrolled fire, follow these steps:
+
+## 1. Ensure Your Safety First
+
+- Move away from the fire
+- Don't try to fight large fires yourself
+- If smoke is thick, cover your mouth and nose
+- Move uphill if possible (smoke rises)
+
+## 2. Call 999 Immediately
+
+Tell the operator:
+- **"Fire service please"**
+- Your location (as precisely as possible)
+- What's burning (grass, heather, buildings)
+- How big the fire is
+- Wind direction
+- Any people or animals at risk
+
+## 3. Don't Assume Someone Else Has Called
+
+- Multiple calls help pinpoint location
+- Your information adds to the picture
+- Better too many calls than none
+
+## 4. If Safe, Stay to Direct Emergency Services
+
+- Stay at a safe distance
+- Be visible for arriving crews
+- Provide updates on fire spread
+
+## What NOT to Do
+
+❌ **Don't** try to fight large fires alone
+❌ **Don't** drive through smoke
+❌ **Don't** go back for belongings
+❌ **Don't** wait to see if the fire spreads
+❌ **Don't** rely on this app instead of calling 999
+
+## Using the App's Report Feature
+
+The Report feature is for:
+- Sharing awareness with other users
+- Recording what you've observed
+- Adding to community knowledge
+
+It is **NOT** a replacement for calling emergency services.
+
+## Key Numbers
+
+- **999** — Emergency services (police, fire, ambulance)
+- **101** — Non-emergency police (for suspicious activity)
+- **Scottish Fire & Rescue**: For general inquiries
+
+## When to Call Each Number
+
+### Call 999 (Emergency) When:
+- Fire is **spreading** or out of control
+- There is **immediate danger** to people or property
+- Smoke is visible and fire source is unclear
+- You see flames in vegetation, woodland, or moorland
+- Someone is injured or trapped
+
+### Call 101 (Police Scotland Non-Emergency) When:
+- You see an **unattended campfire** that could become a problem
+- There is **smouldering peat** that may reignite — peat fires can burn underground for weeks and resurface
+- You spot **illegal burning** (e.g., muirburn outside permitted dates) but it's not spreading
+- A fire appears **controlled but unattended** and you're concerned
+- You want to report something that **doesn't require immediate response**
+
+### Call Crimestoppers (0800 555 111) When:
+- You want to report **arson** or deliberate fire-setting **anonymously**
+- You have information about **suspicious activity** related to wildfires
+- You prefer not to give your personal details
+
+### Not Sure? Call 999
+If in doubt, it's always better to call 999. The operator will assess the situation and direct your call appropriately. Don't worry about "wasting their time" — they'd rather receive a call that turns out to be minor than miss a genuine emergency.
+''';
+
+const _limitationsContent = '''
+# Important Limitations
+
+WildFire is an awareness tool with important limitations you should understand.
+
+## This App DOES NOT:
+
+### Replace Emergency Services
+- Can't dispatch firefighters
+- Reports don't go to 999
+- Not monitored 24/7
+- Always call 999 for emergencies
+
+### Provide Real-Time Data
+- Satellite data is hours behind reality
+- FWI is a daily forecast
+- Map may not show current fires
+- Conditions change faster than updates
+
+### Cover All Fires
+- Small fires may not be detected
+- Indoor fires won't appear
+- Underground fires won't show
+- Smoke can hide thermal signatures
+
+### Guarantee Accuracy
+- Data comes from third parties
+- Models have inherent uncertainty
+- False positives happen
+- False negatives happen
+
+## This App DOES:
+
+### Provide Awareness
+- General fire danger conditions
+- Known hotspot locations
+- Educational information
+- Community reports
+
+### Help with Planning
+- Check before outdoor activities
+- Understand seasonal patterns
+- Learn about fire behaviour
+- Find safety information
+
+### Support Responsible Behaviour
+- Encourages checking conditions
+- Promotes fire safety awareness
+- Links to official resources
+- Reminds you to call 999
+
+## Your Responsibilities
+
+- Use common sense alongside app data
+- Follow official guidance and restrictions
+- Call 999 if you see an emergency
+- Don't rely solely on any app for safety
+
+## When in Doubt
+
+If you're unsure about fire risk or see something concerning:
+1. Err on the side of caution
+2. Leave the area if uncomfortable
+3. Call 999 if you see fire
+4. Check official sources for bans/restrictions
+''';
+
+const _emergencyGuidanceContent = '''
+# Emergency Guidance
+
+Know what to do before an emergency happens.
+
+## Emergency Numbers
+
+### 999 — Police, Fire, Ambulance
+- Use for all life-threatening emergencies
+- Free from any phone
+- Works even without mobile signal (tries all networks)
+
+### 112 — European Emergency Number
+- Works throughout Europe
+- Same services as 999 in UK
+- Can be useful if 999 doesn't connect
+
+### 101 — Police Non-Emergency
+- Suspicious activity
+- Crime that's not in progress
+- General enquiries
+
+## If You Receive a Fire Warning
+
+### From Emergency Services
+- Follow instructions exactly
+- Prepare to evacuate if advised
+- Don't wait until the last minute
+- Help neighbours who may need assistance
+
+### General Preparation
+- Know your evacuation routes
+- Have important documents ready
+- Keep phone charged
+- Fill car with fuel during high-risk periods
+
+## Evacuation Checklist
+
+If told to evacuate:
+- ☐ Take essential medications
+- ☐ Take phone and charger
+- ☐ Take ID and important documents
+- ☐ Take water and snacks
+- ☐ Take pet supplies if applicable
+- ☐ Lock your home
+- ☐ Follow designated evacuation routes
+- ☐ Don't return until authorities say it's safe
+
+## During a Wildfire Nearby
+
+### If Told to Stay
+- Close all windows and doors
+- Turn off gas
+- Fill sinks/baths with water (firefighting reserve)
+- Move flammable items away from house
+- Listen to radio/official channels
+
+### If Told to Leave
+- Leave immediately
+- Turn on headlights (visibility in smoke)
+- Close car windows
+- Drive slowly and carefully
+- Don't stop in the fire area
+
+## After a Fire
+
+- Don't return until authorities confirm it's safe
+- Watch for hotspots and flare-ups
+- Be careful of damaged structures
+- Check on neighbours
+- Document any damage for insurance
+
+## Resources
+
+- **Scottish Fire and Rescue Service**: firescotland.gov.uk
+- **Met Office**: metoffice.gov.uk
+- **Scottish Government**: gov.scot/emergency
+''';
+
+const _aboutAppContent = '''
+# About WildFire
+
+WildFire is a public awareness tool for wildfire risk in Scotland.
+
+## Purpose
+
+This app helps people:
+- Understand current fire danger conditions
+- See where fires have been detected
+- Learn about wildfire safety
+- Report fire sightings for community awareness
+
+## What We Are
+
+- An **awareness tool** for general information
+- A way to **visualise** publicly available data
+- An **educational resource** about fire safety
+- A **community platform** for sharing observations
+
+## What We Are Not
+
+- **Not an emergency service** — Call 999 for emergencies
+- **Not an official warning system** — Follow official guidance
+- **Not a real-time monitor** — Data has inherent delays
+- **Not a replacement** for common sense and official advice
+
+## Data Sources
+
+- **Fire Weather Index**: European Forest Fire Information System (EFFIS)
+- **Hotspot Detection**: NASA FIRMS satellite data
+- **Maps**: OpenStreetMap contributors
+
+## Privacy
+
+We take privacy seriously:
+- Location data stays on your device
+- No account required
+- Minimal data collection
+- See our Privacy Policy for details
+
+## Open Source
+
+WildFire is built with open source technologies and uses publicly available data. We believe in transparency about how the app works.
+
+## Feedback
+
+We welcome feedback to improve the app:
+- Report bugs through the app store
+- Suggest features via email
+- Share your experience
+
+## Credits
+
+Built with Flutter and the support of:
+- European Commission Joint Research Centre (EFFIS)
+- NASA FIRMS
+- Scottish Fire and Rescue Service (guidance)
+- The open source community
+
+## Version
+
+WildFire Version 1.0.0
+December 2025
+
+---
+
+*For information only. Not an emergency alert system.*
+*In an emergency, call 999.*
+''';

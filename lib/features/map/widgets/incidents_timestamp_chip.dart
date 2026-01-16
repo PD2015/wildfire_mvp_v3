@@ -41,10 +41,7 @@ import 'package:wildfire_mvp_v3/utils/time_format.dart';
 class IncidentsTimestampChip extends StatefulWidget {
   final DateTime lastUpdated;
 
-  const IncidentsTimestampChip({
-    super.key,
-    required this.lastUpdated,
-  });
+  const IncidentsTimestampChip({super.key, required this.lastUpdated});
 
   @override
   State<IncidentsTimestampChip> createState() => _IncidentsTimestampChipState();
@@ -96,11 +93,7 @@ class _IncidentsTimestampChipState extends State<IncidentsTimestampChip> {
       label: semanticLabel,
       excludeSemantics: true, // Prevent double-reading of text
       child: Chip(
-        avatar: Icon(
-          Icons.access_time,
-          size: 18,
-          color: colorScheme.onSurface,
-        ),
+        avatar: Icon(Icons.access_time, size: 18, color: colorScheme.onSurface),
         label: Text(
           displayText,
           style: theme.textTheme.bodySmall?.copyWith(

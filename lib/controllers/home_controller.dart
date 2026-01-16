@@ -258,12 +258,14 @@ class HomeController extends ChangeNotifier {
         lastKnownLocationTimestamp = null;
     }
 
-    _updateState(HomeStateLoading(
-      isRetry: isRetry,
-      startTime: DateTime.now(),
-      lastKnownLocation: lastKnownLocation,
-      lastKnownLocationTimestamp: lastKnownLocationTimestamp,
-    ));
+    _updateState(
+      HomeStateLoading(
+        isRetry: isRetry,
+        startTime: DateTime.now(),
+        lastKnownLocation: lastKnownLocation,
+        lastKnownLocationTimestamp: lastKnownLocationTimestamp,
+      ),
+    );
 
     // Set up global timeout
     _timeoutTimer?.cancel();
@@ -413,19 +415,18 @@ class HomeController extends ChangeNotifier {
 
     // Start with loading indicators for available services
     if (_what3wordsService != null || _geocodingService != null) {
-      _updateState(currentState.copyWith(
-        isWhat3wordsLoading: _what3wordsService != null,
-        isGeocodingLoading: _geocodingService != null,
-      ));
+      _updateState(
+        currentState.copyWith(
+          isWhat3wordsLoading: _what3wordsService != null,
+          isGeocodingLoading: _geocodingService != null,
+        ),
+      );
     }
 
     // Fetch what3words address (if service available)
     if (_what3wordsService != null) {
       _what3wordsService!
-          .convertTo3wa(
-        lat: location.latitude,
-        lon: location.longitude,
-      )
+          .convertTo3wa(lat: location.latitude, lon: location.longitude)
           .then((result) {
         final state = _state;
         if (state is HomeStateSuccess) {
@@ -436,18 +437,18 @@ class HomeController extends ChangeNotifier {
                 name: 'HomeController',
               );
               // NOTE: Never log the actual what3words address (privacy - C2)
-              _updateState(state.copyWith(
-                what3words: value.displayFormat,
-                isWhat3wordsLoading: false,
-              ));
+              _updateState(
+                state.copyWith(
+                  what3words: value.displayFormat,
+                  isWhat3wordsLoading: false,
+                ),
+              );
             case Left(:final value):
               developer.log(
                 'What3words failed: ${value.userMessage}',
                 name: 'HomeController',
               );
-              _updateState(state.copyWith(
-                isWhat3wordsLoading: false,
-              ));
+              _updateState(state.copyWith(isWhat3wordsLoading: false));
           }
         }
       });
@@ -456,10 +457,7 @@ class HomeController extends ChangeNotifier {
     // Fetch formatted location via reverse geocoding (if service available)
     if (_geocodingService != null) {
       _geocodingService!
-          .reverseGeocode(
-        lat: location.latitude,
-        lon: location.longitude,
-      )
+          .reverseGeocode(lat: location.latitude, lon: location.longitude)
           .then((result) {
         final state = _state;
         if (state is HomeStateSuccess) {
@@ -469,18 +467,18 @@ class HomeController extends ChangeNotifier {
                 'Geocoding resolved: $value',
                 name: 'HomeController',
               );
-              _updateState(state.copyWith(
-                formattedLocation: value,
-                isGeocodingLoading: false,
-              ));
+              _updateState(
+                state.copyWith(
+                  formattedLocation: value,
+                  isGeocodingLoading: false,
+                ),
+              );
             case Left(:final value):
               developer.log(
                 'Geocoding failed: $value',
                 name: 'HomeController',
               );
-              _updateState(state.copyWith(
-                isGeocodingLoading: false,
-              ));
+              _updateState(state.copyWith(isGeocodingLoading: false));
           }
         }
       });

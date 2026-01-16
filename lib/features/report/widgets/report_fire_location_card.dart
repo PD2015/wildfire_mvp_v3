@@ -53,10 +53,7 @@ class ReportFireLocationCard extends StatelessWidget {
         elevation: 1,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: scheme.outlineVariant,
-            width: 1,
-          ),
+          side: BorderSide(color: scheme.outlineVariant, width: 1),
         ),
         margin: EdgeInsets.zero,
         child: Padding(
@@ -79,7 +76,10 @@ class ReportFireLocationCard extends StatelessWidget {
 
   /// Builds the fire-specific header
   Widget _buildHeader(
-      BuildContext context, ThemeData theme, ColorScheme scheme) {
+    BuildContext context,
+    ThemeData theme,
+    ColorScheme scheme,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -269,6 +269,27 @@ class ReportFireLocationCard extends StatelessWidget {
           const SizedBox(height: 12),
         ],
 
+        // Helper text explaining current location and update option
+        Text.rich(
+          TextSpan(
+            text: 'Your current location. Tap ',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
+            children: [
+              TextSpan(
+                text: 'Update Location',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const TextSpan(text: ' to report a fire elsewhere.'),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
         // Coordinates (5dp precision with monospace) - split for readability
         _buildLabeledRow(
           context,
@@ -343,17 +364,11 @@ class ReportFireLocationCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 16,
-              color: scheme.error,
-            ),
+            Icon(Icons.error_outline, size: 16, color: scheme.error),
             const SizedBox(width: 8),
             Text(
               'Could not get location',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: scheme.error,
-              ),
+              style: theme.textTheme.bodyMedium?.copyWith(color: scheme.error),
             ),
           ],
         ),
@@ -426,9 +441,9 @@ class ReportFireLocationCard extends StatelessWidget {
         const SizedBox(width: 8),
         Text(
           message,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
         ),
       ],
     );
@@ -464,8 +479,9 @@ class ReportFireLocationCard extends StatelessWidget {
                       height: 14,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor:
-                            AlwaysStoppedAnimation(scheme.onSurfaceVariant),
+                        valueColor: AlwaysStoppedAnimation(
+                          scheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -570,10 +586,7 @@ class ReportFireLocationCard extends StatelessWidget {
     );
 
     // When no API key, show graceful fallback (not permanent spinner)
-    return LocationMiniMapPreview(
-      staticMapUrl: staticMapUrl,
-      isLoading: false,
-    );
+    return LocationMiniMapPreview(staticMapUrl: staticMapUrl, isLoading: false);
   }
 
   /// Builds a Google Static Maps URL for the given coordinates
@@ -713,9 +726,7 @@ class ReportFireLocationCard extends StatelessWidget {
           ),
           icon: const Icon(Icons.copy, size: 18),
           label: const Text('Copy location for your call'),
-          style: FilledButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
-          ),
+          style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
         ),
       ),
     );

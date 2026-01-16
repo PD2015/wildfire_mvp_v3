@@ -5,20 +5,25 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wildfire_mvp_v3/theme/risk_palette.dart';
 
-/// Helper utility for creating custom flame marker icons
+/// Helper utility for creating custom fire marker icons
 ///
-/// Uses the Material `Icons.local_fire_department` icon rendered as
-/// bitmap markers, colored by fire intensity level. This ensures
-/// consistent branding with the rest of the app (nav bar, bottom sheet).
+/// Provides two marker styles:
+/// 1. **Flame pins** (low zoom): Teardrop markers with fire icon for overview
+/// 2. **Pixel squares** (high zoom): Square markers representing satellite
+///    detection footprint (~375m for VIIRS), matching GWIS/FIRMS display
 ///
 /// Usage:
 /// ```dart
 /// await MarkerIconHelper.initialize();
-/// final icon = MarkerIconHelper.getIcon('high');
+/// final pinIcon = MarkerIconHelper.getIcon('high');      // Flame pin
+/// final pixelIcon = MarkerIconHelper.getPixelIcon('high'); // Pixel square
 /// ```
 class MarkerIconHelper {
-  /// Cached marker icons by intensity
+  /// Cached flame pin icons by intensity
   static final Map<String, BitmapDescriptor> _iconCache = {};
+
+  /// Cached pixel square icons by intensity
+  static final Map<String, BitmapDescriptor> _pixelCache = {};
 
   /// Whether icons have been initialized
   static bool _isInitialized = false;
@@ -26,10 +31,14 @@ class MarkerIconHelper {
   /// Check if icons are ready to use
   static bool get isReady => _isInitialized;
 
-  /// Icon size in logical pixels (close to Google Maps default ~27px)
+  /// Flame pin size in logical pixels (close to Google Maps default ~27px)
   static const double _iconSize = 28.0;
 
-  /// Initialize and pre-load all flame icons
+  /// Pixel square size - represents satellite detection footprint
+  /// VIIRS detects ~375m pixels, this renders as visible square on map
+  static const double _pixelSize = 16.0;
+
+  /// Initialize and pre-load all marker icons (both flame pins and pixel squares)
   ///
   /// Call this during widget initialization to avoid async icon loading
   /// when markers are first created.
@@ -38,14 +47,20 @@ class MarkerIconHelper {
 
     try {
       await Future.wait([
+        // Flame pin icons for low zoom
         _createIconFromMaterial('low', _getColorForIntensity('low')),
         _createIconFromMaterial('moderate', _getColorForIntensity('moderate')),
         _createIconFromMaterial('high', _getColorForIntensity('high')),
         _createIconFromMaterial('unknown', RiskPalette.midGray),
+        // Pixel square icons for high zoom
+        _createPixelIcon('low', _getColorForIntensity('low')),
+        _createPixelIcon('moderate', _getColorForIntensity('moderate')),
+        _createPixelIcon('high', _getColorForIntensity('high')),
+        _createPixelIcon('unknown', RiskPalette.midGray),
       ]);
 
       _isInitialized = true;
-      debugPrint('🔥 MarkerIconHelper: All flame icons initialized');
+      debugPrint('🔥 MarkerIconHelper: All flame and pixel icons initialized');
     } catch (e) {
       debugPrint('⚠️ MarkerIconHelper: Failed to initialize icons: $e');
     }
@@ -59,12 +74,33 @@ class MarkerIconHelper {
 
     if (!_isInitialized) {
       debugPrint(
-          '⚠️ MarkerIconHelper: Icons not initialized, using default marker');
+        '⚠️ MarkerIconHelper: Icons not initialized, using default marker',
+      );
       return _getFallbackMarker(normalizedIntensity);
     }
 
     return _iconCache[normalizedIntensity] ??
         _iconCache['unknown'] ??
+        BitmapDescriptor.defaultMarker;
+  }
+
+  /// Get pixel square icon for high-zoom satellite footprint display
+  ///
+  /// These icons represent the actual satellite detection pixel (~375m VIIRS).
+  /// Use at zoom >= 10 for precise fire location display matching GWIS/FIRMS.
+  /// Returns a fallback default marker if icons haven't been initialized.
+  static BitmapDescriptor getPixelIcon(String intensity) {
+    final normalizedIntensity = intensity.toLowerCase();
+
+    if (!_isInitialized) {
+      debugPrint(
+        '⚠️ MarkerIconHelper: Icons not initialized, using default marker',
+      );
+      return _getFallbackMarker(normalizedIntensity);
+    }
+
+    return _pixelCache[normalizedIntensity] ??
+        _pixelCache['unknown'] ??
         BitmapDescriptor.defaultMarker;
   }
 
@@ -89,18 +125,87 @@ class MarkerIconHelper {
         return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
       case 'moderate':
         return BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueOrange);
+          BitmapDescriptor.hueOrange,
+        );
       case 'low':
         return BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan);
       default:
         return BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueViolet);
+          BitmapDescriptor.hueViolet,
+        );
     }
+  }
+
+  /// Create a pixel square icon for satellite footprint display
+  ///
+  /// Renders as a filled square with a contrasting border, representing
+  /// the actual satellite detection pixel (~375m for VIIRS sensors).
+  static Future<void> _createPixelIcon(String intensity, Color color) async {
+    try {
+      final bytes = await _renderPixelSquare(color, _pixelSize);
+      final descriptor = BitmapDescriptor.bytes(bytes);
+      _pixelCache[intensity] = descriptor;
+      debugPrint('🔲 Created pixel icon for intensity: $intensity');
+    } catch (e) {
+      debugPrint('⚠️ Failed to create pixel icon for $intensity: $e');
+      _pixelCache[intensity] = _getFallbackMarker(intensity);
+    }
+  }
+
+  /// Render a pixel square to PNG bytes
+  ///
+  /// Square with filled color and contrasting border for visibility
+  static Future<Uint8List> _renderPixelSquare(Color color, double size) async {
+    const double scale = 2.0;
+    final double scaledSize = size * scale;
+
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    // Draw shadow for depth
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.4)
+      ..style = PaintingStyle.fill;
+    canvas.drawRect(
+      Rect.fromLTWH(2, 2, scaledSize - 2, scaledSize - 2),
+      shadowPaint,
+    );
+
+    // Draw filled square with intensity color
+    final fillPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, scaledSize - 2, scaledSize - 2),
+      fillPaint,
+    );
+
+    // Draw contrasting border for visibility against map
+    final borderPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+    canvas.drawRect(
+      Rect.fromLTWH(1, 1, scaledSize - 4, scaledSize - 4),
+      borderPaint,
+    );
+
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(scaledSize.toInt(), scaledSize.toInt());
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+
+    if (byteData == null) {
+      throw Exception('Failed to convert pixel icon to bytes');
+    }
+
+    return byteData.buffer.asUint8List();
   }
 
   /// Create a marker icon from Material Icons.local_fire_department
   static Future<void> _createIconFromMaterial(
-      String intensity, Color color) async {
+    String intensity,
+    Color color,
+  ) async {
     try {
       final bytes = await _renderMaterialIcon(
         Icons.local_fire_department,

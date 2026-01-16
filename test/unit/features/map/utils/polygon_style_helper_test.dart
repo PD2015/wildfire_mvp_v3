@@ -4,60 +4,60 @@ import 'package:wildfire_mvp_v3/theme/risk_palette.dart';
 
 void main() {
   group('PolygonStyleHelper', () {
-    group('getStrokeColor', () {
-      test('returns veryHigh color for high intensity', () {
-        final color = PolygonStyleHelper.getStrokeColor('high');
-        expect(color, equals(RiskPalette.veryHigh));
-      });
+    // Note: All burnt areas now use a single red color (RiskPalette.veryHigh)
+    // for visual clarity. Intensity-based coloring was removed in the refactor.
 
-      test('returns high color for moderate intensity', () {
-        final color = PolygonStyleHelper.getStrokeColor('moderate');
-        expect(color, equals(RiskPalette.high));
-      });
-
-      test('returns low color for low intensity', () {
-        final color = PolygonStyleHelper.getStrokeColor('low');
-        expect(color, equals(RiskPalette.low));
-      });
-
-      test('returns midGray for unknown intensity', () {
-        final color = PolygonStyleHelper.getStrokeColor('unknown');
-        expect(color, equals(RiskPalette.midGray));
-      });
-
-      test('handles case-insensitive intensity', () {
-        expect(PolygonStyleHelper.getStrokeColor('HIGH'),
-            equals(RiskPalette.veryHigh));
-        expect(PolygonStyleHelper.getStrokeColor('High'),
-            equals(RiskPalette.veryHigh));
-        expect(PolygonStyleHelper.getStrokeColor('high'),
-            equals(RiskPalette.veryHigh));
+    group('burntAreaStrokeColor', () {
+      test('returns veryHigh red color', () {
+        expect(
+          PolygonStyleHelper.burntAreaStrokeColor,
+          equals(RiskPalette.veryHigh),
+        );
       });
     });
 
-    group('getFillColor', () {
-      test('returns semi-transparent color for high intensity', () {
-        final color = PolygonStyleHelper.getFillColor('high');
+    group('getStrokeColor (deprecated)', () {
+      test('returns veryHigh color for any intensity', () {
+        // All intensities now return the same red color
+        expect(
+          PolygonStyleHelper.getStrokeColor('high'),
+          equals(RiskPalette.veryHigh),
+        );
+        expect(
+          PolygonStyleHelper.getStrokeColor('moderate'),
+          equals(RiskPalette.veryHigh),
+        );
+        expect(
+          PolygonStyleHelper.getStrokeColor('low'),
+          equals(RiskPalette.veryHigh),
+        );
+        expect(
+          PolygonStyleHelper.getStrokeColor('unknown'),
+          equals(RiskPalette.veryHigh),
+        );
+      });
+    });
+
+    group('burntAreaFillColor', () {
+      test('returns semi-transparent veryHigh red color', () {
+        final color = PolygonStyleHelper.burntAreaFillColor;
         expect(color.r, equals(RiskPalette.veryHigh.r));
         expect(color.g, equals(RiskPalette.veryHigh.g));
         expect(color.b, equals(RiskPalette.veryHigh.b));
         expect(color.a, closeTo(PolygonStyleHelper.fillOpacity, 0.01));
       });
+    });
 
-      test('returns semi-transparent color for moderate intensity', () {
-        final color = PolygonStyleHelper.getFillColor('moderate');
-        expect(color.r, equals(RiskPalette.high.r));
-        expect(color.g, equals(RiskPalette.high.g));
-        expect(color.b, equals(RiskPalette.high.b));
-        expect(color.a, closeTo(PolygonStyleHelper.fillOpacity, 0.01));
-      });
-
-      test('returns semi-transparent color for low intensity', () {
-        final color = PolygonStyleHelper.getFillColor('low');
-        expect(color.r, equals(RiskPalette.low.r));
-        expect(color.g, equals(RiskPalette.low.g));
-        expect(color.b, equals(RiskPalette.low.b));
-        expect(color.a, closeTo(PolygonStyleHelper.fillOpacity, 0.01));
+    group('getFillColor (deprecated)', () {
+      test('returns semi-transparent veryHigh color for any intensity', () {
+        // All intensities now return the same red fill color
+        for (final intensity in ['high', 'moderate', 'low', 'unknown']) {
+          final color = PolygonStyleHelper.getFillColor(intensity);
+          expect(color.r, equals(RiskPalette.veryHigh.r));
+          expect(color.g, equals(RiskPalette.veryHigh.g));
+          expect(color.b, equals(RiskPalette.veryHigh.b));
+          expect(color.a, closeTo(PolygonStyleHelper.fillOpacity, 0.01));
+        }
       });
 
       test('fill opacity is 35%', () {

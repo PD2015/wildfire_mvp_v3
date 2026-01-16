@@ -9,32 +9,47 @@ import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
+import 'package:wildfire_mvp_v3/models/fire_data_mode.dart';
 import 'package:wildfire_mvp_v3/models/api_error.dart';
-import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
-import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:dartz/dartz.dart';
+
+import '../helpers/mock_hotspot_orchestrator.dart';
 
 /// Mock MapController for widget testing with controllable state
 class MockMapController extends MapController {
   MapState _mockState;
+  FireDataMode _mockFireDataMode;
 
-  MockMapController(this._mockState)
-      : super(
+  MockMapController(
+    this._mockState, {
+    FireDataMode fireDataMode = FireDataMode.hotspots,
+  })  : _mockFireDataMode = fireDataMode,
+        super(
           locationResolver: _NoOpLocationResolver(),
-          fireLocationService: _NoOpFireLocationService(),
           fireRiskService: _NoOpFireRiskService(),
+          hotspotOrchestrator: MockHotspotOrchestrator(),
         );
 
   @override
   MapState get state => _mockState;
 
+  @override
+  FireDataMode get fireDataMode => _mockFireDataMode;
+
   /// Update state and notify listeners (for testing state changes)
   void setState(MapState newState) {
     _mockState = newState;
+    notifyListeners();
+  }
+
+  /// Update fire data mode and notify listeners (for testing mode changes)
+  @override
+  void setFireDataMode(FireDataMode mode) {
+    _mockFireDataMode = mode;
     notifyListeners();
   }
 
@@ -50,10 +65,12 @@ class _NoOpLocationResolver implements LocationResolver {
   Future<Either<LocationError, ResolvedLocation>> getLatLon({
     bool allowDefault = true,
   }) async {
-    return const Right(ResolvedLocation(
-      coordinates: LatLng(55.9533, -3.1883), // Edinburgh
-      source: LocationSource.gps,
-    ));
+    return const Right(
+      ResolvedLocation(
+        coordinates: LatLng(55.9533, -3.1883), // Edinburgh
+        source: LocationSource.gps,
+      ),
+    );
   }
 
   @override
@@ -68,16 +85,6 @@ class _NoOpLocationResolver implements LocationResolver {
 
   @override
   Future<(LatLng, String?)?> loadCachedManualLocation() async => null;
-}
-
-/// No-op FireLocationService for testing
-class _NoOpFireLocationService implements FireLocationService {
-  @override
-  Future<Either<ApiError, List<FireIncident>>> getActiveFires(
-    LatLngBounds bounds,
-  ) async {
-    return const Right([]); // Empty list
-  }
 }
 
 /// No-op FireRiskService for testing
@@ -443,8 +450,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify map type selector container exists
-      final selectorFinder =
-          find.byKey(const Key('map_type_selector_container'));
+      final selectorFinder = find.byKey(
+        const Key('map_type_selector_container'),
+      );
       expect(
         selectorFinder,
         findsOneWidget,
@@ -583,8 +591,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check MapTypeSelector touch target
-      final mapTypeFinder =
-          find.byKey(const Key('map_type_selector_container'));
+      final mapTypeFinder = find.byKey(
+        const Key('map_type_selector_container'),
+      );
       if (mapTypeFinder.evaluate().isNotEmpty) {
         final mapTypeSize = tester.getSize(mapTypeFinder);
         expect(
@@ -644,8 +653,9 @@ void main() {
       expect(iconFinder, findsOneWidget);
     });
 
-    testWidgets('GPS button has ≥44dp touch target (C3 accessibility)',
-        (tester) async {
+    testWidgets('GPS button has ≥44dp touch target (C3 accessibility)', (
+      tester,
+    ) async {
       // Skip on unsupported platforms (macOS desktop)
       if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
         return;
@@ -744,41 +754,44 @@ void main() {
   // Chip Visibility Tests (ac6e714 - Hide chips when no fires visible)
   // ==========================================================================
   group('Chip Visibility', () {
-    testWidgets('Source and timestamp chips hidden when no incidents',
-        (tester) async {
-      // Skip on unsupported platforms (macOS desktop)
-      if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
-        return;
-      }
+    testWidgets(
+      'Source chip always visible, timestamp hidden when no incidents',
+      (tester) async {
+        // Skip on unsupported platforms (macOS desktop)
+        if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
+          return;
+        }
 
-      final mockController = MockMapController(
-        MapSuccess(
-          incidents: const [], // Empty - no fires
-          centerLocation: const LatLng(55.9, -3.2),
-          freshness: Freshness.mock,
-          lastUpdated: DateTime.now(),
-        ),
-      );
+        final mockController = MockMapController(
+          MapSuccess(
+            incidents: const [], // Empty - no fires
+            centerLocation: const LatLng(55.9, -3.2),
+            freshness: Freshness.mock,
+            lastUpdated: DateTime.now(),
+          ),
+        );
 
-      await tester.pumpWidget(
-        MaterialApp(home: MapScreen(controller: mockController)),
-      );
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          MaterialApp(home: MapScreen(controller: mockController)),
+        );
+        await tester.pumpAndSettle();
 
-      // Source chip should NOT be visible when no incidents
-      expect(find.byType(MapSourceChip), findsNothing);
+        // Source chip SHOULD be visible even when no incidents
+        // (so users can switch between live/demo modes)
+        expect(find.byType(MapSourceChip), findsOneWidget);
 
-      // Timestamp chip should NOT be visible when no incidents
-      // The chips are conditionally rendered with if (state.incidents.isNotEmpty)
-      expect(
-        find.textContaining('Updated:'),
-        findsNothing,
-        reason: 'Timestamp chip should be hidden when no fires are visible',
-      );
-    });
+        // Timestamp chip should NOT be visible when no incidents
+        expect(
+          find.textContaining('Updated:'),
+          findsNothing,
+          reason: 'Timestamp chip should be hidden when no fires are visible',
+        );
+      },
+    );
 
-    testWidgets('Source and timestamp chips visible when incidents present',
-        (tester) async {
+    testWidgets('Source and timestamp chips visible when incidents present', (
+      tester,
+    ) async {
       // Skip on unsupported platforms (macOS desktop)
       if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
         return;
@@ -853,6 +866,172 @@ void main() {
           reason: 'GPS button height should be 48dp per design spec',
         );
       }
+    });
+  });
+
+  // T039: Empty state mode-specific messaging tests
+  group('Empty State Mode-Specific Messaging', () {
+    testWidgets(
+      'shows hotspots empty state when no incidents in hotspots mode',
+      (tester) async {
+        // Skip on unsupported platforms
+        if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+          return;
+        }
+
+        final mockController = MockMapController(
+          MapSuccess(
+            incidents: const [],
+            centerLocation: const LatLng(55.9, -3.2),
+            freshness: Freshness.mock,
+            lastUpdated: DateTime.now(),
+          ),
+          fireDataMode: FireDataMode.hotspots,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(home: MapScreen(controller: mockController)),
+        );
+        await tester.pumpAndSettle();
+
+        // Verify hotspots-specific empty state messaging
+        expect(
+          find.text('No Active Fires Detected'),
+          findsOneWidget,
+          reason: 'Should show hotspots-specific title',
+        );
+        expect(
+          find.textContaining('No satellite-detected hotspots'),
+          findsOneWidget,
+          reason: 'Should show hotspots-specific description',
+        );
+        expect(
+          find.text('Try viewing burnt areas instead →'),
+          findsOneWidget,
+          reason: 'Should show hint to try burnt areas mode',
+        );
+      },
+    );
+
+    testWidgets(
+      'shows burnt areas empty state when no incidents in burnt areas mode',
+      (tester) async {
+        // Skip on unsupported platforms
+        if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+          return;
+        }
+
+        final mockController = MockMapController(
+          MapSuccess(
+            incidents: const [],
+            centerLocation: const LatLng(55.9, -3.2),
+            freshness: Freshness.mock,
+            lastUpdated: DateTime.now(),
+          ),
+          fireDataMode: FireDataMode.burntAreas,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(home: MapScreen(controller: mockController)),
+        );
+        await tester.pumpAndSettle();
+
+        // Verify burnt areas-specific empty state messaging
+        expect(
+          find.text('No Burnt Areas This Season'),
+          findsOneWidget,
+          reason: 'Should show burnt areas-specific title',
+        );
+        expect(
+          find.textContaining('No verified burnt areas'),
+          findsOneWidget,
+          reason: 'Should show burnt areas-specific description',
+        );
+        expect(
+          find.text('Try viewing active hotspots instead →'),
+          findsOneWidget,
+          reason: 'Should show hint to try hotspots mode',
+        );
+      },
+    );
+
+    testWidgets('empty state hint button switches mode when tapped', (
+      tester,
+    ) async {
+      // Skip on unsupported platforms
+      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+        return;
+      }
+
+      final mockController = MockMapController(
+        MapSuccess(
+          incidents: const [],
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.mock,
+          lastUpdated: DateTime.now(),
+        ),
+        fireDataMode: FireDataMode.hotspots,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: MapScreen(controller: mockController)),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify initial mode
+      expect(mockController.fireDataMode, equals(FireDataMode.hotspots));
+
+      // Find and tap the hint button
+      final hintButton = find.text('Try viewing burnt areas instead →');
+      expect(hintButton, findsOneWidget);
+      await tester.tap(hintButton);
+      await tester.pumpAndSettle();
+
+      // Verify mode switched
+      expect(mockController.fireDataMode, equals(FireDataMode.burntAreas));
+    });
+
+    testWidgets('empty state does not appear when incidents are present', (
+      tester,
+    ) async {
+      // Skip on unsupported platforms
+      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+        return;
+      }
+
+      final testIncident = FireIncident.test(
+        id: 'test-1',
+        location: const LatLng(55.95, -3.19),
+        intensity: 'moderate',
+        sensorSource: 'MODIS',
+      );
+
+      final mockController = MockMapController(
+        MapSuccess(
+          incidents: [testIncident],
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.mock,
+          lastUpdated: DateTime.now(),
+        ),
+        fireDataMode: FireDataMode.hotspots,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: MapScreen(controller: mockController)),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify empty state is NOT shown
+      expect(
+        find.text('No Active Fires Detected'),
+        findsNothing,
+        reason: 'Should not show empty state when incidents present',
+      );
+      expect(
+        find.text('No Burnt Areas This Season'),
+        findsNothing,
+        reason: 'Should not show any empty state when incidents present',
+      );
     });
   });
 }

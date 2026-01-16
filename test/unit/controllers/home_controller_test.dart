@@ -49,10 +49,12 @@ class MockLocationResolver implements LocationResolver {
       return _getLatLonResult!;
     }
     // Default success case
-    return const Right(ResolvedLocation(
-      coordinates: LatLng(55.9533, -3.1883), // Edinburgh
-      source: LocationSource.gps,
-    ));
+    return const Right(
+      ResolvedLocation(
+        coordinates: LatLng(55.9533, -3.1883), // Edinburgh
+        source: LocationSource.gps,
+      ),
+    );
   }
 
   @override
@@ -92,7 +94,9 @@ class MockFireRiskService implements FireRiskService {
   }
 
   void mockGetCurrentWithDelay(
-      Either<ApiError, FireRisk> result, Duration delay) {
+    Either<ApiError, FireRisk> result,
+    Duration delay,
+  ) {
     _getCurrentResult = result;
     _delay = delay;
   }
@@ -336,8 +340,9 @@ void main() {
         final states = <HomeState>[];
         controller.addListener(() => states.add(controller.state));
 
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act
@@ -382,8 +387,9 @@ void main() {
         final states = <HomeState>[];
         controller.addListener(() => states.add(controller.state));
 
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(
           Left(TestData.createApiError(message: 'Service unavailable')),
         );
@@ -410,8 +416,9 @@ void main() {
           final states = <HomeState>[];
           controller.addListener(() => states.add(controller.state));
 
-          mockLocationResolver
-              .mockGetLatLon(const Right(TestData.edinburghResolved));
+          mockLocationResolver.mockGetLatLon(
+            const Right(TestData.edinburghResolved),
+          );
           mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
           // Act
@@ -432,8 +439,9 @@ void main() {
         final states = <HomeState>[];
         controller.addListener(() => states.add(controller.state));
 
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.glasgowResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.glasgowResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act
@@ -477,13 +485,15 @@ void main() {
     group('Re-entrancy Protection', () {
       test('load() ignores subsequent calls while loading', () async {
         // Arrange
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Set up normal successful responses
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
 
         // Act
         final future1 = controller.load();
@@ -506,8 +516,9 @@ void main() {
 
       test('setManualLocation ignores calls while loading', () async {
         // Arrange - create a slow-loading scenario
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Start a load operation
@@ -528,59 +539,64 @@ void main() {
         );
       });
 
-      test('useGpsLocation clears manual location and reloads with GPS',
-          () async {
-        // Arrange - first set a manual location
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
-        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+      test(
+        'useGpsLocation clears manual location and reloads with GPS',
+        () async {
+          // Arrange - first set a manual location
+          mockLocationResolver.mockGetLatLon(
+            const Right(TestData.edinburghResolved),
+          );
+          mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
-        await controller.setManualLocation(
-          TestData.glasgow,
-          placeName: 'Glasgow',
-        );
+          await controller.setManualLocation(
+            TestData.glasgow,
+            placeName: 'Glasgow',
+          );
 
-        // Verify manual location was set
-        expect(controller.state, isA<HomeStateSuccess>());
-        var successState = controller.state as HomeStateSuccess;
-        expect(successState.locationSource, equals(LocationSource.manual));
+          // Verify manual location was set
+          expect(controller.state, isA<HomeStateSuccess>());
+          var successState = controller.state as HomeStateSuccess;
+          expect(successState.locationSource, equals(LocationSource.manual));
 
-        // Reset mock calls tracking
-        mockLocationResolver.reset();
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
-        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+          // Reset mock calls tracking
+          mockLocationResolver.reset();
+          mockLocationResolver.mockGetLatLon(
+            const Right(TestData.edinburghResolved),
+          );
+          mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
-        // Act - return to GPS
-        await controller.useGpsLocation();
+          // Act - return to GPS
+          await controller.useGpsLocation();
 
-        // Assert - clearManualLocation was called
-        expect(
-          mockLocationResolver.loggedCalls
-              .where((call) => call.contains('clearManualLocation'))
-              .length,
-          equals(1),
-        );
+          // Assert - clearManualLocation was called
+          expect(
+            mockLocationResolver.loggedCalls
+                .where((call) => call.contains('clearManualLocation'))
+                .length,
+            equals(1),
+          );
 
-        // Assert - getLatLon was called (GPS resolution)
-        expect(
-          mockLocationResolver.loggedCalls
-              .where((call) => call.contains('getLatLon'))
-              .length,
-          equals(1),
-        );
+          // Assert - getLatLon was called (GPS resolution)
+          expect(
+            mockLocationResolver.loggedCalls
+                .where((call) => call.contains('getLatLon'))
+                .length,
+            equals(1),
+          );
 
-        // Assert - state should now reflect GPS location
-        expect(controller.state, isA<HomeStateSuccess>());
-        successState = controller.state as HomeStateSuccess;
-        expect(successState.locationSource, equals(LocationSource.gps));
-        expect(successState.location, equals(TestData.edinburgh));
-      });
+          // Assert - state should now reflect GPS location
+          expect(controller.state, isA<HomeStateSuccess>());
+          successState = controller.state as HomeStateSuccess;
+          expect(successState.locationSource, equals(LocationSource.gps));
+          expect(successState.location, equals(TestData.edinburgh));
+        },
+      );
 
       test('useGpsLocation handles clear failure gracefully', () async {
         // Arrange - first set a manual location
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         await controller.setManualLocation(TestData.glasgow);
@@ -588,8 +604,9 @@ void main() {
         // Reset and configure clear to fail
         mockLocationResolver.reset();
         mockLocationResolver.mockClearManualThrows();
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act - return to GPS (clear will fail but should still reload)
@@ -603,8 +620,9 @@ void main() {
 
       test('useGpsLocation ignores calls while loading', () async {
         // Arrange - create a loading scenario
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Start a load operation
@@ -643,8 +661,9 @@ void main() {
         int notificationCount = 0;
         controller.addListener(() => notificationCount++);
 
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act
@@ -679,8 +698,9 @@ void main() {
         // The actual log redaction testing is done in the LocationUtils tests
         // We verify the controller doesn't expose raw coordinates in state
 
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         await controller.load();
@@ -711,8 +731,9 @@ void main() {
 
       test('C4: Success state includes source attribution', () async {
         // Arrange
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(
           Right(TestData.createFireRisk(source: DataSource.sepa)),
         );
@@ -731,8 +752,9 @@ void main() {
     group('State Capture and Timestamp Tracking', () {
       test('retry captures lastKnownLocation from success state', () async {
         // Arrange: First load succeeds
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         await controller.load();
@@ -742,8 +764,9 @@ void main() {
         final originalTimestamp = successState.lastUpdated;
 
         // Setup second load with delay
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.glasgowResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.glasgowResolved),
+        );
         mockFireRiskService.mockGetCurrentWithDelay(
           Right(TestData.createFireRisk()),
           const Duration(milliseconds: 100),
@@ -767,47 +790,51 @@ void main() {
         await retryFuture;
       });
 
-      test('retry captures lastKnownLocation from error cachedLocation',
-          () async {
-        // Note: This test documents expected behavior when error states
-        // have cachedLocation. Currently our mock doesn't provide this,
-        // but the controller code handles it in the pattern match.
+      test(
+        'retry captures lastKnownLocation from error cachedLocation',
+        () async {
+          // Note: This test documents expected behavior when error states
+          // have cachedLocation. Currently our mock doesn't provide this,
+          // but the controller code handles it in the pattern match.
 
-        // Arrange: Simulate error with cached location
-        // In real scenario, FireRiskService returns error with cached data
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
-        mockFireRiskService.mockGetCurrent(
-          Left(ApiError(message: 'Network error')),
-        );
+          // Arrange: Simulate error with cached location
+          // In real scenario, FireRiskService returns error with cached data
+          mockLocationResolver.mockGetLatLon(
+            const Right(TestData.edinburghResolved),
+          );
+          mockFireRiskService.mockGetCurrent(
+            Left(ApiError(message: 'Network error')),
+          );
 
-        await controller.load();
+          await controller.load();
 
-        // Manually verify error state exists (cached location would be set by service)
-        expect(controller.state, isA<HomeStateError>());
+          // Manually verify error state exists (cached location would be set by service)
+          expect(controller.state, isA<HomeStateError>());
 
-        // Setup retry
-        mockFireRiskService.mockGetCurrentWithDelay(
-          Right(TestData.createFireRisk()),
-          const Duration(milliseconds: 100),
-        );
+          // Setup retry
+          mockFireRiskService.mockGetCurrentWithDelay(
+            Right(TestData.createFireRisk()),
+            const Duration(milliseconds: 100),
+          );
 
-        final retryFuture = controller.retry();
-        await Future.delayed(const Duration(milliseconds: 10));
+          final retryFuture = controller.retry();
+          await Future.delayed(const Duration(milliseconds: 10));
 
-        // Verify loading state - would capture cachedLocation if error had it
-        expect(controller.state, isA<HomeStateLoading>());
-        final loadingState = controller.state as HomeStateLoading;
-        // Since error didn't have cachedLocation, lastKnownLocation is null
-        expect(loadingState.lastKnownLocation, isNull);
+          // Verify loading state - would capture cachedLocation if error had it
+          expect(controller.state, isA<HomeStateLoading>());
+          final loadingState = controller.state as HomeStateLoading;
+          // Since error didn't have cachedLocation, lastKnownLocation is null
+          expect(loadingState.lastKnownLocation, isNull);
 
-        await retryFuture;
-      });
+          await retryFuture;
+        },
+      );
 
       test('load with no previous state has null lastKnownLocation', () async {
         // Arrange: Fresh controller, no previous state
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrentWithDelay(
           Right(TestData.createFireRisk()),
           const Duration(milliseconds: 100),
@@ -829,8 +856,9 @@ void main() {
 
       test('timestamp is captured exactly from lastUpdated', () async {
         // Arrange: First load succeeds
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         await controller.load();
@@ -855,58 +883,62 @@ void main() {
         // Assert: Loading state has exact timestamp from previous success
         expect(controller.state, isA<HomeStateLoading>());
         final loadingState = controller.state as HomeStateLoading;
-        expect(
-          loadingState.lastKnownLocationTimestamp,
-          equals(exactTimestamp),
-        );
+        expect(loadingState.lastKnownLocationTimestamp, equals(exactTimestamp));
 
         await loadFuture;
       });
     });
 
     group('LocationSource Tracking', () {
-      test('setManualLocation tracks locationSource as manual with placeName',
-          () async {
-        // Arrange
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
-        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+      test(
+        'setManualLocation tracks locationSource as manual with placeName',
+        () async {
+          // Arrange
+          mockLocationResolver.mockGetLatLon(
+            const Right(TestData.edinburghResolved),
+          );
+          mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
-        // Act
-        await controller.setManualLocation(
-          TestData.edinburgh,
-          placeName: 'Edinburgh City Centre',
-        );
+          // Act
+          await controller.setManualLocation(
+            TestData.edinburgh,
+            placeName: 'Edinburgh City Centre',
+          );
 
-        // Assert
-        expect(controller.state, isA<HomeStateSuccess>());
-        final successState = controller.state as HomeStateSuccess;
-        expect(successState.locationSource, LocationSource.manual);
-        expect(successState.placeName, 'Edinburgh City Centre');
-        expect(successState.location, TestData.edinburgh);
-      });
+          // Assert
+          expect(controller.state, isA<HomeStateSuccess>());
+          final successState = controller.state as HomeStateSuccess;
+          expect(successState.locationSource, LocationSource.manual);
+          expect(successState.placeName, 'Edinburgh City Centre');
+          expect(successState.location, TestData.edinburgh);
+        },
+      );
 
-      test('setManualLocation without placeName still tracks manual source',
-          () async {
-        // Arrange
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
-        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+      test(
+        'setManualLocation without placeName still tracks manual source',
+        () async {
+          // Arrange
+          mockLocationResolver.mockGetLatLon(
+            const Right(TestData.edinburghResolved),
+          );
+          mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
-        // Act
-        await controller.setManualLocation(TestData.edinburgh);
+          // Act
+          await controller.setManualLocation(TestData.edinburgh);
 
-        // Assert
-        expect(controller.state, isA<HomeStateSuccess>());
-        final successState = controller.state as HomeStateSuccess;
-        expect(successState.locationSource, LocationSource.manual);
-        expect(successState.placeName, isNull);
-      });
+          // Assert
+          expect(controller.state, isA<HomeStateSuccess>());
+          final successState = controller.state as HomeStateSuccess;
+          expect(successState.locationSource, LocationSource.manual);
+          expect(successState.placeName, isNull);
+        },
+      );
 
       test('GPS location uses locationSource.gps', () async {
         // Arrange: Normal load (not manual)
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         // Act
@@ -921,8 +953,9 @@ void main() {
 
       test('manual location flag resets after normal load', () async {
         // Arrange: Set manual location first
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
         await controller.setManualLocation(
@@ -968,69 +1001,76 @@ void main() {
       });
 
       test(
-          'without services, success state has no what3words or formattedLocation',
-          () async {
-        // Arrange: Controller without what3words/geocoding services
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
-        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+        'without services, success state has no what3words or formattedLocation',
+        () async {
+          // Arrange: Controller without what3words/geocoding services
+          mockLocationResolver.mockGetLatLon(
+            const Right(TestData.edinburghResolved),
+          );
+          mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
 
-        // Act
-        await controller.load();
+          // Act
+          await controller.load();
 
-        // Assert
-        expect(controller.state, isA<HomeStateSuccess>());
-        final successState = controller.state as HomeStateSuccess;
-        expect(successState.what3words, isNull);
-        expect(successState.formattedLocation, isNull);
-        expect(successState.isWhat3wordsLoading, isFalse);
-        expect(successState.isGeocodingLoading, isFalse);
-      });
+          // Assert
+          expect(controller.state, isA<HomeStateSuccess>());
+          final successState = controller.state as HomeStateSuccess;
+          expect(successState.what3words, isNull);
+          expect(successState.formattedLocation, isNull);
+          expect(successState.isWhat3wordsLoading, isFalse);
+          expect(successState.isGeocodingLoading, isFalse);
+        },
+      );
 
       test(
-          'with services, fetches what3words and geocoding after fire risk success',
-          () async {
-        // Arrange
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
-        mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
-        mockWhat3wordsService.mockConvertTo3wa(
-          Right(What3wordsAddress.parse('daring.lion.race')),
-        );
-        mockGeocodingService.mockReverseGeocode(
-          const Right('Edinburgh, Scotland'),
-        );
+        'with services, fetches what3words and geocoding after fire risk success',
+        () async {
+          // Arrange
+          mockLocationResolver.mockGetLatLon(
+            const Right(TestData.edinburghResolved),
+          );
+          mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
+          mockWhat3wordsService.mockConvertTo3wa(
+            Right(What3wordsAddress.parse('daring.lion.race')),
+          );
+          mockGeocodingService.mockReverseGeocode(
+            const Right('Edinburgh, Scotland'),
+          );
 
-        // Act
-        await controllerWithServices.load();
-        // Allow async operations to complete
-        await Future.delayed(const Duration(milliseconds: 50));
+          // Act
+          await controllerWithServices.load();
+          // Allow async operations to complete
+          await Future.delayed(const Duration(milliseconds: 50));
 
-        // Assert
-        expect(controllerWithServices.state, isA<HomeStateSuccess>());
-        final successState = controllerWithServices.state as HomeStateSuccess;
-        expect(successState.what3words, '///daring.lion.race');
-        expect(successState.formattedLocation, 'Edinburgh, Scotland');
-        expect(successState.isWhat3wordsLoading, isFalse);
-        expect(successState.isGeocodingLoading, isFalse);
+          // Assert
+          expect(controllerWithServices.state, isA<HomeStateSuccess>());
+          final successState = controllerWithServices.state as HomeStateSuccess;
+          expect(successState.what3words, '///daring.lion.race');
+          expect(successState.formattedLocation, 'Edinburgh, Scotland');
+          expect(successState.isWhat3wordsLoading, isFalse);
+          expect(successState.isGeocodingLoading, isFalse);
 
-        // Verify services were called
-        expect(
+          // Verify services were called
+          expect(
             mockWhat3wordsService.loggedCalls,
             contains(
               'convertTo3wa(lat: ${TestData.edinburgh.latitude}, lon: ${TestData.edinburgh.longitude})',
-            ));
-        expect(
+            ),
+          );
+          expect(
             mockGeocodingService.loggedCalls,
             contains(
               'reverseGeocode(lat: ${TestData.edinburgh.latitude}, lon: ${TestData.edinburgh.longitude})',
-            ));
-      });
+            ),
+          );
+        },
+      );
 
       test('what3words failure does not affect success state', () async {
         // Arrange
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
         mockWhat3wordsService.mockConvertTo3wa(
           const Left(What3wordsNetworkError('Network unavailable')),
@@ -1054,8 +1094,9 @@ void main() {
 
       test('geocoding failure does not affect success state', () async {
         // Arrange
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
         mockWhat3wordsService.mockConvertTo3wa(
           Right(What3wordsAddress.parse('daring.lion.race')),
@@ -1079,8 +1120,9 @@ void main() {
 
       test('both services fail gracefully', () async {
         // Arrange
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
         mockWhat3wordsService.mockConvertTo3wa(
           const Left(What3wordsNetworkError('Network unavailable')),
@@ -1105,8 +1147,9 @@ void main() {
 
       test('loading states are set while services are fetching', () async {
         // Arrange: Services with delays
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
         mockWhat3wordsService.mockConvertTo3waWithDelay(
           Right(What3wordsAddress.parse('daring.lion.race')),
@@ -1141,8 +1184,9 @@ void main() {
 
       test('fire risk failure does not trigger metadata fetch', () async {
         // Arrange: Fire risk fails
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.edinburghResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.edinburghResolved),
+        );
         mockFireRiskService.mockGetCurrent(
           Left(ApiError(message: 'Service error')),
         );
@@ -1159,8 +1203,9 @@ void main() {
 
       test('manual location also triggers metadata fetch', () async {
         // Arrange
-        mockLocationResolver
-            .mockGetLatLon(const Right(TestData.glasgowResolved));
+        mockLocationResolver.mockGetLatLon(
+          const Right(TestData.glasgowResolved),
+        );
         mockFireRiskService.mockGetCurrent(Right(TestData.createFireRisk()));
         mockWhat3wordsService.mockConvertTo3wa(
           Right(What3wordsAddress.parse('filled.count.soap')),
@@ -1185,10 +1230,11 @@ void main() {
 
         // Verify services were called with Glasgow coordinates
         expect(
-            mockWhat3wordsService.loggedCalls,
-            contains(
-              'convertTo3wa(lat: ${TestData.glasgow.latitude}, lon: ${TestData.glasgow.longitude})',
-            ));
+          mockWhat3wordsService.loggedCalls,
+          contains(
+            'convertTo3wa(lat: ${TestData.glasgow.latitude}, lon: ${TestData.glasgow.longitude})',
+          ),
+        );
       });
     });
   });

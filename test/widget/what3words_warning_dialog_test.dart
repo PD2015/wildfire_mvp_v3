@@ -7,11 +7,7 @@ void main() {
   group('What3wordsWarningDialog', () {
     testWidgets('displays title "what3words Unavailable"', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: What3wordsWarningDialog(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: What3wordsWarningDialog())),
       );
 
       expect(find.text('what3words Unavailable'), findsOneWidget);
@@ -20,41 +16,28 @@ void main() {
     testWidgets('shows loading message when isLoading is true', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: What3wordsWarningDialog(isLoading: true),
-          ),
+          home: Scaffold(body: What3wordsWarningDialog(isLoading: true)),
         ),
       );
 
-      expect(
-        find.textContaining('still loading'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('still loading'), findsOneWidget);
     });
 
-    testWidgets('shows unavailable message when isLoading is false',
-        (tester) async {
+    testWidgets('shows unavailable message when isLoading is false', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: What3wordsWarningDialog(isLoading: false),
-          ),
+          home: Scaffold(body: What3wordsWarningDialog(isLoading: false)),
         ),
       );
 
-      expect(
-        find.textContaining('could not be retrieved'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('could not be retrieved'), findsOneWidget);
     });
 
     testWidgets('has "Wait" button', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: What3wordsWarningDialog(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: What3wordsWarningDialog())),
       );
 
       expect(find.byKey(const Key('wait_button')), findsOneWidget);
@@ -63,11 +46,7 @@ void main() {
 
     testWidgets('has "Confirm Anyway" button', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: What3wordsWarningDialog(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: What3wordsWarningDialog())),
       );
 
       expect(find.byKey(const Key('confirm_anyway_button')), findsOneWidget);
@@ -190,11 +169,7 @@ void main() {
 
     testWidgets('shows info icon with explanation', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: What3wordsWarningDialog(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: What3wordsWarningDialog())),
       );
 
       expect(find.byIcon(Icons.info_outline), findsOneWidget);
@@ -225,10 +200,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should show loading message
-      expect(
-        find.textContaining('still loading'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('still loading'), findsOneWidget);
     });
   });
 }

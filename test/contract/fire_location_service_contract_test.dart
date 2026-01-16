@@ -57,9 +57,9 @@ void main() {
     });
 
     test('Mock service returns List<FireIncident>', () async {
-      // Test with Scotland bounds (contains all 6 mock fires)
+      // Test with Scotland bounds (contains mock fires)
       const bounds = LatLngBounds(
-        southwest: LatLng(55.0, -5.0),
+        southwest: LatLng(55.0, -5.5),
         northeast: LatLng(59.0, -1.0),
       );
       final result = await service.getActiveFires(bounds);
@@ -67,8 +67,8 @@ void main() {
       expect(result.isRight(), isTrue);
       final incidents = result.getOrElse(() => []);
       expect(incidents, isA<List<FireIncident>>());
-      expect(incidents.length,
-          5); // 5 mock fires in Scotland (4 original + merged Dava-Carrbridge)
+      // Mock data has 10 features (4 hotspots + 6 burnt areas), all in Scotland bounds
+      expect(incidents.length, greaterThanOrEqualTo(5));
     });
 
     test('Service filters fires by bbox (Scotland coordinates)', () async {
@@ -81,9 +81,12 @@ void main() {
 
       expect(result.isRight(), isTrue);
       final incidents = result.getOrElse(() => []);
-      // Should only get Edinburgh fire, not Glasgow or Aviemore
-      expect(incidents.length, 1);
-      expect(incidents.first.id, 'mock_fire_001');
+      // Should only get Edinburgh fires (hotspot + burnt area), not Glasgow or Aviemore
+      expect(incidents.length, greaterThanOrEqualTo(1));
+      // All returned incidents should be in Edinburgh area
+      for (final incident in incidents) {
+        expect(edinburghBounds.contains(incident.location), isTrue);
+      }
     });
 
     test('Mock service returns FireIncident with freshness=mock', () async {

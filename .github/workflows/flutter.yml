@@ -2,9 +2,9 @@ name: Flutter CI/CD
 
 on:
   push:
-    branches: [ main, staging, 'feature/*', '**-a*-**' ]
+    branches: [ main, develop, staging, 'feature/*', '**-a*-**' ]
   pull_request:
-    branches: [ main, staging ]
+    branches: [ main, develop, staging ]
 
 permissions:
   checks: write
@@ -401,21 +401,18 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           MAPS_API_KEY_WEB: ${{ secrets.GOOGLE_MAPS_API_KEY_WEB_PREVIEW }}
-          GEOCODING_API_KEY: ${{ secrets.GOOGLE_MAPS_GEOCODING_API_KEY }}
         run: ./scripts/build_web_ci.sh
       
       - name: Build web with API key injection (Staging)
         if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
         env:
           MAPS_API_KEY_WEB: ${{ secrets.GOOGLE_MAPS_API_KEY_WEB_PREVIEW }}
-          GEOCODING_API_KEY: ${{ secrets.GOOGLE_MAPS_GEOCODING_API_KEY }}
         run: ./scripts/build_web_ci.sh
       
       - name: Build web with API key injection (Production)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           MAPS_API_KEY_WEB: ${{ secrets.GOOGLE_MAPS_API_KEY_WEB_PRODUCTION }}
-          GEOCODING_API_KEY: ${{ secrets.GOOGLE_MAPS_GEOCODING_API_KEY }}
         run: ./scripts/build_web_ci.sh
       
       - name: Upload web artifact
@@ -452,7 +449,6 @@ jobs:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
-          target: production
           channelId: 'pr-${{ github.event.pull_request.number }}'
           expires: 7d
 
@@ -505,14 +501,14 @@ jobs:
           name: web-build
           path: build/web/
       
-      - name: Deploy to staging site
+      - name: Deploy to staging channel
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
-          target: staging
-          channelId: live
+          channelId: staging
+          expires: 30d
 
   # Deploy to production (requires manual approval) (A11)
   deploy-production:
@@ -541,5 +537,4 @@ jobs:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
-          target: production
           channelId: live

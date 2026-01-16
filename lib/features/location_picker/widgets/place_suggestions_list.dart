@@ -25,9 +25,7 @@ class PlaceSuggestionsList extends StatelessWidget {
     if (isLoading && suggestions.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(24),
-        child: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: const Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -84,10 +82,7 @@ class _PlaceSuggestionTile extends StatelessWidget {
   final PlaceSearchResult place;
   final VoidCallback onTap;
 
-  const _PlaceSuggestionTile({
-    required this.place,
-    required this.onTap,
-  });
+  const _PlaceSuggestionTile({required this.place, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

@@ -202,8 +202,10 @@ void main() {
             );
           } else {
             // Web and mobile: GPS works via injectable fake
-            expect(location.coordinates.latitude,
-                closeTo(TestData.london.latitude, 0.001));
+            expect(
+              location.coordinates.latitude,
+              closeTo(TestData.london.latitude, 0.001),
+            );
             expect(
               location.coordinates.longitude,
               closeTo(TestData.london.longitude, 0.001),
@@ -377,8 +379,10 @@ void main() {
         // Assert
         expect(result.isRight(), isTrue);
         final location = result.getOrElse(() => TestData.aviemoreResolved);
-        expect(location.coordinates.latitude,
-            closeTo(TestData.edinburgh.latitude, 0.001));
+        expect(
+          location.coordinates.latitude,
+          closeTo(TestData.edinburgh.latitude, 0.001),
+        );
         expect(
           location.coordinates.longitude,
           closeTo(TestData.edinburgh.longitude, 0.001),

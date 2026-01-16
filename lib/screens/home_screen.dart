@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:wildfire_mvp_v3/widgets/app_bar_actions.dart';
 import 'package:wildfire_mvp_v3/widgets/location_card.dart';
+import 'package:wildfire_mvp_v3/widgets/location_chip_with_panel.dart';
 
 import '../config/feature_flags.dart';
 import '../controllers/home_controller.dart';
 import '../models/home_state.dart';
 import '../models/location_models.dart';
+import '../models/risk_level.dart';
 import '../widgets/risk_banner.dart';
 import '../widgets/risk_guidance_card.dart';
 import '../features/location_picker/models/location_picker_mode.dart';
@@ -58,7 +61,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Wildfire Risk'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Wildfire Risk'),
+        centerTitle: true,
+        actions: const [AppBarActions()],
+      ),
       body: ListenableBuilder(
         listenable: _controller,
         builder: (context, child) {
@@ -69,10 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Location display GPS/manual
-                    _buildLocationCard(),
-                    const SizedBox(height: 16.0),
-                    // Main risk banner display
+                    // Main risk banner display (includes location chip)
                     _buildRiskBanner(),
 
                     // Conditionally include action buttons section
@@ -92,6 +96,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     // Additional info based on state
                     _buildStateInfo(),
+
+                    const SizedBox(height: 24.0),
+
+                    // Disclaimer footer
+                    _buildDisclaimerFooter(),
                   ],
                 ),
               ),
@@ -102,13 +111,38 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Builds the disclaimer footer with emergency info
+  ///
+  /// Displays legal disclaimer that this app is for information only
+  /// and provides emergency contact guidance.
+  Widget _buildDisclaimerFooter() {
+    return Semantics(
+      container: true,
+      label: 'App disclaimer',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
+        child: Text(
+          'For information only. Dial 999 in an emergency.',
+          key: const Key('disclaimer_text'),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+
   /// Builds the main risk banner based on current HomeState
   Widget _buildRiskBanner() {
     final homeState = _controller.state;
 
     switch (homeState) {
       case HomeStateLoading():
-        return const RiskBanner(state: RiskBannerLoading());
+        return RiskBanner(
+          state: const RiskBannerLoading(),
+          locationChip: _buildLocationChip(),
+        );
 
       case HomeStateSuccess(
           :final riskData,
@@ -122,6 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return RiskBanner(
           state: RiskBannerSuccess(riskData),
           locationLabel: locationLabel,
+          locationChip: _buildLocationChip(),
         );
 
       case HomeStateError(
@@ -142,6 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
             RiskBanner(
               state: RiskBannerError(errorMessage, cached: cachedData),
               locationLabel: locationLabel,
+              locationChip: _buildLocationChip(),
             ),
             if (cachedData != null) ...[
               const SizedBox(height: 8.0),
@@ -149,6 +185,104 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ],
         );
+    }
+  }
+
+  /// Builds compact location chip with expandable panel for RiskBanner integration
+  ///
+  /// Creates a [LocationChipWithPanel] based on current HomeState:
+  /// - Loading: Shows chip with cached location (if available) in loading mode
+  /// - Success: Shows chip with current location, source, and expandable panel
+  /// - Error: Shows chip with cached location (if available) or placeholder
+  ///
+  /// The chip appears inside the RiskBanner below the RiskScale, allowing
+  /// users to see location context without it dominating the visual hierarchy.
+  Widget? _buildLocationChip() {
+    final state = _controller.state;
+
+    switch (state) {
+      case HomeStateLoading(:final lastKnownLocation):
+        if (lastKnownLocation == null) {
+          // No location to display yet
+          return null;
+        }
+        final coordsLabel = LocationUtils.logRedact(
+          lastKnownLocation.latitude,
+          lastKnownLocation.longitude,
+        );
+        return LocationChipWithPanel(
+          locationName: coordsLabel,
+          coordinatesLabel: coordsLabel,
+          locationSource: LocationSource.cached,
+          parentBackgroundColor:
+              Theme.of(context).colorScheme.surfaceContainerHighest,
+          isLoading: true,
+          onChangeLocation: _showManualLocationDialog,
+          embeddedInRiskBanner: true,
+        );
+
+      case HomeStateSuccess(
+          :final riskData,
+          :final location,
+          :final locationSource,
+          :final placeName,
+          :final what3words,
+          :final formattedLocation,
+          :final isWhat3wordsLoading,
+        ):
+        // Build static map URL for preview
+        final staticMapUrl = _buildStaticMapUrl(
+          location.latitude,
+          location.longitude,
+        );
+
+        // Use place name, formatted location, or coordinates as display name
+        final coordsLabel = LocationUtils.logRedact(
+          location.latitude,
+          location.longitude,
+        );
+        final locationName = placeName ?? formattedLocation ?? coordsLabel;
+
+        return LocationChipWithPanel(
+          locationName: locationName,
+          coordinatesLabel: coordsLabel,
+          locationSource: locationSource,
+          formattedLocation: formattedLocation,
+          parentBackgroundColor: riskData.level.color,
+          what3words: what3words,
+          isWhat3wordsLoading: isWhat3wordsLoading,
+          staticMapUrl: staticMapUrl,
+          onChangeLocation: _showManualLocationDialog,
+          onCopyWhat3words: what3words != null
+              ? () => _handleCopyWhat3words(what3words)
+              : null,
+          onUseGps: locationSource == LocationSource.manual
+              ? () => _controller.useGpsLocation()
+              : null,
+          embeddedInRiskBanner: true,
+        );
+
+      case HomeStateError(:final cachedLocation, :final cachedData)
+          when cachedLocation != null:
+        final coordsLabel = LocationUtils.logRedact(
+          cachedLocation.latitude,
+          cachedLocation.longitude,
+        );
+        // Use cached risk color if available, otherwise use surface color
+        final backgroundColor = cachedData?.level.color ??
+            Theme.of(context).colorScheme.surfaceContainerHighest;
+        return LocationChipWithPanel(
+          locationName: coordsLabel,
+          coordinatesLabel: coordsLabel,
+          locationSource: LocationSource.cached,
+          parentBackgroundColor: backgroundColor,
+          onChangeLocation: _showManualLocationDialog,
+          embeddedInRiskBanner: true,
+        );
+
+      case HomeStateError():
+        // No location available in error state
+        return null;
     }
   }
 
@@ -227,8 +361,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return switch (homeState) {
       // Success state: Show guidance for current risk level
-      HomeStateSuccess(:final riskData) =>
-        RiskGuidanceCard(level: riskData.level),
+      HomeStateSuccess(:final riskData) => RiskGuidanceCard(
+          level: riskData.level,
+        ),
 
       // Error state with cached data: Show guidance for cached risk level
       HomeStateError(:final cachedData) when cachedData != null =>
@@ -375,14 +510,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Builds the location card based on current HomeState
+  ///
+  /// @deprecated This method is no longer used after spec 023 Phase 2 integration.
+  /// Location display is now handled by [_buildLocationChip] inside RiskBanner.
+  /// Will be removed in Phase 4 cleanup.
+  // ignore: unused_element
   Widget _buildLocationCard() {
     final state = _controller.state;
 
     switch (state) {
-      case HomeStateLoading(
-          :final lastKnownLocation,
-          :final isLocationStale,
-        ):
+      case HomeStateLoading(:final lastKnownLocation, :final isLocationStale):
         // Determine subtitle based on staleness
         String subtitle;
         if (lastKnownLocation != null) {

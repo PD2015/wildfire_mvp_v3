@@ -91,6 +91,50 @@ import 'package:wildfire_mvp_v3/theme/brand_palette.dart';
 class WildfireA11yTheme {
   WildfireA11yTheme._(); // Prevent instantiation
 
+  /// Standard corner radius tokens for consistent UI
+  ///
+  /// 3-tier system:
+  /// - Cards/large containers: 16dp
+  /// - Buttons/controls: 12dp
+  /// - Inputs: 12dp
+  static const double radiusCard = 16.0;
+  static const double radiusControl = 12.0;
+  static const double radiusInput = 12.0;
+
+  /// Field decoration that adapts to light/dark mode
+  ///
+  /// Use for coordinate boxes, what3words boxes, and similar field containers.
+  /// - Dark mode: subtle black overlay (existing look)
+  /// - Light mode: tonal surface (Material-appropriate)
+  ///
+  /// Example:
+  /// ```dart
+  /// Container(
+  ///   decoration: WildfireA11yTheme.fieldDecoration(context),
+  ///   child: ...,
+  /// )
+  /// ```
+  static BoxDecoration fieldDecoration(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return BoxDecoration(
+      // Dark: keep darker fill for contrast
+      // Light: use tonal surface instead of black overlay
+      color: isDark
+          ? Colors.black.withValues(alpha: 0.20)
+          : cs.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(radiusCard),
+      border: Border.all(
+        color: isDark
+            ? cs.outline.withValues(alpha: 0.15)
+            : cs.outlineVariant.withValues(alpha: 0.85),
+        width: 1,
+      ),
+    );
+  }
+
   /// Light theme with forest600 primary and offWhite surface
   ///
   /// **Contrast ratios verified**:
@@ -195,28 +239,28 @@ class WildfireA11yTheme {
         ),
       ),
 
-      // InputDecoration: outlined style with sufficient padding
+      // InputDecoration: outlined style with sufficient padding (12dp radius)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: colorScheme.surfaceContainerHighest,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
         contentPadding:
@@ -301,12 +345,12 @@ class WildfireA11yTheme {
         color: colorScheme.onSurfaceVariant,
       ),
 
-      // CardTheme: elevated surface with outline
+      // CardTheme: elevated surface with outline (16dp radius for cards)
       cardTheme: CardThemeData(
         color: colorScheme.surfaceContainerLow,
         elevation: 2,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(radiusCard),
           side: BorderSide(color: colorScheme.outlineVariant),
         ),
       ),
@@ -407,28 +451,28 @@ class WildfireA11yTheme {
         ),
       ),
 
-      // InputDecoration: outlined style with sufficient padding
+      // InputDecoration: outlined style with sufficient padding (12dp radius)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: colorScheme.surfaceContainerHighest,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
         contentPadding:
@@ -516,12 +560,12 @@ class WildfireA11yTheme {
         color: colorScheme.onSurfaceVariant,
       ),
 
-      // CardTheme: elevated surface with outline
+      // CardTheme: elevated surface with outline (16dp radius for cards)
       cardTheme: CardThemeData(
         color: colorScheme.surfaceContainerLow,
         elevation: 1,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(radiusCard),
         ),
       ),
     );

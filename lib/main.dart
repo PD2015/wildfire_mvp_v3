@@ -15,11 +15,6 @@ import 'services/location_resolver_impl.dart';
 import 'services/contracts/service_contracts.dart' as contracts;
 import 'services/effis_service_impl.dart';
 import 'services/mock_service.dart';
-import 'services/fire_location_service.dart';
-import 'services/fire_location_service_impl.dart';
-import 'services/mock_fire_service.dart';
-import 'services/fire_incident_cache.dart';
-import 'services/cache/fire_incident_cache_impl.dart';
 
 // Location picker services (A15 - what3words and geocoding)
 import 'features/location_picker/services/what3words_service.dart';
@@ -56,10 +51,12 @@ void main() async {
   // Log DEV_MODE status for developer awareness
   if (FeatureFlags.devMode) {
     debugPrint(
-        '🔧 DEV_MODE enabled - using Aviemore (57.2, -3.8) as fallback location');
+      '🔧 DEV_MODE enabled - using Aviemore (57.2, -3.8) as fallback location',
+    );
   } else {
     debugPrint(
-        '🏭 Production mode - using Scotland centroid (55.86, -4.25) as fallback location');
+      '🏭 Production mode - using Scotland centroid (55.86, -4.25) as fallback location',
+    );
   }
 
   // Clear cached location for testing Portugal coordinates
@@ -93,14 +90,14 @@ void main() async {
 class ServiceContainer {
   final LocationResolver locationResolver;
   final FireRiskService fireRiskService;
-  final FireLocationService fireLocationService;
   final What3wordsService? what3wordsService;
   final GeocodingService? geocodingService;
+  final SharedPreferences prefs;
 
   ServiceContainer({
     required this.locationResolver,
     required this.fireRiskService,
-    required this.fireLocationService,
+    required this.prefs,
     this.what3wordsService,
     this.geocodingService,
   });
@@ -108,6 +105,10 @@ class ServiceContainer {
 
 /// Initialize all services with proper dependency wiring
 Future<ServiceContainer> _initializeServices() async {
+  // Initialize SharedPreferences for onboarding/consent storage
+  final prefs = await SharedPreferences.getInstance();
+  debugPrint('✅ SharedPreferences initialized');
+
   // Initialize location resolver (A4)
   final LocationResolver locationResolver = LocationResolverImpl();
 
@@ -125,10 +126,10 @@ Future<ServiceContainer> _initializeServices() async {
   // Initialize mock service for fallback
   final MockService mockService = MockService.defaultStrategy();
 
-  // DEBUG: Test the EFFIS service directly
-  debugPrint('🔍 Testing EFFIS service directly...');
+  // DEBUG: Test the EFFIS service directly using Aviemore coordinates
+  debugPrint('🔍 Testing EFFIS service directly (Aviemore, Scotland)...');
   try {
-    final testResult = await effisServiceAdapter.getFwi(lat: 39.6, lon: -9.1);
+    final testResult = await effisServiceAdapter.getFwi(lat: 57.2, lon: -3.8);
     testResult.fold(
       (error) => debugPrint('🔍 EFFIS direct test FAILED: ${error.message}'),
       (result) => debugPrint(
@@ -147,20 +148,8 @@ Future<ServiceContainer> _initializeServices() async {
     // TODO: Add cache service when implemented
   );
 
-  // Initialize cache service for fire incidents (T018)
-  final prefs = await SharedPreferences.getInstance();
-  final FireIncidentCache fireIncidentCache = FireIncidentCacheImpl(
-    prefs: prefs,
-  );
-
-  // Initialize fire location service (A10 - EFFIS WFS + Cache + Mock fallback)
-  final mockFireService = MockFireService();
-  final FireLocationService fireLocationService = FireLocationServiceImpl(
-    effisService: effisServiceImpl,
-    cache: fireIncidentCache,
-    mockService: mockFireService,
-    // TODO: Add SEPA service when implemented (T017)
-  );
+  // NOTE: FireLocationService removed - MapController now uses GwisHotspotService
+  // and EffisBurntAreaService directly for fire data (021-live-fire-data refactor)
 
   // Initialize what3words service (A15 - optional, requires API key)
   What3wordsService? what3wordsService;
@@ -195,7 +184,7 @@ Future<ServiceContainer> _initializeServices() async {
   return ServiceContainer(
     locationResolver: locationResolver,
     fireRiskService: fireRiskService,
-    fireLocationService: fireLocationService,
+    prefs: prefs,
     what3wordsService: what3wordsService,
     geocodingService: geocodingService,
   );
@@ -243,8 +232,8 @@ class _WildFireAppRootState extends State<WildFireAppRoot>
     return WildFireApp(
       homeController: widget.homeController,
       locationResolver: widget.services.locationResolver,
-      fireLocationService: widget.services.fireLocationService,
       fireRiskService: widget.services.fireRiskService,
+      prefs: widget.services.prefs,
       what3wordsService: widget.services.what3wordsService,
       geocodingService: widget.services.geocodingService,
     );

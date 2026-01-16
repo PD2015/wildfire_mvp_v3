@@ -3,18 +3,28 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
+import 'package:wildfire_mvp_v3/features/map/utils/hotspot_clusterer.dart';
+import 'package:wildfire_mvp_v3/features/map/utils/hotspot_style_helper.dart';
 import 'package:wildfire_mvp_v3/features/map/utils/marker_icon_helper.dart';
 import 'package:wildfire_mvp_v3/features/map/utils/polygon_style_helper.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/hotspot_cluster_marker.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/hotspot_square_builder.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/incidents_timestamp_chip.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_source_chip.dart';
-import 'package:wildfire_mvp_v3/features/map/widgets/polygon_toggle_chip.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/fire_data_mode_toggle.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/time_filter_chips.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_type_selector.dart';
+import 'package:wildfire_mvp_v3/features/map/widgets/map_zoom_controls.dart';
+import 'package:wildfire_mvp_v3/models/fire_data_mode.dart';
 // T-V2: RiskCheckButton temporarily disabled
 // import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
+import 'package:wildfire_mvp_v3/models/hotspot.dart';
+import 'package:wildfire_mvp_v3/models/hotspot_cluster.dart';
+import 'package:wildfire_mvp_v3/models/burnt_area.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
-import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/utils/debounced_viewport_loader.dart';
+import 'package:wildfire_mvp_v3/widgets/app_bar_actions.dart';
 import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet.dart';
 
 /// Map screen with Google Maps integration showing active fire incidents
@@ -42,6 +52,8 @@ class _MapScreenState extends State<MapScreen> {
   Set<Polygon> _polygons = {};
   late MapController _controller;
   FireIncident? _selectedIncident;
+  Hotspot? _selectedHotspot; // Track selected hotspot for native display
+  BurntArea? _selectedBurntArea; // Track selected burnt area for native display
   bool _isBottomSheetVisible = false;
   bool _showPolygons = true; // Toggle for polygon visibility
   double _currentZoom = 8.0; // Track zoom for polygon visibility
@@ -83,8 +95,10 @@ class _MapScreenState extends State<MapScreen> {
     if (mounted) {
       final state = _controller.state;
       if (state is MapSuccess) {
-        _updateMarkers(state);
-        _updatePolygons(state);
+        // Update markers and polygons based on current fire data mode
+        // Uses controller's hotspots/burntAreas collections (live data flow)
+        _updateMarkersForMode();
+        _updatePolygonsForMode();
 
         // Center on user GPS location once when data first loads
         if (!_hasCenteredOnUser && _mapController != null) {
@@ -94,6 +108,33 @@ class _MapScreenState extends State<MapScreen> {
       }
       setState(() {});
     }
+  }
+
+  /// Toggle between live and demo data modes
+  /// Called when user taps the MapSourceChip
+  void _toggleDataMode() {
+    final newMode = !_controller.useLiveData;
+    _controller.setUseLiveData(newMode);
+
+    // Show feedback snackbar
+    final message =
+        newMode ? 'Switched to Live Data mode' : 'Switched to Demo Data mode';
+    final icon = newMode ? Icons.cloud_done : Icons.science_outlined;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(width: 12),
+            Text(message),
+          ],
+        ),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   /// Center map on user's GPS location, fallback to Aviemore
@@ -124,10 +165,7 @@ class _MapScreenState extends State<MapScreen> {
 
     await _mapController?.animateCamera(
       CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: targetLocation,
-          zoom: _defaultZoom,
-        ),
+        CameraPosition(target: targetLocation, zoom: _defaultZoom),
       ),
     );
 
@@ -152,75 +190,270 @@ class _MapScreenState extends State<MapScreen> {
     _viewportLoader.setMapController(controller);
 
     debugPrint(
-        '🗺️ MapScreen: GoogleMapController initialized, viewport loader configured');
+      '🗺️ MapScreen: GoogleMapController initialized, viewport loader configured',
+    );
   }
 
-  void _updateMarkers(MapSuccess state) {
-    _markers = state.incidents.map((incident) {
-      debugPrint(
-        '🎯 Creating marker: id=${incident.id}, intensity="${incident.intensity}", desc=${incident.description}',
-      );
+  /// Update markers based on current fire data mode
+  ///
+  /// In Hotspots mode: renders markers from controller.hotspots (List<Hotspot>)
+  /// In Burnt Areas mode: renders centroid markers from controller.burntAreas (List<BurntArea>)
+  void _updateMarkersForMode() {
+    if (_controller.fireDataMode == FireDataMode.hotspots) {
+      // Hotspots mode: use controller's hotspots list (live data flow)
+      _updateHotspotMarkers(_controller.hotspots);
+    } else {
+      // Burnt Areas mode: use controller's burntAreas list (live data flow)
+      _updateBurntAreaMarkersFromModel(_controller.burntAreas);
+    }
+  }
 
-      final title = _buildInfoTitle(incident);
-      final snippet = _buildInfoSnippet(incident);
-      final isSelected = _selectedIncident?.id == incident.id;
+  /// Update markers for hotspots mode from Hotspot models
+  ///
+  /// Display rules based on zoom level:
+  /// - Zoom < 8: Cluster badges only (grouped hotspots)
+  /// - Zoom 8-12: Flame pin markers + 375m satellite footprint squares
+  /// - Zoom >= 12: Satellite footprint squares only (pins hidden for clarity)
+  void _updateHotspotMarkers(List<Hotspot> hotspots) {
+    debugPrint(
+      '🔥 Hotspots mode: ${hotspots.length} hotspots, zoom=$_currentZoom, '
+      'shouldShowClusters=${_controller.shouldShowClusters}',
+    );
 
+    if (hotspots.isEmpty) {
+      _markers = {};
+      debugPrint('🔥 Hotspots mode: no hotspots, markers cleared');
+      return;
+    }
+
+    // Check if we should show clusters (zoom < 10) or individual markers
+    if (_controller.shouldShowClusters) {
+      // Low zoom: show cluster markers instead of individual pins
+      _updateClusterMarkers();
+    } else {
+      // High zoom: show individual flame pin markers
+      _updateIndividualHotspotMarkers(hotspots);
+    }
+  }
+
+  /// Update markers to show cluster badges (zoom < 10)
+  ///
+  /// Single-item clusters (count=1) are shown as flame pins instead of badges
+  /// since a "cluster of 1" doesn't make visual sense.
+  Future<void> _updateClusterMarkers() async {
+    final clusters = _controller.clusters;
+
+    if (clusters.isEmpty) {
+      _markers = {};
+      debugPrint('🔥 Cluster mode: no clusters, markers cleared');
+      return;
+    }
+
+    // Separate multi-hotspot clusters from single hotspots
+    final multiClusters = clusters.where((c) => c.count > 1).toList();
+    final singleClusters = clusters.where((c) => c.count == 1).toList();
+
+    debugPrint(
+      '🔥 Cluster mode: ${multiClusters.length} multi-clusters, '
+      '${singleClusters.length} single hotspots',
+    );
+
+    // Build cluster badges for multi-hotspot clusters
+    final clusterMarkers = await HotspotClusterMarker.buildMarkers(
+      clusters: multiClusters,
+      onTap: (cluster) {
+        debugPrint(
+          '🔥 Cluster tapped: ${cluster.count} hotspots, '
+          'zooming to fit bounds',
+        );
+        _zoomToClusterBounds(cluster);
+      },
+    );
+
+    // Build flame pin markers for single hotspots
+    final singleMarkers = singleClusters.map((cluster) {
+      final hotspot = cluster.hotspots.first;
       return Marker(
-        markerId: MarkerId(incident.id),
-        position: LatLng(
-          incident.location.latitude,
-          incident.location.longitude,
-        ),
-        icon: _getMarkerIcon(incident.intensity),
-        // Anchor at bottom-center so the pin tip points to exact location
+        markerId: MarkerId('hotspot_${hotspot.id}'),
+        position: LatLng(hotspot.location.latitude, hotspot.location.longitude),
+        icon: MarkerIconHelper.getIcon(hotspot.intensity),
         anchor: const Offset(0.5, 1.0),
-        alpha: isSelected ? 1.0 : 0.8, // Highlight selected marker
         infoWindow: InfoWindow(
-          title: title,
-          snippet: snippet,
+          title: 'Active Fire',
+          snippet: _buildHotspotSnippetFromModel(hotspot),
         ),
         onTap: () {
-          debugPrint('🎯 Marker tapped: $title (${incident.intensity})');
-          setState(() {
-            _selectedIncident = incident;
-            _isBottomSheetVisible = true;
-          });
+          debugPrint('🔥 Hotspot tapped: ${hotspot.id} (${hotspot.intensity})');
+          _showHotspotDetails(hotspot);
         },
       );
     }).toSet();
+
+    // Combine both marker types
+    _markers = {...clusterMarkers, ...singleMarkers};
+
+    debugPrint(
+      '🔥 Cluster mode: ${clusterMarkers.length} cluster badges + '
+      '${singleMarkers.length} flame pins = ${_markers.length} total',
+    );
+    if (mounted) setState(() {});
   }
 
-  /// Build user-friendly title for info window
-  /// Priority: description > shortened ID > full ID
-  String _buildInfoTitle(FireIncident incident) {
-    // Prefer descriptive location if available
-    if (incident.description?.isNotEmpty == true) {
-      return incident.description!;
+  /// Zoom map to fit all hotspots in a cluster
+  void _zoomToClusterBounds(HotspotCluster cluster) {
+    if (_mapController == null) return;
+
+    // Get bounds from cluster and zoom to fit
+    final bounds = cluster.bounds;
+    _mapController!.animateCamera(
+      CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(
+            bounds.southwest.latitude,
+            bounds.southwest.longitude,
+          ),
+          northeast: LatLng(
+            bounds.northeast.latitude,
+            bounds.northeast.longitude,
+          ),
+        ),
+        50.0, // padding
+      ),
+    );
+  }
+
+  /// Update markers to show individual flame pins (zoom 8-12)
+  ///
+  /// At zoom >= 12: satellite footprint squares are large enough to see clearly,
+  /// so we hide pin markers to reduce visual clutter (squares only).
+  void _updateIndividualHotspotMarkers(List<Hotspot> hotspots) {
+    // At zoom >= 12, hide pins - only satellite squares are shown
+    if (_currentZoom >= HotspotClusterer.maxClusterZoom) {
+      _markers = {};
+      debugPrint(
+        '🔥 High zoom (${_currentZoom.toStringAsFixed(1)}): '
+        'pins hidden, showing satellite squares only',
+      );
+      return;
     }
 
-    // Fallback: Use shortened fire ID for readability
-    // e.g., "mock_fire_001" → "Fire #ire_001" (last 7 chars)
-    final shortId = incident.id.length > 7
-        ? incident.id.substring(incident.id.length - 7)
-        : incident.id;
-    return 'Fire #$shortId';
+    _markers = hotspots.map((hotspot) {
+      return Marker(
+        markerId: MarkerId('hotspot_${hotspot.id}'),
+        position: LatLng(hotspot.location.latitude, hotspot.location.longitude),
+        icon: MarkerIconHelper.getIcon(hotspot.intensity),
+        anchor: const Offset(0.5, 1.0),
+        infoWindow: InfoWindow(
+          title: 'Active Fire',
+          snippet: _buildHotspotSnippetFromModel(hotspot),
+        ),
+        onTap: () {
+          debugPrint('🔥 Hotspot tapped: ${hotspot.id} (${hotspot.intensity})');
+          _showHotspotDetails(hotspot);
+        },
+      );
+    }).toSet();
+
+    debugPrint('🔥 Individual mode: created ${_markers.length} pin markers');
   }
 
-  /// Build user-friendly snippet with risk, area, source, and freshness
-  /// Format: "Risk: Moderate • Burnt area: 12.5 ha\nSource: MOCK • 2h ago"
-  String _buildInfoSnippet(FireIncident incident) {
-    final intensityLabel = _formatIntensity(incident.intensity);
-    final areaText = incident.areaHectares != null
-        ? '${incident.areaHectares!.toStringAsFixed(1)} ha'
-        : 'Unknown';
+  /// Build info window snippet for hotspot marker from Hotspot model
+  String _buildHotspotSnippetFromModel(Hotspot hotspot) {
+    final parts = <String>[];
+    parts.add('FRP: ${hotspot.frp.toStringAsFixed(1)} MW');
+    parts.add(_formatIntensity(hotspot.intensity));
+    parts.add('Detected: ${_formatFreshness(hotspot.detectedAt)}');
+    return parts.join(' • ');
+  }
 
-    final sourceLabel = _formatDataSource(incident.source);
-    final freshnessText = _formatFreshness(incident.timestamp);
+  /// Update markers for burnt areas mode from BurntArea models
+  /// Shows centroid pins when zoom is too low to see polygons
+  void _updateBurntAreaMarkersFromModel(List<BurntArea> burntAreas) {
+    final showPolygons = _shouldShowPolygons();
 
-    // Line 1: Risk and burnt area
-    // Line 2: Source and freshness
-    return 'Risk: $intensityLabel • Burnt area: $areaText\n'
-        'Source: $sourceLabel • $freshnessText';
+    debugPrint(
+      '🔶 Burnt Areas mode: ${burntAreas.length} areas, '
+      'zoom=$_currentZoom, showPolygons=$showPolygons',
+    );
+
+    // If polygons are visible, don't show markers (avoid duplicate displays)
+    if (showPolygons) {
+      _markers = {};
+      debugPrint('🔶 Burnt Areas mode: polygons visible, markers cleared');
+      return;
+    }
+
+    // Show centroid markers when polygons aren't visible
+    _markers = burntAreas.map((area) {
+      final centroid = area.centroid;
+      return Marker(
+        markerId: MarkerId('burnt_area_${area.id}'),
+        position: LatLng(centroid.latitude, centroid.longitude),
+        icon: MarkerIconHelper.getIcon(
+          'high',
+        ), // All burnt areas use red marker
+        anchor: const Offset(0.5, 1.0),
+        infoWindow: InfoWindow(
+          title: 'Burnt Area',
+          snippet: _buildBurntAreaSnippetFromModel(area),
+        ),
+        onTap: () {
+          debugPrint('🔶 Burnt area marker tapped: ${area.id}');
+          _showBurntAreaDetails(area);
+        },
+      );
+    }).toSet();
+
+    debugPrint(
+      '🔶 Burnt Areas mode: created ${_markers.length} centroid markers',
+    );
+  }
+
+  /// Build info window snippet for burnt area marker from BurntArea model
+  String _buildBurntAreaSnippetFromModel(BurntArea area) {
+    final parts = <String>[];
+    parts.add('${area.areaHectares.toStringAsFixed(1)} ha');
+    parts.add('Fire date: ${_formatDate(area.fireDate)}');
+    return parts.join(' • ');
+  }
+
+  /// Format date as short string (e.g., "15 Jul 2025")
+  String _formatDate(DateTime date) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  }
+
+  /// Show hotspot details in bottom sheet using native Hotspot data
+  void _showHotspotDetails(Hotspot hotspot) {
+    setState(() {
+      _selectedHotspot = hotspot;
+      _selectedBurntArea = null;
+      _selectedIncident = null; // Clear legacy field
+      _isBottomSheetVisible = true;
+    });
+  }
+
+  /// Show burnt area details in bottom sheet using native BurntArea data
+  void _showBurntAreaDetails(BurntArea area) {
+    setState(() {
+      _selectedBurntArea = area;
+      _selectedHotspot = null;
+      _selectedIncident = null; // Clear legacy field
+      _isBottomSheetVisible = true;
+    });
   }
 
   /// Format intensity for user-friendly display
@@ -234,20 +467,6 @@ class _MapScreenState extends State<MapScreen> {
         return 'Low';
       default:
         return 'Unknown';
-    }
-  }
-
-  /// Format data source for user-friendly display
-  String _formatDataSource(DataSource source) {
-    switch (source) {
-      case DataSource.effis:
-        return 'EFFIS';
-      case DataSource.sepa:
-        return 'SEPA';
-      case DataSource.cache:
-        return 'Cached';
-      case DataSource.mock:
-        return 'MOCK';
     }
   }
 
@@ -266,46 +485,126 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  BitmapDescriptor _getMarkerIcon(String intensity) {
-    // Use custom flame icons from MarkerIconHelper
-    // Falls back to hue-based markers if icons not yet initialized
-    return MarkerIconHelper.getIcon(intensity);
+  /// Build the appropriate bottom sheet based on selected data type
+  Widget _buildBottomSheet() {
+    final userLocation = _controller.userGpsLocation;
+
+    void closeSheet() {
+      setState(() {
+        _isBottomSheetVisible = false;
+        _selectedHotspot = null;
+        _selectedBurntArea = null;
+        _selectedIncident = null;
+      });
+    }
+
+    // Hotspot selected - use native Hotspot display
+    if (_selectedHotspot != null) {
+      return FireDetailsBottomSheet.fromHotspot(
+        hotspot: _selectedHotspot!,
+        userLocation: userLocation,
+        onClose: closeSheet,
+        freshness: _controller.dataFreshness,
+      );
+    }
+
+    // BurntArea selected - use native BurntArea display
+    if (_selectedBurntArea != null) {
+      return FireDetailsBottomSheet.fromBurntArea(
+        burntArea: _selectedBurntArea!,
+        userLocation: userLocation,
+        onClose: closeSheet,
+        freshness: _controller.dataFreshness,
+      );
+    }
+
+    // Legacy FireIncident fallback
+    if (_selectedIncident != null) {
+      return FireDetailsBottomSheet(
+        incident: _selectedIncident!,
+        userLocation: userLocation,
+        onClose: closeSheet,
+      );
+    }
+
+    // Should never reach here due to condition in build()
+    return const SizedBox.shrink();
   }
 
-  /// Update polygon overlays from fire incidents with valid boundary points
-  void _updatePolygons(MapSuccess state) {
-    if (!_shouldShowPolygons()) {
-      _polygons = {};
+  /// Update polygon overlays based on current fire data mode
+  ///
+  /// In Burnt Areas mode: shows polygons from controller.burntAreas (List<BurntArea>)
+  /// In Hotspots mode: shows 375m × 375m satellite footprint squares at high zoom
+  void _updatePolygonsForMode() {
+    // Hotspots mode: show 375m satellite footprint squares at high zoom
+    if (_controller.fireDataMode == FireDataMode.hotspots) {
+      _updateHotspotPolygons();
       return;
     }
 
-    _polygons = state.incidents
-        .where((incident) => incident.hasValidPolygon)
-        .map((incident) {
-      final points = incident.boundaryPoints!
+    // Burnt Areas mode: check zoom threshold
+    if (!_shouldShowPolygons()) {
+      _polygons = {};
+      debugPrint('🔶 Burnt Areas mode: zoom too low for polygons');
+      return;
+    }
+
+    // Use controller's burntAreas list (live data flow)
+    final burntAreas = _controller.burntAreas;
+
+    _polygons = burntAreas.map((area) {
+      final points = area.boundaryPoints
           .map((p) => LatLng(p.latitude, p.longitude))
           .toList();
 
       return Polygon(
-        polygonId: PolygonId('polygon_${incident.id}'),
+        polygonId: PolygonId('polygon_${area.id}'),
         points: points,
-        fillColor: PolygonStyleHelper.getFillColor(incident.intensity),
-        strokeColor: PolygonStyleHelper.getStrokeColor(incident.intensity),
+        fillColor: PolygonStyleHelper.burntAreaFillColor,
+        strokeColor: PolygonStyleHelper.burntAreaStrokeColor,
         strokeWidth: PolygonStyleHelper.strokeWidth,
         consumeTapEvents: true,
         onTap: () {
-          debugPrint(
-              '🔶 Polygon tapped: ${incident.description ?? incident.id}');
-          setState(() {
-            _selectedIncident = incident;
-            _isBottomSheetVisible = true;
-          });
+          debugPrint('🔶 Polygon tapped: ${area.id}');
+          _showBurntAreaDetails(area);
         },
       );
     }).toSet();
 
     debugPrint(
-        '🔶 Updated ${_polygons.length} polygons from ${state.incidents.length} incidents');
+      '🔶 Updated ${_polygons.length} polygons from ${burntAreas.length} burnt areas',
+    );
+  }
+
+  /// Update polygon overlays for hotspots mode
+  ///
+  /// At zoom >= 8: Shows 375m × 375m satellite footprint squares
+  /// At zoom < 8: No polygons (pin markers only for overview)
+  void _updateHotspotPolygons() {
+    // Check minimum zoom for squares (too small at low zoom)
+    if (_currentZoom < HotspotStyleHelper.minZoomForSquares) {
+      _polygons = {};
+      debugPrint(
+        '🔥 Hotspots mode: zoom $_currentZoom < ${HotspotStyleHelper.minZoomForSquares}, '
+        'using markers only',
+      );
+      return;
+    }
+
+    // Build 375m satellite footprint squares
+    final hotspots = _controller.hotspots;
+    _polygons = HotspotSquareBuilder.buildPolygons(
+      hotspots: hotspots,
+      onTap: (hotspot) {
+        debugPrint('🔥 Hotspot square tapped: ${hotspot.id}');
+        _showHotspotDetails(hotspot);
+      },
+    );
+
+    debugPrint(
+      '🔥 Hotspots mode: created ${_polygons.length} satellite footprint squares '
+      '(375m × 375m) at zoom $_currentZoom',
+    );
   }
 
   /// Check if polygons should be visible based on zoom level and toggle
@@ -318,37 +617,66 @@ class _MapScreenState extends State<MapScreen> {
   void _onCameraMove(CameraPosition position) {
     final newZoom = position.zoom;
     final wasShowingPolygons = _shouldShowPolygons();
+    final wasShowingHotspotSquares =
+        _currentZoom >= HotspotStyleHelper.minZoomForSquares;
+    final wasShowingClusters = _controller.shouldShowClusters;
 
     _currentZoom = newZoom;
 
-    // Rebuild polygons if visibility threshold crossed
+    // Update controller zoom for clustering decisions
+    _controller.updateZoom(newZoom);
+
+    final nowShowingClusters = _controller.shouldShowClusters;
+
+    // Check if we crossed the cluster threshold (zoom 10)
+    // This determines whether to show cluster badges vs individual pins
+    if (wasShowingClusters != nowShowingClusters &&
+        _controller.fireDataMode == FireDataMode.hotspots) {
+      debugPrint(
+        '🔥 Cluster threshold crossed: ${nowShowingClusters ? "showing clusters" : "showing individual pins"}',
+      );
+      _updateMarkersForMode();
+      setState(() {});
+    }
+
+    // Check if we crossed the hotspot square threshold (zoom 8)
+    final nowShowingHotspotSquares =
+        newZoom >= HotspotStyleHelper.minZoomForSquares;
+    if (wasShowingHotspotSquares != nowShowingHotspotSquares &&
+        _controller.fireDataMode == FireDataMode.hotspots) {
+      debugPrint(
+        '🔥 Hotspot square threshold crossed: ${nowShowingHotspotSquares ? "showing 375m squares" : "hiding squares"}',
+      );
+      _updatePolygonsForMode();
+      setState(() {});
+    }
+
+    // Rebuild polygons if visibility threshold crossed (Burnt Areas mode)
     final nowShowingPolygons = _shouldShowPolygons();
-    if (wasShowingPolygons != nowShowingPolygons) {
-      final state = _controller.state;
-      if (state is MapSuccess) {
-        _updatePolygons(state);
-        setState(() {});
-      }
+    if (wasShowingPolygons != nowShowingPolygons &&
+        _controller.fireDataMode == FireDataMode.burntAreas) {
+      _updatePolygonsForMode();
+      setState(() {});
     }
 
     // Also notify viewport loader
     _viewportLoader.onCameraMove(position);
   }
 
-  /// Handle polygon visibility toggle
-  void _onPolygonToggle() {
-    setState(() {
-      _showPolygons = !_showPolygons;
-    });
-
-    // Rebuild polygons with new visibility setting
-    final state = _controller.state;
-    if (state is MapSuccess) {
-      _updatePolygons(state);
-    }
-
-    debugPrint('🔶 Polygon visibility toggled: $_showPolygons');
-  }
+  // T-V3: Polygon toggle replaced by FireDataModeToggle (021-live-fire-data)
+  // void _onPolygonToggle() {
+  //   setState(() {
+  //     _showPolygons = !_showPolygons;
+  //   });
+  //
+  //   // Rebuild polygons with new visibility setting
+  //   final state = _controller.state;
+  //   if (state is MapSuccess) {
+  //     _updatePolygons(state);
+  //   }
+  //
+  //   debugPrint('🔶 Polygon visibility toggled: $_showPolygons');
+  // }
 
   /// Animate camera to user's GPS location (or fallback to Aviemore)
   /// Called when user taps the GPS button
@@ -364,10 +692,7 @@ class _MapScreenState extends State<MapScreen> {
 
       await _mapController!.animateCamera(
         CameraUpdate.newCameraPosition(
-          CameraPosition(
-            target: targetLocation,
-            zoom: 10.0,
-          ),
+          CameraPosition(target: targetLocation, zoom: 10.0),
         ),
       );
 
@@ -378,6 +703,18 @@ class _MapScreenState extends State<MapScreen> {
     } catch (e) {
       debugPrint('❌ Error animating to user location: $e');
     }
+  }
+
+  /// Zoom in by 1 level
+  Future<void> _zoomIn() async {
+    if (_mapController == null) return;
+    await _mapController!.animateCamera(CameraUpdate.zoomIn());
+  }
+
+  /// Zoom out by 1 level
+  Future<void> _zoomOut() async {
+    if (_mapController == null) return;
+    await _mapController!.animateCamera(CameraUpdate.zoomOut());
   }
 
   @override
@@ -399,10 +736,27 @@ class _MapScreenState extends State<MapScreen> {
       return _buildUnsupportedPlatformView();
     }
 
+    // Show loading indicator in AppBar when fetching data
+    final isLoading = _controller.isFetchingBurntAreas &&
+        _controller.fireDataMode == FireDataMode.burntAreas;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Live Wildfire Fire Map'),
         centerTitle: true,
+        // Material 3 pattern: LinearProgressIndicator in AppBar bottom for loading state
+        bottom: isLoading
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(4),
+                child: LinearProgressIndicator(
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              )
+            : null,
+        actions: const [AppBarActions()],
       ),
       body: Stack(
         children: [
@@ -417,34 +771,28 @@ class _MapScreenState extends State<MapScreen> {
             MapSuccess() => _buildMapView(state),
             MapError() => _buildErrorView(state),
           },
-          // Fire details bottom sheet overlay
-          if (_isBottomSheetVisible && _selectedIncident != null)
+          // Fire details bottom sheet overlay - supports Hotspot, BurntArea, or legacy FireIncident
+          if (_isBottomSheetVisible &&
+              (_selectedHotspot != null ||
+                  _selectedBurntArea != null ||
+                  _selectedIncident != null))
             Positioned.fill(
               child: GestureDetector(
                 onTap: () {
                   setState(() {
                     _isBottomSheetVisible = false;
+                    _selectedHotspot = null;
+                    _selectedBurntArea = null;
                     _selectedIncident = null;
                   });
                 },
                 child: Container(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .scrim
-                      .withValues(alpha: 0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.scrim.withValues(alpha: 0.5),
                   child: GestureDetector(
                     onTap: () {}, // Prevent tap from closing when tapping sheet
-                    child: FireDetailsBottomSheet(
-                      incident: _selectedIncident!,
-                      userLocation: _controller
-                          .userGpsLocation, // Use actual GPS location, not viewport center
-                      onClose: () {
-                        setState(() {
-                          _isBottomSheetVisible = false;
-                          _selectedIncident = null;
-                        });
-                      },
-                    ),
+                    child: _buildBottomSheet(),
                   ),
                 ),
               ),
@@ -464,6 +812,7 @@ class _MapScreenState extends State<MapScreen> {
       appBar: AppBar(
         title: const Text('Fire Map'),
         centerTitle: true,
+        actions: const [AppBarActions()],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -471,9 +820,11 @@ class _MapScreenState extends State<MapScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.map_outlined,
-                  size: 64.0,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.map_outlined,
+                size: 64.0,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(height: 16.0),
               Text(
                 'Map Not Available',
@@ -496,59 +847,98 @@ class _MapScreenState extends State<MapScreen> {
                     child: Column(
                       children: [
                         Text(
-                          '${state.incidents.length} Active Fires',
+                          _controller.fireDataMode == FireDataMode.hotspots
+                              ? '${_controller.fireDataCount} Active Hotspots'
+                              : '${_controller.fireDataCount} Burnt Areas',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Data source: ${state.freshness.name.toUpperCase()}',
+                          'Data source: ${_controller.dataFreshness.name.toUpperCase()}',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
-                        if (state.incidents.isNotEmpty) ...[
+                        if (_controller.hasFireData) ...[
                           const SizedBox(height: 16),
                           const Divider(),
                           const SizedBox(height: 8),
-                          ...state.incidents.take(5).map(
-                                (incident) => Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 4,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.local_fire_department,
-                                        color: incident.intensity == 'high'
-                                            ? Theme.of(context)
-                                                .colorScheme
-                                                .error
-                                            : incident.intensity == 'moderate'
-                                                ? Theme.of(context)
-                                                    .colorScheme
-                                                    .tertiary
-                                                : Theme.of(context)
-                                                    .colorScheme
-                                                    .primary,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          incident.description ??
-                                              'Fire Incident',
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodyMedium,
+                          // Show fire data summary based on current mode
+                          if (_controller.fireDataMode == FireDataMode.hotspots)
+                            ..._controller.hotspots.take(5).map(
+                                  (hotspot) => Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 4,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.local_fire_department,
+                                          color: hotspot.intensity == 'high'
+                                              ? Theme.of(
+                                                  context,
+                                                ).colorScheme.error
+                                              : hotspot.intensity == 'moderate'
+                                                  ? Theme.of(
+                                                      context,
+                                                    ).colorScheme.tertiary
+                                                  : Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
+                                          size: 20,
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Hotspot: FRP ${hotspot.frp.toStringAsFixed(1)} MW',
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.bodyMedium,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                          else
+                            ..._controller.burntAreas.take(5).map(
+                                  (area) => Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 4,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.terrain,
+                                          color: area.intensity == 'high'
+                                              ? Theme.of(
+                                                  context,
+                                                ).colorScheme.error
+                                              : area.intensity == 'moderate'
+                                                  ? Theme.of(
+                                                      context,
+                                                    ).colorScheme.tertiary
+                                                  : Theme.of(
+                                                      context,
+                                                    ).colorScheme.primary,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Burnt Area: ${area.areaHectares.toStringAsFixed(1)} ha',
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.bodyMedium,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                          if (state.incidents.length > 5)
+                          if (_controller.fireDataCount > 5)
                             Padding(
                               padding: const EdgeInsets.only(top: 8),
                               child: Text(
-                                '+ ${state.incidents.length - 5} more',
+                                '+ ${_controller.fireDataCount - 5} more',
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ),
@@ -572,11 +962,14 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Widget _buildMapView(MapSuccess state) {
+    final dataLabel = _controller.fireDataMode == FireDataMode.hotspots
+        ? '${_controller.fireDataCount} hotspots'
+        : '${_controller.fireDataCount} burnt areas';
     return Stack(
       children: [
         Semantics(
           key: const ValueKey('map_semantics'),
-          label: 'Map showing ${state.incidents.length} fire incidents',
+          label: 'Map showing $dataLabel',
           child: GoogleMap(
             key: const ValueKey('wildfire_map'),
             onMapCreated: _onMapCreated,
@@ -589,7 +982,8 @@ class _MapScreenState extends State<MapScreen> {
             polygons: _polygons, // Burnt area polygon overlays
             mapType: _currentMapType,
             myLocationEnabled: true, // Show blue dot for user location
-            zoomControlsEnabled: true,
+            zoomControlsEnabled:
+                false, // Disabled - using custom controls for theme consistency
             zoomGesturesEnabled: true, // Enable pinch-to-zoom
             scrollGesturesEnabled: true,
             tiltGesturesEnabled: true,
@@ -609,39 +1003,72 @@ class _MapScreenState extends State<MapScreen> {
             onCameraIdle: _viewportLoader.onCameraIdle,
           ),
         ),
-        // Source chip positioned at top-left - only show when there are fires
-        // When no fires, the empty state card already shows the data source
-        if (state.incidents.isNotEmpty)
-          Positioned(
-            top: 16,
-            left: 16,
-            child: MapSourceChip(
-              source: state.freshness,
-              lastUpdated: state.lastUpdated,
-            ),
+        // Source chip positioned at top-left
+        // Always visible so users can toggle between live/demo modes
+        // The chip is tappable (to switch modes) unless offline
+        // Even with no fire data, users need access to mode switching
+        Positioned(
+          top: 16,
+          left: 16,
+          child: MapSourceChip(
+            source: _controller.dataFreshness,
+            lastUpdated: _controller.lastUpdated,
+            isOffline: _controller.isOffline,
+            onTap: _controller.isOffline ? null : _toggleDataMode,
           ),
-        // Timestamp chip positioned at bottom-left - only show when there are fires
-        if (state.incidents.isNotEmpty)
+        ),
+        // Timestamp chip positioned at bottom-left - only show when there is fire data
+        if (_controller.hasFireData)
           Positioned(
             bottom: 16,
             left: 16,
-            child: IncidentsTimestampChip(
-              lastUpdated: state.lastUpdated,
-            ),
+            child: IncidentsTimestampChip(lastUpdated: _controller.lastUpdated),
           ),
-        // Map controls positioned at top-right (burn areas toggle, map type, GPS)
+        // Loading status banner - positioned at bottom to avoid control overlap
+        // Shows when fetching burnt area data (supplements AppBar progress indicator)
+        if (_controller.isFetchingBurntAreas &&
+            _controller.fireDataMode == FireDataMode.burntAreas)
+          Positioned(
+            bottom: 80,
+            left: 0,
+            right: 0,
+            child: Center(child: _buildLoadingBanner(context)),
+          ),
+        // Map controls positioned at top-right (fire data mode, filters, map type, GPS)
         Positioned(
           top: 16,
           right: 16,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              // Burn areas visibility toggle (longer, so at top)
-              PolygonToggleChip(
-                showPolygons: _showPolygons,
-                enabled:
-                    PolygonStyleHelper.shouldShowPolygonsAtZoom(_currentZoom),
-                onToggle: _onPolygonToggle,
+              // Fire data mode toggle (Hotspots / Burnt Areas)
+              FireDataModeToggle(
+                mode: _controller.fireDataMode,
+                onModeChanged: (mode) {
+                  _controller.setFireDataMode(mode);
+                  // Immediately update markers/polygons for new mode
+                  _updateMarkersForMode();
+                  _updatePolygonsForMode();
+                  setState(() {
+                    // Sync local polygon visibility with mode
+                    _showPolygons = mode == FireDataMode.burntAreas;
+                  });
+                },
+                enabled: true,
+              ),
+              const SizedBox(height: 8),
+              // Time filter chips (dynamic based on mode)
+              TimeFilterChips(
+                mode: _controller.fireDataMode,
+                hotspotFilter: _controller.hotspotTimeFilter,
+                burntAreaFilter: _controller.burntAreaSeasonFilter,
+                onHotspotFilterChanged: (filter) {
+                  _controller.setHotspotTimeFilter(filter);
+                },
+                onBurntAreaFilterChanged: (filter) {
+                  _controller.setBurntAreaSeasonFilter(filter);
+                },
+                enabled: true,
               ),
               const SizedBox(height: 8),
               // Map type selector (dropdown menu)
@@ -691,56 +1118,206 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 8),
+              // Custom zoom controls - themed to match other map buttons
+              MapZoomControls(onZoomIn: _zoomIn, onZoomOut: _zoomOut),
             ],
           ),
         ),
-        // Empty state message if no fires
-        if (state.incidents.isEmpty)
-          Center(
+        // Empty state message if no fire data - mode-specific messaging
+        // Different UX for offline (API failure) vs normal empty state
+        // Positioned lower to avoid blocking zoom controls (right side)
+        if (!_controller.hasFireData)
+          Positioned(
+            left: 24,
+            right: 24,
+            bottom: 100, // Above bottom nav, below zoom controls
             child: Card(
-              margin: const EdgeInsets.all(24),
               elevation: 2,
               child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.check_circle_outline,
-                      size: 48,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'No Active Fires Detected',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'There are currently no wildfire incidents in this region',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Data source: ${state.freshness.name.toUpperCase()}',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(
-                          color:
-                              Theme.of(context).colorScheme.onSurfaceVariant),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+                child: _controller.isOffline
+                    ? _buildOfflineEmptyState(context)
+                    : _buildNormalEmptyState(context),
               ),
             ),
           ),
       ],
     );
+  }
+
+  /// Build loading banner - shows when fetching burnt area data
+  ///
+  /// Displays a subtle banner with progress indicator and text
+  /// to inform users that data is being loaded.
+  Widget _buildLoadingBanner(BuildContext context) {
+    return Card(
+      elevation: 4,
+      color: Theme.of(context).colorScheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Loading burnt areas...',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build offline empty state - shown when API fails with MAP_LIVE_DATA=true
+  ///
+  /// Option C: Don't show mock data when live data was expected -
+  /// that could be misleading for a safety-critical fire app.
+  Widget _buildOfflineEmptyState(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.cloud_off,
+          size: 48,
+          color: Theme.of(context).colorScheme.error,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Unable to Load Fire Data',
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Could not connect to fire monitoring services. '
+          'Check your internet connection and try again.',
+          style: Theme.of(context).textTheme.bodyMedium,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton.icon(
+          onPressed: () {
+            // Re-initialize to retry API calls
+            _controller.initialize();
+          },
+          icon: const Icon(Icons.refresh),
+          label: const Text('Retry'),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(120, 48), // C3: ≥44dp touch target
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Fire data will appear once connection is restored',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontStyle: FontStyle.italic,
+              ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  /// Build normal empty state - shown when no fire data but API succeeded
+  Widget _buildNormalEmptyState(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.check_circle_outline,
+          size: 48,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          _getEmptyStateTitle(),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          _getEmptyStateDescription(),
+          style: Theme.of(context).textTheme.bodyMedium,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Data source: ${_controller.dataFreshness.name.toUpperCase()}',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        // Hint to try other mode
+        TextButton(
+          onPressed: () {
+            final newMode = _controller.fireDataMode == FireDataMode.hotspots
+                ? FireDataMode.burntAreas
+                : FireDataMode.hotspots;
+            _controller.setFireDataMode(newMode);
+            setState(() {
+              _showPolygons = newMode == FireDataMode.burntAreas;
+            });
+          },
+          child: Text(
+            _getEmptyStateHint(),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Get mode-specific empty state title
+  String _getEmptyStateTitle() {
+    switch (_controller.fireDataMode) {
+      case FireDataMode.hotspots:
+        return 'No Active Fires Detected';
+      case FireDataMode.burntAreas:
+        final year = _controller.burntAreaSeasonFilter.year;
+        return 'No Burnt Areas in $year in Map Area';
+    }
+  }
+
+  /// Get mode-specific empty state description
+  String _getEmptyStateDescription() {
+    switch (_controller.fireDataMode) {
+      case FireDataMode.hotspots:
+        return 'No satellite-detected hotspots in the last 24 hours within the current view. This is good news!';
+      case FireDataMode.burntAreas:
+        final year = _controller.burntAreaSeasonFilter.year;
+        return 'No satellite-verified burnt areas have been recorded in this map area for $year.';
+    }
+  }
+
+  /// Get hint text suggesting the user try the other mode
+  String _getEmptyStateHint() {
+    switch (_controller.fireDataMode) {
+      case FireDataMode.hotspots:
+        return 'Try viewing burnt areas instead →';
+      case FireDataMode.burntAreas:
+        return 'Try viewing active hotspots instead →';
+    }
   }
 
   Widget _buildErrorView(MapError state) {

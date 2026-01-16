@@ -111,7 +111,8 @@ void main() {
         final requestUri = captured.first as Uri;
 
         expect(requestUri.scheme, equals('https'));
-        expect(requestUri.host, equals('ies-ows.jrc.ec.europa.eu'));
+        // Updated to new EFFIS endpoint (migrated Dec 2025)
+        expect(requestUri.host, equals('maps.effis.emergency.copernicus.eu'));
         expect(requestUri.path, equals('/gwis'));
         expect(requestUri.queryParameters['VERSION'], equals('1.3.0'));
         expect(requestUri.queryParameters['REQUEST'], equals('GetFeatureInfo'));
@@ -126,6 +127,8 @@ void main() {
         expect(requestUri.queryParameters['CRS'], equals('EPSG:4326'));
         expect(requestUri.queryParameters['INFO_FORMAT'], equals('text/plain'));
         expect(requestUri.queryParameters['FEATURE_COUNT'], equals('1'));
+        // STYLES required by MapServer 8.0+ (new endpoint)
+        expect(requestUri.queryParameters['STYLES'], equals(''));
       });
     });
 
