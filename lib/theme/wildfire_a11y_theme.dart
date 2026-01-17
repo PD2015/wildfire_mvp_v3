@@ -91,6 +91,50 @@ import 'package:wildfire_mvp_v3/theme/brand_palette.dart';
 class WildfireA11yTheme {
   WildfireA11yTheme._(); // Prevent instantiation
 
+  /// Standard corner radius tokens for consistent UI
+  ///
+  /// 3-tier system:
+  /// - Cards/large containers: 16dp
+  /// - Buttons/controls: 12dp
+  /// - Inputs: 12dp
+  static const double radiusCard = 16.0;
+  static const double radiusControl = 12.0;
+  static const double radiusInput = 12.0;
+
+  /// Field decoration that adapts to light/dark mode
+  ///
+  /// Use for coordinate boxes, what3words boxes, and similar field containers.
+  /// - Dark mode: subtle black overlay (existing look)
+  /// - Light mode: tonal surface (Material-appropriate)
+  ///
+  /// Example:
+  /// ```dart
+  /// Container(
+  ///   decoration: WildfireA11yTheme.fieldDecoration(context),
+  ///   child: ...,
+  /// )
+  /// ```
+  static BoxDecoration fieldDecoration(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return BoxDecoration(
+      // Dark: keep darker fill for contrast
+      // Light: use tonal surface instead of black overlay
+      color: isDark
+          ? Colors.black.withValues(alpha: 0.20)
+          : cs.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(radiusCard),
+      border: Border.all(
+        color: isDark
+            ? cs.outline.withValues(alpha: 0.15)
+            : cs.outlineVariant.withValues(alpha: 0.85),
+        width: 1,
+      ),
+    );
+  }
+
   /// Light theme with forest600 primary and offWhite surface
   ///
   /// **Contrast ratios verified**:
@@ -115,15 +159,13 @@ class WildfireA11yTheme {
       onSurface: BrandPalette.onLightHigh,
       surfaceContainerHighest: const Color(0xFFE7F1EF),
       surfaceContainerLowest: Colors.white,
-      surfaceContainerLow: const Color(
-        0xFFF8F8F8,
-      ), // Between white and offWhite for cards
+      surfaceContainerLow:
+          const Color(0xFFF8F8F8), // Between white and offWhite for cards
       onSurfaceVariant: BrandPalette.onLightMedium,
       error: Colors.red.shade700,
       onError: BrandPalette.onDarkHigh,
       outline: const Color(
-        0xFF6B8A82,
-      ), // Darker for 3:1 contrast on white (web-compatible)
+          0xFF6B8A82), // Darker for 3:1 contrast on white (web-compatible)
       outlineVariant: BrandPalette.neutralGrey100,
       shadow: Colors.black,
       scrim: Colors.black54,
@@ -174,7 +216,10 @@ class WildfireA11yTheme {
           foregroundColor: BrandPalette.forest700,
 
           // 🌲 Forest-based outline (your built-in outline)
-          side: const BorderSide(color: BrandPalette.outline, width: 1.5),
+          side: const BorderSide(
+            color: BrandPalette.outline,
+            width: 1.5,
+          ),
 
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -194,34 +239,32 @@ class WildfireA11yTheme {
         ),
       ),
 
-      // InputDecoration: outlined style with sufficient padding
+      // InputDecoration: outlined style with sufficient padding (12dp radius)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: colorScheme.surfaceContainerHighest,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
 
       // ChipTheme: sufficient padding for ≥44dp height
@@ -235,10 +278,8 @@ class WildfireA11yTheme {
       // SnackBarTheme: accessible colors and spacing
       snackBarTheme: const SnackBarThemeData(
         backgroundColor: BrandPalette.forest900,
-        contentTextStyle: TextStyle(
-          color: BrandPalette.onDarkHigh,
-          fontSize: 16,
-        ),
+        contentTextStyle:
+            TextStyle(color: BrandPalette.onDarkHigh, fontSize: 16),
         behavior: SnackBarBehavior.floating,
         actionTextColor: BrandPalette.mint400,
       ),
@@ -271,9 +312,7 @@ class WildfireA11yTheme {
             return const IconThemeData(color: BrandPalette.forest900, size: 24);
           }
           return const IconThemeData(
-            color: BrandPalette.onDarkMedium,
-            size: 24,
-          );
+              color: BrandPalette.onDarkMedium, size: 24);
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
@@ -296,17 +335,22 @@ class WildfireA11yTheme {
       ),
 
       // DividerTheme: subtle separation
-      dividerTheme: DividerThemeData(color: colorScheme.outline, thickness: 1),
+      dividerTheme: DividerThemeData(
+        color: colorScheme.outline,
+        thickness: 1,
+      ),
 
       // IconTheme: default icon color
-      iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
+      iconTheme: IconThemeData(
+        color: colorScheme.onSurfaceVariant,
+      ),
 
-      // CardTheme: elevated surface with outline
+      // CardTheme: elevated surface with outline (16dp radius for cards)
       cardTheme: CardThemeData(
         color: colorScheme.surfaceContainerLow,
         elevation: 2,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(radiusCard),
           side: BorderSide(color: colorScheme.outlineVariant),
         ),
       ),
@@ -341,8 +385,7 @@ class WildfireA11yTheme {
       error: Color(0xFFFF5252), // Red accent for error (M3 proper semantic)
       onError: BrandPalette.onDarkHigh,
       outline: Color(
-        0xFF8BC6B6,
-      ), // Lighter for 3:1 contrast on forest500 (web-compatible)
+          0xFF8BC6B6), // Lighter for 3:1 contrast on forest500 (web-compatible)
       outlineVariant: BrandPalette.forest700,
       shadow: Colors.black,
       scrim: Colors.black54,
@@ -408,34 +451,32 @@ class WildfireA11yTheme {
         ),
       ),
 
-      // InputDecoration: outlined style with sufficient padding
+      // InputDecoration: outlined style with sufficient padding (12dp radius)
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: colorScheme.surfaceContainerHighest,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.outline),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(radiusInput),
           borderSide: BorderSide(color: colorScheme.error, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
 
       // ChipTheme: sufficient padding for ≥44dp height
@@ -486,9 +527,7 @@ class WildfireA11yTheme {
             return const IconThemeData(color: BrandPalette.forest900, size: 24);
           }
           return const IconThemeData(
-            color: BrandPalette.onDarkMedium,
-            size: 24,
-          );
+              color: BrandPalette.onDarkMedium, size: 24);
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
@@ -511,16 +550,23 @@ class WildfireA11yTheme {
       ),
 
       // DividerTheme: subtle separation
-      dividerTheme: DividerThemeData(color: colorScheme.outline, thickness: 1),
+      dividerTheme: DividerThemeData(
+        color: colorScheme.outline,
+        thickness: 1,
+      ),
 
       // IconTheme: default icon color
-      iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
+      iconTheme: IconThemeData(
+        color: colorScheme.onSurfaceVariant,
+      ),
 
-      // CardTheme: elevated surface with outline
+      // CardTheme: elevated surface with outline (16dp radius for cards)
       cardTheme: CardThemeData(
         color: colorScheme.surfaceContainerLow,
         elevation: 1,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radiusCard),
+        ),
       ),
     );
   }

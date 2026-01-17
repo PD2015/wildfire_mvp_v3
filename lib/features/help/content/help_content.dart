@@ -746,6 +746,30 @@ It is **NOT** a replacement for calling emergency services.
 - **999** — Emergency services (police, fire, ambulance)
 - **101** — Non-emergency police (for suspicious activity)
 - **Scottish Fire & Rescue**: For general inquiries
+
+## When to Call Each Number
+
+### Call 999 (Emergency) When:
+- Fire is **spreading** or out of control
+- There is **immediate danger** to people or property
+- Smoke is visible and fire source is unclear
+- You see flames in vegetation, woodland, or moorland
+- Someone is injured or trapped
+
+### Call 101 (Police Scotland Non-Emergency) When:
+- You see an **unattended campfire** that could become a problem
+- There is **smouldering peat** that may reignite — peat fires can burn underground for weeks and resurface
+- You spot **illegal burning** (e.g., muirburn outside permitted dates) but it's not spreading
+- A fire appears **controlled but unattended** and you're concerned
+- You want to report something that **doesn't require immediate response**
+
+### Call Crimestoppers (0800 555 111) When:
+- You want to report **arson** or deliberate fire-setting **anonymously**
+- You have information about **suspicious activity** related to wildfires
+- You prefer not to give your personal details
+
+### Not Sure? Call 999
+If in doubt, it's always better to call 999. The operator will assess the situation and direct your call appropriately. Don't worry about "wasting their time" — they'd rather receive a call that turns out to be minor than miss a genuine emergency.
 ''';
 
 const _limitationsContent = '''

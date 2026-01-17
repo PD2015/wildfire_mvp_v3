@@ -97,12 +97,13 @@ void main() {
       });
 
       final service = EffisBurntAreaServiceImpl(httpClient: client);
+      // Note: Test data has 2025 dates, use lastSeason (2025) since current date is 2026
       final result = await service.getBurntAreas(
         bounds: const LatLngBounds(
           southwest: LatLng(57.0, -4.0),
           northeast: LatLng(58.0, -3.0),
         ),
-        seasonFilter: BurntAreaSeasonFilter.thisSeason,
+        seasonFilter: BurntAreaSeasonFilter.lastSeason,
       );
 
       expect(result.isRight(), true);
@@ -128,12 +129,13 @@ void main() {
       });
 
       final service = EffisBurntAreaServiceImpl(httpClient: client);
+      // Note: Test data has 2025 dates, use lastSeason (2025) since current date is 2026
       final result = await service.getBurntAreas(
         bounds: const LatLngBounds(
           southwest: LatLng(57.0, -4.0),
           northeast: LatLng(58.0, -3.0),
         ),
-        seasonFilter: BurntAreaSeasonFilter.thisSeason,
+        seasonFilter: BurntAreaSeasonFilter.lastSeason,
       );
 
       expect(result.isRight(), true);
@@ -295,12 +297,13 @@ void main() {
       });
 
       final service = EffisBurntAreaServiceImpl(httpClient: client);
+      // Note: Test data has 2025 dates, use lastSeason (2025) since current date is 2026
       final result = await service.getBurntAreas(
         bounds: const LatLngBounds(
           southwest: LatLng(57.0, -4.0),
           northeast: LatLng(58.0, -3.0),
         ),
-        seasonFilter: BurntAreaSeasonFilter.thisSeason,
+        seasonFilter: BurntAreaSeasonFilter.lastSeason,
       );
 
       final area = result.getOrElse(() => []).first;

@@ -70,7 +70,7 @@ void main() {
 
         // Find buttons by their text content instead of widget type
         expect(find.text('999 – Fire Service'), findsOneWidget);
-        expect(find.text('101 – Police'), findsOneWidget);
+        expect(find.text('101 Police'), findsOneWidget);
 
         // Scroll to see third button
         await tester.drag(find.byType(ListView), const Offset(0, -300));
@@ -94,7 +94,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Test 101 Police Scotland button
-        final policeButton = find.text('101 – Police');
+        final policeButton = find.text('101 Police');
         expect(policeButton, findsOneWidget);
         await tester.tap(policeButton);
         await tester.pumpAndSettle();
@@ -159,7 +159,7 @@ void main() {
       expect(find.text('Report a Fire'), findsOneWidget);
       // Verify all 3 emergency buttons are present by text
       expect(find.text('999 – Fire Service'), findsOneWidget);
-      expect(find.text('101 – Police'), findsOneWidget);
+      expect(find.text('101 Police'), findsOneWidget);
 
       // Simulate landscape orientation
       await tester.binding.setSurfaceSize(const Size(800, 600));
@@ -169,7 +169,7 @@ void main() {
       expect(find.text('Report a Fire'), findsOneWidget);
       // Verify all 3 emergency buttons are present by text
       expect(find.text('999 – Fire Service'), findsOneWidget);
-      expect(find.text('101 – Police'), findsOneWidget);
+      expect(find.text('101 Police'), findsOneWidget);
 
       final fireServiceButton = find.text('999 – Fire Service');
       await tester.tap(fireServiceButton);
@@ -213,7 +213,7 @@ void main() {
       expect(find.text('Report a Fire'), findsOneWidget);
       // Verify all 3 emergency buttons are present by text
       expect(find.text('999 – Fire Service'), findsOneWidget);
-      expect(find.text('101 – Police'), findsOneWidget);
+      expect(find.text('101 Police'), findsOneWidget);
     }, skip: true);
 
     // TODO: Re-enable after test environment font rendering fix
@@ -244,7 +244,7 @@ void main() {
       expect(find.byType(AppBar), findsOneWidget);
       // Verify all 3 emergency buttons are present by text
       expect(find.text('999 – Fire Service'), findsOneWidget);
-      expect(find.text('101 – Police'), findsOneWidget);
+      expect(find.text('101 Police'), findsOneWidget);
     }, skip: true);
 
     // TODO: Re-enable after test environment font rendering fix
@@ -273,12 +273,12 @@ void main() {
       expect(find.text('Act fast — stay safe.'), findsOneWidget);
       // Verify all 3 emergency buttons are present by text
       expect(find.text('999 – Fire Service'), findsOneWidget);
-      expect(find.text('101 – Police'), findsOneWidget);
+      expect(find.text('101 Police'), findsOneWidget);
 
       // Verify all buttons are functional
       final buttons = [
         find.text('999 – Fire Service'),
-        find.text('101 – Police'),
+        find.text('101 Police'),
       ];
 
       // Test first two buttons (visible without scroll)
