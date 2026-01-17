@@ -6,9 +6,22 @@
 /// - Easy updates without backend
 library;
 
+import 'package:flutter/material.dart';
+
+/// Sections for grouping help documents.
+enum HelpSection {
+  gettingStarted('Getting Started'),
+  wildfireEducation('Wildfire Education'),
+  usingTheMap('Using the Map'),
+  safetyResponsibility('Safety & Responsibility');
+
+  final String displayName;
+  const HelpSection(this.displayName);
+}
+
 /// A help document with metadata for display.
 class HelpDocument {
-  /// Unique identifier for the document
+  /// Unique identifier for the document (used in routes)
   final String id;
 
   /// Display title for the document
@@ -17,6 +30,12 @@ class HelpDocument {
   /// Short description for list view
   final String description;
 
+  /// Icon to display in the help menu
+  final IconData icon;
+
+  /// Section this document belongs to
+  final HelpSection section;
+
   /// Full document content (Markdown formatted)
   final String content;
 
@@ -24,6 +43,8 @@ class HelpDocument {
     required this.id,
     required this.title,
     required this.description,
+    required this.icon,
+    required this.section,
     required this.content,
   });
 }
@@ -47,6 +68,8 @@ class HelpContent {
     id: 'how-to-use',
     title: 'How to Use WildFire',
     description: 'Getting started with the app',
+    icon: Icons.menu_book_outlined,
+    section: HelpSection.gettingStarted,
     content: _howToUseContent,
   );
 
@@ -55,6 +78,8 @@ class HelpContent {
     id: 'risk-levels',
     title: 'What the Risk Levels Mean',
     description: 'Understanding fire danger levels',
+    icon: Icons.speed_outlined,
+    section: HelpSection.gettingStarted,
     content: _riskLevelsContent,
   );
 
@@ -63,6 +88,8 @@ class HelpContent {
     id: 'when-to-use',
     title: 'When to Use This App',
     description: 'Best practices for using WildFire',
+    icon: Icons.schedule_outlined,
+    section: HelpSection.gettingStarted,
     content: _whenToUseContent,
   );
 
@@ -75,6 +102,8 @@ class HelpContent {
     id: 'understanding-risk',
     title: 'Understanding Wildfire Risk',
     description: 'How wildfire risk is calculated',
+    icon: Icons.local_fire_department_outlined,
+    section: HelpSection.wildfireEducation,
     content: _understandingRiskContent,
   );
 
@@ -83,6 +112,8 @@ class HelpContent {
     id: 'weather-fuel-fire',
     title: 'Weather, Fuel, and Fire',
     description: 'How conditions affect fire danger',
+    icon: Icons.thermostat_outlined,
+    section: HelpSection.wildfireEducation,
     content: _weatherFuelFireContent,
   );
 
@@ -91,6 +122,8 @@ class HelpContent {
     id: 'seasonal-guidance',
     title: 'Seasonal Guidance',
     description: 'Fire risk through the year',
+    icon: Icons.calendar_month_outlined,
+    section: HelpSection.wildfireEducation,
     content: _seasonalGuidanceContent,
   );
 
@@ -102,7 +135,9 @@ class HelpContent {
   static const hotspots = HelpDocument(
     id: 'hotspots',
     title: 'What Is a Hotspot?',
-    description: 'Understanding map markers',
+    description: 'Understanding satellite fire detections',
+    icon: Icons.location_on_outlined,
+    section: HelpSection.usingTheMap,
     content: _hotspotsContent,
   );
 
@@ -110,16 +145,10 @@ class HelpContent {
   static const burntArea = HelpDocument(
     id: 'burnt-area',
     title: 'What Is a Burnt Area?',
-    description: 'Understanding map markers',
+    description: 'Understanding burnt area polygons',
+    icon: Icons.layers_outlined,
+    section: HelpSection.usingTheMap,
     content: _burntAreaContent,
-  );
-
-  /// Data sources explained
-  static const dataSourcesHelp = HelpDocument(
-    id: 'data-sources-help',
-    title: 'Data Sources Explained',
-    description: 'Where our data comes from',
-    content: _dataSourcesHelpContent,
   );
 
   /// Update frequency and limits
@@ -127,7 +156,19 @@ class HelpContent {
     id: 'update-frequency',
     title: 'How Recent Is the Map Data?',
     description: 'How often data refreshes',
+    icon: Icons.update_outlined,
+    section: HelpSection.usingTheMap,
     content: _updateFrequencyContent,
+  );
+
+  /// Data sources explained
+  static const dataSourcesHelp = HelpDocument(
+    id: 'data-sources',
+    title: 'Data Sources Explained',
+    description: 'Where our data comes from',
+    icon: Icons.storage_outlined,
+    section: HelpSection.usingTheMap,
+    content: _dataSourcesHelpContent,
   );
 
   // ─────────────────────────────────────────────────────────────
@@ -139,6 +180,8 @@ class HelpContent {
     id: 'see-fire',
     title: 'What to Do if You See Fire',
     description: 'Emergency response guidance',
+    icon: Icons.emergency_outlined,
+    section: HelpSection.safetyResponsibility,
     content: _seeFireContent,
   );
 
@@ -147,6 +190,8 @@ class HelpContent {
     id: 'limitations',
     title: 'Important Limitations',
     description: 'What this app can and cannot do',
+    icon: Icons.info_outline,
+    section: HelpSection.safetyResponsibility,
     content: _limitationsContent,
   );
 
@@ -155,37 +200,56 @@ class HelpContent {
     id: 'emergency-guidance',
     title: 'Emergency Guidance',
     description: 'Emergency contacts and resources',
+    icon: Icons.phone_outlined,
+    section: HelpSection.safetyResponsibility,
     content: _emergencyGuidanceContent,
   );
 
   // ─────────────────────────────────────────────────────────────
-  // About Section
+  // About Section (handled separately via AboutHelpScreen)
   // ─────────────────────────────────────────────────────────────
 
-  /// About WildFire app
-  static const aboutApp = HelpDocument(
-    id: 'about-app',
-    title: 'About WildFire',
-    description: 'App information and credits',
-    content: _aboutAppContent,
-  );
+  // Note: About is a special screen, not a document.
+  // It's accessed via /help/about and shows app info + dev options.
 
-  /// All documents for iteration
+  /// All help documents grouped by section (excludes About).
+  /// This is the single source of truth for the help menu.
   static const List<HelpDocument> all = [
+    // Getting Started
     howToUse,
     riskLevels,
     whenToUse,
+    // Wildfire Education
     understandingRisk,
     weatherFuelFire,
     seasonalGuidance,
+    // Using the Map
     hotspots,
-    dataSourcesHelp,
+    burntArea,
     updateFrequency,
+    dataSourcesHelp,
+    // Safety & Responsibility
     seeFireAction,
     limitations,
     emergencyGuidance,
-    aboutApp,
   ];
+
+  /// Get documents for a specific section.
+  static List<HelpDocument> forSection(HelpSection section) {
+    return all.where((doc) => doc.section == section).toList();
+  }
+
+  /// Find a document by its ID. Returns null if not found.
+  static HelpDocument? findById(String id) {
+    try {
+      return all.firstWhere((doc) => doc.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// All sections in display order.
+  static const List<HelpSection> sections = HelpSection.values;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -916,75 +980,4 @@ If told to evacuate:
 - **Scottish Fire and Rescue Service**: firescotland.gov.uk
 - **Met Office**: metoffice.gov.uk
 - **Scottish Government**: gov.scot/emergency
-''';
-
-const _aboutAppContent = '''
-# About WildFire
-
-WildFire is a public awareness tool for wildfire risk in Scotland.
-
-## Purpose
-
-This app helps people:
-- Understand current fire danger conditions
-- See where fires have been detected
-- Learn about wildfire safety
-- Report fire sightings for community awareness
-
-## What We Are
-
-- An **awareness tool** for general information
-- A way to **visualise** publicly available data
-- An **educational resource** about fire safety
-- A **community platform** for sharing observations
-
-## What We Are Not
-
-- **Not an emergency service** — Call 999 for emergencies
-- **Not an official warning system** — Follow official guidance
-- **Not a real-time monitor** — Data has inherent delays
-- **Not a replacement** for common sense and official advice
-
-## Data Sources
-
-- **Fire Weather Index**: European Forest Fire Information System (EFFIS)
-- **Hotspot Detection**: NASA FIRMS satellite data
-- **Maps**: OpenStreetMap contributors
-
-## Privacy
-
-We take privacy seriously:
-- Location data stays on your device
-- No account required
-- Minimal data collection
-- See our Privacy Policy for details
-
-## Open Source
-
-WildFire is built with open source technologies and uses publicly available data. We believe in transparency about how the app works.
-
-## Feedback
-
-We welcome feedback to improve the app:
-- Report bugs through the app store
-- Suggest features via email
-- Share your experience
-
-## Credits
-
-Built with Flutter and the support of:
-- European Commission Joint Research Centre (EFFIS)
-- NASA FIRMS
-- Scottish Fire and Rescue Service (guidance)
-- The open source community
-
-## Version
-
-WildFire Version 1.0.0
-December 2025
-
----
-
-*For information only. Not an emergency alert system.*
-*In an emergency, call 999.*
 ''';
