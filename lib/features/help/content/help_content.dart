@@ -98,12 +98,20 @@ class HelpContent {
   // Using the Map Section
   // ─────────────────────────────────────────────────────────────
 
-  /// What hotspots show
+  /// What is a hotspot
   static const hotspots = HelpDocument(
     id: 'hotspots',
-    title: 'What Hotspots Show',
+    title: 'What Is a Hotspot?',
     description: 'Understanding map markers',
     content: _hotspotsContent,
+  );
+
+  /// What is a burnt area
+  static const burntArea = HelpDocument(
+    id: 'burnt-area',
+    title: 'What Is a Burnt Area?',
+    description: 'Understanding map markers',
+    content: _burntAreaContent,
   );
 
   /// Data sources explained
@@ -117,7 +125,7 @@ class HelpContent {
   /// Update frequency and limits
   static const updateFrequency = HelpDocument(
     id: 'update-frequency',
-    title: 'Update Frequency & Limits',
+    title: 'How Recent Is the Map Data?',
     description: 'How often data refreshes',
     content: _updateFrequencyContent,
   );
@@ -477,31 +485,30 @@ However:
 ''';
 
 const _hotspotsContent = '''
-# What Hotspots Show
+## What Is a Hotspot?
 
-The map displays **thermal hotspots** detected by satellites. Here's what they mean:
+A **hotspot** marks an area where a satellite detected unusually high surface temperatures.
 
-## What Are Hotspots?
+Important points to understand:
 
-Satellites equipped with thermal sensors detect unusually high temperatures on Earth's surface. These show as markers on our map.
+- A hotspot is **not a confirmed wildfire**
+- It may represent:
+  - An active wildfire
+  - Controlled burning (e.g. muirburn, stubble burning)
+  - Industrial heat sources
+- Some hotspots are **false positives**
 
-**Important**: Not all hotspots are wildfires!
+### Detection Area Size
 
-## What Causes Hotspots
+Most hotspots come from the **VIIRS satellite sensor**.
 
-### Actual Fires
-- Wildfires
-- Controlled burns
-- Stubble burning
-- Industrial operations
+- Each detection covers an area of approximately **375 × 375 metres**
+- The fire (if present) could be **anywhere within that area**
+- The marker shows the **centre of detection**, not an exact location
 
-### False Positives
-- Hot industrial sites
-- Sun-heated surfaces
-- Volcanic activity (not in Scotland!)
-- Sensor glitches
+Multiple nearby hotspots may indicate a larger or ongoing fire.
 
-## Hotspot Information
+## Hotspot Information - shown on tap:
 
 Each marker shows:
 - **Location** — Where the heat was detected
@@ -537,6 +544,50 @@ Each marker shows:
 3. Use the Report feature for awareness
 ''';
 
+const _burntAreaContent = '''
+## What Is a Burnt Area?
+
+A **burnt area** shows land that has already burned and has been mapped **after the fire is contained**.
+
+- Burnt areas are **not active fires**
+- They are produced by **EFFIS (Copernicus)** using satellite analysis
+- Mapping often appears **days or weeks after** a fire event
+- These areas show **fire extent**, not current conditions
+
+Burnt areas help with:
+- Understanding fire impact
+- Land management and recovery
+- Historical awareness
+
+### Appearance on the Map
+- Burnt areas are shown as **shaded polygons**
+- Visible when zoomed in sufficiently
+
+Each marker shows:
+- **Date of burn** — When the fire occurred
+- **Area size** — Approximate size of the burnt land
+- **Vegetation type** — What kind of land was affected
+- **Confidence level** — How certain the mapping is
+
+### Limitations
+- Not all fires are mapped (small or short-lived fires)
+- Boundaries may be approximate
+- Burnt areas do not indicate current fire risk
+
+## What to Do
+
+**If you see a burnt area near you:**
+1. Understand it indicates past fire activity
+2. Be cautious if visiting recently burnt land
+3. Follow local guidance on access and safety
+4. Report any new fires you observe
+
+**If you see fire not on the map:**
+1. The map may not be updated yet
+2. Call 999 if it's uncontrolled
+3. Use the Report feature for awareness
+''';
+
 const _dataSourcesHelpContent = '''
 # Data Sources Explained
 
@@ -563,7 +614,7 @@ FIRMS processes data from:
 
 These sensors are on NASA and NOAA satellites.
 
-**Update frequency**: Multiple times daily as satellites pass over
+**Update frequency**: Multiple (6-8) times daily as satellites pass over
 
 ## Location Data
 
@@ -578,8 +629,9 @@ Used for:
 
 ## Limitations
 
-- Forecast data is a model, not direct measurement
+- Forecast data is a model, not a direct measurement
 - Satellite detection has inherent delays
+- Resolution limits precise location of fires
 - Data may not reflect very recent changes
 - Local conditions can differ from regional forecasts
 
@@ -589,7 +641,6 @@ We gratefully acknowledge:
 - EFFIS/JRC for fire danger data
 - NASA FIRMS for hotspot detection
 - OpenStreetMap contributors for map tiles
-- The Scottish Fire and Rescue Service for guidance
 ''';
 
 const _updateFrequencyContent = '''
@@ -607,8 +658,9 @@ The FWI is a forecast based on weather data, so values don't change minute-by-mi
 
 ## Satellite Hotspots
 
-- **Source updates**: Multiple times daily
+- Updated **multiple times per day** as satellites pass overhead
 - **Typical delay**: 6-24 hours from fire start to appearance
+- Cloud cover or smoke can delay detection
 - **App checks**: When you open the map or refresh
 
 Why the delay?
@@ -616,24 +668,15 @@ Why the delay?
 2. Processing time for thermal imagery
 3. Quality checks before data release
 
-## Map Tiles
-
-- **Background maps**: Cached locally
-- **Updates**: Infrequently (roads, places don't change often)
-- **First load**: May take a moment to download
-
-## App Data Usage
-
-WildFire is designed to be efficient:
-- Minimal data transfer
-- Works well on mobile connections
-- Can function offline with cached data
+### Burnt Areas
+- Updated **after fire containment**
+- Not intended for live monitoring
 
 ## What This Means for You
 
 ### Don't Expect Real-Time
 - The map is not a live video feed
-- A fire could exist that isn't shown yet
+- A live fire could exist that isn't shown yet
 - Use your own observations alongside the app
 
 ### Check Before Activities
