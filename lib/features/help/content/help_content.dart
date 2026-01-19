@@ -73,16 +73,6 @@ class HelpContent {
     content: _howToUseContent,
   );
 
-  /// What the risk levels mean
-  static const riskLevels = HelpDocument(
-    id: 'risk-levels',
-    title: 'What the Risk Levels Mean',
-    description: 'Understanding fire danger levels',
-    icon: Icons.speed_outlined,
-    section: HelpSection.gettingStarted,
-    content: _riskLevelsContent,
-  );
-
   /// When to use this app
   static const whenToUse = HelpDocument(
     id: 'when-to-use',
@@ -105,6 +95,16 @@ class HelpContent {
     icon: Icons.local_fire_department_outlined,
     section: HelpSection.wildfireEducation,
     content: _understandingRiskContent,
+  );
+
+  /// What the risk levels mean
+  static const riskLevels = HelpDocument(
+    id: 'risk-levels',
+    title: 'What the Risk Levels Mean',
+    description: 'Understanding fire danger levels',
+    icon: Icons.speed_outlined,
+    section: HelpSection.wildfireEducation,
+    content: _riskLevelsContent,
   );
 
   /// Weather, fuel, and fire
@@ -219,8 +219,8 @@ class HelpContent {
     howToUse,
     whenToUse,
     // Wildfire Education
-    riskLevels,
     understandingRisk,
+    riskLevels,
     weatherFuelFire,
     seasonalGuidance,
     // Using the Map
@@ -393,7 +393,7 @@ Activities involving flames, sparks, or hot equipment should be approached with 
 - Local terrain, weather, and human activity can cause fire behaviour to differ from general forecasts
 - Always follow official guidance from Scottish Fire and Rescue Service
 
-To understand why risk levels change over time and location, see **Understanding Wildfire Risk**.
+To understand why risk levels change over time and location, see [Understanding Wildfire Risk](/help/doc/understanding-risk).
 
 ''';
 
@@ -421,6 +421,17 @@ FWI considers:
 
 ---
 
+## Why Risk Varies by Location
+
+Wildfire risk can differ significantly even within short distances due to:
+
+- **Vegetation type** — Heather and moorland behave differently from forests
+- **Elevation** — Weather conditions change with altitude
+- **Aspect** — South-facing slopes dry faster than shaded areas
+- **Recent weather** — Days or weeks since meaningful rainfall
+
+---
+
 ## Components of FWI
 
 These components help explain why wildfire risk can remain high even after rain, or rise quickly during warm, windy weather.
@@ -442,17 +453,6 @@ Measures deep soil and large-fuel moisture
 
 ---
 
-## Why Risk Varies by Location
-
-Wildfire risk can differ significantly even within short distances due to:
-
-- **Vegetation type** — Heather and moorland behave differently from forests
-- **Elevation** — Weather conditions change with altitude
-- **Aspect** — South-facing slopes dry faster than shaded areas
-- **Recent weather** — Days or weeks since meaningful rainfall
-
----
-
 ## Limitations
 
 The Fire Weather Index is a guide based on general environmental conditions.
@@ -462,7 +462,7 @@ The Fire Weather Index is a guide based on general environmental conditions.
 - Human activity remains the most common cause of wildfires
 - The presence or absence of restrictions, permits, or fire bans is determined by authorities, not by this app
 
-To see how these conditions translate into risk categories, see **What the Risk Levels Mean**.
+To see how these conditions translate into risk categories, see [What the Risk Levels Mean](/help/doc/risk-levels).
 
 ''';
 

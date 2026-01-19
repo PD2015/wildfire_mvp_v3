@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:wildfire_mvp_v3/features/help/content/help_content.dart';
@@ -40,6 +41,14 @@ class HelpDocumentScreen extends StatelessWidget {
             ),
             p: theme.textTheme.bodyMedium?.copyWith(height: 1.6),
             listBullet: theme.textTheme.bodyMedium?.copyWith(height: 1.6),
+            // Link styling: use primary color for brand consistency
+            // forest600 has 5.2:1 contrast ratio on white (WCAG AA compliant)
+            a: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.primary,
+              decoration: TextDecoration.underline,
+              decorationColor: theme.colorScheme.primary,
+              height: 1.6,
+            ),
             blockquote: theme.textTheme.bodyMedium?.copyWith(
               fontStyle: FontStyle.italic,
               color: theme.colorScheme.onSurfaceVariant,
@@ -56,12 +65,24 @@ class HelpDocumentScreen extends StatelessWidget {
           ),
           onTapLink: (text, href, title) {
             if (href != null) {
-              _launchUrl(href);
+              _handleLink(context, href);
             }
           },
         ),
       ),
     );
+  }
+
+  /// Handles link taps - internal help links via GoRouter, external via url_launcher
+  void _handleLink(BuildContext context, String url) {
+    // Handle internal help document links
+    if (url.startsWith('/help/')) {
+      GoRouter.of(context).push(url);
+      return;
+    }
+
+    // Handle external URLs
+    _launchUrl(url);
   }
 
   Future<void> _launchUrl(String url) async {
