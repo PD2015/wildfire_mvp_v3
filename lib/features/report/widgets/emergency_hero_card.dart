@@ -199,8 +199,7 @@ class EmergencyHeroCard extends StatelessWidget {
           link: true,
           label: 'Learn more about when to call each number',
           child: InkWell(
-            onTap: () =>
-                GoRouter.of(context).push('/help/safety/emergency-guidance'),
+            onTap: () => GoRouter.of(context).push('/help/doc/see-fire-action'),
             borderRadius: BorderRadius.circular(8),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),

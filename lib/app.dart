@@ -249,86 +249,22 @@ class WildFireApp extends StatelessWidget {
         name: 'help',
         builder: (context, state) => const HelpInfoScreen(),
         routes: [
-          // Getting Started section
+          // Dynamic document route - single source of truth
+          // Documents are looked up by ID from HelpContent
           GoRoute(
-            path: 'getting-started/how-to-use',
-            name: 'help-how-to-use',
-            builder: (context, state) =>
-                const HelpDocumentScreen(document: HelpContent.howToUse),
+            path: 'doc/:id',
+            name: 'help-document',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              final document = HelpContent.findById(id);
+              if (document == null) {
+                // Fallback to help hub if document not found
+                return const HelpInfoScreen();
+              }
+              return HelpDocumentScreen(document: document);
+            },
           ),
-          GoRoute(
-            path: 'getting-started/risk-levels',
-            name: 'help-risk-levels',
-            builder: (context, state) =>
-                const HelpDocumentScreen(document: HelpContent.riskLevels),
-          ),
-          GoRoute(
-            path: 'getting-started/when-to-use',
-            name: 'help-when-to-use',
-            builder: (context, state) =>
-                const HelpDocumentScreen(document: HelpContent.whenToUse),
-          ),
-          // Wildfire Education section
-          GoRoute(
-            path: 'wildfire-education/understanding-risk',
-            name: 'help-understanding-risk',
-            builder: (context, state) => const HelpDocumentScreen(
-              document: HelpContent.understandingRisk,
-            ),
-          ),
-          GoRoute(
-            path: 'wildfire-education/weather-fuel-fire',
-            name: 'help-weather-fuel-fire',
-            builder: (context, state) =>
-                const HelpDocumentScreen(document: HelpContent.weatherFuelFire),
-          ),
-          GoRoute(
-            path: 'wildfire-education/seasonal-guidance',
-            name: 'help-seasonal-guidance',
-            builder: (context, state) => const HelpDocumentScreen(
-              document: HelpContent.seasonalGuidance,
-            ),
-          ),
-          // Using the Map section
-          GoRoute(
-            path: 'using-the-map/hotspots',
-            name: 'help-hotspots',
-            builder: (context, state) =>
-                const HelpDocumentScreen(document: HelpContent.hotspots),
-          ),
-          GoRoute(
-            path: 'using-the-map/data-sources',
-            name: 'help-data-sources',
-            builder: (context, state) =>
-                const HelpDocumentScreen(document: HelpContent.dataSourcesHelp),
-          ),
-          GoRoute(
-            path: 'using-the-map/update-frequency',
-            name: 'help-update-frequency',
-            builder: (context, state) =>
-                const HelpDocumentScreen(document: HelpContent.updateFrequency),
-          ),
-          // Safety & Responsibility section
-          GoRoute(
-            path: 'safety/see-fire',
-            name: 'help-see-fire',
-            builder: (context, state) =>
-                const HelpDocumentScreen(document: HelpContent.seeFireAction),
-          ),
-          GoRoute(
-            path: 'safety/limitations',
-            name: 'help-limitations',
-            builder: (context, state) =>
-                const HelpDocumentScreen(document: HelpContent.limitations),
-          ),
-          GoRoute(
-            path: 'safety/emergency-guidance',
-            name: 'help-emergency-guidance',
-            builder: (context, state) => const HelpDocumentScreen(
-              document: HelpContent.emergencyGuidance,
-            ),
-          ),
-          // About section
+          // About section (special screen, not a document)
           GoRoute(
             path: 'about',
             name: 'help-about',
