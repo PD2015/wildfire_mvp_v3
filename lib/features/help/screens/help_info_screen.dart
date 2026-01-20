@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:wildfire_mvp_v3/features/help/content/help_content.dart';
+
 /// Help & Info hub screen providing access to guidance and educational content.
+///
+/// The menu is generated dynamically from [HelpContent], ensuring a single
+/// source of truth for all help documents.
 ///
 /// Sections:
 /// - Getting Started: How to use the app, risk levels, when to use
 /// - Wildfire Education: Understanding risk, weather/fuel, seasonal guidance
-/// - Using the Map: Hotspots, data sources, update frequency
+/// - Using the Map: Hotspots, burnt areas, data sources, update frequency
 /// - Safety & Responsibility: What to do, limitations, emergency guidance
-/// - About: App info and version
+/// - About: App info and version (special screen, not a document)
 ///
 /// Constitutional compliance:
 /// - C3: Accessibility with ≥48dp touch targets and semantic labels
@@ -23,102 +28,22 @@ class HelpInfoScreen extends StatelessWidget {
       body: SafeArea(
         child: ListView(
           children: [
-            // Getting Started section
-            const _SectionHeader(title: 'Getting Started'),
-            _HelpTile(
-              icon: Icons.menu_book_outlined,
-              title: 'How to use WildFire',
-              subtitle: 'Quick guide to app features',
-              onTap: () => context.push('/help/getting-started/how-to-use'),
-            ),
-            _HelpTile(
-              icon: Icons.speed_outlined,
-              title: 'What the risk levels mean',
-              subtitle: 'Understanding fire risk ratings',
-              onTap: () => context.push('/help/getting-started/risk-levels'),
-            ),
-            _HelpTile(
-              icon: Icons.schedule_outlined,
-              title: 'When to use this app',
-              subtitle: 'And when not to rely on it',
-              onTap: () => context.push('/help/getting-started/when-to-use'),
-            ),
+            // Generate sections dynamically from HelpContent
+            for (final section in HelpContent.sections) ...[
+              if (section != HelpSection.gettingStarted) const Divider(),
+              _SectionHeader(title: section.displayName),
+              for (final doc in HelpContent.forSection(section))
+                _HelpTile(
+                  icon: doc.icon,
+                  title: doc.title,
+                  subtitle: doc.description,
+                  onTap: () => context.push('/help/doc/${doc.id}'),
+                ),
+            ],
 
             const Divider(),
 
-            // Wildfire Education section
-            const _SectionHeader(title: 'Wildfire Education'),
-            _HelpTile(
-              icon: Icons.local_fire_department_outlined,
-              title: 'Understanding wildfire risk',
-              subtitle: 'Fire risk factors in Scotland',
-              onTap: () =>
-                  context.push('/help/wildfire-education/understanding-risk'),
-            ),
-            _HelpTile(
-              icon: Icons.thermostat_outlined,
-              title: 'Weather, fuel, and fire',
-              subtitle: 'How conditions affect fire behaviour',
-              onTap: () =>
-                  context.push('/help/wildfire-education/weather-fuel-fire'),
-            ),
-            _HelpTile(
-              icon: Icons.calendar_month_outlined,
-              title: 'Seasonal guidance',
-              subtitle: 'Risk patterns throughout the year',
-              onTap: () =>
-                  context.push('/help/wildfire-education/seasonal-guidance'),
-            ),
-
-            const Divider(),
-
-            // Using the Map section
-            const _SectionHeader(title: 'Using the Map'),
-            _HelpTile(
-              icon: Icons.location_on_outlined,
-              title: 'What hotspots show',
-              subtitle: 'Understanding map markers',
-              onTap: () => context.push('/help/using-the-map/hotspots'),
-            ),
-            _HelpTile(
-              icon: Icons.storage_outlined,
-              title: 'Data sources explained',
-              subtitle: 'Where our data comes from',
-              onTap: () => context.push('/help/using-the-map/data-sources'),
-            ),
-            _HelpTile(
-              icon: Icons.update_outlined,
-              title: 'Update frequency & limits',
-              subtitle: 'How often data refreshes',
-              onTap: () => context.push('/help/using-the-map/update-frequency'),
-            ),
-
-            const Divider(),
-
-            // Safety & Responsibility section
-            const _SectionHeader(title: 'Safety & Responsibility'),
-            _HelpTile(
-              icon: Icons.emergency_outlined,
-              title: 'What to do if you see fire',
-              subtitle: 'Emergency response guidance',
-              onTap: () => context.push('/help/safety/see-fire'),
-            ),
-            _HelpTile(
-              icon: Icons.info_outline,
-              title: 'Important limitations',
-              subtitle: 'What this app cannot do',
-              onTap: () => context.push('/help/safety/limitations'),
-            ),
-            _HelpTile(
-              icon: Icons.phone_outlined,
-              title: 'Emergency contacts',
-              subtitle: 'Who to call in an emergency',
-              onTap: () => context.push('/help/safety/emergency-guidance'),
-            ),
-
-            const Divider(),
-
-            // About section
+            // About section (special screen, not a document)
             const _SectionHeader(title: 'About'),
             _HelpTile(
               icon: Icons.info_outline,
