@@ -1,0 +1,357 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    // ═══════════════════════════════════════════════════════════════
+    // PRE-COMMIT & QUALITY CHECKS
+    // ═══════════════════════════════════════════════════════════════
+    {
+      "label": "🧪 Pre-commit: Full Check",
+      "type": "shell",
+      "command": "dart format . && flutter analyze && flutter test",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": ["$dart-analyze", "$dart-test"]
+    },
+    {
+      "label": "🏛️ Constitutional Gates (C1-C5)",
+      "type": "shell",
+      "command": "./scripts/constitution-gates.sh",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    },
+    {
+      "label": "🔍 Format Check Only",
+      "type": "shell",
+      "command": "dart format --output=none --set-exit-if-changed .",
+      "problemMatcher": []
+    },
+    {
+      "label": "✨ Format Code (Apply)",
+      "type": "shell",
+      "command": "dart format lib/ test/",
+      "problemMatcher": []
+    },
+    {
+      "label": "🔬 Analyze Only",
+      "type": "shell",
+      "command": "flutter analyze --no-fatal-infos",
+      "problemMatcher": ["$dart-analyze"]
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    // TESTING WORKFLOWS
+    // ═══════════════════════════════════════════════════════════════
+    {
+      "label": "🧪 Test: All",
+      "type": "shell",
+      "command": "flutter test --reporter expanded",
+      "group": "test",
+      "problemMatcher": ["$dart-test"]
+    },
+    {
+      "label": "🧪 Test: Unit Only",
+      "type": "shell",
+      "command": "flutter test test/unit/ --reporter expanded",
+      "problemMatcher": ["$dart-test"]
+    },
+    {
+      "label": "🧪 Test: Integration Only",
+      "type": "shell",
+      "command": "flutter test test/integration/ --reporter expanded",
+      "problemMatcher": ["$dart-test"]
+    },
+    {
+      "label": "🧪 Test: Widget Only",
+      "type": "shell",
+      "command": "flutter test test/widget/ --reporter expanded",
+      "problemMatcher": ["$dart-test"]
+    },
+    {
+      "label": "🌐 Test: Web Platform",
+      "type": "shell",
+      "command": "flutter test test/unit/ --platform=chrome && flutter test test/integration/ --platform=chrome",
+      "problemMatcher": ["$dart-test"]
+    },
+    {
+      "label": "📊 Test: With Coverage",
+      "type": "shell",
+      "command": "flutter test --coverage && genhtml coverage/lcov.info -o coverage/html",
+      "problemMatcher": ["$dart-test"]
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    // PLATFORM RUNS (Development)
+    // ═══════════════════════════════════════════════════════════════
+    {
+      "label": "🌐 Run: Web (with API keys)",
+      "type": "shell",
+      "command": "./scripts/run_web.sh",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^.*$",
+          "file": 1,
+          "line": 1,
+          "column": 1,
+          "message": 1
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*Launching.*",
+          "endsPattern": "^.*Application finished.*"
+        }
+      }
+    },
+    {
+      "label": "🍎 Run: macOS (with API keys)",
+      "type": "shell",
+      "command": "flutter run -d macos --dart-define-from-file=env/dev.env.json",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "📱 Run: iOS Simulator (with API keys)",
+      "type": "shell",
+      "command": "./scripts/run_ios.sh",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "🤖 Run: Android Emulator",
+      "type": "shell",
+      "command": "./scripts/run_android.sh",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "📊 DevTools: Start Server",
+      "type": "shell",
+      "command": "dart devtools",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "showReuseMessage": false
+      },
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^.*$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*Starting.*",
+          "endsPattern": "^.*Serving DevTools at.*"
+        }
+      }
+    },
+    {
+      "label": "🌐🔍 Run: Web + DevTools",
+      "dependsOn": [
+        "📊 DevTools: Start Server",
+        "🌐 Run: Web (with API keys)"
+      ],
+      "dependsOrder": "parallel",
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    // BUILD TASKS
+    // ═══════════════════════════════════════════════════════════════
+    {
+      "label": "🔨 Build: Web (CI mode with API key)",
+      "type": "shell",
+      "command": "export MAPS_API_KEY_WEB=$(jq -r .GOOGLE_MAPS_API_KEY_WEB env/dev.env.json) && ./scripts/build_web_ci.sh",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🔨 Build: Web (Release)",
+      "type": "shell",
+      "command": "flutter build web --release --dart-define-from-file=env/dev.env.json",
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🔨 Build: iOS",
+      "type": "shell",
+      "command": "flutter build ios --release --dart-define-from-file=env/dev.env.json",
+      "problemMatcher": []
+    },
+    {
+      "label": "🔨 Build: Android APK",
+      "type": "shell",
+      "command": "flutter build apk --release --dart-define-from-file=env/dev.env.json",
+      "problemMatcher": []
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    // GIT & DEPLOYMENT WORKFLOWS
+    // ═══════════════════════════════════════════════════════════════
+    {
+      "label": "🚀 CI: Check Latest Run",
+      "type": "shell",
+      "command": "gh run list --limit 5 --json databaseId,status,conclusion,headBranch,event,displayTitle",
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🚀 CI: Watch Current Run",
+      "type": "shell",
+      "command": "gh run watch",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "🚀 Deploy: Check Staging Status",
+      "type": "shell",
+      "command": "gh run list --branch=staging --limit 1 && echo '\n🔗 Staging URL: https://wildfire-app-e11f8-staging.web.app'",
+      "problemMatcher": []
+    },
+    {
+      "label": "📦 PR: Create to Staging",
+      "type": "shell",
+      "command": "gh pr create --base staging --title '${input:prTitle}' --body '${input:prBody}'",
+      "problemMatcher": []
+    },
+    {
+      "label": "📦 PR: View Current",
+      "type": "shell",
+      "command": "gh pr view --web",
+      "problemMatcher": []
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    // SECURITY & API KEY CHECKS
+    // ═══════════════════════════════════════════════════════════════
+    {
+      "label": "🔒 Security: Check for Leaked Keys",
+      "type": "shell",
+      "command": "grep -rE 'AIza[A-Za-z0-9_-]{35}' --exclude-dir=node_modules --exclude-dir=build . || echo '✅ No API keys found in code'",
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🔒 Security: Run Gitleaks",
+      "type": "shell",
+      "command": "docker run --rm -v ${workspaceFolder}:/repo zricethezav/gitleaks:latest detect --source=/repo --verbose --no-git",
+      "problemMatcher": []
+    },
+    {
+      "label": "🔑 Verify: Environment Files",
+      "type": "shell",
+      "command": "test -f env/dev.env.json && echo '✅ dev.env.json exists' || echo '❌ Missing env/dev.env.json'; test -f env/prod.env.json && echo '✅ prod.env.json exists' || echo '⚠️  Missing env/prod.env.json (optional for local dev)'",
+      "problemMatcher": []
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    // PROJECT MAINTENANCE
+    // ═══════════════════════════════════════════════════════════════
+    {
+      "label": "🧹 Clean: Build Artifacts",
+      "type": "shell",
+      "command": "flutter clean && flutter pub get",
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "📚 Docs: Health Check",
+      "type": "shell",
+      "command": "./scripts/docs-health-check.sh",
+      "problemMatcher": []
+    },
+    {
+      "label": "🎨 Color Guard: Verify No Ad-Hoc Colors",
+      "type": "shell",
+      "command": "./scripts/verify_no_adhoc_colors.sh",
+      "problemMatcher": []
+    },
+    {
+      "label": "📦 Dependencies: Update",
+      "type": "shell",
+      "command": "flutter pub upgrade && flutter pub outdated",
+      "problemMatcher": []
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    // FEATURE DEVELOPMENT (Spec-Driven)
+    // ═══════════════════════════════════════════════════════════════
+    {
+      "label": "📝 Feature: Update Agent Context",
+      "type": "shell",
+      "command": ".specify/scripts/bash/update-agent-context.sh copilot",
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "📝 Feature: Check Prerequisites",
+      "type": "shell",
+      "command": ".specify/scripts/bash/check-prerequisites.sh",
+      "problemMatcher": []
+    },
+
+    // ═══════════════════════════════════════════════════════════════
+    // COMPOSITE WORKFLOWS (chains multiple tasks)
+    // ═══════════════════════════════════════════════════════════════
+    {
+      "label": "🚀 Deploy Prep: Full Pipeline",
+      "dependsOn": [
+        "🧪 Pre-commit: Full Check",
+        "🔒 Security: Check for Leaked Keys",
+        "🔨 Build: Web (CI mode with API key)"
+      ],
+      "dependsOrder": "sequence",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    }
+  ],
+
+  // ═══════════════════════════════════════════════════════════════
+  // INPUT PROMPTS (for interactive tasks)
+  // ═══════════════════════════════════════════════════════════════
+  "inputs": [
+    {
+      "id": "prTitle",
+      "type": "promptString",
+      "description": "Pull Request Title",
+      "default": "feat: "
+    },
+    {
+      "id": "prBody",
+      "type": "promptString",
+      "description": "Pull Request Description",
+      "default": "Description of changes"
+    }
+  ]
+}
