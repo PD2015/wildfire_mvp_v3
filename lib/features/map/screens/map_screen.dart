@@ -23,9 +23,13 @@ import 'package:wildfire_mvp_v3/models/hotspot.dart';
 import 'package:wildfire_mvp_v3/models/hotspot_cluster.dart';
 import 'package:wildfire_mvp_v3/models/burnt_area.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
+import 'package:wildfire_mvp_v3/models/location_models.dart' as models;
 import 'package:wildfire_mvp_v3/utils/debounced_viewport_loader.dart';
 import 'package:wildfire_mvp_v3/widgets/app_bar_actions.dart';
 import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet.dart';
+import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet_v2.dart';
+import 'package:wildfire_mvp_v3/config/feature_flags.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Map screen with Google Maps integration showing active fire incidents
 ///
@@ -436,6 +440,9 @@ class _MapScreenState extends State<MapScreen> {
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
+  /// SharedPreferences key for tracking first-use tip
+  static const _firstMarkerTapKey = 'has_tapped_fire_marker';
+
   /// Show hotspot details in bottom sheet using native Hotspot data
   void _showHotspotDetails(Hotspot hotspot) {
     setState(() {
@@ -444,6 +451,7 @@ class _MapScreenState extends State<MapScreen> {
       _selectedIncident = null; // Clear legacy field
       _isBottomSheetVisible = true;
     });
+    _showFirstUseTipIfNeeded();
   }
 
   /// Show burnt area details in bottom sheet using native BurntArea data
@@ -454,6 +462,49 @@ class _MapScreenState extends State<MapScreen> {
       _selectedIncident = null; // Clear legacy field
       _isBottomSheetVisible = true;
     });
+    _showFirstUseTipIfNeeded();
+  }
+
+  /// Show first-use tip snackbar (only once per install)
+  Future<void> _showFirstUseTipIfNeeded() async {
+    // Only show tip when using V2 bottom sheet
+    if (!FeatureFlags.useBottomSheetV2) return;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final hasSeenTip = prefs.getBool(_firstMarkerTapKey) ?? false;
+
+      if (!hasSeenTip && mounted) {
+        // Mark as seen immediately to prevent duplicates
+        await prefs.setBool(_firstMarkerTapKey, true);
+
+        // Show tip after a short delay to let bottom sheet animate
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.lightbulb_outline, color: Colors.white, size: 20),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                        'Tap "Learn More" to understand what you\'re seeing'),
+                  ),
+                ],
+              ),
+              duration: Duration(seconds: 4),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.fromLTRB(16, 16, 16, 80), // Above bottom sheet
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Silently fail - tip is not critical
+      debugPrint('⚠️ Failed to check first-use tip: $e');
+    }
   }
 
   /// Format intensity for user-friendly display
@@ -498,6 +549,52 @@ class _MapScreenState extends State<MapScreen> {
       });
     }
 
+    // Use V2 or V1 based on feature flag
+    if (FeatureFlags.useBottomSheetV2) {
+      return _buildBottomSheetV2(userLocation, closeSheet);
+    } else {
+      return _buildBottomSheetV1(userLocation, closeSheet);
+    }
+  }
+
+  /// Build V2 bottom sheet (improved UX)
+  Widget _buildBottomSheetV2(
+      models.LatLng? userLocation, VoidCallback closeSheet) {
+    // Hotspot selected
+    if (_selectedHotspot != null) {
+      return FireDetailsBottomSheetV2.fromHotspot(
+        hotspot: _selectedHotspot!,
+        userLocation: userLocation,
+        onClose: closeSheet,
+        freshness: _controller.dataFreshness,
+      );
+    }
+
+    // BurntArea selected
+    if (_selectedBurntArea != null) {
+      return FireDetailsBottomSheetV2.fromBurntArea(
+        burntArea: _selectedBurntArea!,
+        userLocation: userLocation,
+        onClose: closeSheet,
+        freshness: _controller.dataFreshness,
+      );
+    }
+
+    // Legacy FireIncident fallback
+    if (_selectedIncident != null) {
+      return FireDetailsBottomSheetV2(
+        incident: _selectedIncident!,
+        userLocation: userLocation,
+        onClose: closeSheet,
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  /// Build V1 bottom sheet (original)
+  Widget _buildBottomSheetV1(
+      models.LatLng? userLocation, VoidCallback closeSheet) {
     // Hotspot selected - use native Hotspot display
     if (_selectedHotspot != null) {
       return FireDetailsBottomSheet.fromHotspot(
