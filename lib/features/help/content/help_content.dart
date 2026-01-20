@@ -66,7 +66,7 @@ class HelpContent {
   /// How to use WildFire app
   static const howToUse = HelpDocument(
     id: 'how-to-use',
-    title: 'How to Use WildFire',
+    title: 'How to Use the WildFire App',
     description: 'Getting started with the app',
     icon: Icons.menu_book_outlined,
     section: HelpSection.gettingStarted,
@@ -257,7 +257,7 @@ class HelpContent {
 // ─────────────────────────────────────────────────────────────
 
 const _howToUseContent = '''
-# How to Use WildFire
+# How to Use the WildFire App
 
 WildFire helps you stay informed about wildfire risk in Scotland. Here's how to get started:
 
