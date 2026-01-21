@@ -150,25 +150,4 @@ class FeatureFlags {
     if (googleMapsApiKeyWeb.isNotEmpty) return googleMapsApiKeyWeb;
     return '';
   }
-
-  /// Use V2 Fire Details Bottom Sheet (improved UX)
-  ///
-  /// When true: Uses FireDetailsBottomSheetV2 with:
-  /// - Dynamic header based on data type
-  /// - Summary card with key info
-  /// - Plain language descriptions
-  /// - Progressive disclosure (land cover hidden by default)
-  /// - "Learn More" links to help docs
-  ///
-  /// When false: Uses original FireDetailsBottomSheet
-  ///
-  /// Usage:
-  /// ```bash
-  /// flutter run --dart-define=USE_BOTTOM_SHEET_V2=true
-  /// flutter run --dart-define-from-file=env/dev.env.json
-  /// ```
-  static const bool useBottomSheetV2 = bool.fromEnvironment(
-    'USE_BOTTOM_SHEET_V2',
-    defaultValue: false, // Default false until V2 is validated
-  );
 }

@@ -23,12 +23,9 @@ import 'package:wildfire_mvp_v3/models/hotspot.dart';
 import 'package:wildfire_mvp_v3/models/hotspot_cluster.dart';
 import 'package:wildfire_mvp_v3/models/burnt_area.dart';
 import 'package:wildfire_mvp_v3/models/map_state.dart';
-import 'package:wildfire_mvp_v3/models/location_models.dart' as models;
 import 'package:wildfire_mvp_v3/utils/debounced_viewport_loader.dart';
 import 'package:wildfire_mvp_v3/widgets/app_bar_actions.dart';
 import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet.dart';
-import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet_v2.dart';
-import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Map screen with Google Maps integration showing active fire incidents
@@ -467,9 +464,6 @@ class _MapScreenState extends State<MapScreen> {
 
   /// Show first-use tip snackbar (only once per install)
   Future<void> _showFirstUseTipIfNeeded() async {
-    // Only show tip when using V2 bottom sheet
-    if (!FeatureFlags.useBottomSheetV2) return;
-
     try {
       final prefs = await SharedPreferences.getInstance();
       final hasSeenTip = prefs.getBool(_firstMarkerTapKey) ?? false;
@@ -539,6 +533,7 @@ class _MapScreenState extends State<MapScreen> {
   /// Build the appropriate bottom sheet based on selected data type
   Widget _buildBottomSheet() {
     final userLocation = _controller.userGpsLocation;
+    final isManualLocation = _controller.isManualLocation;
 
     void closeSheet() {
       setState(() {
@@ -549,22 +544,9 @@ class _MapScreenState extends State<MapScreen> {
       });
     }
 
-    // Use V2 or V1 based on feature flag
-    if (FeatureFlags.useBottomSheetV2) {
-      return _buildBottomSheetV2(userLocation, closeSheet);
-    } else {
-      return _buildBottomSheetV1(userLocation, closeSheet);
-    }
-  }
-
-  /// Build V2 bottom sheet (improved UX)
-  Widget _buildBottomSheetV2(
-      models.LatLng? userLocation, VoidCallback closeSheet) {
-    final isManualLocation = _controller.isManualLocation;
-
     // Hotspot selected
     if (_selectedHotspot != null) {
-      return FireDetailsBottomSheetV2.fromHotspot(
+      return FireDetailsBottomSheet.fromHotspot(
         hotspot: _selectedHotspot!,
         userLocation: userLocation,
         onClose: closeSheet,
@@ -575,48 +557,12 @@ class _MapScreenState extends State<MapScreen> {
 
     // BurntArea selected
     if (_selectedBurntArea != null) {
-      return FireDetailsBottomSheetV2.fromBurntArea(
-        burntArea: _selectedBurntArea!,
-        userLocation: userLocation,
-        onClose: closeSheet,
-        freshness: _controller.dataFreshness,
-        isManualLocation: isManualLocation,
-      );
-    }
-
-    // Legacy FireIncident fallback
-    if (_selectedIncident != null) {
-      return FireDetailsBottomSheetV2(
-        incident: _selectedIncident!,
-        userLocation: userLocation,
-        onClose: closeSheet,
-        isManualLocation: isManualLocation,
-      );
-    }
-
-    return const SizedBox.shrink();
-  }
-
-  /// Build V1 bottom sheet (original)
-  Widget _buildBottomSheetV1(
-      models.LatLng? userLocation, VoidCallback closeSheet) {
-    // Hotspot selected - use native Hotspot display
-    if (_selectedHotspot != null) {
-      return FireDetailsBottomSheet.fromHotspot(
-        hotspot: _selectedHotspot!,
-        userLocation: userLocation,
-        onClose: closeSheet,
-        freshness: _controller.dataFreshness,
-      );
-    }
-
-    // BurntArea selected - use native BurntArea display
-    if (_selectedBurntArea != null) {
       return FireDetailsBottomSheet.fromBurntArea(
         burntArea: _selectedBurntArea!,
         userLocation: userLocation,
         onClose: closeSheet,
         freshness: _controller.dataFreshness,
+        isManualLocation: isManualLocation,
       );
     }
 
@@ -626,10 +572,10 @@ class _MapScreenState extends State<MapScreen> {
         incident: _selectedIncident!,
         userLocation: userLocation,
         onClose: closeSheet,
+        isManualLocation: isManualLocation,
       );
     }
 
-    // Should never reach here due to condition in build()
     return const SizedBox.shrink();
   }
 
