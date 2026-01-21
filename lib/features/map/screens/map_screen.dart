@@ -26,6 +26,7 @@ import 'package:wildfire_mvp_v3/models/map_state.dart';
 import 'package:wildfire_mvp_v3/utils/debounced_viewport_loader.dart';
 import 'package:wildfire_mvp_v3/widgets/app_bar_actions.dart';
 import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Map screen with Google Maps integration showing active fire incidents
 ///
@@ -436,6 +437,9 @@ class _MapScreenState extends State<MapScreen> {
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
+  /// SharedPreferences key for tracking first-use tip
+  static const _firstMarkerTapKey = 'has_tapped_fire_marker';
+
   /// Show hotspot details in bottom sheet using native Hotspot data
   void _showHotspotDetails(Hotspot hotspot) {
     setState(() {
@@ -444,6 +448,7 @@ class _MapScreenState extends State<MapScreen> {
       _selectedIncident = null; // Clear legacy field
       _isBottomSheetVisible = true;
     });
+    _showFirstUseTipIfNeeded();
   }
 
   /// Show burnt area details in bottom sheet using native BurntArea data
@@ -454,6 +459,46 @@ class _MapScreenState extends State<MapScreen> {
       _selectedIncident = null; // Clear legacy field
       _isBottomSheetVisible = true;
     });
+    _showFirstUseTipIfNeeded();
+  }
+
+  /// Show first-use tip snackbar (only once per install)
+  Future<void> _showFirstUseTipIfNeeded() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final hasSeenTip = prefs.getBool(_firstMarkerTapKey) ?? false;
+
+      if (!hasSeenTip && mounted) {
+        // Mark as seen immediately to prevent duplicates
+        await prefs.setBool(_firstMarkerTapKey, true);
+
+        // Show tip after a short delay to let bottom sheet animate
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.lightbulb_outline, color: Colors.white, size: 20),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                        'Tap "Learn More" to understand what you\'re seeing'),
+                  ),
+                ],
+              ),
+              duration: Duration(seconds: 4),
+              behavior: SnackBarBehavior.floating,
+              margin: EdgeInsets.fromLTRB(16, 16, 16, 80), // Above bottom sheet
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Silently fail - tip is not critical
+      debugPrint('⚠️ Failed to check first-use tip: $e');
+    }
   }
 
   /// Format intensity for user-friendly display
@@ -488,6 +533,7 @@ class _MapScreenState extends State<MapScreen> {
   /// Build the appropriate bottom sheet based on selected data type
   Widget _buildBottomSheet() {
     final userLocation = _controller.userGpsLocation;
+    final isManualLocation = _controller.isManualLocation;
 
     void closeSheet() {
       setState(() {
@@ -498,23 +544,25 @@ class _MapScreenState extends State<MapScreen> {
       });
     }
 
-    // Hotspot selected - use native Hotspot display
+    // Hotspot selected
     if (_selectedHotspot != null) {
       return FireDetailsBottomSheet.fromHotspot(
         hotspot: _selectedHotspot!,
         userLocation: userLocation,
         onClose: closeSheet,
         freshness: _controller.dataFreshness,
+        isManualLocation: isManualLocation,
       );
     }
 
-    // BurntArea selected - use native BurntArea display
+    // BurntArea selected
     if (_selectedBurntArea != null) {
       return FireDetailsBottomSheet.fromBurntArea(
         burntArea: _selectedBurntArea!,
         userLocation: userLocation,
         onClose: closeSheet,
         freshness: _controller.dataFreshness,
+        isManualLocation: isManualLocation,
       );
     }
 
@@ -524,10 +572,10 @@ class _MapScreenState extends State<MapScreen> {
         incident: _selectedIncident!,
         userLocation: userLocation,
         onClose: closeSheet,
+        isManualLocation: isManualLocation,
       );
     }
 
-    // Should never reach here due to condition in build()
     return const SizedBox.shrink();
   }
 

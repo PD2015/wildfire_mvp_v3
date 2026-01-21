@@ -38,17 +38,16 @@ void main() {
 
         // Verify loading indicator present
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
-        expect(find.text('Loading fire details...'), findsOneWidget);
+        expect(find.text('Loading details...'), findsOneWidget);
 
         // Verify loading semantic label
         expect(
-          find.bySemanticsLabel('Loading fire incident details'),
+          find.bySemanticsLabel('Loading fire details'),
           findsOneWidget,
         );
 
-        // Should not show incident data
-        expect(find.text('Fire Incident Details'), findsOneWidget); // Header
-        expect(find.text('Location'), findsNothing); // Sections
+        // Should not show incident data (V2 uses Key metrics)
+        expect(find.text('Key metrics'), findsNothing);
       });
 
       testWidgets('displays error state correctly', (tester) async {
@@ -70,7 +69,7 @@ void main() {
 
         // Verify error icon and message
         expect(find.byIcon(Icons.error_outline), findsOneWidget);
-        expect(find.text('Failed to Load Fire Details'), findsOneWidget);
+        expect(find.text('Failed to Load Details'), findsOneWidget);
         expect(find.text(errorMsg), findsOneWidget);
 
         // Verify retry button exists (text and icon visible)
@@ -98,10 +97,8 @@ void main() {
         expect(find.byType(CircularProgressIndicator), findsNothing);
         expect(find.byIcon(Icons.error_outline), findsNothing);
 
-        // Verify sections are present
-        expect(find.text('Location'), findsOneWidget);
-        expect(find.text('Fire characteristics'), findsOneWidget);
-        expect(find.text('Detection & source'), findsOneWidget);
+        // Verify V2 Key metrics section is present
+        expect(find.text('Key metrics'), findsOneWidget);
       });
     });
 
@@ -206,8 +203,9 @@ void main() {
       });
     });
 
-    group('_InfoSection Styling', () {
-      testWidgets('sections have correct container styling in light theme', (
+    group('Key Metrics Styling', () {
+      testWidgets(
+          'key metrics section has correct container styling in light theme', (
         tester,
       ) async {
         await tester.pumpWidget(
@@ -225,11 +223,11 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Find Location section container
-        final locationSection = find.text('Location');
-        expect(locationSection, findsOneWidget);
+        // Find Key metrics section
+        final metricsSection = find.text('Key metrics');
+        expect(metricsSection, findsOneWidget);
 
-        // Verify containers exist for each section
+        // Verify containers exist
         final containers = find.descendant(
           of: find.byType(SingleChildScrollView),
           matching: find.byType(Container),
@@ -240,7 +238,8 @@ void main() {
         // (verified via visual inspection and dark theme test)
       });
 
-      testWidgets('sections have correct container styling in dark theme', (
+      testWidgets(
+          'key metrics section has correct container styling in dark theme', (
         tester,
       ) async {
         await tester.pumpWidget(
@@ -258,15 +257,15 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Verify sections exist
-        expect(find.text('Location'), findsOneWidget);
-        expect(find.text('Fire characteristics'), findsOneWidget);
+        // Verify Key metrics section exists
+        expect(find.text('Key metrics'), findsOneWidget);
 
         // Dark theme should use surfaceContainerHigh
         // (verified via code inspection and visual testing)
       });
 
-      testWidgets('sections have border radius and border', (tester) async {
+      testWidgets('key metrics section has border radius and border',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -281,17 +280,15 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Verify section structure exists
-        expect(find.text('Location'), findsOneWidget);
-        expect(find.text('Fire characteristics'), findsOneWidget);
-        expect(find.text('Detection & source'), findsOneWidget);
+        // Verify Key metrics section exists
+        expect(find.text('Key metrics'), findsOneWidget);
 
         // Border radius and border are verified via code inspection:
         // - BorderRadius.circular(12)
         // - Border.all(color: cs.outlineVariant)
       });
 
-      testWidgets('section titles have correct typography', (tester) async {
+      testWidgets('key metrics title has correct typography', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -306,17 +303,15 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Verify section titles exist
-        expect(find.text('Location'), findsOneWidget);
-        expect(find.text('Fire characteristics'), findsOneWidget);
-        expect(find.text('Detection & source'), findsOneWidget);
+        // Verify Key metrics section title exists
+        expect(find.text('Key metrics'), findsOneWidget);
 
         // Typography verified via code inspection:
         // - titleSmall with fontWeight w600
         // - color: onSurfaceVariant
       });
 
-      testWidgets('section icons are displayed', (tester) async {
+      testWidgets('key metrics icons are displayed', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -331,13 +326,11 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Verify section icons
-        expect(find.byIcon(Icons.place_outlined), findsOneWidget);
-        expect(
-          find.byIcon(Icons.local_fire_department_outlined),
-          findsOneWidget,
-        );
+        // Verify V2 uses bar_chart icon for Key metrics section
+        expect(find.byIcon(Icons.bar_chart), findsOneWidget);
+        // Verify common row icons
         expect(find.byIcon(Icons.access_time), findsWidgets); // Multiple uses
+        expect(find.byIcon(Icons.location_on), findsOneWidget);
       });
     });
 
@@ -357,10 +350,9 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Verify labels exist
-        expect(find.text('Your location'), findsOneWidget);
+        // V2 Key metrics labels
         expect(find.text('Fire coordinates'), findsOneWidget);
-        expect(find.text('Fire ID'), findsOneWidget);
+        expect(find.text('When detected'), findsOneWidget);
 
         // Label styling verified via code inspection:
         // - bodySmall with fontWeight w500, fontSize 13
@@ -382,10 +374,9 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Verify values exist
-        expect(find.text('TEST001'), findsOneWidget); // Fire ID
-        expect(find.textContaining('hectares'), findsOneWidget); // Area
-        expect(find.textContaining('MW'), findsOneWidget); // FRP
+        // V2 Key metrics values - Fire ID is in More Details section
+        // Check for coordinates format instead
+        expect(find.textContaining('55.'), findsWidgets); // Coordinates
 
         // Value styling verified via code inspection:
         // - bodyMedium with fontWeight w600, fontSize 15
@@ -393,7 +384,7 @@ void main() {
     });
 
     group('Content Display', () {
-      testWidgets('shows all fire characteristics fields', (tester) async {
+      testWidgets('shows hotspot key metrics fields', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -410,17 +401,12 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Fire characteristics section
-        expect(find.text('Fire ID'), findsOneWidget);
-        expect(find.text('TEST001'), findsOneWidget);
-        expect(find.text('Estimated burned area'), findsOneWidget);
-        expect(find.text('2.5 hectares (ha)'), findsOneWidget);
-        expect(find.text('Fire power (FRP)'), findsOneWidget);
-        expect(find.text('121 MW'), findsOneWidget); // FRP value (rounded)
+        // V2 Key metrics section uses different labels
+        expect(find.text('Key metrics'), findsOneWidget);
+        expect(find.text('Fire coordinates'), findsOneWidget);
+        expect(find.text('When detected'), findsOneWidget);
+        // V2 uses 'Fire intensity' for hotspot
         expect(find.text('Fire intensity'), findsOneWidget);
-        expect(find.text('Moderate'), findsOneWidget);
-        expect(find.text('Detection confidence'), findsOneWidget);
-        expect(find.text('85%'), findsOneWidget);
       });
 
       testWidgets('shows location fields with GPS available', (tester) async {
@@ -438,15 +424,12 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Location section
-        expect(find.text('Your location'), findsOneWidget);
-        expect(find.textContaining('(GPS)'), findsOneWidget);
-        expect(find.text('Distance & direction'), findsOneWidget);
-        expect(find.textContaining('from your location'), findsOneWidget);
+        // V2 Key metrics section fields
+        expect(find.text('Distance from your location'), findsOneWidget);
         expect(find.text('Fire coordinates'), findsOneWidget);
       });
 
-      testWidgets('shows GPS unavailable messages when no user location', (
+      testWidgets('omits distance row when no user location', (
         tester,
       ) async {
         await tester.pumpWidget(
@@ -463,12 +446,13 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Verify GPS unavailable messages
-        expect(find.text('Unknown (GPS unavailable)'), findsOneWidget);
-        expect(find.text('Unable to calculate (GPS required)'), findsOneWidget);
+        // V2 simply omits the distance row when no location available
+        expect(find.text('Distance from your location'), findsNothing);
+        // But fire coordinates are always shown
+        expect(find.text('Fire coordinates'), findsOneWidget);
       });
 
-      testWidgets('shows detection and source fields', (tester) async {
+      testWidgets('shows More details expandable section', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -483,13 +467,9 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Detection & source section
-        expect(find.text('Detected'), findsOneWidget);
-        expect(find.text('Data source'), findsOneWidget);
-        expect(find.text('EFFIS'), findsOneWidget);
-        expect(find.text('Sensor'), findsOneWidget);
-        expect(find.text('VIIRS'), findsOneWidget);
-        expect(find.text('Last updated'), findsOneWidget);
+        // V2 has More details expandable section
+        expect(find.text('More details'), findsOneWidget);
+        // The section is collapsed by default - Data source/Sensor inside
       });
 
       testWidgets('shows MapSourceChip for data freshness', (tester) async {
@@ -526,9 +506,9 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Verify safety warning
-        expect(find.textContaining('call 999 without delay'), findsOneWidget);
-        expect(find.textContaining('satellite detections'), findsOneWidget);
+        // Verify safety warning (V2 simplified text)
+        expect(find.textContaining('call 999'), findsOneWidget);
+        expect(find.textContaining('Satellite data'), findsOneWidget);
       });
     });
 
@@ -573,17 +553,15 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Verify semantic labels exist (checking for presence, not exact count)
-        final gpsLabel = find.bySemanticsLabel(RegExp('Your GPS location.*'));
-        expect(gpsLabel, findsWidgets);
+        // V2 uses semantic labels in format 'label: value' for Key metrics rows
+        // Check for any semantics containing 'coordinates' (Fire coordinates: ...)
+        final coordinatesLabel =
+            find.bySemanticsLabel(RegExp('Fire coordinates.*'));
+        expect(coordinatesLabel, findsWidgets);
 
-        final fireIdLabel = find.bySemanticsLabel(RegExp('Fire ID.*'));
-        expect(fireIdLabel, findsWidgets);
-
-        final confidenceLabel = find.bySemanticsLabel(
-          RegExp('Detection confidence.*'),
-        );
-        expect(confidenceLabel, findsWidgets);
+        final whenDetectedLabel =
+            find.bySemanticsLabel(RegExp('When detected.*'));
+        expect(whenDetectedLabel, findsWidgets);
       });
 
       testWidgets('close button has semantic button label', (tester) async {
@@ -601,8 +579,8 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Verify close button semantic label
-        expect(find.bySemanticsLabel('Close fire details'), findsOneWidget);
+        // Verify close button semantic label (V2 uses 'Close details')
+        expect(find.bySemanticsLabel('Close details'), findsOneWidget);
       });
     });
 
@@ -715,16 +693,16 @@ void main() {
           find.byType(DraggableScrollableSheet),
         );
 
-        expect(sheet.initialChildSize, 0.4);
+        expect(sheet.initialChildSize, 0.45); // V2 uses 0.45
         expect(sheet.minChildSize, 0.2);
-        expect(sheet.maxChildSize, 0.8);
+        expect(sheet.maxChildSize, 0.85); // V2 uses 0.85
         expect(sheet.expand, isFalse);
       });
     });
 
     group('Functional Behavior', () {
       group('GPS Location Handling', () {
-        testWidgets('shows GPS coordinates when user location available', (
+        testWidgets('shows distance when user location available', (
           tester,
         ) async {
           await tester.pumpWidget(
@@ -741,18 +719,14 @@ void main() {
 
           await tester.pumpAndSettle();
 
-          // Should show GPS coordinates
-          expect(find.textContaining('55.95, -3.19'), findsOneWidget);
-          expect(find.textContaining('(GPS)'), findsOneWidget);
+          // V2 shows distance row when GPS available
+          expect(find.text('Distance from your location'), findsOneWidget);
 
-          // Should show distance calculation
-          expect(find.textContaining('from your location'), findsOneWidget);
-
-          // Should show GPS icon
-          expect(find.byIcon(Icons.gps_fixed), findsOneWidget);
+          // V2 shows fire coordinates with 4 decimal places
+          expect(find.text('Fire coordinates'), findsOneWidget);
         });
 
-        testWidgets('shows unknown when user location unavailable', (
+        testWidgets('omits distance row when user location unavailable', (
           tester,
         ) async {
           await tester.pumpWidget(
@@ -769,17 +743,11 @@ void main() {
 
           await tester.pumpAndSettle();
 
-          // Should show "Unknown" message
-          expect(find.text('Unknown (GPS unavailable)'), findsOneWidget);
+          // V2 simply omits the distance row when no GPS
+          expect(find.text('Distance from your location'), findsNothing);
 
-          // Should show GPS off icon
-          expect(find.byIcon(Icons.gps_off), findsOneWidget);
-
-          // Should not show distance calculation
-          expect(
-            find.text('Unable to calculate (GPS required)'),
-            findsOneWidget,
-          );
+          // Fire coordinates are always shown
+          expect(find.text('Fire coordinates'), findsOneWidget);
         });
 
         testWidgets('displays distance and direction when GPS available', (
@@ -914,16 +882,18 @@ void main() {
         });
       });
 
-      group('Time Format Display', () {
-        testWidgets('formats time as "Today at HH:MM AM/PM UTC" for today', (
+      group('Time Format Display (V2)', () {
+        testWidgets('formats recent time as relative with UK time', (
           tester,
         ) async {
-          final todayIncident = FireIncident(
-            id: 'TODAY001',
+          final recentIncident = FireIncident(
+            id: 'RECENT001',
             location: const LatLng(55.95, -3.19),
             intensity: 'moderate',
-            timestamp: DateTime.now().toUtc(),
-            detectedAt: DateTime.now().toUtc(),
+            timestamp:
+                DateTime.now().toUtc().subtract(const Duration(minutes: 30)),
+            detectedAt:
+                DateTime.now().toUtc().subtract(const Duration(minutes: 30)),
             source: DataSource.effis,
             freshness: Freshness.live,
           );
@@ -932,7 +902,7 @@ void main() {
             MaterialApp(
               home: Scaffold(
                 body: FireDetailsBottomSheet(
-                  incident: todayIncident,
+                  incident: recentIncident,
                   userLocation: testUserLocation,
                   onClose: () {},
                 ),
@@ -942,118 +912,21 @@ void main() {
 
           await tester.pumpAndSettle();
 
-          // Should show "Today at" format
-          expect(find.textContaining('Today at'), findsOneWidget);
-          expect(find.textContaining('UTC'), findsWidgets);
+          // V2 format: "X minutes ago (HH:MM UK time)"
+          expect(find.textContaining('ago'), findsWidgets);
+          expect(find.textContaining('UK time'), findsWidgets);
         });
 
-        testWidgets(
-          'formats time as "Yesterday at HH:MM AM/PM UTC" for yesterday',
-          (tester) async {
-            final yesterdayIncident = FireIncident(
-              id: 'YESTERDAY001',
-              location: const LatLng(55.95, -3.19),
-              intensity: 'high',
-              timestamp: DateTime.now().toUtc().subtract(
-                    const Duration(days: 1),
-                  ),
-              detectedAt: DateTime.now().toUtc().subtract(
-                    const Duration(days: 1),
-                  ),
-              source: DataSource.effis,
-              freshness: Freshness.live,
-            );
-
-            await tester.pumpWidget(
-              MaterialApp(
-                home: Scaffold(
-                  body: FireDetailsBottomSheet(
-                    incident: yesterdayIncident,
-                    userLocation: testUserLocation,
-                    onClose: () {},
-                  ),
-                ),
-              ),
-            );
-
-            await tester.pumpAndSettle();
-
-            // Should show "Yesterday at" format
-            expect(find.textContaining('Yesterday at'), findsOneWidget);
-            expect(find.textContaining('UTC'), findsWidgets);
-          },
-        );
-
-        testWidgets(
-          'formats time as "DD MMM at HH:MM AM/PM UTC" for older dates',
-          (tester) async {
-            final olderIncident = FireIncident(
-              id: 'OLD001',
-              location: const LatLng(55.95, -3.19),
-              intensity: 'low',
-              timestamp: DateTime(2025, 11, 20, 10, 30).toUtc(),
-              detectedAt: DateTime(2025, 11, 20, 10, 30).toUtc(),
-              source: DataSource.effis,
-              freshness: Freshness.cached,
-            );
-
-            await tester.pumpWidget(
-              MaterialApp(
-                home: Scaffold(
-                  body: FireDetailsBottomSheet(
-                    incident: olderIncident,
-                    userLocation: testUserLocation,
-                    onClose: () {},
-                  ),
-                ),
-              ),
-            );
-
-            await tester.pumpAndSettle();
-
-            // Should show date format with month name
-            expect(find.textContaining('20 Nov'), findsOneWidget);
-            expect(find.textContaining('UTC'), findsWidgets);
-          },
-        );
-
-        testWidgets('uses 12-hour format with AM/PM', (tester) async {
-          final afternoonIncident = FireIncident(
-            id: 'PM001',
-            location: const LatLng(55.95, -3.19),
-            intensity: 'moderate',
-            timestamp: DateTime(2025, 11, 26, 14, 30).toUtc(), // 2:30 PM
-            detectedAt: DateTime(2025, 11, 26, 14, 30).toUtc(),
-            source: DataSource.effis,
-            freshness: Freshness.live,
-          );
-
-          await tester.pumpWidget(
-            MaterialApp(
-              home: Scaffold(
-                body: FireDetailsBottomSheet(
-                  incident: afternoonIncident,
-                  userLocation: testUserLocation,
-                  onClose: () {},
-                ),
-              ),
-            ),
-          );
-
-          await tester.pumpAndSettle();
-
-          // Should show 12-hour format with PM
-          expect(find.textContaining('2:30 PM'), findsOneWidget);
-        });
-
-        testWidgets('shows last updated time when available', (tester) async {
-          final incidentWithUpdate = FireIncident(
-            id: 'UPDATE001',
+        testWidgets('formats yesterday as days ago with UK time', (
+          tester,
+        ) async {
+          final yesterdayIncident = FireIncident(
+            id: 'YESTERDAY001',
             location: const LatLng(55.95, -3.19),
             intensity: 'high',
-            timestamp: DateTime(2025, 11, 26, 10, 0).toUtc(),
-            detectedAt: DateTime(2025, 11, 26, 10, 0).toUtc(),
-            lastUpdate: DateTime(2025, 11, 26, 15, 0).toUtc(),
+            timestamp: DateTime.now().toUtc().subtract(const Duration(days: 1)),
+            detectedAt:
+                DateTime.now().toUtc().subtract(const Duration(days: 1)),
             source: DataSource.effis,
             freshness: Freshness.live,
           );
@@ -1062,7 +935,7 @@ void main() {
             MaterialApp(
               home: Scaffold(
                 body: FireDetailsBottomSheet(
-                  incident: incidentWithUpdate,
+                  incident: yesterdayIncident,
                   userLocation: testUserLocation,
                   onClose: () {},
                 ),
@@ -1072,14 +945,43 @@ void main() {
 
           await tester.pumpAndSettle();
 
-          // Should show both detected and last updated times
-          expect(find.text('Detected'), findsOneWidget);
-          expect(find.text('Last updated'), findsOneWidget);
+          // V2 format: "1 day ago (HH:MM UK time)"
+          expect(find.textContaining('day'), findsWidgets);
+          expect(find.textContaining('UK time'), findsWidgets);
         });
-      });
 
-      group('Data Source Display', () {
-        testWidgets('displays EFFIS as data source', (tester) async {
+        testWidgets('formats older dates as date only', (
+          tester,
+        ) async {
+          final olderIncident = FireIncident(
+            id: 'OLD001',
+            location: const LatLng(55.95, -3.19),
+            intensity: 'low',
+            timestamp: DateTime(2025, 11, 20, 10, 30).toUtc(),
+            detectedAt: DateTime(2025, 11, 20, 10, 30).toUtc(),
+            source: DataSource.effis,
+            freshness: Freshness.cached,
+          );
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: FireDetailsBottomSheet(
+                  incident: olderIncident,
+                  userLocation: testUserLocation,
+                  onClose: () {},
+                ),
+              ),
+            ),
+          );
+
+          await tester.pumpAndSettle();
+
+          // V2 shows date format for old data (>7 days)
+          expect(find.textContaining('Nov'), findsWidgets);
+        });
+
+        testWidgets('displays When detected label', (tester) async {
           await tester.pumpWidget(
             MaterialApp(
               home: Scaffold(
@@ -1094,11 +996,33 @@ void main() {
 
           await tester.pumpAndSettle();
 
-          expect(find.text('Data source'), findsOneWidget);
-          expect(find.text('EFFIS'), findsOneWidget);
+          // V2 uses "When detected" label in Key metrics
+          expect(find.text('When detected'), findsOneWidget);
+        });
+      });
+
+      group('Data Source Display', () {
+        testWidgets('displays data via MapSourceChip', (tester) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: FireDetailsBottomSheet(
+                  incident: testIncident,
+                  userLocation: testUserLocation,
+                  onClose: () {},
+                ),
+              ),
+            ),
+          );
+
+          await tester.pumpAndSettle();
+
+          // V2: Data source is in collapsed More Details section
+          // MapSourceChip shows data freshness in header
+          expect(find.text('LIVE DATA'), findsOneWidget);
         });
 
-        testWidgets('displays SEPA as data source', (tester) async {
+        testWidgets('displays SEPA incidents correctly', (tester) async {
           final sepaIncident = FireIncident(
             id: 'SEPA001',
             location: const LatLng(55.95, -3.19),
@@ -1122,11 +1046,12 @@ void main() {
 
           await tester.pumpAndSettle();
 
-          expect(find.text('Data source'), findsOneWidget);
-          expect(find.text('SEPA'), findsOneWidget);
+          // V2: Data source in More Details (collapsed)
+          // Just verify widget renders with Key metrics
+          expect(find.text('Key metrics'), findsOneWidget);
         });
 
-        testWidgets('displays Demo Data as data source for mock', (
+        testWidgets('displays DEMO DATA chip for mock data', (
           tester,
         ) async {
           final mockIncident = FireIncident(
@@ -1152,8 +1077,8 @@ void main() {
 
           await tester.pumpAndSettle();
 
-          expect(find.text('Data source'), findsOneWidget);
-          expect(find.text('Demo Data'), findsOneWidget);
+          // V2: MapSourceChip shows DEMO DATA for mock freshness
+          expect(find.text('DEMO DATA'), findsOneWidget);
         });
       });
     });
@@ -1188,10 +1113,11 @@ void main() {
 
           await tester.pumpAndSettle();
 
-          // Should display as hotspot type
-          expect(find.text('Active Hotspot'), findsOneWidget);
-          // Should show live data source
-          expect(find.text('GWIS (EC JRC)'), findsOneWidget);
+          // V2 uses 'Satellite Hotspot' not 'Active Hotspot'
+          expect(find.text('Satellite Hotspot'), findsOneWidget);
+          // Data source is in collapsed More Details section
+          // MapSourceChip shows LIVE DATA
+          expect(find.text('LIVE DATA'), findsOneWidget);
         });
 
         testWidgets('creates bottom sheet from Hotspot with mock freshness', (
@@ -1220,10 +1146,10 @@ void main() {
 
           await tester.pumpAndSettle();
 
-          // Should display as hotspot type
-          expect(find.text('Active Hotspot'), findsOneWidget);
-          // Should show demo data source when mock
-          expect(find.text('Demo Data'), findsOneWidget);
+          // V2 uses 'Satellite Hotspot' not 'Active Hotspot'
+          expect(find.text('Satellite Hotspot'), findsOneWidget);
+          // V2 shows 'DEMO DATA' chip (uppercase) via MapSourceChip
+          expect(find.text('DEMO DATA'), findsOneWidget);
         });
 
         testWidgets('defaults to live freshness when not specified', (
@@ -1252,8 +1178,9 @@ void main() {
 
           await tester.pumpAndSettle();
 
-          // Should show live data source (default)
-          expect(find.text('GWIS (EC JRC)'), findsOneWidget);
+          // V2: Data source is in collapsed More Details section
+          // Just verify widget renders with title
+          expect(find.text('Satellite Hotspot'), findsOneWidget);
         });
       });
 
@@ -1289,10 +1216,9 @@ void main() {
 
           await tester.pumpAndSettle();
 
-          // Should display as burnt area type
-          expect(find.text('Verified Burnt Area'), findsOneWidget);
-          // Should show live data source
-          expect(find.text('EFFIS (EC JRC)'), findsOneWidget);
+          // V2 uses 'Burnt Area' not 'Verified Burnt Area'
+          expect(find.text('Burnt Area'), findsOneWidget);
+          // Data source is in collapsed 'More details' section
         });
 
         testWidgets('creates bottom sheet from BurntArea with mock freshness', (
@@ -1326,10 +1252,10 @@ void main() {
 
           await tester.pumpAndSettle();
 
-          // Should display as burnt area type
-          expect(find.text('Verified Burnt Area'), findsOneWidget);
-          // Should show demo data source when mock
-          expect(find.text('Demo Data'), findsOneWidget);
+          // V2 uses 'Burnt Area' not 'Verified Burnt Area'
+          expect(find.text('Burnt Area'), findsOneWidget);
+          // V2 shows 'DEMO DATA' chip (uppercase) via MapSourceChip
+          expect(find.text('DEMO DATA'), findsOneWidget);
         });
 
         testWidgets('defaults to live freshness when not specified', (
@@ -1363,8 +1289,10 @@ void main() {
 
           await tester.pumpAndSettle();
 
-          // Should show live data source (default)
-          expect(find.text('EFFIS (EC JRC)'), findsOneWidget);
+          // V2 has title 'Burnt Area' for burntArea display type
+          expect(find.text('Burnt Area'), findsOneWidget);
+          // Data source is in collapsed 'More details' section
+          // Verify the sheet displays without error
         });
       });
     });

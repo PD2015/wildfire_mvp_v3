@@ -14,7 +14,14 @@ if [ ! -f "$ENV_FILE" ]; then
   exit 1
 fi
 
+# Collect additional --dart-define args (arguments after the first one)
+shift || true  # Shift past the env file arg (or do nothing if no args)
+EXTRA_DART_DEFINES="$@"
+
 echo "📦 Using environment file: $ENV_FILE"
+if [ -n "$EXTRA_DART_DEFINES" ]; then
+  echo "📝 Extra dart-defines: $EXTRA_DART_DEFINES"
+fi
 
 # Extract web API key from env file
 WEB_API_KEY=$(grep -o '"GOOGLE_MAPS_API_KEY_WEB":\s*"[^"]*"' "$ENV_FILE" | cut -d'"' -f4)
@@ -60,4 +67,4 @@ echo "🚀 Starting Flutter web app on port $WEB_PORT..."
 echo "   URL: http://localhost:$WEB_PORT"
 echo "   Press Ctrl+C to stop"
 echo ""
-flutter run -d chrome --web-port=$WEB_PORT --dart-define-from-file="$ENV_FILE"
+flutter run -d chrome --web-port=$WEB_PORT --dart-define-from-file="$ENV_FILE" $EXTRA_DART_DEFINES
