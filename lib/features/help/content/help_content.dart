@@ -259,39 +259,84 @@ class HelpContent {
 const _howToUseContent = '''
 # How to Use the WildFire App
 
-WildFire helps you stay informed about wildfire risk in Scotland. Here's how to get started:
+WildFire helps you **understand wildfire risk** and **know what to do** if you encounter a fire in Scotland.
+
+The app provides guidance and situational awareness. It does **not** replace emergency services.
+
+---
 
 ## Home Screen
 
-The main screen shows your current **Fire Weather Index (FWI)** — a measure of how dangerous fire conditions are right now at your location.
+The Home screen shows the current **Fire Weather Index (FWI)** for your location.
 
-- **Location**: Shows your current location or the location you've set
-- **Risk Level**: Shows the current fire danger level from Very Low to Extreme
-- **FWI Value**: The numerical Fire Weather Index value
+FWI reflects how favourable conditions are for fires to start and spread based on weather and environmental factors.
+
+You’ll see:
+- **Location** — your current location or a manually set one  
+- **Risk Level** — from Very Low to Extreme  
+- **FWI Value** — a numerical indicator used by fire agencies  
+
+FWI describes **conditions**, not certainty.  
+Even when risk appears low, fires can still occur.
+
+To understand how this is calculated, see [Understanding Wildfire Risk](/help/doc/understanding-risk) and [What the Risk Levels Mean](/help/doc/risk-levels).
+
+---
 
 ## Viewing the Map
 
-Tap the **Map** tab to see:
-- Active fire hotspots detected by satellite
-- Your current location
-- Burnt area polygons (when zoomed in)
+The Map helps you build awareness of what’s happening around you.
 
-Hotspots are updated throughout the day as satellite data becomes available.
+You can view:
+- **Hotspots** detected by satellites  
+- **Burnt areas** where previous fire damage has been mapped  
+- **Your location**, to help with orientation and reporting  
 
-## Reporting Fires
+Satellite detections update as new data becomes available, but:
+- Not all fires are detected  
+- Some data may be delayed  
+- Small or smouldering fires (including peat fires) may not be visible  
 
-If you see a fire, use the **Report** feature to:
-1. Share your current location or pick a point on the map
-2. Provide details about what you've observed
-3. Submit the report for review
+Learn more in [What Is a Hotspot?](/help/doc/hotspots), [Burnt Areas](/help/doc/burnt-area) and [How Recent Is the Map Data?](/help/doc/update-frequency).
 
-**Remember**: This is for awareness only. Always call **999** for emergencies.
+---
 
-## Tips
+## If You See a Fire
 
-- Check the app before outdoor activities like hiking or camping
-- Pay attention to seasonal fire bans during high-risk periods
-- Share information with friends and family in rural areas
+WildFire does **not** collect or send fire reports.
+
+Instead, the app helps you:
+- Identify your location  
+- Describe what you’re seeing clearly  
+- Share accurate information when reporting a fire yourself  
+
+If you see a fire:
+- Move to a safe location  
+- Call **999** immediately  
+- Use the app to help describe *where* the fire is  
+
+For step-by-step guidance, see [What to Do if You See Fire](/help/doc/what-to-do-if-you-see-fire).
+
+---
+
+## Using the App Safely
+
+- Check the app before outdoor activities, especially during dry or windy periods  
+- Be cautious with any ignition sources, even when conditions seem safe  
+- Remember that fires can start or re-ignite hours later, particularly on peat soils  
+
+To understand why this happens, see [Weather, Fuel, and Fire](/help/doc/weather-fuel-fire).
+
+---
+
+## A Final Note
+
+WildFire is designed to support awareness and informed decisions.  
+It does not predict fires, detect every incident, or replace emergency response.
+
+When in doubt, always prioritise safety and contact emergency services.
+
+
 ''';
 
 const _whenToUseContent = '''
