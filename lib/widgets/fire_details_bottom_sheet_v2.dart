@@ -202,8 +202,6 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
               // Dynamic header based on type
               _buildHeader(context),
 
-              const Divider(height: 1),
-
               // Scrollable content based on state
               Expanded(
                 child: SingleChildScrollView(
@@ -301,32 +299,62 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
   Widget _buildLoadedState(BuildContext context) {
     final inc = incident!;
 
+    // Route to the appropriate layout based on display type
+    return switch (displayType) {
+      FireDataDisplayType.burntArea => _buildBurntAreaLayout(context, inc),
+      FireDataDisplayType.hotspot => _buildHotspotLayout(context, inc),
+      FireDataDisplayType.incident => _buildIncidentLayout(context, inc),
+    };
+  }
+
+  /// Build layout for Burnt Area bottom sheet
+  Widget _buildBurntAreaLayout(BuildContext context, FireIncident inc) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Educational label with plain language
-        if (displayType != FireDataDisplayType.incident)
-          _buildEducationalLabel(context),
+        // Supporting text with inline learn more link
+        _buildSupportingTextWithLearnMore(context),
 
-        // Summary card at top with key info
-        _buildSummaryCard(context, inc),
+        const SizedBox(height: 16),
 
-        const SizedBox(height: 20),
-
-        // Location section - removed duplicate distance row (now in summary card)
-        _InfoSection(
-          title: 'Location',
-          icon: Icons.place_outlined,
-          children: [
-            _buildDetailRow(
-              context: context,
+        // Key Metrics section
+        _buildKeyMetricsSection(
+          context: context,
+          rows: [
+            if (inc.areaHectares != null)
+              _KeyMetricRow(
+                icon: Icons.square_foot,
+                label: 'Est. burned area',
+                value: '${inc.areaHectares!.toStringAsFixed(1)} ha',
+              ),
+            _KeyMetricRow(
+              icon: Icons.access_time,
+              label: 'When detected',
+              value:
+                  _formatRelativeTimeWithClock(inc.detectedAt ?? inc.timestamp),
+            ),
+            _KeyMetricRow(
               icon: Icons.location_on,
               label: 'Fire coordinates',
               value:
                   '${inc.location.latitude.toStringAsFixed(4)}, ${inc.location.longitude.toStringAsFixed(4)}',
-              semanticLabel:
-                  'Fire coordinates: ${inc.location.latitude.toStringAsFixed(4)} latitude, ${inc.location.longitude.toStringAsFixed(4)} longitude',
             ),
+            if (userLocation != null)
+              _KeyMetricRow(
+                icon: Icons.social_distance,
+                label: 'Distance from your location',
+                value:
+                    _formatDistanceWithDirection(userLocation!, inc.location),
+              ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // More Details expandable section
+        _ExpandableDetailsSection(
+          title: 'More details',
+          children: [
             if (userLocation != null)
               _buildDetailRow(
                 context: context,
@@ -336,73 +364,278 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
                     : 'Your Location (GPS)',
                 value:
                     '${userLocation!.latitude.toStringAsFixed(2)}, ${userLocation!.longitude.toStringAsFixed(2)}',
-                semanticLabel:
-                    'Your ${isManualLocation ? "manual" : "GPS"} location: ${userLocation!.latitude.toStringAsFixed(2)} latitude, ${userLocation!.longitude.toStringAsFixed(2)} longitude',
-              ),
-          ],
-        ),
-
-        const SizedBox(height: 16),
-
-        // Detection section
-        _InfoSection(
-          title: 'Detection info',
-          icon: Icons.satellite_alt,
-          children: [
-            _buildDetailRow(
-              context: context,
-              icon: Icons.access_time,
-              label: 'When detected',
-              value:
-                  _formatRelativeTimeWithClock(inc.detectedAt ?? inc.timestamp),
-              semanticLabel:
-                  'Detected ${_formatRelativeTimeWithClock(inc.detectedAt ?? inc.timestamp)}',
-            ),
-            if (displayType == FireDataDisplayType.burntArea &&
-                burntArea != null)
-              _buildDetailRow(
-                context: context,
-                icon: Icons.calendar_month,
-                label: 'Fire season',
-                value: '${burntArea!.seasonYear}',
-                semanticLabel: 'Fire season: ${burntArea!.seasonYear}',
               ),
             _buildDetailRow(
               context: context,
               icon: Icons.source,
-              label: 'Data from',
+              label: 'Data source',
               value: _formatDataSourceForType(inc.source, inc.freshness),
-              semanticLabel:
-                  'Data from: ${_formatDataSourceForType(inc.source, inc.freshness)}',
             ),
             _buildDetailRow(
               context: context,
               icon: Icons.satellite_alt,
-              label: 'Detected by',
+              label: 'Sensor',
               value: _formatSensorName(inc.sensorSource),
-              semanticLabel:
-                  'Detected by: ${_formatSensorName(inc.sensorSource)}',
             ),
+            _buildDetailRow(
+              context: context,
+              icon: Icons.fingerprint,
+              label: 'Fire ID',
+              value: inc.id,
+            ),
+            // Land cover breakdown
+            if (burntArea?.landCoverBreakdown != null &&
+                burntArea!.landCoverBreakdown!.isNotEmpty)
+              _buildLandCoverSection(context),
+            // Polygon simplification notice
+            if (burntArea != null && burntArea!.isSimplified)
+              _buildSimplificationNotice(context),
           ],
         ),
 
-        // Progressive disclosure: More details section
-        if (_hasMoreDetails()) ...[
-          const SizedBox(height: 16),
-          _buildMoreDetailsSection(context, inc),
-        ],
-
         const SizedBox(height: 16),
 
-        // Learn more link
-        _buildLearnMoreLink(context),
-
-        const SizedBox(height: 16),
-
-        // Safety warning text (at bottom per user preference)
+        // Safety note at bottom
         _buildSafetyText(context),
 
         const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  /// Build layout for Hotspot bottom sheet
+  Widget _buildHotspotLayout(BuildContext context, FireIncident inc) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Supporting text with inline learn more link
+        _buildSupportingTextWithLearnMore(context),
+
+        const SizedBox(height: 16),
+
+        // Key Metrics section
+        _buildKeyMetricsSection(
+          context: context,
+          rows: [
+            _KeyMetricRow(
+              icon: Icons.location_on,
+              label: 'Fire coordinates',
+              value:
+                  '${inc.location.latitude.toStringAsFixed(4)}, ${inc.location.longitude.toStringAsFixed(4)}',
+            ),
+            _KeyMetricRow(
+              icon: Icons.access_time,
+              label: 'When detected',
+              value:
+                  _formatRelativeTimeWithClock(inc.detectedAt ?? inc.timestamp),
+            ),
+            if (userLocation != null)
+              _KeyMetricRow(
+                icon: Icons.social_distance,
+                label: 'Distance from your location',
+                value:
+                    _formatDistanceWithDirection(userLocation!, inc.location),
+              ),
+            if (inc.confidence != null)
+              _KeyMetricRow(
+                icon: Icons.verified_outlined,
+                label: 'Satellite confidence',
+                value: '${inc.confidence!.toStringAsFixed(0)}%',
+              ),
+            if (inc.intensity.isNotEmpty)
+              _KeyMetricRow(
+                icon: Icons.whatshot,
+                label: 'Fire intensity',
+                value: _formatIntensity(inc.intensity),
+              ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // More Details expandable section
+        _ExpandableDetailsSection(
+          title: 'More details',
+          children: [
+            if (userLocation != null)
+              _buildDetailRow(
+                context: context,
+                icon: isManualLocation ? Icons.edit_location : Icons.gps_fixed,
+                label: isManualLocation
+                    ? 'Your Location (Manual)'
+                    : 'Your Location (GPS)',
+                value:
+                    '${userLocation!.latitude.toStringAsFixed(2)}, ${userLocation!.longitude.toStringAsFixed(2)}',
+              ),
+            _buildDetailRow(
+              context: context,
+              icon: Icons.source,
+              label: 'Data source',
+              value: _formatDataSourceForType(inc.source, inc.freshness),
+            ),
+            _buildDetailRow(
+              context: context,
+              icon: Icons.satellite_alt,
+              label: 'Sensor',
+              value: _formatSensorName(inc.sensorSource),
+            ),
+            _buildDetailRow(
+              context: context,
+              icon: Icons.fingerprint,
+              label: 'Ref ID',
+              value: inc.id,
+            ),
+            if (inc.frp != null)
+              _buildDetailRow(
+                context: context,
+                icon: Icons.bolt,
+                label: 'Fire Radiative Power',
+                value: '${inc.frp!.toStringAsFixed(1)} MW',
+              ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // Safety note at bottom
+        _buildSafetyText(context),
+
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  /// Build layout for legacy Incident type (simplified, future use)
+  Widget _buildIncidentLayout(BuildContext context, FireIncident inc) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Key Metrics section
+        _buildKeyMetricsSection(
+          context: context,
+          rows: [
+            _KeyMetricRow(
+              icon: Icons.location_on,
+              label: 'Fire coordinates',
+              value:
+                  '${inc.location.latitude.toStringAsFixed(4)}, ${inc.location.longitude.toStringAsFixed(4)}',
+            ),
+            _KeyMetricRow(
+              icon: Icons.access_time,
+              label: 'When detected',
+              value:
+                  _formatRelativeTimeWithClock(inc.detectedAt ?? inc.timestamp),
+            ),
+            if (userLocation != null)
+              _KeyMetricRow(
+                icon: Icons.social_distance,
+                label: 'Distance from your location',
+                value:
+                    _formatDistanceWithDirection(userLocation!, inc.location),
+              ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // More Details expandable section
+        _ExpandableDetailsSection(
+          title: 'More details',
+          children: [
+            if (userLocation != null)
+              _buildDetailRow(
+                context: context,
+                icon: isManualLocation ? Icons.edit_location : Icons.gps_fixed,
+                label: isManualLocation
+                    ? 'Your Location (Manual)'
+                    : 'Your Location (GPS)',
+                value:
+                    '${userLocation!.latitude.toStringAsFixed(2)}, ${userLocation!.longitude.toStringAsFixed(2)}',
+              ),
+            _buildDetailRow(
+              context: context,
+              icon: Icons.source,
+              label: 'Data source',
+              value: _formatDataSourceForType(inc.source, inc.freshness),
+            ),
+            if (inc.id.isNotEmpty)
+              _buildDetailRow(
+                context: context,
+                icon: Icons.fingerprint,
+                label: 'Ref ID',
+                value: inc.id,
+              ),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        // Safety note at bottom
+        _buildSafetyText(context),
+
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  /// Build Key Metrics section with title and card
+  Widget _buildKeyMetricsSection({
+    required BuildContext context,
+    required List<_KeyMetricRow> rows,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Filter out null rows
+    final validRows = rows.where((r) => true).toList();
+    if (validRows.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section title
+        Row(
+          children: [
+            Icon(Icons.bar_chart,
+                size: 18, color: colorScheme.onSurfaceVariant),
+            const SizedBox(width: 6),
+            Text(
+              'Key metrics',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        // Card container
+        Container(
+          decoration: BoxDecoration(
+            color: isDark
+                ? colorScheme.surfaceContainerHigh
+                : colorScheme.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: colorScheme.outlineVariant),
+          ),
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (int i = 0; i < validRows.length; i++) ...[
+                if (i > 0) const SizedBox(height: 12),
+                _buildDetailRow(
+                  context: context,
+                  icon: validRows[i].icon,
+                  label: validRows[i].label,
+                  value: validRows[i].value,
+                  semanticLabel: '${validRows[i].label}: ${validRows[i].value}',
+                ),
+              ],
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -507,182 +740,69 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
     );
   }
 
-  /// Build summary card with key info at top
-  Widget _buildSummaryCard(BuildContext context, FireIncident inc) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-
-    // Build items based on display type
-    final items = <_SummaryItem>[];
-
-    if (displayType == FireDataDisplayType.hotspot) {
-      // Hotspot: Fire power, Confidence, Distance
-      if (inc.frp != null) {
-        items.add(_SummaryItem(
-          icon: Icons.bolt,
-          label: 'Fire power',
-          value: '${inc.frp!.toStringAsFixed(0)} MW',
-        ));
-      }
-      if (inc.confidence != null) {
-        items.add(_SummaryItem(
-          icon: Icons.verified_outlined,
-          label: 'Confidence',
-          value: '${inc.confidence!.toStringAsFixed(0)}%',
-        ));
-      }
-    } else if (displayType == FireDataDisplayType.burntArea) {
-      // Burnt area: Size, Season
-      if (inc.areaHectares != null) {
-        items.add(_SummaryItem(
-          icon: Icons.square_foot,
-          label: 'Area burned',
-          value: '${inc.areaHectares!.toStringAsFixed(1)} ha',
-        ));
-      }
-      if (burntArea != null) {
-        items.add(_SummaryItem(
-          icon: Icons.calendar_month,
-          label: 'Season',
-          value: '${burntArea!.seasonYear}',
-        ));
-      }
-    }
-
-    // Always add distance with direction if GPS available (C1: include direction)
-    final location = userLocation;
-    if (location != null) {
-      items.add(_SummaryItem(
-        icon: Icons.social_distance,
-        label: 'Distance',
-        value: _formatDistanceWithDirection(location, inc.location),
-      ));
-    }
-
-    if (items.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        // Use dark-mode aware colors like V1 _InfoSection
-        color: isDark
-            ? colorScheme.surfaceContainerHigh
-            : colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      // C6: Use Wrap for responsive layout on small screens / large fonts
-      child: Wrap(
-        alignment: WrapAlignment.spaceEvenly,
-        spacing: 16,
-        runSpacing: 12,
-        children: items
-            .map((item) => SizedBox(
-                  width: 90,
-                  child: _buildSummaryItem(context, item),
-                ))
-            .toList(),
-      ),
-    );
-  }
-
-  Widget _buildSummaryItem(BuildContext context, _SummaryItem item) {
+  /// Build supporting text with inline "Learn more" link at the end
+  Widget _buildSupportingTextWithLearnMore(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Semantics(
-      label: '${item.label}: ${item.value}',
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(item.icon, size: 20, color: colorScheme.primary),
-          const SizedBox(height: 4),
-          Text(
-            item.value,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          Text(
-            item.label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Build educational label with plain language
-  Widget _buildEducationalLabel(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-
-    // C3: Stronger burnt area wording to avoid "may" ambiguity
-    final (icon, title, description) = switch (displayType) {
+    final (description, helpDocId) = switch (displayType) {
       FireDataDisplayType.hotspot => (
-          Icons.local_fire_department,
-          'Satellite Hotspot',
           'A satellite detected unusual heat here. It could be a wildfire, controlled burning, or another heat source.',
+          'hotspots',
         ),
       FireDataDisplayType.burntArea => (
-          Icons.layers,
-          'Burnt Area (past fire)',
-          'This outline shows ground that appears burned from a fire earlier this season. '
-              'It does not mean an active fire right now.',
+          'This outline indicates land that appears to have burned earlier in the season.',
+          'burnt-area',
         ),
-      FireDataDisplayType.incident => (Icons.info_outline, '', ''),
+      FireDataDisplayType.incident => (null, 'hotspots'),
     };
 
-    if (title.isEmpty) return const SizedBox.shrink();
+    if (description == null) return const SizedBox.shrink();
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Semantics(
-        label: '$title. $description',
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            // Use dark-mode aware colors like V1 _InfoSection
-            color: isDark
-                ? colorScheme.surfaceContainerHigh
-                : colorScheme.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: colorScheme.outlineVariant),
+    return Semantics(
+      label: '$description Learn more.',
+      child: Text.rich(
+        TextSpan(
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            height: 1.4,
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: colorScheme.primary, size: 24),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextSpan(text: '$description '),
+            WidgetSpan(
+              alignment: PlaceholderAlignment.baseline,
+              baseline: TextBaseline.alphabetic,
+              child: GestureDetector(
+                onTap: () {
+                  if (onLearnMore != null) {
+                    onLearnMore!();
+                  } else {
+                    context.push('/help/doc/$helpDocId');
+                  }
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
-                      ),
+                    Icon(
+                      Icons.help_outline,
+                      size: 16,
+                      color: colorScheme.primary,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(width: 4),
                     Text(
-                      description,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        height: 1.4,
+                      'Learn more',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                        decoration: TextDecoration.underline,
+                        decorationColor: colorScheme.primary,
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -733,80 +853,6 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  /// Check if there are more details to show
-  /// C5: Fixed logic - only show "More details" when there's meaningful extra content
-  bool _hasMoreDetails() {
-    // Burnt areas with land cover, or areas with simplification notice
-    if (displayType == FireDataDisplayType.burntArea && burntArea != null) {
-      return (burntArea!.landCoverBreakdown?.isNotEmpty ?? false) ||
-          burntArea!.isSimplified;
-    }
-    // Hotspots: only show if intensity is meaningful (not empty/null)
-    // Note: id is always present so don't gate on it
-    if (displayType == FireDataDisplayType.hotspot) {
-      final intensity = incident?.intensity ?? '';
-      return intensity.trim().isNotEmpty;
-    }
-    return false;
-  }
-
-  /// Build expandable "More details" section
-  Widget _buildMoreDetailsSection(BuildContext context, FireIncident inc) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    // C4: Removed leading icon - ExpansionTile already provides trailing arrow
-    return Theme(
-      data: theme.copyWith(dividerColor: Colors.transparent),
-      child: ExpansionTile(
-        title: Text(
-          'More details',
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: colorScheme.onSurfaceVariant,
-          ),
-        ),
-        tilePadding: EdgeInsets.zero,
-        childrenPadding: const EdgeInsets.only(top: 8),
-        children: [
-          // Fire ID
-          if (inc.id.isNotEmpty)
-            _buildDetailRow(
-              context: context,
-              icon: Icons.fingerprint,
-              label: 'Reference ID',
-              value: inc.id,
-              semanticLabel: 'Reference ID: ${inc.id}',
-            ),
-
-          // Fire intensity for hotspots
-          if (displayType == FireDataDisplayType.hotspot &&
-              inc.intensity.isNotEmpty)
-            _buildDetailRow(
-              context: context,
-              icon: Icons.whatshot,
-              label: 'Heat intensity',
-              value: _formatIntensity(inc.intensity),
-              semanticLabel:
-                  'Heat intensity: ${_formatIntensity(inc.intensity)}',
-            ),
-
-          // Land cover for burnt areas
-          if (displayType == FireDataDisplayType.burntArea &&
-              burntArea?.landCoverBreakdown != null &&
-              burntArea!.landCoverBreakdown!.isNotEmpty)
-            _buildLandCoverSection(context),
-
-          // Simplification notice
-          if (displayType == FireDataDisplayType.burntArea &&
-              burntArea != null &&
-              burntArea!.isSimplified)
-            _buildSimplificationNotice(context),
         ],
       ),
     );
@@ -931,62 +977,6 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
                     color: colorScheme.onSurfaceVariant,
                     fontStyle: FontStyle.italic,
                   ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Build "Learn more" link
-  Widget _buildLearnMoreLink(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    final helpDocId = switch (displayType) {
-      FireDataDisplayType.hotspot => 'hotspots',
-      FireDataDisplayType.burntArea => 'burnt-area',
-      FireDataDisplayType.incident => 'hotspots', // fallback
-    };
-
-    final linkText = switch (displayType) {
-      FireDataDisplayType.hotspot => 'What is a hotspot?',
-      FireDataDisplayType.burntArea => 'What is a burnt area?',
-      FireDataDisplayType.incident => 'Learn more',
-    };
-
-    return Semantics(
-      button: true,
-      label: linkText,
-      child: InkWell(
-        onTap: () {
-          if (onLearnMore != null) {
-            onLearnMore!();
-          } else {
-            // Default: navigate to help doc
-            context.push('/help/doc/$helpDocId');
-          }
-        },
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.help_outline,
-                size: 18,
-                color: colorScheme.primary,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                linkText,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.primary,
-                  fontWeight: FontWeight.w500,
-                  decoration: TextDecoration.underline,
                 ),
               ),
             ],
@@ -1132,70 +1122,174 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
   }
 }
 
-/// Section wrapper for clearer grouping
-class _InfoSection extends StatelessWidget {
-  const _InfoSection({required this.title, required this.children, this.icon});
+/// Key metric row data class for _buildKeyMetricsSection
+class _KeyMetricRow {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _KeyMetricRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+}
+
+/// Expandable "More details" section with smooth animation
+///
+/// Inspired by RiskBanner's ExpandableLocationPanel:
+/// - Chevron icon that rotates on expand/collapse
+/// - Subtle background on header row
+/// - Smooth height animation using AnimatedSize
+/// - Content not built when collapsed (performance)
+class _ExpandableDetailsSection extends StatefulWidget {
+  const _ExpandableDetailsSection({
+    required this.title,
+    required this.children,
+  });
 
   final String title;
   final List<Widget> children;
-  final IconData? icon;
+
+  @override
+  State<_ExpandableDetailsSection> createState() =>
+      _ExpandableDetailsSectionState();
+}
+
+class _ExpandableDetailsSectionState extends State<_ExpandableDetailsSection>
+    with SingleTickerProviderStateMixin {
+  bool _isExpanded = false;
+  late AnimationController _controller;
+  late Animation<double> _iconTurns;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _iconTurns = Tween<double>(begin: 0.0, end: 0.5).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleTap() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+      if (_isExpanded) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
+    final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            if (icon != null) ...[
-              Icon(icon, size: 18, color: cs.onSurfaceVariant),
-              const SizedBox(width: 6),
-            ],
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: cs.onSurfaceVariant,
-                  ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: isDark ? cs.surfaceContainerHigh : cs.surfaceContainerLowest,
+        // Header row with tap target
+        Semantics(
+          button: true,
+          expanded: _isExpanded,
+          label:
+              '${widget.title}. ${_isExpanded ? "Tap to collapse" : "Tap to expand"}',
+          child: InkWell(
+            onTap: _handleTap,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: cs.outlineVariant),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              decoration: BoxDecoration(
+                // Subtle background color for header row
+                color: isDark
+                    ? colorScheme.surfaceContainerHigh
+                    : colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(12),
+                  topRight: const Radius.circular(12),
+                  bottomLeft: Radius.circular(_isExpanded ? 0 : 12),
+                  bottomRight: Radius.circular(_isExpanded ? 0 : 12),
+                ),
+                border: Border.all(color: colorScheme.outlineVariant),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 18,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.title,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  RotationTransition(
+                    turns: _iconTurns,
+                    child: Icon(
+                      Icons.expand_more,
+                      size: 24,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (int i = 0; i < children.length; i++) ...[
-                if (i > 0) const SizedBox(height: 12),
-                children[i],
-              ],
-            ],
-          ),
+        ),
+        // Expandable content with smooth animation
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          alignment: Alignment.topCenter,
+          child: _isExpanded
+              ? Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? colorScheme.surfaceContainerHigh
+                        : colorScheme.surfaceContainerLowest,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(12),
+                      bottomRight: Radius.circular(12),
+                    ),
+                    border: Border(
+                      left: BorderSide(color: colorScheme.outlineVariant),
+                      right: BorderSide(color: colorScheme.outlineVariant),
+                      bottom: BorderSide(color: colorScheme.outlineVariant),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (int i = 0; i < widget.children.length; i++) ...[
+                        if (i > 0) const SizedBox(height: 4),
+                        widget.children[i],
+                      ],
+                    ],
+                  ),
+                )
+              : const SizedBox.shrink(),
         ),
       ],
     );
   }
-}
-
-/// Summary item data class
-class _SummaryItem {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _SummaryItem({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
 }
