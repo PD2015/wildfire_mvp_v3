@@ -40,8 +40,8 @@ Create a user-friendly V2 bottom sheet in a new file with feature flag toggle, s
 - "Learn more" → `/help/doc/burnt-area`
 
 ### 6. Rewrite `_buildEducationalLabel()` with plain language
-- Hotspot: "A satellite detected unusual heat here. It could be wildfire, controlled burning, or another heat source."
-- Burnt area: "This outline shows ground that appears burned from a fire earlier this season. It does not confirm an active fire right now."
+- Hotspot: "A satellite detected unusual heat here. It could be a wildfire, controlled burning, or another heat source."
+- Burnt area: "This outline shows ground that appears burned from a fire earlier this season. It does not mean an active fire right now."
 
 ### 7. Create `_buildMoreDetailsSection()` using `ExpansionTile`
 - Collapsed by default, contains: Fire ID, coordinates, sensor, FRP, confidence, simplification notice, land cover bars

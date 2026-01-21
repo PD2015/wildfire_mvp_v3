@@ -73,6 +73,10 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
   /// If null, defaults to navigating to appropriate help doc
   final VoidCallback? onLearnMore;
 
+  /// Whether the user's location was set manually (vs GPS)
+  /// Used to display "Your Location (Manual)" vs "Your Location (GPS)"
+  final bool isManualLocation;
+
   const FireDetailsBottomSheetV2({
     super.key,
     this.incident,
@@ -85,6 +89,7 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
     this.isLoading = false,
     this.errorMessage,
     this.onLearnMore,
+    this.isManualLocation = false,
   });
 
   /// Factory constructor for displaying a Hotspot
@@ -96,6 +101,7 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
     VoidCallback? onRetry,
     Freshness freshness = Freshness.live,
     VoidCallback? onLearnMore,
+    bool isManualLocation = false,
   }) {
     // Convert Hotspot to FireIncident for rendering
     final incident = FireIncident(
@@ -120,6 +126,7 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
       displayType: FireDataDisplayType.hotspot,
       hotspot: hotspot,
       onLearnMore: onLearnMore,
+      isManualLocation: isManualLocation,
     );
   }
 
@@ -132,6 +139,7 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
     VoidCallback? onRetry,
     Freshness freshness = Freshness.live,
     VoidCallback? onLearnMore,
+    bool isManualLocation = false,
   }) {
     // Convert BurntArea to FireIncident for rendering
     final incident = FireIncident(
@@ -156,6 +164,7 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
       displayType: FireDataDisplayType.burntArea,
       burntArea: burntArea,
       onLearnMore: onLearnMore,
+      isManualLocation: isManualLocation,
     );
   }
 
@@ -304,42 +313,32 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
 
         const SizedBox(height: 20),
 
-        // Location section
+        // Location section - removed duplicate distance row (now in summary card)
         _InfoSection(
           title: 'Location',
           icon: Icons.place_outlined,
           children: [
             _buildDetailRow(
               context: context,
-              icon: userLocation != null ? Icons.gps_fixed : Icons.gps_off,
-              label: 'Your location',
-              value: userLocation != null
-                  ? '${userLocation!.latitude.toStringAsFixed(2)}, ${userLocation!.longitude.toStringAsFixed(2)} (GPS)'
-                  : 'Unknown (GPS unavailable)',
-              semanticLabel: userLocation != null
-                  ? 'Your GPS location: ${userLocation!.latitude.toStringAsFixed(2)} latitude, ${userLocation!.longitude.toStringAsFixed(2)} longitude'
-                  : 'Your GPS location is unavailable',
-            ),
-            _buildDetailRow(
-              context: context,
-              icon: Icons.social_distance,
-              label: 'Distance',
-              value: userLocation != null
-                  ? '${DistanceCalculator.formatDistanceAndDirection(userLocation!, inc.location)} away'
-                  : 'Unable to calculate (GPS required)',
-              semanticLabel: userLocation != null
-                  ? 'Fire is ${DistanceCalculator.formatDistanceAndDirection(userLocation!, inc.location)} away from your location'
-                  : 'Distance unavailable because GPS location is unknown',
-            ),
-            _buildDetailRow(
-              context: context,
               icon: Icons.location_on,
-              label: 'Coordinates',
+              label: 'Fire coordinates',
               value:
                   '${inc.location.latitude.toStringAsFixed(4)}, ${inc.location.longitude.toStringAsFixed(4)}',
               semanticLabel:
-                  'Coordinates: ${inc.location.latitude.toStringAsFixed(4)} latitude, ${inc.location.longitude.toStringAsFixed(4)} longitude',
+                  'Fire coordinates: ${inc.location.latitude.toStringAsFixed(4)} latitude, ${inc.location.longitude.toStringAsFixed(4)} longitude',
             ),
+            if (userLocation != null)
+              _buildDetailRow(
+                context: context,
+                icon: isManualLocation ? Icons.edit_location : Icons.gps_fixed,
+                label: isManualLocation
+                    ? 'Your Location (Manual)'
+                    : 'Your Location (GPS)',
+                value:
+                    '${userLocation!.latitude.toStringAsFixed(2)}, ${userLocation!.longitude.toStringAsFixed(2)}',
+                semanticLabel:
+                    'Your ${isManualLocation ? "manual" : "GPS"} location: ${userLocation!.latitude.toStringAsFixed(2)} latitude, ${userLocation!.longitude.toStringAsFixed(2)} longitude',
+              ),
           ],
         ),
 
@@ -416,10 +415,11 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
         theme.textTheme.titleLarge?.color ?? colorScheme.onSurface;
 
     // Dynamic title and icon based on type
+    // C2: Use less assertive title for hotspots ("Satellite Hotspot" not "Active Hotspot")
     final (icon, title) = switch (displayType) {
       FireDataDisplayType.hotspot => (
           Icons.local_fire_department,
-          'Active Hotspot',
+          'Satellite Hotspot',
         ),
       FireDataDisplayType.burntArea => (
           Icons.layers,
@@ -550,13 +550,13 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
       }
     }
 
-    // Always add distance if GPS available
+    // Always add distance with direction if GPS available (C1: include direction)
     final location = userLocation;
     if (location != null) {
       items.add(_SummaryItem(
         icon: Icons.social_distance,
         label: 'Distance',
-        value: _formatDistanceOnly(location, inc.location),
+        value: _formatDistanceWithDirection(location, inc.location),
       ));
     }
 
@@ -572,10 +572,17 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: colorScheme.outlineVariant),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children:
-            items.map((item) => _buildSummaryItem(context, item)).toList(),
+      // C6: Use Wrap for responsive layout on small screens / large fonts
+      child: Wrap(
+        alignment: WrapAlignment.spaceEvenly,
+        spacing: 16,
+        runSpacing: 12,
+        children: items
+            .map((item) => SizedBox(
+                  width: 90,
+                  child: _buildSummaryItem(context, item),
+                ))
+            .toList(),
       ),
     );
   }
@@ -615,18 +622,18 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
+    // C3: Stronger burnt area wording to avoid "may" ambiguity
     final (icon, title, description) = switch (displayType) {
       FireDataDisplayType.hotspot => (
           Icons.local_fire_department,
-          'Live Hotspot',
-          'A satellite picked up heat here, suggesting possible fire activity. '
-              'This doesn\'t confirm flames on the ground.',
+          'Satellite Hotspot',
+          'A satellite detected unusual heat here. It could be a wildfire, controlled burning, or another heat source.',
         ),
       FireDataDisplayType.burntArea => (
           Icons.layers,
-          'Burnt Area',
-          'Satellite images show this area has been affected by fire this season. '
-              'The fire may no longer be active.',
+          'Burnt Area (past fire)',
+          'This outline shows ground that appears burned from a fire earlier this season. '
+              'It does not mean an active fire right now.',
         ),
       FireDataDisplayType.incident => (Icons.info_outline, '', ''),
     };
@@ -732,15 +739,18 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
   }
 
   /// Check if there are more details to show
+  /// C5: Fixed logic - only show "More details" when there's meaningful extra content
   bool _hasMoreDetails() {
     // Burnt areas with land cover, or areas with simplification notice
     if (displayType == FireDataDisplayType.burntArea && burntArea != null) {
       return (burntArea!.landCoverBreakdown?.isNotEmpty ?? false) ||
           burntArea!.isSimplified;
     }
-    // Hotspots with intensity or fire ID
+    // Hotspots: only show if intensity is meaningful (not empty/null)
+    // Note: id is always present so don't gate on it
     if (displayType == FireDataDisplayType.hotspot) {
-      return incident?.intensity != null || incident?.id != null;
+      final intensity = incident?.intensity ?? '';
+      return intensity.trim().isNotEmpty;
     }
     return false;
   }
@@ -750,6 +760,7 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    // C4: Removed leading icon - ExpansionTile already provides trailing arrow
     return Theme(
       data: theme.copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
@@ -759,10 +770,6 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
             fontWeight: FontWeight.w600,
             color: colorScheme.onSurfaceVariant,
           ),
-        ),
-        leading: Icon(
-          Icons.expand_more,
-          color: colorScheme.onSurfaceVariant,
         ),
         tilePadding: EdgeInsets.zero,
         childrenPadding: const EdgeInsets.only(top: 8),
@@ -1004,15 +1011,10 @@ class FireDetailsBottomSheetV2 extends StatelessWidget {
   // Formatting helpers
   // ─────────────────────────────────────────────────────────────
 
-  /// Format distance only (without direction) for summary card
-  String _formatDistanceOnly(LatLng from, LatLng to) {
-    final distanceMeters = DistanceCalculator.distanceInMeters(from, to);
-    if (distanceMeters < 1000) {
-      return '${distanceMeters.round()} m';
-    } else {
-      final distanceKm = distanceMeters / 1000;
-      return '${distanceKm.toStringAsFixed(1)} km';
-    }
+  /// Format distance with direction for summary card (C1: direction is useful)
+  String _formatDistanceWithDirection(LatLng from, LatLng to) {
+    // Use the existing calculator which returns "X.X km E" format
+    return DistanceCalculator.formatDistanceAndDirection(from, to);
   }
 
   /// Format time as "X ago (HH:MM UK time)"

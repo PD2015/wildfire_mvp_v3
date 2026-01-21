@@ -560,6 +560,8 @@ class _MapScreenState extends State<MapScreen> {
   /// Build V2 bottom sheet (improved UX)
   Widget _buildBottomSheetV2(
       models.LatLng? userLocation, VoidCallback closeSheet) {
+    final isManualLocation = _controller.isManualLocation;
+
     // Hotspot selected
     if (_selectedHotspot != null) {
       return FireDetailsBottomSheetV2.fromHotspot(
@@ -567,6 +569,7 @@ class _MapScreenState extends State<MapScreen> {
         userLocation: userLocation,
         onClose: closeSheet,
         freshness: _controller.dataFreshness,
+        isManualLocation: isManualLocation,
       );
     }
 
@@ -577,6 +580,7 @@ class _MapScreenState extends State<MapScreen> {
         userLocation: userLocation,
         onClose: closeSheet,
         freshness: _controller.dataFreshness,
+        isManualLocation: isManualLocation,
       );
     }
 
@@ -586,6 +590,7 @@ class _MapScreenState extends State<MapScreen> {
         incident: _selectedIncident!,
         userLocation: userLocation,
         onClose: closeSheet,
+        isManualLocation: isManualLocation,
       );
     }
 
