@@ -8,7 +8,11 @@
     "description": "Real-time wildfire risk assessment for Scotland powered by EFFIS satellite data",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
-    "categories": ["utilities", "weather", "productivity"],
+    "categories": [
+        "utilities",
+        "weather",
+        "productivity"
+    ],
     "lang": "en-GB",
     "dir": "ltr",
     "icons": [
