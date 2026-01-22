@@ -104,8 +104,10 @@ void main() {
         expect(controller.clusters, isEmpty);
       });
 
-      test('isUsingMockData is false initially', () {
-        expect(controller.isUsingMockData, isFalse);
+      test('isUsingMockData matches inverse of useLiveData initially', () {
+        // isUsingMockData should be true when useLiveData is false (demo mode)
+        // isUsingMockData should be false when useLiveData is true (live mode)
+        expect(controller.isUsingMockData, !controller.useLiveData);
       });
     });
 
@@ -245,6 +247,88 @@ void main() {
 
         // Should have notified once more for reclustering
         expect(notifyCount, greaterThan(countAfterFirst));
+      });
+    });
+
+    group('dataFreshness in demo mode', () {
+      test('returns Freshness.mock when demo mode is active', () {
+        // Demo mode is default when FeatureFlags.mapLiveData=false
+        // Verify controller starts in demo mode
+        controller.setUseLiveData(false);
+
+        // In demo mode, dataFreshness should report mock
+        expect(controller.dataFreshness, Freshness.mock);
+      });
+
+      test('returns Freshness.live when live mode is active and not offline',
+          () {
+        // Enable live mode
+        controller.setUseLiveData(true);
+
+        // Without any fetch failures, should report live
+        expect(controller.dataFreshness, Freshness.live);
+      });
+
+      test('preserves demo mode state after mode switch to burnt areas', () {
+        // Ensure demo mode
+        controller.setUseLiveData(false);
+
+        // Switch to burnt areas mode
+        controller.setFireDataMode(FireDataMode.burntAreas);
+
+        // dataFreshness should still report mock
+        expect(controller.dataFreshness, Freshness.mock);
+      });
+
+      test('preserves demo mode state after mode switch to hotspots', () {
+        // Ensure demo mode
+        controller.setUseLiveData(false);
+
+        // Switch to burnt areas then back to hotspots
+        controller.setFireDataMode(FireDataMode.burntAreas);
+        controller.setFireDataMode(FireDataMode.hotspots);
+
+        // dataFreshness should still report mock
+        expect(controller.dataFreshness, Freshness.mock);
+      });
+
+      test('useLiveData getter reflects current mode', () {
+        // Start by explicitly setting to true
+        controller.setUseLiveData(true);
+        expect(controller.useLiveData, isTrue);
+
+        controller.setUseLiveData(false);
+        expect(controller.useLiveData, isFalse);
+
+        controller.setUseLiveData(true);
+        expect(controller.useLiveData, isTrue);
+      });
+
+      test('setUseLiveData notifies listeners when changing to different value',
+          () {
+        // First ensure we're in a known state
+        controller.setUseLiveData(true);
+
+        var notifyCount = 0;
+        controller.addListener(() => notifyCount++);
+
+        // Change to different value
+        controller.setUseLiveData(false);
+
+        expect(notifyCount, greaterThanOrEqualTo(1));
+      });
+
+      test('setUseLiveData does not notify if value unchanged', () {
+        // First set to false
+        controller.setUseLiveData(false);
+
+        var notifyCount = 0;
+        controller.addListener(() => notifyCount++);
+
+        // Set to same value
+        controller.setUseLiveData(false);
+
+        expect(notifyCount, 0);
       });
     });
   });

@@ -63,18 +63,12 @@ class _ReportFireScreenState extends State<ReportFireScreen> {
         children: [
           // Emergency Hero Card - combines banner + emergency contacts + disclaimer
           EmergencyHeroCard(
-            onCall999: () => _handleEmergencyCall(
-              context,
-              EmergencyContact.fireService,
-            ),
-            onCall101: () => _handleEmergencyCall(
-              context,
-              EmergencyContact.policeScotland,
-            ),
-            onCallCrimestoppers: () => _handleEmergencyCall(
-              context,
-              EmergencyContact.crimestoppers,
-            ),
+            onCall999: () =>
+                _handleEmergencyCall(context, EmergencyContact.fireService),
+            onCall101: () =>
+                _handleEmergencyCall(context, EmergencyContact.policeScotland),
+            onCallCrimestoppers: () =>
+                _handleEmergencyCall(context, EmergencyContact.crimestoppers),
           ),
           const SizedBox(height: 16),
 
@@ -179,7 +173,6 @@ class _TipsCard extends StatelessWidget {
             Text(
               '• Use What3Words or GPS for your location\n'
               '• Never fight wildfires yourself\n'
-              '• If smoke approaches, move uphill and upwind\n'
               '• Keep vehicle access clear for fire engines',
               style: textTheme.bodyMedium?.copyWith(
                 color: cs.onSecondaryContainer,
@@ -190,8 +183,9 @@ class _TipsCard extends StatelessWidget {
 
             // Expandable "More Safety Guidance" section
             Theme(
-              data:
-                  Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              data: Theme.of(
+                context,
+              ).copyWith(dividerColor: Colors.transparent),
               child: ExpansionTile(
                 tilePadding: EdgeInsets.zero,
                 childrenPadding: const EdgeInsets.only(
