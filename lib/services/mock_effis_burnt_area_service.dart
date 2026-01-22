@@ -3,14 +3,31 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:dartz/dartz.dart';
 import '../models/api_error.dart';
 import '../models/burnt_area.dart';
+import '../models/location_models.dart';
 import '../models/lat_lng_bounds.dart';
 import '../models/fire_data_mode.dart';
 import 'effis_burnt_area_service.dart';
 
 /// Mock implementation of EffisBurntAreaService for development and fallback
 ///
-/// Loads burnt area data from assets/mock/burnt_areas.json.
+/// Loads burnt area data from assets/mock/mock_burnt_areas.json.
 /// Used when live EFFIS API is unavailable or for testing.
+///
+/// Data format matches the cache bundle format:
+/// ```json
+/// {
+///   "burntAreas": [
+///     {
+///       "id": "mock_ba_001",
+///       "fireDate": "2025-04-15",
+///       "areaHa": 125.5,
+///       "province": "Highland",
+///       "coords": [[57.5, -5.0], [57.51, -5.0], ...],
+///       "isMockData": true
+///     }
+///   ]
+/// }
+/// ```
 ///
 /// Mirrors the live service behavior:
 /// - BurntAreaSeasonFilter.thisSeason → returns burnt areas from current year
@@ -27,6 +44,8 @@ class MockEffisBurntAreaService implements EffisBurntAreaService {
       : _clock = clock ?? (() => DateTime.now());
 
   /// Load and parse mock burnt area data from assets
+  ///
+  /// Uses bundle format parsing (same as CachedBurntAreaService) for consistency.
   Future<List<BurntArea>> _loadMockData() async {
     if (_cachedBurntAreas != null) {
       return _cachedBurntAreas!;
@@ -34,13 +53,13 @@ class MockEffisBurntAreaService implements EffisBurntAreaService {
 
     try {
       final jsonString = await rootBundle.loadString(
-        'assets/mock/burnt_areas.json',
+        'assets/mock/mock_burnt_areas.json',
       );
       final jsonData = json.decode(jsonString) as Map<String, dynamic>;
-      final features = jsonData['features'] as List<dynamic>;
+      final features = jsonData['burntAreas'] as List<dynamic>;
 
       _cachedBurntAreas = features.map((feature) {
-        return BurntArea.fromJson(feature as Map<String, dynamic>);
+        return _parseBurntAreaFromAsset(feature as Map<String, dynamic>);
       }).toList();
 
       return _cachedBurntAreas!;
@@ -48,6 +67,44 @@ class MockEffisBurntAreaService implements EffisBurntAreaService {
       // Mock service should never fail - return empty list
       return [];
     }
+  }
+
+  /// Parse a burnt area from the bundle JSON format
+  ///
+  /// Bundle format uses [lat, lon] coordinate order (same as cache bundles).
+  BurntArea _parseBurntAreaFromAsset(Map<String, dynamic> feature) {
+    final id = feature['id'].toString();
+    final fireDateStr = feature['fireDate'] as String;
+    final areaHa = (feature['areaHa'] as num?)?.toDouble() ?? 0.0;
+    final province = feature['province'] as String?;
+    final coords = feature['coords'] as List<dynamic>;
+
+    // Parse coordinates (format: [[lat, lon], [lat, lon], ...])
+    final boundaryPoints = coords.map((coord) {
+      final c = coord as List<dynamic>;
+      return LatLng((c[0] as num).toDouble(), (c[1] as num).toDouble());
+    }).toList();
+
+    // Parse fire date and extract season year
+    final fireDate =
+        DateTime.tryParse(fireDateStr)?.toUtc() ?? DateTime.now().toUtc();
+    final seasonYear = fireDate.year;
+
+    // Create land cover breakdown with province if available
+    Map<String, double>? landCover;
+    if (province != null) {
+      landCover = {'province': 1.0}; // Store province info
+    }
+
+    return BurntArea(
+      id: id,
+      boundaryPoints: boundaryPoints,
+      areaHectares: areaHa,
+      fireDate: fireDate,
+      seasonYear: seasonYear,
+      landCoverBreakdown: landCover,
+      isSimplified: false,
+    );
   }
 
   @override

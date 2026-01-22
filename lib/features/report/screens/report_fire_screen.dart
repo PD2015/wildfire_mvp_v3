@@ -179,7 +179,6 @@ class _TipsCard extends StatelessWidget {
             Text(
               '• Use What3Words or GPS for your location\n'
               '• Never fight wildfires yourself\n'
-              '• If smoke approaches, move uphill and upwind\n'
               '• Keep vehicle access clear for fire engines',
               style: textTheme.bodyMedium?.copyWith(
                 color: cs.onSecondaryContainer,
