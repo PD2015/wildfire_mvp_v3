@@ -161,13 +161,13 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
         return _buildLoadingState(theme, cs, lastKnownLocation);
 
       case LocationDisplaySuccess(
-        :final coordinates,
-        :final source,
-        :final placeName,
-        :final what3words,
-        :final isWhat3wordsLoading,
-        :final formattedLocation,
-      ):
+          :final coordinates,
+          :final source,
+          :final placeName,
+          :final what3words,
+          :final isWhat3wordsLoading,
+          :final formattedLocation,
+        ):
         return _buildSuccessState(
           theme,
           cs,
@@ -511,18 +511,18 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
     final roundedLat = (lat * 100).round() / 100;
     final roundedLon = (lon * 100).round() / 100;
 
-    final url = Uri.parse('https://maps.googleapis.com/maps/api/staticmap')
-        .replace(
-          queryParameters: {
-            'center': '$roundedLat,$roundedLon',
-            'zoom': '14',
-            'size': '600x300',
-            'markers': 'color:red|$roundedLat,$roundedLon',
-            'key': apiKey,
-            'scale': '2',
-            'maptype': 'roadmap',
-          },
-        );
+    final url =
+        Uri.parse('https://maps.googleapis.com/maps/api/staticmap').replace(
+      queryParameters: {
+        'center': '$roundedLat,$roundedLon',
+        'zoom': '14',
+        'size': '600x300',
+        'markers': 'color:red|$roundedLat,$roundedLon',
+        'key': apiKey,
+        'scale': '2',
+        'maptype': 'roadmap',
+      },
+    );
 
     return url.toString();
   }

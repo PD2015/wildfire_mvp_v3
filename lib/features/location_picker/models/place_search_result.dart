@@ -27,11 +27,11 @@ class PlaceSearchResult extends Equatable {
 
   /// Create with resolved coordinates
   PlaceSearchResult withCoordinates(LatLng coords) => PlaceSearchResult(
-    placeId: placeId,
-    name: name,
-    formattedAddress: formattedAddress,
-    coordinates: coords,
-  );
+        placeId: placeId,
+        name: name,
+        formattedAddress: formattedAddress,
+        coordinates: coords,
+      );
 
   /// Display string for autocomplete dropdown
   String get displayText =>

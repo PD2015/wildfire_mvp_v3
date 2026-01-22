@@ -292,9 +292,9 @@ class EmergencyHeroCard extends StatelessWidget {
             child: Text(
               'This app does not contact emergency services. Always phone 999, 101 or Crimestoppers yourself.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: cs.onSurfaceVariant,
-                fontSize: 11,
-              ),
+                    color: cs.onSurfaceVariant,
+                    fontSize: 11,
+                  ),
             ),
           ),
         ],

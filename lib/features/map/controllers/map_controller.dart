@@ -176,10 +176,10 @@ class MapController extends ChangeNotifier {
     required FireRiskService fireRiskService,
     required HotspotServiceOrchestrator hotspotOrchestrator,
     EffisBurntAreaService? burntAreaService,
-  }) : _locationResolver = locationResolver,
-       _fireRiskService = fireRiskService,
-       _hotspotOrchestrator = hotspotOrchestrator,
-       _burntAreaService = burntAreaService {
+  })  : _locationResolver = locationResolver,
+        _fireRiskService = fireRiskService,
+        _hotspotOrchestrator = hotspotOrchestrator,
+        _burntAreaService = burntAreaService {
     // Initialize mock hotspot service for MAP_LIVE_DATA=false demo mode
     // Note: Burnt areas use CachedBurntAreaService with bundled real data in demo mode
     _mockHotspotService = MockHotspotService();
@@ -348,12 +348,10 @@ class MapController extends ChangeNotifier {
     } catch (e) {
       _state = MapError(
         message: 'Refresh failed: $e',
-        cachedIncidents: previousState is MapSuccess
-            ? previousState.incidents
-            : null,
-        lastKnownLocation: previousState is MapSuccess
-            ? previousState.centerLocation
-            : null,
+        cachedIncidents:
+            previousState is MapSuccess ? previousState.incidents : null,
+        lastKnownLocation:
+            previousState is MapSuccess ? previousState.centerLocation : null,
       );
       notifyListeners();
     }
@@ -623,9 +621,8 @@ class MapController extends ChangeNotifier {
           return false;
         },
         (areas) {
-          final sourceLabel = _useLiveData
-              ? 'cached/live EFFIS'
-              : 'bundled EFFIS data';
+          final sourceLabel =
+              _useLiveData ? 'cached/live EFFIS' : 'bundled EFFIS data';
           debugPrint(
             '🗺️ MapController: Loaded ${areas.length} burnt areas from $sourceLabel',
           );

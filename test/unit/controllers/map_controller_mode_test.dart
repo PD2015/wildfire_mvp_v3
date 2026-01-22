@@ -8,7 +8,6 @@ import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
-import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 
 import '../../helpers/mock_hotspot_orchestrator.dart';
 

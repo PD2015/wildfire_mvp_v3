@@ -66,9 +66,9 @@ class RiskResultChip extends StatelessWidget {
               Text(
                 riskLabel,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               const SizedBox(height: 8),
               // FWI value

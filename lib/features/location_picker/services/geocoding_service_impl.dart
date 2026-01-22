@@ -33,12 +33,11 @@ class GeocodingServiceImpl implements GeocodingService {
   /// If no geocoding key is configured, falls back to [FeatureFlags.googleMapsApiKey]
   /// for backwards compatibility during migration.
   GeocodingServiceImpl({http.Client? client, String? apiKey})
-    : _client = client ?? http.Client(),
-      _apiKey =
-          apiKey ??
-          (FeatureFlags.geocodingApiKey.isNotEmpty
-              ? FeatureFlags.geocodingApiKey
-              : FeatureFlags.googleMapsApiKey);
+      : _client = client ?? http.Client(),
+        _apiKey = apiKey ??
+            (FeatureFlags.geocodingApiKey.isNotEmpty
+                ? FeatureFlags.geocodingApiKey
+                : FeatureFlags.googleMapsApiKey);
 
   @override
   Future<Either<GeocodingError, List<PlaceSearchResult>>> searchPlaces({

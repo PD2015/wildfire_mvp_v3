@@ -158,12 +158,12 @@ class TimeFilterChips extends StatelessWidget {
             child: Text(
               label,
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                // Match NavigationBar active icon color (forest900)
-                color: isSelected
-                    ? BrandPalette.forest900
-                    : colorScheme.onSurfaceVariant,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              ),
+                    // Match NavigationBar active icon color (forest900)
+                    color: isSelected
+                        ? BrandPalette.forest900
+                        : colorScheme.onSurfaceVariant,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  ),
             ),
           ),
         ),

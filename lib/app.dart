@@ -110,8 +110,7 @@ class WildFireApp extends StatelessWidget {
     // Redirect logic for onboarding
     redirect: (context, state) {
       final isOnboarding = state.uri.path == '/onboarding';
-      final isLegalPath =
-          state.uri.path.startsWith('/about') ||
+      final isLegalPath = state.uri.path.startsWith('/about') ||
           state.uri.path.startsWith('/settings/about');
       final needsOnboarding = _isOnboardingRequired();
 
@@ -148,8 +147,7 @@ class WildFireApp extends StatelessWidget {
         path: '/location-picker',
         name: 'location-picker',
         builder: (context, state) {
-          final extras =
-              state.extra as LocationPickerExtras? ??
+          final extras = state.extra as LocationPickerExtras? ??
               const LocationPickerExtras(mode: LocationPickerMode.riskLocation);
 
           return LocationPickerScreen(

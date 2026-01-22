@@ -142,14 +142,14 @@ class ReportFireLocationCard extends StatelessWidget {
         return _buildLoadingState(context, theme, scheme, lastKnownLocation);
 
       case LocationDisplaySuccess(
-        :final coordinates,
-        :final source,
-        :final placeName,
-        :final what3words,
-        :final isWhat3wordsLoading,
-        :final formattedLocation,
-        :final isGeocodingLoading,
-      ):
+          :final coordinates,
+          :final source,
+          :final placeName,
+          :final what3words,
+          :final isWhat3wordsLoading,
+          :final formattedLocation,
+          :final isGeocodingLoading,
+        ):
         return _buildSuccessState(
           context,
           theme,
@@ -494,46 +494,47 @@ class ReportFireLocationCard extends StatelessWidget {
                   ],
                 )
               : what3words != null
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Semantics(
-                      label: 'Open $what3words in what3words app or website',
-                      button: true,
-                      child: InkWell(
-                        onTap: () => _openWhat3words(context, what3words),
-                        borderRadius: BorderRadius.circular(4),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2),
-                          child: Text(
-                            what3words,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: scheme.primary,
-                              fontWeight: FontWeight.w500,
-                              decoration: TextDecoration.underline,
-                              decorationColor: scheme.primary,
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Semantics(
+                          label:
+                              'Open $what3words in what3words app or website',
+                          button: true,
+                          child: InkWell(
+                            onTap: () => _openWhat3words(context, what3words),
+                            borderRadius: BorderRadius.circular(4),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: Text(
+                                what3words,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: scheme.primary,
+                                  fontWeight: FontWeight.w500,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: scheme.primary,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Tap to open in what3words',
-                      style: theme.textTheme.bodySmall?.copyWith(
+                        const SizedBox(height: 2),
+                        Text(
+                          'Tap to open in what3words',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: scheme.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Text(
+                      '/// Unavailable',
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: scheme.onSurfaceVariant,
-                        fontSize: 11,
+                        fontWeight: FontWeight.normal,
                       ),
                     ),
-                  ],
-                )
-              : Text(
-                  '/// Unavailable',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.normal,
-                  ),
-                ),
         ),
       ],
     );
@@ -599,18 +600,18 @@ class ReportFireLocationCard extends StatelessWidget {
     final roundedLat = (lat * 100).round() / 100;
     final roundedLon = (lon * 100).round() / 100;
 
-    final url = Uri.parse('https://maps.googleapis.com/maps/api/staticmap')
-        .replace(
-          queryParameters: {
-            'center': '$roundedLat,$roundedLon',
-            'zoom': '14',
-            'size': '600x300',
-            'markers': 'color:red|$roundedLat,$roundedLon',
-            'key': apiKey,
-            'scale': '2',
-            'maptype': 'roadmap',
-          },
-        );
+    final url =
+        Uri.parse('https://maps.googleapis.com/maps/api/staticmap').replace(
+      queryParameters: {
+        'center': '$roundedLat,$roundedLon',
+        'zoom': '14',
+        'size': '600x300',
+        'markers': 'color:red|$roundedLat,$roundedLon',
+        'key': apiKey,
+        'scale': '2',
+        'maptype': 'roadmap',
+      },
+    );
 
     return url.toString();
   }
