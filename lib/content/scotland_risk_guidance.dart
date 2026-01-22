@@ -13,6 +13,16 @@ import '../models/risk_guidance.dart';
 /// Constitutional compliance:
 /// - C4: Transparency through authoritative, actionable public safety information
 class ScotlandRiskGuidance {
+  /// Shared disclaimer for all risk levels
+  static const String _sharedDisclaimer =
+      'Risk levels describe conditions, not safety. Fires can still start at any level.';
+
+  /// Shared help route for all risk levels
+  static const String _helpRoute = '/help/doc/risk-levels';
+
+  /// Shared help link label for accessibility
+  static const String _helpLinkLabel = 'Learn more about risk levels';
+
   /// Guidance mapped to each risk level
   static const Map<RiskLevel, RiskGuidance> guidanceByLevel = {
     RiskLevel.veryLow: RiskGuidance(
@@ -24,6 +34,9 @@ class ScotlandRiskGuidance {
         'Keep any flame off peat, heather and dry grass.',
         'Fully extinguish cigarettes, stoves and BBQs and check the ground is cool.',
       ],
+      helpRoute: _helpRoute,
+      helpLinkLabel: _helpLinkLabel,
+      disclaimer: _sharedDisclaimer,
     ),
     RiskLevel.low: RiskGuidance(
       title: 'What this risk level means',
@@ -34,16 +47,21 @@ class ScotlandRiskGuidance {
         'Keep vehicles and hot exhausts off dry grass and heather.',
         'Take all litter home, especially glass which can focus sunlight.',
       ],
+      helpRoute: _helpRoute,
+      helpLinkLabel: _helpLinkLabel,
+      disclaimer: _sharedDisclaimer,
     ),
     RiskLevel.moderate: RiskGuidance(
       title: 'What this risk level means',
-      summary:
-          'MODERATE risk – heather, grass and woodland edges are drying. Fires can start and spread on sunny, breezy days.',
+      summary: 'MODERATE risk – heather, grass and woodland edges are drying.',
       bulletPoints: [
         'Avoid campfires and disposable BBQs away from formal sites.',
         'Be extra careful with cigarettes, vapes and matches.',
         'Have water or an extinguisher available if using tools or machinery.',
       ],
+      helpRoute: _helpRoute,
+      helpLinkLabel: _helpLinkLabel,
+      disclaimer: _sharedDisclaimer,
     ),
     RiskLevel.high: RiskGuidance(
       title: 'What this risk level means',
@@ -54,6 +72,9 @@ class ScotlandRiskGuidance {
         'Follow local fire restrictions from land managers and National Parks.',
         'Avoid parking or idling vehicles on dry grassy verges.',
       ],
+      helpRoute: _helpRoute,
+      helpLinkLabel: _helpLinkLabel,
+      disclaimer: _sharedDisclaimer,
     ),
     RiskLevel.veryHigh: RiskGuidance(
       title: 'What this risk level means',
@@ -64,6 +85,9 @@ class ScotlandRiskGuidance {
         'Keep to paths and watch for smoke on hillsides and in woodland.',
         'Pack out all litter; even a bottle can start a fire in strong sun.',
       ],
+      helpRoute: _helpRoute,
+      helpLinkLabel: _helpLinkLabel,
+      disclaimer: _sharedDisclaimer,
     ),
     RiskLevel.extreme: RiskGuidance(
       title: 'What this risk level means',
@@ -74,6 +98,9 @@ class ScotlandRiskGuidance {
         'Follow local closures and ranger advice – bans may be in force.',
         'If you see smoke or flames, move to safety and call 999 immediately.',
       ],
+      helpRoute: _helpRoute,
+      helpLinkLabel: _helpLinkLabel,
+      disclaimer: _sharedDisclaimer,
     ),
   };
 
@@ -87,6 +114,9 @@ class ScotlandRiskGuidance {
       'Follow local fire safety advice and restrictions.',
       'Keep vehicles off dry grass and vegetation.',
     ],
+    helpRoute: _helpRoute,
+    helpLinkLabel: _helpLinkLabel,
+    disclaimer: _sharedDisclaimer,
   );
 
   /// Emergency response footer (same for all levels)
