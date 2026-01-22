@@ -63,8 +63,9 @@ class FireDataModeToggle extends StatelessWidget {
               label: 'Hotspots',
               icon: Icons.whatshot,
               isSelected: mode == FireDataMode.hotspots,
-              onSelected:
-                  enabled ? () => onModeChanged(FireDataMode.hotspots) : null,
+              onSelected: enabled
+                  ? () => onModeChanged(FireDataMode.hotspots)
+                  : null,
               tooltip: 'Show active fire hotspots from satellite detection',
             ),
             const SizedBox(width: 4),
@@ -74,8 +75,9 @@ class FireDataModeToggle extends StatelessWidget {
               label: 'Burnt Areas',
               icon: Icons.layers,
               isSelected: mode == FireDataMode.burntAreas,
-              onSelected:
-                  enabled ? () => onModeChanged(FireDataMode.burntAreas) : null,
+              onSelected: enabled
+                  ? () => onModeChanged(FireDataMode.burntAreas)
+                  : null,
               tooltip: 'Show verified burnt area polygons',
             ),
           ],
@@ -120,12 +122,11 @@ class FireDataModeToggle extends StatelessWidget {
                 Text(
                   label,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: isSelected
-                            ? BrandPalette.forest900
-                            : colorScheme.onSurfaceVariant,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.w400,
-                      ),
+                    color: isSelected
+                        ? BrandPalette.forest900
+                        : colorScheme.onSurfaceVariant,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  ),
                 ),
               ],
             ),

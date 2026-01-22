@@ -66,10 +66,10 @@ class HomeController extends ChangeNotifier {
     required FireRiskService fireRiskService,
     What3wordsService? what3wordsService,
     GeocodingService? geocodingService,
-  })  : _locationResolver = locationResolver,
-        _fireRiskService = fireRiskService,
-        _what3wordsService = what3wordsService,
-        _geocodingService = geocodingService {
+  }) : _locationResolver = locationResolver,
+       _fireRiskService = fireRiskService,
+       _what3wordsService = what3wordsService,
+       _geocodingService = geocodingService {
     developer.log('HomeController initialized', name: 'HomeController');
   }
 
@@ -428,30 +428,30 @@ class HomeController extends ChangeNotifier {
       _what3wordsService!
           .convertTo3wa(lat: location.latitude, lon: location.longitude)
           .then((result) {
-        final state = _state;
-        if (state is HomeStateSuccess) {
-          switch (result) {
-            case Right(:final value):
-              developer.log(
-                'What3words resolved for ${LocationUtils.logRedact(location.latitude, location.longitude)}',
-                name: 'HomeController',
-              );
-              // NOTE: Never log the actual what3words address (privacy - C2)
-              _updateState(
-                state.copyWith(
-                  what3words: value.displayFormat,
-                  isWhat3wordsLoading: false,
-                ),
-              );
-            case Left(:final value):
-              developer.log(
-                'What3words failed: ${value.userMessage}',
-                name: 'HomeController',
-              );
-              _updateState(state.copyWith(isWhat3wordsLoading: false));
-          }
-        }
-      });
+            final state = _state;
+            if (state is HomeStateSuccess) {
+              switch (result) {
+                case Right(:final value):
+                  developer.log(
+                    'What3words resolved for ${LocationUtils.logRedact(location.latitude, location.longitude)}',
+                    name: 'HomeController',
+                  );
+                  // NOTE: Never log the actual what3words address (privacy - C2)
+                  _updateState(
+                    state.copyWith(
+                      what3words: value.displayFormat,
+                      isWhat3wordsLoading: false,
+                    ),
+                  );
+                case Left(:final value):
+                  developer.log(
+                    'What3words failed: ${value.userMessage}',
+                    name: 'HomeController',
+                  );
+                  _updateState(state.copyWith(isWhat3wordsLoading: false));
+              }
+            }
+          });
     }
 
     // Fetch formatted location via reverse geocoding (if service available)
@@ -459,29 +459,29 @@ class HomeController extends ChangeNotifier {
       _geocodingService!
           .reverseGeocode(lat: location.latitude, lon: location.longitude)
           .then((result) {
-        final state = _state;
-        if (state is HomeStateSuccess) {
-          switch (result) {
-            case Right(:final value):
-              developer.log(
-                'Geocoding resolved: $value',
-                name: 'HomeController',
-              );
-              _updateState(
-                state.copyWith(
-                  formattedLocation: value,
-                  isGeocodingLoading: false,
-                ),
-              );
-            case Left(:final value):
-              developer.log(
-                'Geocoding failed: $value',
-                name: 'HomeController',
-              );
-              _updateState(state.copyWith(isGeocodingLoading: false));
-          }
-        }
-      });
+            final state = _state;
+            if (state is HomeStateSuccess) {
+              switch (result) {
+                case Right(:final value):
+                  developer.log(
+                    'Geocoding resolved: $value',
+                    name: 'HomeController',
+                  );
+                  _updateState(
+                    state.copyWith(
+                      formattedLocation: value,
+                      isGeocodingLoading: false,
+                    ),
+                  );
+                case Left(:final value):
+                  developer.log(
+                    'Geocoding failed: $value',
+                    name: 'HomeController',
+                  );
+                  _updateState(state.copyWith(isGeocodingLoading: false));
+              }
+            }
+          });
     }
   }
 

@@ -52,8 +52,8 @@ class LocationPickerController extends ChangeNotifier {
     LatLng? initialLocation,
     What3wordsAddress? initialWhat3words,
     String? initialPlaceName,
-  })  : _what3wordsService = what3wordsService,
-        _geocodingService = geocodingService {
+  }) : _what3wordsService = what3wordsService,
+       _geocodingService = geocodingService {
     if (initialLocation != null ||
         initialWhat3words != null ||
         initialPlaceName != null) {

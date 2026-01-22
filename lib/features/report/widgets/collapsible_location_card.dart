@@ -89,10 +89,7 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
         content: const Text('Location copied to clipboard'),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        action: SnackBarAction(
-          label: 'OK',
-          onPressed: () {},
-        ),
+        action: SnackBarAction(label: 'OK', onPressed: () {}),
       ),
     );
   }
@@ -134,11 +131,7 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Location pin icon (no background)
-        Icon(
-          Icons.location_on_outlined,
-          color: cs.onSurface,
-          size: 24,
-        ),
+        Icon(Icons.location_on_outlined, color: cs.onSurface, size: 24),
         const SizedBox(width: 12),
 
         // Title (matches EmergencyHeroCard heading)
@@ -168,13 +161,13 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
         return _buildLoadingState(theme, cs, lastKnownLocation);
 
       case LocationDisplaySuccess(
-          :final coordinates,
-          :final source,
-          :final placeName,
-          :final what3words,
-          :final isWhat3wordsLoading,
-          :final formattedLocation,
-        ):
+        :final coordinates,
+        :final source,
+        :final placeName,
+        :final what3words,
+        :final isWhat3wordsLoading,
+        :final formattedLocation,
+      ):
         return _buildSuccessState(
           theme,
           cs,
@@ -323,18 +316,12 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
       children: [
         Row(
           children: [
-            Icon(
-              Icons.error_outline,
-              color: cs.error,
-              size: 20,
-            ),
+            Icon(Icons.error_outline, color: cs.error, size: 20),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 message,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: cs.error,
-                ),
+                style: theme.textTheme.bodyMedium?.copyWith(color: cs.error),
               ),
             ),
           ],
@@ -369,9 +356,7 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
       padding: const EdgeInsets.only(left: 36),
       child: Text(
         '$displayText · $sourceText',
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: cs.onSurfaceVariant,
-        ),
+        style: theme.textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
@@ -526,18 +511,18 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
     final roundedLat = (lat * 100).round() / 100;
     final roundedLon = (lon * 100).round() / 100;
 
-    final url =
-        Uri.parse('https://maps.googleapis.com/maps/api/staticmap').replace(
-      queryParameters: {
-        'center': '$roundedLat,$roundedLon',
-        'zoom': '14',
-        'size': '600x300',
-        'markers': 'color:red|$roundedLat,$roundedLon',
-        'key': apiKey,
-        'scale': '2',
-        'maptype': 'roadmap',
-      },
-    );
+    final url = Uri.parse('https://maps.googleapis.com/maps/api/staticmap')
+        .replace(
+          queryParameters: {
+            'center': '$roundedLat,$roundedLon',
+            'zoom': '14',
+            'size': '600x300',
+            'markers': 'color:red|$roundedLat,$roundedLon',
+            'key': apiKey,
+            'scale': '2',
+            'maptype': 'roadmap',
+          },
+        );
 
     return url.toString();
   }
