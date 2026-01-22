@@ -76,6 +76,10 @@ class MapController extends ChangeNotifier {
   // Used to show loading indicator in UI
   bool _isFetchingBurntAreas = false;
 
+  // Loading state for hotspot data fetches
+  // Used to show loading indicator in UI
+  bool _isFetchingHotspots = false;
+
   // Timestamp of last successful data fetch
   DateTime _lastUpdated = DateTime.now();
 
@@ -141,6 +145,20 @@ class MapController extends ChangeNotifier {
   /// Whether burnt area data is currently being fetched
   /// Used to show loading indicator in UI
   bool get isFetchingBurntAreas => _isFetchingBurntAreas;
+
+  /// Whether hotspot data is currently being fetched
+  /// Used to show loading indicator in UI
+  bool get isFetchingHotspots => _isFetchingHotspots;
+
+  /// Whether any fire data is currently being fetched (mode-aware)
+  /// Used to prevent showing empty state during loading
+  bool get isLoadingFireData {
+    if (_fireDataMode == FireDataMode.hotspots) {
+      return _isFetchingHotspots;
+    } else {
+      return _isFetchingBurntAreas;
+    }
+  }
 
   /// Which service provided the current hotspot data
   HotspotDataSource get hotspotDataSource => _hotspotDataSource;
@@ -472,6 +490,10 @@ class MapController extends ChangeNotifier {
     // Increment request ID to invalidate any in-flight requests
     final currentRequestId = ++_hotspotRequestId;
 
+    // Set loading state and notify UI
+    _isFetchingHotspots = true;
+    notifyListeners();
+
     debugPrint(
       '🗺️ MapController: Fetching hotspots for bounds '
       'SW(${_currentBounds!.southwest.latitude.toStringAsFixed(2)},${_currentBounds!.southwest.longitude.toStringAsFixed(2)}) '
@@ -493,6 +515,7 @@ class MapController extends ChangeNotifier {
         debugPrint(
           '🗺️ MapController: Discarding stale mock hotspot result (request $currentRequestId, current $_hotspotRequestId)',
         );
+        _isFetchingHotspots = false;
         return;
       }
 
@@ -505,6 +528,7 @@ class MapController extends ChangeNotifier {
         '🗺️ MapController: Loaded ${_hotspots.length} hotspots from mock',
       );
       _reclusterHotspots();
+      _isFetchingHotspots = false;
       notifyListeners();
       return;
     }
@@ -520,6 +544,7 @@ class MapController extends ChangeNotifier {
       debugPrint(
         '🗺️ MapController: Discarding stale hotspot result (request $currentRequestId, current $_hotspotRequestId)',
       );
+      _isFetchingHotspots = false;
       return;
     }
 
@@ -544,6 +569,7 @@ class MapController extends ChangeNotifier {
       _reclusterHotspots();
     }
 
+    _isFetchingHotspots = false;
     notifyListeners();
   }
 

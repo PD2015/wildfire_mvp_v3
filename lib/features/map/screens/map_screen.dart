@@ -26,7 +26,8 @@ import 'package:wildfire_mvp_v3/models/map_state.dart';
 import 'package:wildfire_mvp_v3/utils/debounced_viewport_loader.dart';
 import 'package:wildfire_mvp_v3/widgets/app_bar_actions.dart';
 import 'package:wildfire_mvp_v3/widgets/fire_details_bottom_sheet.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// TODO: Re-enable when tooltip positioning is improved to avoid bottom sheet overlap
+// import 'package:shared_preferences/shared_preferences.dart';
 
 /// Map screen with Google Maps integration showing active fire incidents
 ///
@@ -437,8 +438,9 @@ class _MapScreenState extends State<MapScreen> {
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
-  /// SharedPreferences key for tracking first-use tip
-  static const _firstMarkerTapKey = 'has_tapped_fire_marker';
+  // TODO: Re-enable when tooltip positioning is improved to avoid bottom sheet overlap
+  // /// SharedPreferences key for tracking first-use tip
+  // static const _firstMarkerTapKey = 'has_tapped_fire_marker';
 
   /// Show hotspot details in bottom sheet using native Hotspot data
   void _showHotspotDetails(Hotspot hotspot) {
@@ -448,7 +450,8 @@ class _MapScreenState extends State<MapScreen> {
       _selectedIncident = null; // Clear legacy field
       _isBottomSheetVisible = true;
     });
-    _showFirstUseTipIfNeeded();
+    // TODO: Re-enable when tooltip positioning is improved to avoid bottom sheet overlap
+    // _showFirstUseTipIfNeeded();
   }
 
   /// Show burnt area details in bottom sheet using native BurntArea data
@@ -459,48 +462,50 @@ class _MapScreenState extends State<MapScreen> {
       _selectedIncident = null; // Clear legacy field
       _isBottomSheetVisible = true;
     });
-    _showFirstUseTipIfNeeded();
+    // TODO: Re-enable when tooltip positioning is improved to avoid bottom sheet overlap
+    // _showFirstUseTipIfNeeded();
   }
 
-  /// Show first-use tip snackbar (only once per install)
-  Future<void> _showFirstUseTipIfNeeded() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final hasSeenTip = prefs.getBool(_firstMarkerTapKey) ?? false;
-
-      if (!hasSeenTip && mounted) {
-        // Mark as seen immediately to prevent duplicates
-        await prefs.setBool(_firstMarkerTapKey, true);
-
-        // Show tip after a short delay to let bottom sheet animate
-        await Future.delayed(const Duration(milliseconds: 500));
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.lightbulb_outline, color: Colors.white, size: 20),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Tap "Learn More" to understand what you\'re seeing',
-                    ),
-                  ),
-                ],
-              ),
-              duration: Duration(seconds: 4),
-              behavior: SnackBarBehavior.floating,
-              margin: EdgeInsets.fromLTRB(16, 16, 16, 80), // Above bottom sheet
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      // Silently fail - tip is not critical
-      debugPrint('⚠️ Failed to check first-use tip: $e');
-    }
-  }
+  // TODO: Re-enable when tooltip positioning is improved to avoid bottom sheet overlap
+  // /// Show first-use tip snackbar (only once per install)
+  // Future<void> _showFirstUseTipIfNeeded() async {
+  //   try {
+  //     final prefs = await SharedPreferences.getInstance();
+  //     final hasSeenTip = prefs.getBool(_firstMarkerTapKey) ?? false;
+  //
+  //     if (!hasSeenTip && mounted) {
+  //       // Mark as seen immediately to prevent duplicates
+  //       await prefs.setBool(_firstMarkerTapKey, true);
+  //
+  //       // Show tip after a short delay to let bottom sheet animate
+  //       await Future.delayed(const Duration(milliseconds: 500));
+  //
+  //       if (mounted) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(
+  //             content: Row(
+  //               children: [
+  //                 Icon(Icons.lightbulb_outline, color: Colors.white, size: 20),
+  //                 SizedBox(width: 12),
+  //                 Expanded(
+  //                   child: Text(
+  //                     'Tap "Learn More" to understand what you\\'re seeing',
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //             duration: Duration(seconds: 4),
+  //             behavior: SnackBarBehavior.floating,
+  //             margin: EdgeInsets.fromLTRB(16, 16, 16, 80), // Above bottom sheet
+  //           ),
+  //         );
+  //       }
+  //     }
+  //   } catch (e) {
+  //     // Silently fail - tip is not critical
+  //     debugPrint('⚠️ Failed to check first-use tip: $e');
+  //   }
+  // }
 
   /// Format intensity for user-friendly display
   String _formatIntensity(String raw) {
@@ -785,9 +790,8 @@ class _MapScreenState extends State<MapScreen> {
       return _buildUnsupportedPlatformView();
     }
 
-    // Show loading indicator in AppBar when fetching data
-    final isLoading = _controller.isFetchingBurntAreas &&
-        _controller.fireDataMode == FireDataMode.burntAreas;
+    // Show loading indicator in AppBar when fetching fire data
+    final isLoading = _controller.isLoadingFireData;
 
     return Scaffold(
       appBar: AppBar(
@@ -1074,9 +1078,8 @@ class _MapScreenState extends State<MapScreen> {
             child: IncidentsTimestampChip(lastUpdated: _controller.lastUpdated),
           ),
         // Loading status banner - positioned at bottom to avoid control overlap
-        // Shows when fetching burnt area data (supplements AppBar progress indicator)
-        if (_controller.isFetchingBurntAreas &&
-            _controller.fireDataMode == FireDataMode.burntAreas)
+        // Shows when fetching fire data (supplements AppBar progress indicator)
+        if (_controller.isLoadingFireData)
           Positioned(
             bottom: 80,
             left: 0,
@@ -1176,11 +1179,13 @@ class _MapScreenState extends State<MapScreen> {
         // Empty state message if no fire data - mode-specific messaging
         // Different UX for offline (API failure) vs normal empty state
         // Positioned lower to avoid blocking zoom controls (right side)
-        if (!_controller.hasFireData)
+        // Only show empty state when NOT loading - prevents flash of empty state during fetch
+        if (!_controller.hasFireData && !_controller.isLoadingFireData)
           Positioned(
             left: 24,
             right: 24,
-            bottom: 100, // Above bottom nav, below zoom controls
+            bottom:
+                80, // Above bottom nav, below zoom controls (lowered to avoid overlap)
             child: Card(
               elevation: 2,
               child: Padding(
@@ -1200,6 +1205,9 @@ class _MapScreenState extends State<MapScreen> {
   /// Displays a subtle banner with progress indicator and text
   /// to inform users that data is being loaded.
   Widget _buildLoadingBanner(BuildContext context) {
+    final loadingText = _controller.fireDataMode == FireDataMode.hotspots
+        ? 'Loading hotspots...'
+        : 'Loading burnt areas...';
     return Card(
       elevation: 4,
       color: Theme.of(context).colorScheme.surface,
@@ -1218,7 +1226,7 @@ class _MapScreenState extends State<MapScreen> {
             ),
             const SizedBox(width: 12),
             Text(
-              'Loading burnt areas...',
+              loadingText,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
@@ -1308,7 +1316,7 @@ class _MapScreenState extends State<MapScreen> {
         ),
         const SizedBox(height: 12),
         Text(
-          'Data source: ${_controller.dataFreshness.name.toUpperCase()}',
+          'Data source: ${_getDataSourceDisplayName()}',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -1352,10 +1360,28 @@ class _MapScreenState extends State<MapScreen> {
   String _getEmptyStateDescription() {
     switch (_controller.fireDataMode) {
       case FireDataMode.hotspots:
-        return 'No satellite-detected hotspots in the last 24 hours within the current view. This is good news!';
+        final timeFilterText =
+            _controller.hotspotTimeFilter == HotspotTimeFilter.today
+                ? 'the last 24 hours'
+                : 'the last 7 days';
+        return 'No satellite-detected hotspots in $timeFilterText within the current view. This is good news!';
       case FireDataMode.burntAreas:
         final year = _controller.burntAreaSeasonFilter.year;
         return 'No satellite-verified burnt areas have been recorded in this map area for $year.';
+    }
+  }
+
+  /// Get the display name for the current data source
+  ///
+  /// For hotspots: Returns the service name (NASA FIRMS, GWIS, or Demo)
+  /// For burnt areas: Returns "EFFIS" (always from EFFIS service)
+  String _getDataSourceDisplayName() {
+    switch (_controller.fireDataMode) {
+      case FireDataMode.hotspots:
+        return _controller.hotspotDataSource.displayName;
+      case FireDataMode.burntAreas:
+        // Burnt areas are always from EFFIS (European Forest Fire Information System)
+        return _controller.isUsingMockData ? 'Demo' : 'EFFIS';
     }
   }
 
