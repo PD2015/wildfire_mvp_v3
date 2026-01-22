@@ -69,5 +69,6 @@ abstract class EffisBurntAreaService {
     Duration timeout = const Duration(seconds: 10),
     int maxRetries = 3,
     int? maxFeatures,
+    bool skipLiveApi = false, // For demo mode: use cached data only
   });
 }

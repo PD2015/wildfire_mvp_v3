@@ -56,6 +56,8 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
     Duration timeout = const Duration(seconds: 10),
     int maxRetries = 3,
     int? maxFeatures,
+    bool skipLiveApi =
+        false, // Ignored by live service - always makes API calls
   }) async {
     // Validate parameters
     if (timeout.inMilliseconds <= 0) {

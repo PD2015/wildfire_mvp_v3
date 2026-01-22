@@ -114,6 +114,7 @@ class MockEffisBurntAreaService implements EffisBurntAreaService {
     Duration timeout = const Duration(seconds: 10),
     int maxRetries = 3,
     int? maxFeatures,
+    bool skipLiveApi = false, // Not applicable for mock service
   }) async {
     final allBurntAreas = await _loadMockData();
     final now = _clock();

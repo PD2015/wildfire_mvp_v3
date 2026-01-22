@@ -364,3 +364,150 @@ curl -s "https://maps.effis.emergency.copernicus.eu/effis?service=WFS&request=Ge
 
 ---
 
+## Burnt Area Caching Strategy (CachedBurntAreaService)
+
+### Overview
+
+The `CachedBurntAreaService` implements a **bundle-first caching strategy** for burnt area data. This provides instant data loading while maintaining freshness through automated updates.
+
+**Implementation**: `lib/services/cached_burnt_area_service.dart`
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    CachedBurntAreaService                       │
+├─────────────────────────────────────────────────────────────────┤
+│  Demo Mode (skipLiveApi=true)                                   │
+│  ┌─────────────┐                                                │
+│  │   Bundle    │ ─────────────────────────────────► Return data │
+│  │   Assets    │                                                │
+│  └─────────────┘                                                │
+├─────────────────────────────────────────────────────────────────┤
+│  Live Mode (skipLiveApi=false)                                  │
+│  ┌─────────────┐    Fresh?     ┌─────────────┐                  │
+│  │   Bundle    │ ─── Yes ────► │ Return data │                  │
+│  │   Assets    │               └─────────────┘                  │
+│  │             │                                                │
+│  │ (generatedAt│    Stale?     ┌─────────────┐   Success?       │
+│  │  timestamp) │ ─── Yes ────► │  Live EFFIS │ ─── Yes ───► Return live │
+│  └─────────────┘               │     API     │                  │
+│                                └─────────────┘                  │
+│                                      │                          │
+│                                   Failure?                      │
+│                                      │                          │
+│                                      ▼                          │
+│                              Return stale bundle                │
+│                              (graceful degradation)             │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Staleness Threshold
+
+```dart
+static const Duration stalenessThreshold = Duration(days: 9);
+```
+
+- Bundle's `generatedAt` timestamp is checked against this threshold
+- **Fresh bundle (≤9 days)**: Return bundle data directly, no API call
+- **Stale bundle (>9 days)**: Try live EFFIS API, fall back to stale bundle if API fails
+
+### Bundle Assets
+
+| Asset Path | Content | Count |
+|------------|---------|-------|
+| `assets/cache/burnt_areas_2025_uk.json` | Current year EFFIS fires | ~1,322 fires |
+| `assets/cache/burnt_areas_2024_uk.json` | Previous year EFFIS fires | Variable |
+
+Bundles are updated weekly via GitHub Actions CI/CD pipeline.
+
+### Mode-Specific Behavior
+
+| Mode | Flag | Burnt Areas Source | Hotspots Source |
+|------|------|-------------------|-----------------|
+| **Demo** | `_useLiveData=false` | Bundled real EFFIS data | Mock data (9 fires) |
+| **Live** | `_useLiveData=true` | Bundle → Live API (if stale) | Live FIRMS/GWIS API |
+
+**Note**: Demo mode uses **real bundled data** for burnt areas (1,322 fires) but **mock data** for hotspots (9 fires). This asymmetry exists because:
+1. Burnt area data changes slowly (weekly updates sufficient)
+2. Hotspot data is time-sensitive (near-real-time needed)
+
+### Live Mode Fallback Logic
+
+```dart
+// Simplified logic from CachedBurntAreaService.getBurntAreas()
+
+1. Load from bundled asset (instant)
+   ↓
+2. Check bundle timestamp (generatedAt field in JSON)
+   ↓
+3a. Bundle fresh (≤9 days)?
+    → Return bundle data (NO API call)
+
+3b. Bundle stale (>9 days)?
+    → Try live EFFIS API
+    → Success? Return live data
+    → Failure? Return stale bundle (better than nothing)
+
+3c. Bundle failed to load?
+    → Try live EFFIS API directly
+```
+
+### Bundle JSON Format
+
+```json
+{
+  "year": 2025,
+  "region": "uk",
+  "generatedAt": "2025-01-15T12:00:00Z",
+  "features": [
+    {
+      "id": "273772",
+      "geometry": { "type": "Polygon", "coordinates": [...] },
+      "properties": {
+        "firedate": "2025-06-28",
+        "area_ha": 9809.5,
+        "lastupdate": "2025-07-02"
+      }
+    }
+  ]
+}
+```
+
+### Key Implementation Details
+
+1. **Memory caching**: Once loaded, bundle data is cached in `_dataCache` map by year
+2. **Timestamp tracking**: `_bundleTimestamps` map stores `generatedAt` for staleness checks
+3. **Season filtering**: Uses `BurntAreaSeasonFilter.year` to select correct bundle
+4. **Bounds filtering**: Bundle data is filtered to requested `LatLngBounds`
+
+### Testing Considerations
+
+When writing tests for burnt area functionality:
+
+```dart
+// Demo mode: Uses bundle only
+await service.getBurntAreas(
+  bounds: testBounds,
+  seasonFilter: BurntAreaSeasonFilter.thisSeason,
+  skipLiveApi: true,  // Demo mode
+);
+
+// Live mode: May hit API if bundle is stale
+await service.getBurntAreas(
+  bounds: testBounds,
+  seasonFilter: BurntAreaSeasonFilter.thisSeason,
+  skipLiveApi: false,  // Live mode (default)
+);
+```
+
+### Related Files
+
+- `lib/services/cached_burnt_area_service.dart` - Main implementation
+- `lib/services/effis_burnt_area_service.dart` - Interface definition
+- `lib/services/effis_burnt_area_service_impl.dart` - Live API implementation
+- `lib/features/map/controllers/map_controller.dart` - Mode switching logic
+- `assets/cache/burnt_areas_*.json` - Bundled data files
+
+---
+
