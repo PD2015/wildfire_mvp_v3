@@ -306,10 +306,10 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: RiskGuidanceCard(
-              guidance: const RiskGuidance(
+              guidance: RiskGuidance(
                 title: 'Test Title',
                 summary: 'Test summary',
                 bulletPoints: ['Point 1', 'Point 2'],
@@ -368,10 +368,10 @@ void main() {
 
     testWidgets('does not render disclaimer when null', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: RiskGuidanceCard(
-              guidance: const RiskGuidance(
+              guidance: RiskGuidance(
                 title: 'Test Title',
                 summary: 'Test summary',
                 bulletPoints: ['Point 1'],
