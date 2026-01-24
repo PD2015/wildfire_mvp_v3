@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wildfire_mvp_v3/content/scotland_risk_guidance.dart';
+import 'package:wildfire_mvp_v3/models/risk_guidance.dart';
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
 import 'package:wildfire_mvp_v3/widgets/risk_guidance_card.dart';
 
@@ -12,6 +13,8 @@ import 'package:wildfire_mvp_v3/widgets/risk_guidance_card.dart';
 /// - Emergency footer displays 999 number
 /// - Semantic labels for accessibility (C3)
 /// - Generic guidance for null risk level
+/// - Help icon renders and navigates when helpRoute provided
+/// - Disclaimer renders when provided
 void main() {
   group('RiskGuidanceCard', () {
     testWidgets('renders veryLow guidance correctly', (tester) async {
@@ -282,6 +285,157 @@ void main() {
           expect(data, isNotEmpty);
         }
       }
+    });
+  });
+
+  group('RiskGuidanceCard help icon', () {
+    testWidgets('renders info icon when helpRoute is provided', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: RiskGuidanceCard(level: RiskLevel.moderate)),
+        ),
+      );
+
+      // ScotlandRiskGuidance now provides helpRoute for all levels
+      expect(find.byIcon(Icons.info_outline), findsOneWidget);
+    });
+
+    testWidgets('does not render info icon when helpRoute is null', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: RiskGuidanceCard(
+              guidance: RiskGuidance(
+                title: 'Test Title',
+                summary: 'Test summary',
+                bulletPoints: ['Point 1', 'Point 2'],
+                // No helpRoute provided
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byIcon(Icons.info_outline), findsNothing);
+    });
+
+    testWidgets('info icon has ≥44dp tap target for accessibility', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: RiskGuidanceCard(level: RiskLevel.high)),
+        ),
+      );
+
+      final iconButton = tester.widget<IconButton>(find.byType(IconButton));
+      expect(iconButton.constraints!.minWidth, greaterThanOrEqualTo(44));
+      expect(iconButton.constraints!.minHeight, greaterThanOrEqualTo(44));
+    });
+
+    testWidgets('info icon has tooltip with helpLinkLabel', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: RiskGuidanceCard(level: RiskLevel.veryLow)),
+        ),
+      );
+
+      final iconButton = tester.widget<IconButton>(find.byType(IconButton));
+      expect(iconButton.tooltip, equals('Learn more about risk levels'));
+    });
+  });
+
+  group('RiskGuidanceCard disclaimer', () {
+    testWidgets('renders disclaimer when provided', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: RiskGuidanceCard(level: RiskLevel.low)),
+        ),
+      );
+
+      // ScotlandRiskGuidance now provides disclaimer for all levels
+      expect(
+        find.text(
+          'Risk levels describe conditions, not safety. Fires can still start at any level.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('does not render disclaimer when null', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: RiskGuidanceCard(
+              guidance: RiskGuidance(
+                title: 'Test Title',
+                summary: 'Test summary',
+                bulletPoints: ['Point 1'],
+                // No disclaimer provided
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(
+        find.text(
+          'Risk levels describe conditions, not safety. Fires can still start at any level.',
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('disclaimer uses secondary text styling', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(body: RiskGuidanceCard(level: RiskLevel.extreme)),
+        ),
+      );
+
+      final disclaimerText = tester.widget<Text>(
+        find.text(
+          'Risk levels describe conditions, not safety. Fires can still start at any level.',
+        ),
+      );
+      expect(disclaimerText.style?.fontStyle, equals(FontStyle.italic));
+    });
+  });
+
+  group('RiskGuidanceCard with custom guidance', () {
+    testWidgets('uses provided guidance instead of ScotlandRiskGuidance', (
+      tester,
+    ) async {
+      const customGuidance = RiskGuidance(
+        title: 'Custom Title',
+        summary: 'Custom summary text',
+        bulletPoints: ['Custom point 1', 'Custom point 2'],
+        helpRoute: '/custom/help',
+        helpLinkLabel: 'Custom help',
+        disclaimer: 'Custom disclaimer text',
+      );
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: RiskGuidanceCard(
+              level: RiskLevel.high, // Level should be ignored
+              guidance: customGuidance,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('Custom Title'), findsOneWidget);
+      expect(find.text('Custom summary text'), findsOneWidget);
+      expect(find.text('Custom point 1'), findsOneWidget);
+      expect(find.text('Custom point 2'), findsOneWidget);
+      expect(find.text('Custom disclaimer text'), findsOneWidget);
+      expect(find.byIcon(Icons.info_outline), findsOneWidget);
     });
   });
 }
