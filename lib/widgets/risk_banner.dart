@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
+import 'package:go_router/go_router.dart';
 import '../services/models/fire_risk.dart';
 import '../models/risk_level.dart';
 import '../theme/risk_palette.dart';
@@ -102,8 +103,9 @@ class RiskBanner extends StatelessWidget {
       ), // A11y minimum touch target
       child: switch (state) {
         RiskBannerLoading() => _buildLoadingState(),
-        RiskBannerSuccess(:final data) => _buildSuccessState(data),
+        RiskBannerSuccess(:final data) => _buildSuccessState(context, data),
         RiskBannerError(:final message, :final cached) => _buildErrorState(
+            context,
             message,
             cached,
           ),
@@ -149,7 +151,7 @@ class RiskBanner extends StatelessWidget {
   }
 
   /// Builds the success state with risk level display
-  Widget _buildSuccessState(FireRisk data) {
+  Widget _buildSuccessState(BuildContext context, FireRisk data) {
     final levelName = _getRiskLevelName(data.level);
     final backgroundColor = data.level.color;
     final textColor = _getTextColor(backgroundColor);
@@ -223,8 +225,12 @@ class RiskBanner extends StatelessWidget {
                 const CachedBadge(),
               ],
 
-              // Risk scale
-              RiskScale(currentLevel: data.level, textColor: textColor),
+              // Risk scale - tappable to navigate to help
+              RiskScale(
+                currentLevel: data.level,
+                textColor: textColor,
+                onTap: () => context.push('/help/doc/risk-levels'),
+              ),
 
               // Weather panel (only if enabled in config)
               if (config.showWeatherPanel) ...[
@@ -282,10 +288,11 @@ class RiskBanner extends StatelessWidget {
   }
 
   /// Builds the error state with retry option
-  Widget _buildErrorState(String message, FireRisk? cached) {
+  Widget _buildErrorState(
+      BuildContext context, String message, FireRisk? cached) {
     if (cached != null) {
       // Show cached data with error indication
-      return _buildErrorWithCachedData(message, cached);
+      return _buildErrorWithCachedData(context, message, cached);
     } else {
       // Show error message with retry option
       return _buildErrorWithoutCachedData(message);
@@ -293,7 +300,11 @@ class RiskBanner extends StatelessWidget {
   }
 
   /// Builds error state when cached data is available
-  Widget _buildErrorWithCachedData(String message, FireRisk cached) {
+  Widget _buildErrorWithCachedData(
+    BuildContext context,
+    String message,
+    FireRisk cached,
+  ) {
     final levelName = _getRiskLevelName(cached.level);
     final backgroundColor = cached.level.color.withValues(alpha: 0.6);
     final textColor = _getTextColor(backgroundColor);
@@ -408,8 +419,12 @@ class RiskBanner extends StatelessWidget {
               // Cached badge
               const CachedBadge(),
 
-              // Risk scale
-              RiskScale(currentLevel: cached.level, textColor: textColor),
+              // Risk scale - tappable to navigate to help
+              RiskScale(
+                currentLevel: cached.level,
+                textColor: textColor,
+                onTap: () => context.push('/help/doc/risk-levels'),
+              ),
 
               // Location chip (if provided)
               if (locationChip != null) ...[

@@ -15,6 +15,7 @@ import 'package:wildfire_mvp_v3/models/risk_level.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
+import 'package:wildfire_mvp_v3/services/hotspot_service_orchestrator.dart';
 import 'package:dartz/dartz.dart';
 
 import '../helpers/mock_hotspot_orchestrator.dart';
@@ -23,11 +24,20 @@ import '../helpers/mock_hotspot_orchestrator.dart';
 class MockMapController extends MapController {
   MapState _mockState;
   FireDataMode _mockFireDataMode;
+  bool _mockIsLoadingFireData;
+  final HotspotDataSource _mockHotspotDataSource;
+  final bool _mockIsUsingMockData;
 
   MockMapController(
     this._mockState, {
     FireDataMode fireDataMode = FireDataMode.hotspots,
+    bool isLoadingFireData = false,
+    HotspotDataSource hotspotDataSource = HotspotDataSource.mock,
+    bool isUsingMockData = true,
   })  : _mockFireDataMode = fireDataMode,
+        _mockIsLoadingFireData = isLoadingFireData,
+        _mockHotspotDataSource = hotspotDataSource,
+        _mockIsUsingMockData = isUsingMockData,
         super(
           locationResolver: _NoOpLocationResolver(),
           fireRiskService: _NoOpFireRiskService(),
@@ -40,9 +50,24 @@ class MockMapController extends MapController {
   @override
   FireDataMode get fireDataMode => _mockFireDataMode;
 
+  @override
+  bool get isLoadingFireData => _mockIsLoadingFireData;
+
+  @override
+  HotspotDataSource get hotspotDataSource => _mockHotspotDataSource;
+
+  @override
+  bool get isUsingMockData => _mockIsUsingMockData;
+
   /// Update state and notify listeners (for testing state changes)
   void setState(MapState newState) {
     _mockState = newState;
+    notifyListeners();
+  }
+
+  /// Update loading state and notify listeners (for testing loading state changes)
+  void setIsLoadingFireData(bool loading) {
+    _mockIsLoadingFireData = loading;
     notifyListeners();
   }
 
@@ -1031,6 +1056,299 @@ void main() {
         find.text('No Burnt Areas This Season'),
         findsNothing,
         reason: 'Should not show any empty state when incidents present',
+      );
+    });
+
+    testWidgets('empty state is NOT shown while loading hotspots', (
+      tester,
+    ) async {
+      // Skip on unsupported platforms
+      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+        return;
+      }
+
+      // Simulate loading state with no data yet
+      final mockController = MockMapController(
+        MapSuccess(
+          incidents: const [],
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.mock,
+          lastUpdated: DateTime.now(),
+        ),
+        fireDataMode: FireDataMode.hotspots,
+        isLoadingFireData: true, // Loading in progress
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: MapScreen(controller: mockController)),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify empty state is NOT shown during loading
+      expect(
+        find.text('No Active Fires Detected'),
+        findsNothing,
+        reason: 'Should NOT show empty state while loading is in progress',
+      );
+
+      // Verify loading indicator IS shown
+      expect(
+        find.text('Loading hotspots...'),
+        findsOneWidget,
+        reason: 'Should show loading banner',
+      );
+    });
+
+    testWidgets('empty state is NOT shown while loading burnt areas', (
+      tester,
+    ) async {
+      // Skip on unsupported platforms
+      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+        return;
+      }
+
+      // Simulate loading state with no data yet
+      final mockController = MockMapController(
+        MapSuccess(
+          incidents: const [],
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.mock,
+          lastUpdated: DateTime.now(),
+        ),
+        fireDataMode: FireDataMode.burntAreas,
+        isLoadingFireData: true, // Loading in progress
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: MapScreen(controller: mockController)),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify empty state is NOT shown during loading
+      expect(
+        find.text('No Burnt Areas'),
+        findsNothing,
+        reason: 'Should NOT show empty state while loading is in progress',
+      );
+
+      // Verify loading indicator IS shown
+      expect(
+        find.text('Loading burnt areas...'),
+        findsOneWidget,
+        reason: 'Should show loading banner',
+      );
+    });
+
+    testWidgets('empty state appears after loading completes with no data', (
+      tester,
+    ) async {
+      // Skip on unsupported platforms
+      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+        return;
+      }
+
+      // Start with loading state
+      final mockController = MockMapController(
+        MapSuccess(
+          incidents: const [],
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.mock,
+          lastUpdated: DateTime.now(),
+        ),
+        fireDataMode: FireDataMode.hotspots,
+        isLoadingFireData: true, // Loading in progress
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: MapScreen(controller: mockController)),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify empty state is NOT shown during loading
+      expect(
+        find.text('No Active Fires Detected'),
+        findsNothing,
+        reason: 'Should NOT show empty state while loading',
+      );
+
+      // Simulate loading complete
+      mockController.setIsLoadingFireData(false);
+      await tester.pumpAndSettle();
+
+      // Now empty state SHOULD appear
+      expect(
+        find.text('No Active Fires Detected'),
+        findsOneWidget,
+        reason: 'Should show empty state after loading completes with no data',
+      );
+
+      // Loading banner should be gone
+      expect(
+        find.text('Loading hotspots...'),
+        findsNothing,
+        reason: 'Loading banner should disappear after loading completes',
+      );
+    });
+  });
+
+  group('Data Source Display', () {
+    testWidgets('hotspots mode shows NASA FIRMS data source', (tester) async {
+      // Skip on unsupported platforms
+      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+        return;
+      }
+
+      final mockController = MockMapController(
+        MapSuccess(
+          incidents: const [],
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.live,
+          lastUpdated: DateTime.now(),
+        ),
+        fireDataMode: FireDataMode.hotspots,
+        isLoadingFireData: false,
+        hotspotDataSource: HotspotDataSource.firms,
+        isUsingMockData: false,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: MapScreen(controller: mockController)),
+      );
+      await tester.pumpAndSettle();
+
+      // Should show NASA FIRMS as data source
+      expect(
+        find.text('NASA FIRMS'),
+        findsOneWidget,
+        reason: 'Should display NASA FIRMS as data source for FIRMS hotspots',
+      );
+    });
+
+    testWidgets('hotspots mode shows GWIS data source', (tester) async {
+      // Skip on unsupported platforms
+      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+        return;
+      }
+
+      final mockController = MockMapController(
+        MapSuccess(
+          incidents: const [],
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.live,
+          lastUpdated: DateTime.now(),
+        ),
+        fireDataMode: FireDataMode.hotspots,
+        isLoadingFireData: false,
+        hotspotDataSource: HotspotDataSource.gwis,
+        isUsingMockData: false,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: MapScreen(controller: mockController)),
+      );
+      await tester.pumpAndSettle();
+
+      // Should show GWIS as data source
+      expect(
+        find.text('GWIS'),
+        findsOneWidget,
+        reason: 'Should display GWIS as data source for GWIS hotspots',
+      );
+    });
+
+    testWidgets('hotspots mode shows Demo when using mock data',
+        (tester) async {
+      // Skip on unsupported platforms
+      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+        return;
+      }
+
+      final mockController = MockMapController(
+        MapSuccess(
+          incidents: const [],
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.mock,
+          lastUpdated: DateTime.now(),
+        ),
+        fireDataMode: FireDataMode.hotspots,
+        isLoadingFireData: false,
+        hotspotDataSource: HotspotDataSource.mock,
+        isUsingMockData: true,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: MapScreen(controller: mockController)),
+      );
+      await tester.pumpAndSettle();
+
+      // Should show Demo as data source when using mock data
+      expect(
+        find.text('Demo'),
+        findsOneWidget,
+        reason: 'Should display Demo as data source for mock hotspots',
+      );
+    });
+
+    testWidgets('burnt areas mode shows EFFIS data source', (tester) async {
+      // Skip on unsupported platforms
+      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+        return;
+      }
+
+      final mockController = MockMapController(
+        MapSuccess(
+          incidents: const [],
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.live,
+          lastUpdated: DateTime.now(),
+        ),
+        fireDataMode: FireDataMode.burntAreas,
+        isLoadingFireData: false,
+        isUsingMockData: false,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: MapScreen(controller: mockController)),
+      );
+      await tester.pumpAndSettle();
+
+      // Should show EFFIS as data source for burnt areas
+      expect(
+        find.text('EFFIS'),
+        findsOneWidget,
+        reason: 'Should display EFFIS as data source for burnt areas',
+      );
+    });
+
+    testWidgets('burnt areas mode shows Demo when using mock data',
+        (tester) async {
+      // Skip on unsupported platforms
+      if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+        return;
+      }
+
+      final mockController = MockMapController(
+        MapSuccess(
+          incidents: const [],
+          centerLocation: const LatLng(55.9, -3.2),
+          freshness: Freshness.mock,
+          lastUpdated: DateTime.now(),
+        ),
+        fireDataMode: FireDataMode.burntAreas,
+        isLoadingFireData: false,
+        isUsingMockData: true,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(home: MapScreen(controller: mockController)),
+      );
+      await tester.pumpAndSettle();
+
+      // Should show Demo as data source when using mock data
+      expect(
+        find.text('Demo'),
+        findsOneWidget,
+        reason: 'Should display Demo as data source for mock burnt areas',
       );
     });
   });

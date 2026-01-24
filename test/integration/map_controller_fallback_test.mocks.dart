@@ -35,8 +35,13 @@ import 'package:wildfire_mvp_v3/services/models/fire_risk.dart' as _i11;
 // ignore_for_file: invalid_use_of_internal_member
 
 class _FakeEither_0<L, R> extends _i1.SmartFake implements _i2.Either<L, R> {
-  _FakeEither_0(Object parent, Invocation parentInvocation)
-      : super(parent, parentInvocation);
+  _FakeEither_0(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
 }
 
 /// A class which mocks [LocationResolver].
@@ -48,33 +53,47 @@ class MockLocationResolver extends _i1.Mock implements _i3.LocationResolver {
   }
 
   @override
-  _i4.Future<_i2.Either<_i5.LocationError, _i5.ResolvedLocation>> getLatLon({
-    bool? allowDefault = true,
-  }) =>
+  _i4.Future<_i2.Either<_i5.LocationError, _i5.ResolvedLocation>> getLatLon(
+          {bool? allowDefault = true}) =>
       (super.noSuchMethod(
-        Invocation.method(#getLatLon, [], {#allowDefault: allowDefault}),
+        Invocation.method(
+          #getLatLon,
+          [],
+          {#allowDefault: allowDefault},
+        ),
         returnValue: _i4
             .Future<_i2.Either<_i5.LocationError, _i5.ResolvedLocation>>.value(
-          _FakeEither_0<_i5.LocationError, _i5.ResolvedLocation>(
-            this,
-            Invocation.method(#getLatLon, [], {
-              #allowDefault: allowDefault,
-            }),
+            _FakeEither_0<_i5.LocationError, _i5.ResolvedLocation>(
+          this,
+          Invocation.method(
+            #getLatLon,
+            [],
+            {#allowDefault: allowDefault},
           ),
-        ),
+        )),
       ) as _i4.Future<_i2.Either<_i5.LocationError, _i5.ResolvedLocation>>);
 
   @override
-  _i4.Future<void> saveManual(_i5.LatLng? location, {String? placeName}) =>
+  _i4.Future<void> saveManual(
+    _i5.LatLng? location, {
+    String? placeName,
+  }) =>
       (super.noSuchMethod(
-        Invocation.method(#saveManual, [location], {#placeName: placeName}),
+        Invocation.method(
+          #saveManual,
+          [location],
+          {#placeName: placeName},
+        ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
 
   @override
   _i4.Future<void> clearManualLocation() => (super.noSuchMethod(
-        Invocation.method(#clearManualLocation, []),
+        Invocation.method(
+          #clearManualLocation,
+          [],
+        ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
       ) as _i4.Future<void>);
@@ -82,7 +101,10 @@ class MockLocationResolver extends _i1.Mock implements _i3.LocationResolver {
   @override
   _i4.Future<(_i5.LatLng, String?)?> loadCachedManualLocation() =>
       (super.noSuchMethod(
-        Invocation.method(#loadCachedManualLocation, []),
+        Invocation.method(
+          #loadCachedManualLocation,
+          [],
+        ),
         returnValue: _i4.Future<(_i5.LatLng, String?)?>.value(),
       ) as _i4.Future<(_i5.LatLng, String?)?>);
 }
@@ -98,17 +120,21 @@ class MockFireLocationService extends _i1.Mock
 
   @override
   _i4.Future<_i2.Either<_i7.ApiError, List<_i8.FireIncident>>> getActiveFires(
-    _i9.LatLngBounds? bounds,
-  ) =>
+          _i9.LatLngBounds? bounds) =>
       (super.noSuchMethod(
-        Invocation.method(#getActiveFires, [bounds]),
+        Invocation.method(
+          #getActiveFires,
+          [bounds],
+        ),
         returnValue:
             _i4.Future<_i2.Either<_i7.ApiError, List<_i8.FireIncident>>>.value(
-          _FakeEither_0<_i7.ApiError, List<_i8.FireIncident>>(
-            this,
-            Invocation.method(#getActiveFires, [bounds]),
+                _FakeEither_0<_i7.ApiError, List<_i8.FireIncident>>(
+          this,
+          Invocation.method(
+            #getActiveFires,
+            [bounds],
           ),
-        ),
+        )),
       ) as _i4.Future<_i2.Either<_i7.ApiError, List<_i8.FireIncident>>>);
 }
 
@@ -127,21 +153,28 @@ class MockFireRiskService extends _i1.Mock implements _i10.FireRiskService {
     Duration? deadline,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(#getCurrent, [], {
-          #lat: lat,
-          #lon: lon,
-          #deadline: deadline,
-        }),
+        Invocation.method(
+          #getCurrent,
+          [],
+          {
+            #lat: lat,
+            #lon: lon,
+            #deadline: deadline,
+          },
+        ),
         returnValue: _i4.Future<_i2.Either<_i7.ApiError, _i11.FireRisk>>.value(
-          _FakeEither_0<_i7.ApiError, _i11.FireRisk>(
-            this,
-            Invocation.method(#getCurrent, [], {
+            _FakeEither_0<_i7.ApiError, _i11.FireRisk>(
+          this,
+          Invocation.method(
+            #getCurrent,
+            [],
+            {
               #lat: lat,
               #lon: lon,
               #deadline: deadline,
-            }),
+            },
           ),
-        ),
+        )),
       ) as _i4.Future<_i2.Either<_i7.ApiError, _i11.FireRisk>>);
 }
 
@@ -161,27 +194,37 @@ class MockEffisBurntAreaService extends _i1.Mock
     Duration? timeout = const Duration(seconds: 10),
     int? maxRetries = 3,
     int? maxFeatures,
+    bool? skipLiveApi = false,
   }) =>
       (super.noSuchMethod(
-        Invocation.method(#getBurntAreas, [], {
-          #bounds: bounds,
-          #seasonFilter: seasonFilter,
-          #timeout: timeout,
-          #maxRetries: maxRetries,
-          #maxFeatures: maxFeatures,
-        }),
+        Invocation.method(
+          #getBurntAreas,
+          [],
+          {
+            #bounds: bounds,
+            #seasonFilter: seasonFilter,
+            #timeout: timeout,
+            #maxRetries: maxRetries,
+            #maxFeatures: maxFeatures,
+            #skipLiveApi: skipLiveApi,
+          },
+        ),
         returnValue:
             _i4.Future<_i2.Either<_i7.ApiError, List<_i13.BurntArea>>>.value(
-          _FakeEither_0<_i7.ApiError, List<_i13.BurntArea>>(
-            this,
-            Invocation.method(#getBurntAreas, [], {
+                _FakeEither_0<_i7.ApiError, List<_i13.BurntArea>>(
+          this,
+          Invocation.method(
+            #getBurntAreas,
+            [],
+            {
               #bounds: bounds,
               #seasonFilter: seasonFilter,
               #timeout: timeout,
               #maxRetries: maxRetries,
               #maxFeatures: maxFeatures,
-            }),
+              #skipLiveApi: skipLiveApi,
+            },
           ),
-        ),
+        )),
       ) as _i4.Future<_i2.Either<_i7.ApiError, List<_i13.BurntArea>>>);
 }

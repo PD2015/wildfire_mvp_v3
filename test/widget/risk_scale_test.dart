@@ -254,4 +254,175 @@ void main() {
       );
     });
   });
+
+  group('RiskScale Tappable Behavior', () {
+    testWidgets('does not show InkWell when onTap is null', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: RiskScale(
+              currentLevel: RiskLevel.moderate,
+              textColor: RiskPalette.white,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(InkWell), findsNothing);
+    });
+
+    testWidgets('wraps content in InkWell when onTap is provided', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RiskScale(
+              currentLevel: RiskLevel.moderate,
+              textColor: RiskPalette.white,
+              onTap: () {},
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(InkWell), findsOneWidget);
+    });
+
+    testWidgets('triggers onTap callback when tapped', (tester) async {
+      var tapped = false;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RiskScale(
+              currentLevel: RiskLevel.high,
+              textColor: RiskPalette.white,
+              onTap: () => tapped = true,
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(InkWell));
+      await tester.pump();
+
+      expect(tapped, isTrue);
+    });
+
+    testWidgets('has correct semantics when tappable', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RiskScale(
+              currentLevel: RiskLevel.low,
+              textColor: RiskPalette.white,
+              onTap: () {},
+            ),
+          ),
+        ),
+      );
+
+      // Find the outer Semantics widget with button property
+      final semantics = tester.widget<Semantics>(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Semantics &&
+              widget.properties.label != null &&
+              widget.properties.label!
+                  .contains('Learn what the wildfire risk levels mean'),
+        ),
+      );
+
+      expect(semantics.properties.label,
+          'Learn what the wildfire risk levels mean');
+      expect(semantics.properties.hint, 'Opens help information');
+      expect(semantics.properties.button, isTrue);
+    });
+
+    testWidgets('has minimum 44dp tap target height', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RiskScale(
+              currentLevel: RiskLevel.extreme,
+              textColor: RiskPalette.white,
+              onTap: () {},
+            ),
+          ),
+        ),
+      );
+
+      final constrainedBoxFinder = find.descendant(
+        of: find.byType(RiskScale),
+        matching: find.byType(ConstrainedBox),
+      );
+
+      // Get the first ConstrainedBox (the outer tap target wrapper)
+      final constrainedBox =
+          tester.widget<ConstrainedBox>(constrainedBoxFinder.first);
+
+      expect(constrainedBox.constraints.minHeight, greaterThanOrEqualTo(44));
+    });
+
+    testWidgets('tap anywhere on scale row triggers callback', (tester) async {
+      var tapCount = 0;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RiskScale(
+              currentLevel: RiskLevel.veryLow,
+              textColor: RiskPalette.white,
+              onTap: () => tapCount++,
+            ),
+          ),
+        ),
+      );
+
+      // Tap on the left side
+      await tester.tapAt(
+          tester.getTopLeft(find.byType(InkWell)) + const Offset(10, 10));
+      await tester.pump();
+      expect(tapCount, 1);
+
+      // Tap on the right side
+      await tester.tapAt(
+          tester.getTopRight(find.byType(InkWell)) + const Offset(-10, 10));
+      await tester.pump();
+      expect(tapCount, 2);
+
+      // Tap in the center
+      await tester.tapAt(tester.getCenter(find.byType(InkWell)));
+      await tester.pump();
+      expect(tapCount, 3);
+    });
+
+    testWidgets('uses descriptive semantics when not tappable', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: RiskScale(
+              currentLevel: RiskLevel.high,
+              textColor: RiskPalette.white,
+              // No onTap - should use descriptive semantics
+            ),
+          ),
+        ),
+      );
+
+      // Find semantics with descriptive label
+      final semantics = tester.widget<Semantics>(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is Semantics &&
+              widget.properties.label != null &&
+              widget.properties.label!.contains('Risk scale showing HIGH'),
+        ),
+      );
+
+      expect(semantics.properties.label, contains('Risk scale showing HIGH'));
+      expect(semantics.properties.button, isNull);
+    });
+  });
 }

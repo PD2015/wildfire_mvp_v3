@@ -12,7 +12,6 @@ import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
 import 'package:wildfire_mvp_v3/services/hotspot_service_orchestrator.dart';
 import 'package:wildfire_mvp_v3/services/effis_burnt_area_service.dart';
-import 'package:wildfire_mvp_v3/services/mock_effis_burnt_area_service.dart';
 import 'package:wildfire_mvp_v3/services/mock_gwis_hotspot_service.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/features/map/utils/hotspot_clusterer.dart';
@@ -31,8 +30,7 @@ class MapController extends ChangeNotifier {
   final HotspotServiceOrchestrator _hotspotOrchestrator;
   final EffisBurntAreaService? _burntAreaService;
 
-  // Fallback mock services (always available for MAP_LIVE_DATA=false)
-  late final MockEffisBurntAreaService _mockBurntAreaService;
+  // Mock hotspot service for MAP_LIVE_DATA=false demo mode
   late final MockHotspotService _mockHotspotService;
 
   MapState _state = const MapLoading();
@@ -58,8 +56,9 @@ class MapController extends ChangeNotifier {
   // Zoom level for clustering decisions
   double _currentZoom = 8.0;
 
-  // Whether live data is available or using mock fallback
-  bool _isUsingMockData = false;
+  // Whether using mock/demo data (true when _useLiveData is false)
+  // Initialized to match _useLiveData state for correct dataFreshness from start
+  bool _isUsingMockData = !FeatureFlags.mapLiveData;
 
   // Which service provided the hotspot data (FIRMS, GWIS, or Mock)
   HotspotDataSource _hotspotDataSource = HotspotDataSource.mock;
@@ -76,6 +75,10 @@ class MapController extends ChangeNotifier {
   // Loading state for burnt area data fetches
   // Used to show loading indicator in UI
   bool _isFetchingBurntAreas = false;
+
+  // Loading state for hotspot data fetches
+  // Used to show loading indicator in UI
+  bool _isFetchingHotspots = false;
 
   // Timestamp of last successful data fetch
   DateTime _lastUpdated = DateTime.now();
@@ -143,6 +146,20 @@ class MapController extends ChangeNotifier {
   /// Used to show loading indicator in UI
   bool get isFetchingBurntAreas => _isFetchingBurntAreas;
 
+  /// Whether hotspot data is currently being fetched
+  /// Used to show loading indicator in UI
+  bool get isFetchingHotspots => _isFetchingHotspots;
+
+  /// Whether any fire data is currently being fetched (mode-aware)
+  /// Used to prevent showing empty state during loading
+  bool get isLoadingFireData {
+    if (_fireDataMode == FireDataMode.hotspots) {
+      return _isFetchingHotspots;
+    } else {
+      return _isFetchingBurntAreas;
+    }
+  }
+
   /// Which service provided the current hotspot data
   HotspotDataSource get hotspotDataSource => _hotspotDataSource;
 
@@ -158,16 +175,17 @@ class MapController extends ChangeNotifier {
     debugPrint(
       '🗺️ MapController: Switched to ${value ? "LIVE" : "DEMO"} data mode',
     );
-    // Clear current data and refresh with new mode
-    _hotspots = [];
-    _burntAreas = [];
-    _clusters = [];
+    // NOTE: Don't clear current data - keep showing it until new data arrives.
+    // This prevents the "flash of empty state" bug.
+    // The fetch will replace the data atomically when complete.
     _isOffline = false;
     _isUsingMockData = !value;
-    notifyListeners();
-    // Fetch fresh data with new mode
+    // Fetch fresh data with new mode (will replace current data)
     if (_currentBounds != null) {
       _fetchDataForCurrentMode();
+      // Fetch will call notifyListeners() when complete
+    } else {
+      notifyListeners(); // Only notify if no fetch will happen
     }
   }
 
@@ -180,8 +198,8 @@ class MapController extends ChangeNotifier {
         _fireRiskService = fireRiskService,
         _hotspotOrchestrator = hotspotOrchestrator,
         _burntAreaService = burntAreaService {
-    // Initialize mock services for MAP_LIVE_DATA=false direct use
-    _mockBurntAreaService = MockEffisBurntAreaService();
+    // Initialize mock hotspot service for MAP_LIVE_DATA=false demo mode
+    // Note: Burnt areas use CachedBurntAreaService with bundled real data in demo mode
     _mockHotspotService = MockHotspotService();
   }
 
@@ -384,7 +402,7 @@ class MapController extends ChangeNotifier {
 
     _fireDataMode = mode;
 
-    // Clear data from previous mode
+    // Clear data from previous mode (this is OK for mode switch, not filter switch)
     if (mode == FireDataMode.hotspots) {
       _burntAreas = [];
     } else {
@@ -392,41 +410,48 @@ class MapController extends ChangeNotifier {
       _clusters = [];
     }
 
+    // Notify immediately so UI updates mode indicator
+    notifyListeners();
+
     // Fetch data for the new mode
     _fetchDataForCurrentMode();
-
-    notifyListeners();
   }
 
   /// Set the hotspot time filter
   ///
   /// Only applicable when in hotspots mode. Triggers data refetch.
-  /// Clears existing data immediately to prevent showing stale data during fetch.
+  /// Does NOT clear existing data until new data arrives (prevents flash of empty state).
   void setHotspotTimeFilter(HotspotTimeFilter filter) {
     if (_hotspotTimeFilter == filter) return;
 
     _hotspotTimeFilter = filter;
-    // Clear existing data immediately to prevent showing stale data
+
+    // Notify immediately so UI updates filter indicator
+    // NOTE: Don't clear _hotspots/_clusters here - keep showing current data
+    // until fetch completes. The fetch will replace the data atomically.
+    // This prevents the "flash of empty state" bug.
+    notifyListeners();
+
     if (_fireDataMode == FireDataMode.hotspots) {
-      _hotspots = [];
-      _clusters = [];
       _fetchHotspotsForCurrentBounds();
     }
-    notifyListeners();
   }
 
   /// Set the burnt area season filter
   ///
   /// Only applicable when in burnt areas mode. Triggers data refetch.
-  /// Clears existing data immediately to prevent showing stale data during fetch.
+  /// Does NOT clear existing data until new data arrives (prevents flash of empty state).
   void setBurntAreaSeasonFilter(BurntAreaSeasonFilter filter) {
     if (_burntAreaSeasonFilter == filter) return;
 
     _burntAreaSeasonFilter = filter;
-    // Clear existing data immediately to prevent showing stale data
+    // NOTE: Don't clear _burntAreas here - keep showing current data
+    // until fetch completes. The fetch will replace the data atomically.
+    // This prevents the "flash of empty state" bug.
     if (_fireDataMode == FireDataMode.burntAreas) {
-      _burntAreas = [];
       _fetchBurntAreasForCurrentBounds();
+      // Fetch will call notifyListeners() when complete with new data
+      return;
     }
     notifyListeners();
   }
@@ -465,6 +490,10 @@ class MapController extends ChangeNotifier {
     // Increment request ID to invalidate any in-flight requests
     final currentRequestId = ++_hotspotRequestId;
 
+    // Set loading state and notify UI
+    _isFetchingHotspots = true;
+    notifyListeners();
+
     debugPrint(
       '🗺️ MapController: Fetching hotspots for bounds '
       'SW(${_currentBounds!.southwest.latitude.toStringAsFixed(2)},${_currentBounds!.southwest.longitude.toStringAsFixed(2)}) '
@@ -486,6 +515,7 @@ class MapController extends ChangeNotifier {
         debugPrint(
           '🗺️ MapController: Discarding stale mock hotspot result (request $currentRequestId, current $_hotspotRequestId)',
         );
+        _isFetchingHotspots = false;
         return;
       }
 
@@ -498,6 +528,7 @@ class MapController extends ChangeNotifier {
         '🗺️ MapController: Loaded ${_hotspots.length} hotspots from mock',
       );
       _reclusterHotspots();
+      _isFetchingHotspots = false;
       notifyListeners();
       return;
     }
@@ -513,6 +544,7 @@ class MapController extends ChangeNotifier {
       debugPrint(
         '🗺️ MapController: Discarding stale hotspot result (request $currentRequestId, current $_hotspotRequestId)',
       );
+      _isFetchingHotspots = false;
       return;
     }
 
@@ -537,12 +569,20 @@ class MapController extends ChangeNotifier {
       _reclusterHotspots();
     }
 
+    _isFetchingHotspots = false;
     notifyListeners();
   }
 
   /// Fetch burnt areas from EFFIS service for current viewport
   ///
-  /// **Fallback**: If live EFFIS fails or service is null, falls back to mock data.
+  /// **Data sources:**
+  /// - Live mode (`MAP_LIVE_DATA=true`): CachedBurntAreaService tries bundle → live API
+  /// - Demo mode (`MAP_LIVE_DATA=false`): CachedBurntAreaService uses bundle only (real EFFIS data)
+  ///
+  /// **Failure handling:**
+  /// - If service fails, show offline state with notification (no mock fallback)
+  /// - Mock data is never used in production - safety-critical app requires real data
+  ///
   /// **Cancellation**: Uses request ID to discard stale results when filter changes.
   Future<void> _fetchBurntAreasForCurrentBounds() async {
     if (_currentBounds == null) return;
@@ -554,16 +594,19 @@ class MapController extends ChangeNotifier {
     _isFetchingBurntAreas = true;
     notifyListeners();
 
+    final modeLabel = _useLiveData ? 'live' : 'demo (bundled data)';
     debugPrint(
       '🗺️ MapController: Fetching burnt areas for bounds '
       'SW(${_currentBounds!.southwest.latitude.toStringAsFixed(2)},${_currentBounds!.southwest.longitude.toStringAsFixed(2)}) '
       'NE(${_currentBounds!.northeast.latitude.toStringAsFixed(2)},${_currentBounds!.northeast.longitude.toStringAsFixed(2)}) '
       'filter: ${_burntAreaSeasonFilter.name} '
-      'useLiveData: $_useLiveData',
+      'mode: $modeLabel',
     );
 
-    // Try live service first if available AND live data is enabled
-    if (_useLiveData && _burntAreaService != null) {
+    // Both live and demo modes use CachedBurntAreaService:
+    // - Demo mode: Loads from bundled asset (real EFFIS data, 1000+ fires)
+    // - Live mode: Tries bundle first, then live API if stale
+    if (_burntAreaService != null) {
       // Determine maxFeatures limit based on zoom and filter
       // Service now uses smart sorting: thisSeason=DESC, lastSeason=ASC
       // - thisSeason: Results sorted by date DESC, newest first, 2025 at top
@@ -584,6 +627,7 @@ class MapController extends ChangeNotifier {
         seasonFilter: _burntAreaSeasonFilter,
         maxFeatures: maxFeatures,
         timeout: const Duration(seconds: 15), // Longer timeout for polygon data
+        skipLiveApi: !_useLiveData, // Demo mode: use bundle only
       );
 
       // Check if this request is still current (not superseded by newer request)
@@ -598,16 +642,18 @@ class MapController extends ChangeNotifier {
       final success = result.fold(
         (error) {
           debugPrint(
-            '🗺️ MapController: Live EFFIS failed: ${error.message}, falling back to mock',
+            '🗺️ MapController: Burnt area service failed: ${error.message}',
           );
           return false;
         },
         (areas) {
+          final sourceLabel =
+              _useLiveData ? 'cached/live EFFIS' : 'bundled EFFIS data';
           debugPrint(
-            '🗺️ MapController: Loaded ${areas.length} burnt areas from live EFFIS',
+            '🗺️ MapController: Loaded ${areas.length} burnt areas from $sourceLabel',
           );
           _burntAreas = areas;
-          _isUsingMockData = false;
+          _isUsingMockData = !_useLiveData; // Preserve demo mode state
           _isOffline = false;
           return true;
         },
@@ -619,16 +665,10 @@ class MapController extends ChangeNotifier {
         return;
       }
     } else {
-      if (!_useLiveData) {
-        debugPrint('🗺️ MapController: Demo mode, using mock burnt areas');
-      } else {
-        debugPrint(
-          '🗺️ MapController: Burnt area service not available, using mock',
-        );
-      }
+      debugPrint('🗺️ MapController: Burnt area service not available');
     }
 
-    // Check again if this request is still current before setting fallback state
+    // Check again if this request is still current before setting offline state
     if (currentRequestId != _burntAreaRequestId) {
       debugPrint(
         '🗺️ MapController: Discarding stale burnt area fallback (request $currentRequestId, current $_burntAreaRequestId)',
@@ -637,50 +677,15 @@ class MapController extends ChangeNotifier {
       return;
     }
 
-    // Fallback behavior depends on live data mode
-    if (_useLiveData) {
-      // Option C: When live data expected but API failed, show offline state
-      // Don't fall back to mock - that would be misleading for safety-critical app
-      debugPrint(
-        '🗺️ MapController: Live API failed, showing offline state (no mock fallback)',
-      );
-      _burntAreas = [];
-      _isOffline = true;
-      _isUsingMockData = false;
-    } else {
-      // Demo mode: Fall back to mock service for development/testing
-      final mockResult = await _mockBurntAreaService.getBurntAreas(
-        bounds: _currentBounds!,
-        seasonFilter: _burntAreaSeasonFilter,
-      );
-
-      // Check once more after mock fetch
-      if (currentRequestId != _burntAreaRequestId) {
-        debugPrint(
-          '🗺️ MapController: Discarding stale mock burnt area result (request $currentRequestId, current $_burntAreaRequestId)',
-        );
-        _isFetchingBurntAreas = false;
-        return;
-      }
-
-      mockResult.fold(
-        (error) {
-          debugPrint(
-            '🗺️ MapController: Mock burnt area service also failed: ${error.message}',
-          );
-          _burntAreas = [];
-          _isUsingMockData = true;
-        },
-        (areas) {
-          debugPrint(
-            '🗺️ MapController: Loaded ${areas.length} burnt areas from mock',
-          );
-          _burntAreas = areas;
-          _isUsingMockData = true;
-          _isOffline = false;
-        },
-      );
-    }
+    // Service failed or unavailable - handle based on mode
+    // In demo mode: show empty with demo chip (not offline)
+    // In live mode: show offline state
+    debugPrint(
+      '🗺️ MapController: ${_useLiveData ? 'Live' : 'Demo'} mode burnt area loading failed, ${_useLiveData ? 'showing offline state' : 'showing empty demo data'}',
+    );
+    _burntAreas = [];
+    _isOffline = _useLiveData; // Only show offline in live mode
+    _isUsingMockData = !_useLiveData; // Preserve demo mode state
 
     _isFetchingBurntAreas = false;
     notifyListeners();

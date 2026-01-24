@@ -259,39 +259,84 @@ class HelpContent {
 const _howToUseContent = '''
 # How to Use the WildFire App
 
-WildFire helps you stay informed about wildfire risk in Scotland. Here's how to get started:
+WildFire helps you **understand wildfire risk** and **know what to do** if you encounter a fire in Scotland.
+
+The app provides guidance and situational awareness. It does **not** replace emergency services.
+
+---
 
 ## Home Screen
 
-The main screen shows your current **Fire Weather Index (FWI)** — a measure of how dangerous fire conditions are right now at your location.
+The Home screen shows the current **Fire Weather Index (FWI)** for your location.
 
-- **Location**: Shows your current location or the location you've set
-- **Risk Level**: Shows the current fire danger level from Very Low to Extreme
-- **FWI Value**: The numerical Fire Weather Index value
+FWI reflects how favourable conditions are for fires to start and spread based on weather and environmental factors.
+
+You’ll see:
+- **Location** — your current location or a manually set one  
+- **Risk Level** — from Very Low to Extreme  
+- **FWI Value** — a numerical indicator used by fire agencies  
+
+FWI describes **conditions**, not certainty.  
+Even when risk appears low, fires can still occur.
+
+To understand how this is calculated, see [Understanding Wildfire Risk](/help/doc/understanding-risk) and [What the Risk Levels Mean](/help/doc/risk-levels).
+
+---
 
 ## Viewing the Map
 
-Tap the **Map** tab to see:
-- Active fire hotspots detected by satellite
-- Your current location
-- Burnt area polygons (when zoomed in)
+The Map helps you build awareness of what’s happening around you.
 
-Hotspots are updated throughout the day as satellite data becomes available.
+You can view:
+- **Hotspots** detected by satellites  
+- **Burnt areas** where previous fire damage has been mapped  
+- **Your location**, to help with orientation and reporting  
 
-## Reporting Fires
+Satellite detections update as new data becomes available, but:
+- Not all fires are detected  
+- Some data may be delayed  
+- Small or smouldering fires (including peat fires) may not be visible  
 
-If you see a fire, use the **Report** feature to:
-1. Share your current location or pick a point on the map
-2. Provide details about what you've observed
-3. Submit the report for review
+Learn more in [What Is a Hotspot?](/help/doc/hotspots), [Burnt Areas](/help/doc/burnt-area) and [How Recent Is the Map Data?](/help/doc/update-frequency).
 
-**Remember**: This is for awareness only. Always call **999** for emergencies.
+---
 
-## Tips
+## If You See a Fire
 
-- Check the app before outdoor activities like hiking or camping
-- Pay attention to seasonal fire bans during high-risk periods
-- Share information with friends and family in rural areas
+WildFire does **not** collect or send fire reports.
+
+Instead, the app helps you:
+- Identify your location  
+- Describe what you’re seeing clearly  
+- Share accurate information when reporting a fire yourself  
+
+If you see a fire:
+- Move to a safe location  
+- Call **999** immediately  
+- Use the app to help describe *where* the fire is  
+
+For step-by-step guidance, see [What to Do if You See Fire](/help/doc/what-to-do-if-you-see-fire).
+
+---
+
+## Using the App Safely
+
+- Check the app before outdoor activities, especially during dry or windy periods  
+- Be cautious with any ignition sources, even when conditions seem safe  
+- Remember that fires can start or re-ignite hours later, particularly on peat soils  
+
+To understand why this happens, see [Weather, Fuel, and Fire](/help/doc/weather-fuel-fire).
+
+---
+
+## A Final Note
+
+WildFire is designed to support awareness and informed decisions.  
+It does not predict fires, detect every incident, or replace emergency response.
+
+When in doubt, always prioritise safety and contact emergency services.
+
+
 ''';
 
 const _whenToUseContent = '''
@@ -469,64 +514,141 @@ To see how these conditions translate into risk categories, see [What the Risk L
 const _weatherFuelFireContent = '''
 # Weather, Fuel, and Fire
 
-Three things must come together for wildfire: **heat, fuel, and oxygen**. Weather affects all three.
+Wildfires don’t happen by accident. They occur when **weather conditions** and **available vegetation** combine in the wrong way.
 
-## Weather Factors
+In Scotland, this can happen quickly — sometimes after just a few dry or windy days.
+
+---
+
+## The Basics: What Fire Needs
+
+For a wildfire to start and spread, three things must be present:
+
+- **Heat** — an ignition source such as human activity or lightning  
+- **Fuel** — vegetation that can burn  
+- **Oxygen** — supplied and moved around by wind  
+
+This is known as the **fire triangle**.  
+Remove any one of these, and a fire cannot sustain itself.
+
+---
+
+## How Weather Influences Fire Risk
+
+Weather controls how dry fuels become and how a fire behaves once started.
 
 ### Temperature
-- Warm weather dries vegetation
-- Heat waves create dangerous conditions
-- Even cool spring days can be risky after dry spells
+Warm conditions dry out vegetation over time.
+- Heatwaves create especially dangerous conditions  
+- Risk can still be high on cooler days after prolonged dry weather  
+- Spring can be deceptive — dead grasses dry quickly even in mild temperatures  
 
 ### Wind
-- Spreads flames and embers
-- Increases evaporation from plants
-- Changes fire direction unpredictably
-- Strong winds make fires very dangerous
+Wind is one of the most dangerous factors.
+- Pushes flames and embers forward  
+- Helps fires spread rapidly and change direction  
+- Makes fires harder to control and more unpredictable  
+
+Strong winds can turn small fires into major incidents very quickly.
 
 ### Humidity
-- Low humidity = dry vegetation
-- Morning humidity often higher than afternoon
-- Coastal areas may have lower risk than inland
+Humidity affects how much moisture vegetation retains.
+- Low humidity means fuels dry out faster  
+- Humidity is often higher in the morning and lower in the afternoon  
+- Inland areas can dry more quickly than coastal locations  
 
 ### Precipitation
-- Recent rain reduces immediate risk
-- Effects are temporary — a few dry days can reset risk
-- Light rain may not penetrate deep vegetation
+Rain can reduce risk — but often only temporarily.
+- Light or short rain may not reach deeper vegetation  
+- A few dry days can undo the effects of rainfall  
+- Wildfire risk reflects conditions over days and weeks, not just today’s weather  
+
+---
 
 ## Fuel Types in Scotland
 
+Different landscapes burn in different ways.
+
 ### Moorland and Heather
-- Primary wildfire fuel in Scotland
-- Burns readily when dry
-- Traditional muirburn season for management
+- One of the primary wildfire fuels in Scotland  
+- Can burn intensely when dry  
+- Managed burning (muirburn) reduces fuel under controlled conditions
+- Often underlain by peat soils that can smoulder underground  
 
 ### Grassland
-- Cures quickly in dry weather
-- Fast-spreading fires
-- Common along roadsides and field margins
+- Dries and ignites very quickly  
+- Fires spread fast, especially in wind  
+- Common along roadsides, paths, and field edges  
 
 ### Woodland
-- Ground litter can carry fire
-- Crown fires possible in extreme conditions
-- Conifer plantations can burn intensely
+- Fallen leaves and needles can carry fire along the ground  
+- Fires can climb into trees in extreme conditions  
+- Conifer plantations can burn intensely once established 
 
-## The Fire Triangle
+## Peat and Underground Fire
 
-**Heat** → Ignition source (human activity, lightning)
-**Fuel** → Vegetation (moisture determines flammability)
-**Oxygen** → Wind (supplies oxygen, spreads flames)
+Much of Scotland’s moorland sits on **peat soils**, which behave very differently from ordinary earth.
 
-Remove any element and fire cannot sustain. This is why:
-- Fire bans remove ignition sources
-- Firebreaks remove fuel
-- Firefighters may remove oxygen (smothering)
+Peat can **smoulder underground**, holding heat long after surface flames appear to be extinguished.
+
+### Why This Is Risky
+- Peat fires often burn **below the surface**, with little or no visible flame  
+- Heat can remain trapped even after rain or water is applied  
+- Fires can **reignite hours or days later**, sometimes some distance away  
+
+This means a campfire or BBQ that looks fully out can still start a wildfire later on.
+
+### Common Causes
+- Campfires built directly on the ground  
+- Disposable BBQs placed on dry or peaty soils  
+- Hot ash or embers buried or scattered  
+
+Because peat fires are hidden, they are **hard to detect and extremely difficult to extinguish** once established.
+
+### Why Prevention Matters
+Peatlands store large amounts of carbon and support sensitive ecosystems.  
+When they burn, the damage can be long-lasting.
+
+This is why even small ignition sources can have serious consequences in peat-rich areas.
+
+
+---
+
+## Why This Matters
+
+Most wildfires in Scotland are **started accidentally by people**, not by lightning.
+
+Understanding how weather and fuel interact helps explain why:
+- Fire bans remove ignition sources  
+- Firebreaks remove fuel  
+- Firefighting tactics aim to cool, smother, or slow a fire  
+
+Even small actions can have serious consequences when conditions are right.
+
+---
+
+## In Summary
+
+Wildfire risk isn’t about one hot day or one dry afternoon.  
+It’s about how **weather**, **vegetation**, and **human activity** combine over time.
+
+That’s why risk can change quickly — and why staying informed matters.
+
 ''';
 
 const _seasonalGuidanceContent = '''
 # Seasonal Guidance
 
-Wildfire risk in Scotland varies throughout the year. Here's what to expect:
+## Key Dates
+
+- **1 October–15 April**: Muirburn permitted (with conditions)
+- **Scottish Outdoor Access Code**: Applies year-round
+- **Cairngorms National Park fire bans**: 1st April–30 September
+- **Other Local fire bans**: Check council announcements during high risk
+
+
+**Wildfire risk in Scotland varies throughout the year. Here's what to expect:**
+
 
 ## Spring (February–May)
 
@@ -588,11 +710,7 @@ However:
 - East coast can have dry winter periods
 - Don't assume winter = no risk
 
-## Key Dates
 
-- **1 October–15 April**: Muirburn permitted (with conditions)
-- **Scottish Outdoor Access Code**: Applies year-round
-- **Local fire bans**: Check council announcements during high risk
 ''';
 
 const _hotspotsContent = '''

@@ -59,22 +59,33 @@ class CachedBurntAreaService implements EffisBurntAreaService {
     Duration timeout = const Duration(seconds: 10),
     int maxRetries = 3,
     int? maxFeatures,
+    bool skipLiveApi = false, // Demo mode: use bundle only, no live API calls
   }) async {
     final targetYear = seasonFilter.year;
 
     // Strategy: Bundle-first for ALL years
     // 1. Try to load from bundled asset (instant)
     // 2. If bundle fails OR is stale (>9 days), try live API as fallback
+    //    (unless skipLiveApi=true for demo mode)
 
+    final modeLabel = skipLiveApi ? 'demo (bundle only)' : 'live';
     debugPrint(
-      '🗺️ CachedBurntAreaService: Loading $targetYear (${seasonFilter.displayLabel}) from bundle',
+      '🗺️ CachedBurntAreaService: Loading $targetYear (${seasonFilter.displayLabel}) from bundle [mode: $modeLabel]',
     );
 
     final bundleResult = await _loadFromAsset(targetYear, bounds);
 
     return bundleResult.fold(
       (bundleError) async {
-        // Bundle failed to load - try live API
+        // Bundle failed to load
+        if (skipLiveApi) {
+          // Demo mode: Don't try live API, just return the error
+          debugPrint(
+            '🗺️ CachedBurntAreaService: Bundle failed in demo mode: ${bundleError.message}',
+          );
+          return Left(bundleError);
+        }
+        // Live mode: Try live API as fallback
         debugPrint(
           '🗺️ CachedBurntAreaService: Bundle failed, trying live API: ${bundleError.message}',
         );
@@ -89,6 +100,14 @@ class CachedBurntAreaService implements EffisBurntAreaService {
       (bundleData) async {
         // Bundle loaded successfully - check if stale
         final bundleTimestamp = _bundleTimestamps[targetYear];
+
+        // In demo mode, always return bundle data (don't check staleness)
+        if (skipLiveApi) {
+          debugPrint(
+            '🗺️ CachedBurntAreaService: Demo mode, returning ${bundleData.length} areas from bundle',
+          );
+          return Right(bundleData);
+        }
 
         // Check staleness - only if we have a timestamp
         if (bundleTimestamp != null) {

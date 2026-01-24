@@ -89,10 +89,7 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
         content: const Text('Location copied to clipboard'),
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        action: SnackBarAction(
-          label: 'OK',
-          onPressed: () {},
-        ),
+        action: SnackBarAction(label: 'OK', onPressed: () {}),
       ),
     );
   }
@@ -134,11 +131,7 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Location pin icon (no background)
-        Icon(
-          Icons.location_on_outlined,
-          color: cs.onSurface,
-          size: 24,
-        ),
+        Icon(Icons.location_on_outlined, color: cs.onSurface, size: 24),
         const SizedBox(width: 12),
 
         // Title (matches EmergencyHeroCard heading)
@@ -323,18 +316,12 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
       children: [
         Row(
           children: [
-            Icon(
-              Icons.error_outline,
-              color: cs.error,
-              size: 20,
-            ),
+            Icon(Icons.error_outline, color: cs.error, size: 20),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 message,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: cs.error,
-                ),
+                style: theme.textTheme.bodyMedium?.copyWith(color: cs.error),
               ),
             ),
           ],
@@ -369,9 +356,7 @@ class _CollapsibleLocationCardState extends State<CollapsibleLocationCard> {
       padding: const EdgeInsets.only(left: 36),
       child: Text(
         '$displayText · $sourceText',
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: cs.onSurfaceVariant,
-        ),
+        style: theme.textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
