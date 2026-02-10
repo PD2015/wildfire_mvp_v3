@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
@@ -228,7 +228,7 @@ void main() {
         // Mock timeout exception
         when(
           mockHttpClient.get(any, headers: anyNamed('headers')),
-        ).thenThrow(const SocketException('Connection timed out'));
+        ).thenThrow(http.ClientException('Connection timed out'));
 
         // Create service
         final service = EffisServiceImpl(httpClient: mockHttpClient);

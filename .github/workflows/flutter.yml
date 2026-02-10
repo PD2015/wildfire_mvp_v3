@@ -38,7 +38,7 @@ jobs:
           cache: true
 
       - name: Cache pub dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ${{ env.PUB_CACHE }}
@@ -116,7 +116,7 @@ jobs:
         cache: true
     
     - name: Cache pub dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ${{ env.PUB_CACHE }}
@@ -132,9 +132,9 @@ jobs:
       run: |
         cat > env/ci.env.json << EOF
         {
-          "GOOGLE_MAPS_API_KEY_IOS": "${{ secrets.GOOGLE_MAPS_API_KEY_IOS_CI || 'AIzaSyDEFAULT_CI_KEY_FOR_BUILD_TEST_ONLY' }}",
-          "GOOGLE_MAPS_API_KEY_ANDROID": "AIzaSyDEFAULT_ANDROID_KEY",
-          "GOOGLE_MAPS_API_KEY_WEB": "AIzaSyDEFAULT_WEB_KEY",
+          "GOOGLE_MAPS_API_KEY_IOS": "${{ secrets.GOOGLE_MAPS_API_KEY_IOS_CI || 'FAKE_KEY_FOR_CI_BUILD_TEST_ONLY' }}",
+          "GOOGLE_MAPS_API_KEY_ANDROID": "FAKE_KEY_FOR_CI_ANDROID_BUILD",
+          "GOOGLE_MAPS_API_KEY_WEB": "FAKE_KEY_FOR_CI_WEB_BUILD",
           "MAP_LIVE_DATA": "false",
           "EFFIS_BASE_URL": "https://ies-ows.jrc.ec.europa.eu/"
         }
@@ -298,7 +298,7 @@ jobs:
         cache: true
         
     - name: Cache pub dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ${{ env.PUB_CACHE }}

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:developer' as developer;
-import 'dart:io';
 import 'dart:math';
 import 'package:dartz/dartz.dart';
 import 'package:http/http.dart' as http;
@@ -224,7 +223,7 @@ class GwisWmsHotspotService implements HotspotService {
           await _backoff(attempt);
           continue;
         }
-      } on SocketException catch (e) {
+      } on http.ClientException catch (e) {
         lastError = ApiError(message: 'Network error: ${e.message}');
         attempt++;
         if (attempt <= maxRetries) {
