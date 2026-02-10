@@ -1,3 +1,9 @@
+// NOTE: dart:io Platform is INTENTIONALLY used in this test file.
+// Tests run on the Dart VM (never on web), so dart:io is always available.
+// We need Platform.isMacOS/isLinux to detect the ACTUAL hardware and skip
+// tests that require GoogleMap native plugin (unavailable on desktop).
+// DO NOT replace with defaultTargetPlatform — it defaults to android in
+// tests and won't detect the real host OS. See copilot-instructions.md.
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
