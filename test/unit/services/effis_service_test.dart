@@ -81,7 +81,7 @@ void main() {
           expect(fwiResult.fwi, equals(12.0));
           expect(
             fwiResult.datetime,
-            equals(DateTime.parse("2023-09-13T00:00:00Z")),
+            equals(DateTime.parse('2023-09-13T00:00:00Z')),
           );
           expect(fwiResult.longitude, equals(-3.1883));
           expect(fwiResult.latitude, equals(55.9533));
@@ -92,7 +92,7 @@ void main() {
         // Mock HTTP response
         when(mockHttpClient.get(any, headers: anyNamed('headers'))).thenAnswer(
           (_) async => http.Response(
-            jsonEncode({"type": "FeatureCollection", "features": []}),
+            jsonEncode({'type': 'FeatureCollection', 'features': []}),
             200,
             headers: {'content-type': 'application/json'},
           ),
@@ -253,7 +253,7 @@ void main() {
         // Mock empty features response
         when(mockHttpClient.get(any, headers: anyNamed('headers'))).thenAnswer(
           (_) async => http.Response(
-            jsonEncode({"type": "FeatureCollection", "features": []}),
+            jsonEncode({'type': 'FeatureCollection', 'features': []}),
             200,
             headers: {'content-type': 'application/json'},
           ),

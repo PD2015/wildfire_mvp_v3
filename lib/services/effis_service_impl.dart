@@ -669,7 +669,7 @@ class EffisServiceImpl implements EffisService {
       );
 
       // First try to find explicit <fwi> tags
-      RegExpMatch? fwiMatch = fwiPattern.firstMatch(responseBody);
+      final RegExpMatch? fwiMatch = fwiPattern.firstMatch(responseBody);
       if (fwiMatch != null) {
         final fwiValue = double.tryParse(fwiMatch.group(1)!);
         if (fwiValue != null) {

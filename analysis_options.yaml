@@ -21,8 +21,27 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    # === Code Quality (C1) ===
+    avoid_print: true                              # Use debugPrint() or developer.log()
+    prefer_const_constructors: true                # Performance + catches mutable misuse
+    prefer_const_declarations: true                # const over final for compile-time constants
+    prefer_const_literals_to_create_immutables: true  # const [] over []
+    prefer_final_locals: true                      # Immutable local variables
+
+    # === Safety ===
+    avoid_empty_else: true
+    avoid_relative_lib_imports: true               # Use package: imports
+    cancel_subscriptions: true                     # Prevent memory leaks
+    close_sinks: true                              # Prevent resource leaks
+    no_duplicate_case_values: true
+    unnecessary_statements: true
+
+    # === Style consistency ===
+    prefer_single_quotes: true
+    sort_child_properties_last: true               # child: always last in widget constructors
+    use_build_context_synchronously: true           # Prevent stale context bugs
+    sized_box_for_whitespace: true                 # SizedBox over Container for spacing
+    use_colored_box: true                          # ColoredBox over Container with only color
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

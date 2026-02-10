@@ -16,19 +16,19 @@ void main() {
       test('should parse valid Edinburgh success fixture', () {
         // Parse data from our edinburgh_success.json fixture
         final jsonData = {
-          "type": "Feature",
-          "properties": {
-            "fwi": 12.0,
-            "dc": 156.8,
-            "dmc": 18.6,
-            "ffmc": 88.5,
-            "isi": 4.8,
-            "bui": 25.4,
-            "datetime": "2023-09-13T00:00:00Z",
+          'type': 'Feature',
+          'properties': {
+            'fwi': 12.0,
+            'dc': 156.8,
+            'dmc': 18.6,
+            'ffmc': 88.5,
+            'isi': 4.8,
+            'bui': 25.4,
+            'datetime': '2023-09-13T00:00:00Z',
           },
-          "geometry": {
-            "type": "Point",
-            "coordinates": [-3.1883, 55.9533],
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [-3.1883, 55.9533],
           },
         };
 
@@ -41,58 +41,58 @@ void main() {
         expect(result.bui, equals(25.4));
         expect(result.longitude, equals(-3.1883));
         expect(result.latitude, equals(55.9533));
-        expect(result.datetime, equals(DateTime.parse("2023-09-13T00:00:00Z")));
+        expect(result.datetime, equals(DateTime.parse('2023-09-13T00:00:00Z')));
         expect(result.riskLevel, equals(RiskLevel.moderate)); // FWI=12.0
       });
 
       test('should handle different FWI values and risk levels', () {
         final testCases = [
-          {"fwi": 3.0, "expectedRisk": "veryLow"},
-          {"fwi": 8.0, "expectedRisk": "low"},
-          {"fwi": 15.0, "expectedRisk": "moderate"},
-          {"fwi": 30.0, "expectedRisk": "high"},
-          {"fwi": 45.0, "expectedRisk": "veryHigh"},
-          {"fwi": 60.0, "expectedRisk": "extreme"},
+          {'fwi': 3.0, 'expectedRisk': 'veryLow'},
+          {'fwi': 8.0, 'expectedRisk': 'low'},
+          {'fwi': 15.0, 'expectedRisk': 'moderate'},
+          {'fwi': 30.0, 'expectedRisk': 'high'},
+          {'fwi': 45.0, 'expectedRisk': 'veryHigh'},
+          {'fwi': 60.0, 'expectedRisk': 'extreme'},
         ];
 
         for (final testCase in testCases) {
           final jsonData = {
-            "type": "Feature",
-            "properties": {
-              "fwi": testCase["fwi"],
-              "dc": 150.0,
-              "dmc": 20.0,
-              "ffmc": 85.0,
-              "isi": 5.0,
-              "bui": 25.0,
-              "datetime": "2023-09-13T00:00:00Z",
+            'type': 'Feature',
+            'properties': {
+              'fwi': testCase['fwi'],
+              'dc': 150.0,
+              'dmc': 20.0,
+              'ffmc': 85.0,
+              'isi': 5.0,
+              'bui': 25.0,
+              'datetime': '2023-09-13T00:00:00Z',
             },
-            "geometry": {
-              "type": "Point",
-              "coordinates": [-3.0, 55.0],
+            'geometry': {
+              'type': 'Point',
+              'coordinates': [-3.0, 55.0],
             },
           };
 
           final result = EffisFwiResult.fromJson(jsonData);
-          expect(result.fwi, equals(testCase["fwi"]));
+          expect(result.fwi, equals(testCase['fwi']));
           RiskLevel expectedRisk;
-          switch (testCase["expectedRisk"]) {
-            case "veryLow":
+          switch (testCase['expectedRisk']) {
+            case 'veryLow':
               expectedRisk = RiskLevel.veryLow;
               break;
-            case "low":
+            case 'low':
               expectedRisk = RiskLevel.low;
               break;
-            case "moderate":
+            case 'moderate':
               expectedRisk = RiskLevel.moderate;
               break;
-            case "high":
+            case 'high':
               expectedRisk = RiskLevel.high;
               break;
-            case "veryHigh":
+            case 'veryHigh':
               expectedRisk = RiskLevel.veryHigh;
               break;
-            case "extreme":
+            case 'extreme':
               expectedRisk = RiskLevel.extreme;
               break;
             default:
@@ -108,50 +108,50 @@ void main() {
     group('datetime parsing validation', () {
       test('should parse UTC datetime correctly', () {
         final jsonData = {
-          "type": "Feature",
-          "properties": {
-            "fwi": 10.0,
-            "dc": 150.0,
-            "dmc": 20.0,
-            "ffmc": 85.0,
-            "isi": 5.0,
-            "bui": 25.0,
-            "datetime": "2023-09-13T00:00:00Z",
+          'type': 'Feature',
+          'properties': {
+            'fwi': 10.0,
+            'dc': 150.0,
+            'dmc': 20.0,
+            'ffmc': 85.0,
+            'isi': 5.0,
+            'bui': 25.0,
+            'datetime': '2023-09-13T00:00:00Z',
           },
-          "geometry": {
-            "type": "Point",
-            "coordinates": [-3.0, 55.0],
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [-3.0, 55.0],
           },
         };
 
         final result = EffisFwiResult.fromJson(jsonData);
-        final expectedDateTime = DateTime.parse("2023-09-13T00:00:00Z").toUtc();
+        final expectedDateTime = DateTime.parse('2023-09-13T00:00:00Z').toUtc();
         expect(result.datetime, equals(expectedDateTime));
         expect(result.datetime.isUtc, isTrue);
       });
 
       test('should handle different valid UTC formats', () {
         final testFormats = [
-          "2023-09-13T00:00:00Z",
-          "2023-09-13T12:30:45Z",
-          "2023-12-31T23:59:59Z",
+          '2023-09-13T00:00:00Z',
+          '2023-09-13T12:30:45Z',
+          '2023-12-31T23:59:59Z',
         ];
 
         for (final dateTimeStr in testFormats) {
           final jsonData = {
-            "type": "Feature",
-            "properties": {
-              "fwi": 10.0,
-              "dc": 150.0,
-              "dmc": 20.0,
-              "ffmc": 85.0,
-              "isi": 5.0,
-              "bui": 25.0,
-              "datetime": dateTimeStr,
+            'type': 'Feature',
+            'properties': {
+              'fwi': 10.0,
+              'dc': 150.0,
+              'dmc': 20.0,
+              'ffmc': 85.0,
+              'isi': 5.0,
+              'bui': 25.0,
+              'datetime': dateTimeStr,
             },
-            "geometry": {
-              "type": "Point",
-              "coordinates": [-3.0, 55.0],
+            'geometry': {
+              'type': 'Point',
+              'coordinates': [-3.0, 55.0],
             },
           };
 
@@ -163,27 +163,27 @@ void main() {
 
       test('should reject invalid datetime formats', () {
         final invalidDateTimes = [
-          "2023-09-13", // Missing time
-          "2023-09-13T00:00:00", // Missing Z
-          "invalid-date", // Not a date
-          "", // Empty string
+          '2023-09-13', // Missing time
+          '2023-09-13T00:00:00', // Missing Z
+          'invalid-date', // Not a date
+          '', // Empty string
         ];
 
         for (final invalidDateTime in invalidDateTimes) {
           final jsonData = {
-            "type": "Feature",
-            "properties": {
-              "fwi": 10.0,
-              "dc": 150.0,
-              "dmc": 20.0,
-              "ffmc": 85.0,
-              "isi": 5.0,
-              "bui": 25.0,
-              "datetime": invalidDateTime,
+            'type': 'Feature',
+            'properties': {
+              'fwi': 10.0,
+              'dc': 150.0,
+              'dmc': 20.0,
+              'ffmc': 85.0,
+              'isi': 5.0,
+              'bui': 25.0,
+              'datetime': invalidDateTime,
             },
-            "geometry": {
-              "type": "Point",
-              "coordinates": [-3.0, 55.0],
+            'geometry': {
+              'type': 'Point',
+              'coordinates': [-3.0, 55.0],
             },
           };
 
@@ -202,19 +202,19 @@ void main() {
 
         for (final fwi in validFwiValues) {
           final jsonData = {
-            "type": "Feature",
-            "properties": {
-              "fwi": fwi,
-              "dc": 150.0,
-              "dmc": 20.0,
-              "ffmc": 85.0,
-              "isi": 5.0,
-              "bui": 25.0,
-              "datetime": "2023-09-13T00:00:00Z",
+            'type': 'Feature',
+            'properties': {
+              'fwi': fwi,
+              'dc': 150.0,
+              'dmc': 20.0,
+              'ffmc': 85.0,
+              'isi': 5.0,
+              'bui': 25.0,
+              'datetime': '2023-09-13T00:00:00Z',
             },
-            "geometry": {
-              "type": "Point",
-              "coordinates": [-3.0, 55.0],
+            'geometry': {
+              'type': 'Point',
+              'coordinates': [-3.0, 55.0],
             },
           };
 
@@ -225,19 +225,19 @@ void main() {
 
       test('should reject negative FWI values', () {
         final jsonData = {
-          "type": "Feature",
-          "properties": {
-            "fwi": -5.0, // Invalid negative FWI
-            "dc": 150.0,
-            "dmc": 20.0,
-            "ffmc": 85.0,
-            "isi": 5.0,
-            "bui": 25.0,
-            "datetime": "2023-09-13T00:00:00Z",
+          'type': 'Feature',
+          'properties': {
+            'fwi': -5.0, // Invalid negative FWI
+            'dc': 150.0,
+            'dmc': 20.0,
+            'ffmc': 85.0,
+            'isi': 5.0,
+            'bui': 25.0,
+            'datetime': '2023-09-13T00:00:00Z',
           },
-          "geometry": {
-            "type": "Point",
-            "coordinates": [-3.0, 55.0],
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [-3.0, 55.0],
           },
         };
 
@@ -260,17 +260,17 @@ void main() {
 
         for (final coords in validCoordinates) {
           final jsonData = {
-            "type": "Feature",
-            "properties": {
-              "fwi": 12.0,
-              "dc": 150.0,
-              "dmc": 20.0,
-              "ffmc": 85.0,
-              "isi": 5.0,
-              "bui": 25.0,
-              "datetime": "2023-09-13T00:00:00Z",
+            'type': 'Feature',
+            'properties': {
+              'fwi': 12.0,
+              'dc': 150.0,
+              'dmc': 20.0,
+              'ffmc': 85.0,
+              'isi': 5.0,
+              'bui': 25.0,
+              'datetime': '2023-09-13T00:00:00Z',
             },
-            "geometry": {"type": "Point", "coordinates": coords},
+            'geometry': {'type': 'Point', 'coordinates': coords},
           };
 
           final result = EffisFwiResult.fromJson(jsonData);
@@ -289,17 +289,17 @@ void main() {
 
         for (final coords in invalidCoordinates) {
           final jsonData = {
-            "type": "Feature",
-            "properties": {
-              "fwi": 12.0,
-              "dc": 150.0,
-              "dmc": 20.0,
-              "ffmc": 85.0,
-              "isi": 5.0,
-              "bui": 25.0,
-              "datetime": "2023-09-13T00:00:00Z",
+            'type': 'Feature',
+            'properties': {
+              'fwi': 12.0,
+              'dc': 150.0,
+              'dmc': 20.0,
+              'ffmc': 85.0,
+              'isi': 5.0,
+              'bui': 25.0,
+              'datetime': '2023-09-13T00:00:00Z',
             },
-            "geometry": {"type": "Point", "coordinates": coords},
+            'geometry': {'type': 'Point', 'coordinates': coords},
           };
 
           expect(
@@ -314,19 +314,19 @@ void main() {
     group('missing fields validation', () {
       test('should require all mandatory fields', () {
         final baseJson = {
-          "type": "Feature",
-          "properties": {
-            "fwi": 12.0,
-            "dc": 150.0,
-            "dmc": 20.0,
-            "ffmc": 85.0,
-            "isi": 5.0,
-            "bui": 25.0,
-            "datetime": "2023-09-13T00:00:00Z",
+          'type': 'Feature',
+          'properties': {
+            'fwi': 12.0,
+            'dc': 150.0,
+            'dmc': 20.0,
+            'ffmc': 85.0,
+            'isi': 5.0,
+            'bui': 25.0,
+            'datetime': '2023-09-13T00:00:00Z',
           },
-          "geometry": {
-            "type": "Point",
-            "coordinates": [-3.0, 55.0],
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [-3.0, 55.0],
           },
         };
 
@@ -354,18 +354,18 @@ void main() {
 
       test('should require geometry coordinates', () {
         final jsonWithoutCoords = {
-          "type": "Feature",
-          "properties": {
-            "fwi": 12.0,
-            "dc": 150.0,
-            "dmc": 20.0,
-            "ffmc": 85.0,
-            "isi": 5.0,
-            "bui": 25.0,
-            "datetime": "2023-09-13T00:00:00Z",
+          'type': 'Feature',
+          'properties': {
+            'fwi': 12.0,
+            'dc': 150.0,
+            'dmc': 20.0,
+            'ffmc': 85.0,
+            'isi': 5.0,
+            'bui': 25.0,
+            'datetime': '2023-09-13T00:00:00Z',
           },
-          "geometry": {
-            "type": "Point",
+          'geometry': {
+            'type': 'Point',
             // Missing coordinates
           },
         };
@@ -381,19 +381,19 @@ void main() {
     group('equatable behavior', () {
       test('should be equal when all properties match', () {
         final jsonData = {
-          "type": "Feature",
-          "properties": {
-            "fwi": 12.0,
-            "dc": 156.8,
-            "dmc": 18.6,
-            "ffmc": 88.5,
-            "isi": 4.8,
-            "bui": 25.4,
-            "datetime": "2023-09-13T00:00:00Z",
+          'type': 'Feature',
+          'properties': {
+            'fwi': 12.0,
+            'dc': 156.8,
+            'dmc': 18.6,
+            'ffmc': 88.5,
+            'isi': 4.8,
+            'bui': 25.4,
+            'datetime': '2023-09-13T00:00:00Z',
           },
-          "geometry": {
-            "type": "Point",
-            "coordinates": [-3.1883, 55.9533],
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [-3.1883, 55.9533],
           },
         };
 
@@ -405,36 +405,36 @@ void main() {
 
       test('should not be equal when properties differ', () {
         final jsonData1 = {
-          "type": "Feature",
-          "properties": {
-            "fwi": 12.0,
-            "dc": 156.8,
-            "dmc": 18.6,
-            "ffmc": 88.5,
-            "isi": 4.8,
-            "bui": 25.4,
-            "datetime": "2023-09-13T00:00:00Z",
+          'type': 'Feature',
+          'properties': {
+            'fwi': 12.0,
+            'dc': 156.8,
+            'dmc': 18.6,
+            'ffmc': 88.5,
+            'isi': 4.8,
+            'bui': 25.4,
+            'datetime': '2023-09-13T00:00:00Z',
           },
-          "geometry": {
-            "type": "Point",
-            "coordinates": [-3.1883, 55.9533],
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [-3.1883, 55.9533],
           },
         };
 
         final jsonData2 = {
-          "type": "Feature",
-          "properties": {
-            "fwi": 15.0, // Different FWI
-            "dc": 156.8,
-            "dmc": 18.6,
-            "ffmc": 88.5,
-            "isi": 4.8,
-            "bui": 25.4,
-            "datetime": "2023-09-13T00:00:00Z",
+          'type': 'Feature',
+          'properties': {
+            'fwi': 15.0, // Different FWI
+            'dc': 156.8,
+            'dmc': 18.6,
+            'ffmc': 88.5,
+            'isi': 4.8,
+            'bui': 25.4,
+            'datetime': '2023-09-13T00:00:00Z',
           },
-          "geometry": {
-            "type": "Point",
-            "coordinates": [-3.1883, 55.9533],
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [-3.1883, 55.9533],
           },
         };
 

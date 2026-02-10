@@ -839,7 +839,7 @@ class _MapScreenState extends State<MapScreen> {
                     _selectedIncident = null;
                   });
                 },
-                child: Container(
+                child: ColoredBox(
                   color: Theme.of(
                     context,
                   ).colorScheme.scrim.withValues(alpha: 0.5),
