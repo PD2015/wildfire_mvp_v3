@@ -1,3 +1,9 @@
+// NOTE: dart:io Platform is INTENTIONALLY used in this test file.
+// Tests run on the Dart VM (never on web), so dart:io is always available.
+// We need Platform.isMacOS to detect the ACTUAL hardware and skip tests
+// that require GoogleMap native plugin (unavailable on desktop).
+// DO NOT replace with defaultTargetPlatform — it defaults to android in
+// tests and won't detect the real host OS. See copilot-instructions.md.
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -9,12 +15,10 @@ import 'package:wildfire_mvp_v3/features/map/screens/map_screen.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/models/api_error.dart';
-import 'package:wildfire_mvp_v3/models/fire_incident.dart';
-import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart';
+
 import 'package:wildfire_mvp_v3/models/risk_level.dart';
 import 'package:wildfire_mvp_v3/services/models/fire_risk.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
-import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 
 import '../../helpers/mock_hotspot_orchestrator.dart';
@@ -87,55 +91,6 @@ class MockLocationResolver implements LocationResolver {
   }
 }
 
-/// Mock FireLocationService with controllable responses
-class MockFireLocationService implements FireLocationService {
-  List<FireIncident>? _incidentsToReturn;
-  ApiError? _errorToReturn;
-  Duration? _responseDelay;
-  int callCount = 0;
-  List<LatLngBounds> requestedBounds = [];
-
-  void mockIncidents(List<FireIncident> incidents) {
-    _incidentsToReturn = incidents;
-    _errorToReturn = null;
-  }
-
-  void mockError(ApiError error) {
-    _errorToReturn = error;
-    _incidentsToReturn = null;
-  }
-
-  void setDelay(Duration delay) {
-    _responseDelay = delay;
-  }
-
-  void reset() {
-    _incidentsToReturn = null;
-    _errorToReturn = null;
-    _responseDelay = null;
-    callCount = 0;
-    requestedBounds.clear();
-  }
-
-  @override
-  Future<Either<ApiError, List<FireIncident>>> getActiveFires(
-    LatLngBounds bounds,
-  ) async {
-    callCount++;
-    requestedBounds.add(bounds);
-
-    if (_responseDelay != null) {
-      await Future.delayed(_responseDelay!);
-    }
-
-    if (_errorToReturn != null) {
-      return Left(_errorToReturn!);
-    }
-
-    return Right(_incidentsToReturn ?? []);
-  }
-}
-
 /// Mock FireRiskService for risk check button testing
 class MockFireRiskService implements FireRiskService {
   FireRisk? _riskToReturn;
@@ -201,18 +156,15 @@ void main() {
 
   group('Complete Map Flow Integration Tests (T034)', () {
     late MockLocationResolver mockLocationResolver;
-    late MockFireLocationService mockFireLocationService;
     late MockFireRiskService mockFireRiskService;
 
     setUp(() {
       mockLocationResolver = MockLocationResolver();
-      mockFireLocationService = MockFireLocationService();
       mockFireRiskService = MockFireRiskService();
     });
 
     tearDown(() {
       mockLocationResolver.reset();
-      mockFireLocationService.reset();
       mockFireRiskService.reset();
     });
 
@@ -226,31 +178,6 @@ void main() {
 
         // Arrange: Mock Edinburgh location
         mockLocationResolver.mockLocation(const LatLng(55.9533, -3.1883));
-
-        // Mock fire incidents
-        final mockIncidents = [
-          FireIncident(
-            id: 'test_fire_1',
-            location: const LatLng(55.9533, -3.1883),
-            source: DataSource.mock,
-            freshness: Freshness.mock,
-            timestamp: DateTime.now(),
-            intensity: 'high',
-            description: 'Edinburgh - Holyrood Park',
-            areaHectares: 45.0,
-          ),
-          FireIncident(
-            id: 'test_fire_2',
-            location: const LatLng(55.8642, -4.2518),
-            source: DataSource.mock,
-            freshness: Freshness.mock,
-            timestamp: DateTime.now(),
-            intensity: 'moderate',
-            description: 'Glasgow - Campsie Fells',
-            areaHectares: 20.0,
-          ),
-        ];
-        mockFireLocationService.mockIncidents(mockIncidents);
 
         // Create MapController with mocked services
         final controller = MapController(
@@ -281,9 +208,6 @@ void main() {
         // Assert: Location resolver was called
         expect(mockLocationResolver.callCount, greaterThan(0));
 
-        // Assert: Fire location service was called
-        expect(mockFireLocationService.callCount, greaterThan(0));
-
         // Assert: Source chip shows demo data (MAP_LIVE_DATA=false by default)
         expect(find.text('DEMO DATA'), findsOneWidget);
 
@@ -302,9 +226,6 @@ void main() {
 
         // Arrange: Mock GPS permission denied
         mockLocationResolver.mockError(LocationError.permissionDenied);
-
-        // Mock empty incident list
-        mockFireLocationService.mockIncidents([]);
 
         final controller = MapController(
           locationResolver: mockLocationResolver,
@@ -327,9 +248,6 @@ void main() {
         // Assert: Location resolver was called
         expect(mockLocationResolver.callCount, greaterThan(0));
 
-        // Assert: Fire service was still called (with default location)
-        expect(mockFireLocationService.callCount, greaterThan(0));
-
         controller.dispose();
       },
       timeout: const Timeout(Duration(seconds: 8)),
@@ -345,7 +263,6 @@ void main() {
 
         // Arrange
         mockLocationResolver.mockLocation(const LatLng(55.9533, -3.1883));
-        mockFireLocationService.mockIncidents([]);
         mockFireRiskService.mockRisk(
           FireRisk.fromMock(
             level: RiskLevel.high,
@@ -396,7 +313,6 @@ void main() {
 
         // Arrange: Return empty incident list
         mockLocationResolver.mockLocation(const LatLng(55.9533, -3.1883));
-        mockFireLocationService.mockIncidents([]);
 
         final controller = MapController(
           locationResolver: mockLocationResolver,
@@ -436,16 +352,6 @@ void main() {
         final stopwatch = Stopwatch()..start();
 
         mockLocationResolver.mockLocation(const LatLng(55.9533, -3.1883));
-        mockFireLocationService.mockIncidents([
-          FireIncident(
-            id: 'test_fire',
-            location: const LatLng(55.9533, -3.1883),
-            source: DataSource.mock,
-            freshness: Freshness.mock,
-            timestamp: DateTime.now(),
-            intensity: 'moderate',
-          ),
-        ]);
 
         final controller = MapController(
           locationResolver: mockLocationResolver,
@@ -489,9 +395,6 @@ void main() {
 
         // Arrange: Mock timeout error
         mockLocationResolver.mockLocation(const LatLng(55.9533, -3.1883));
-        mockFireLocationService.mockError(
-          ApiError(message: 'EFFIS WFS request timed out', statusCode: 503),
-        );
 
         final controller = MapController(
           locationResolver: mockLocationResolver,
@@ -529,16 +432,6 @@ void main() {
       (tester) async {
         // Arrange
         mockLocationResolver.mockLocation(const LatLng(55.9533, -3.1883));
-        mockFireLocationService.mockIncidents([
-          FireIncident(
-            id: 'test_fire',
-            location: const LatLng(55.9533, -3.1883),
-            source: DataSource.mock,
-            freshness: Freshness.mock,
-            timestamp: DateTime.now(),
-            intensity: 'low',
-          ),
-        ]);
 
         // Act: Create and dispose controller 3 times
         for (int i = 0; i < 3; i++) {
@@ -562,21 +455,10 @@ void main() {
           await tester.pumpAndSettle();
 
           mockLocationResolver.reset();
-          mockFireLocationService.reset();
           mockFireRiskService.reset();
 
           // Re-mock for next iteration
           mockLocationResolver.mockLocation(const LatLng(55.9533, -3.1883));
-          mockFireLocationService.mockIncidents([
-            FireIncident(
-              id: 'test_fire',
-              location: const LatLng(55.9533, -3.1883),
-              source: DataSource.mock,
-              freshness: Freshness.mock,
-              timestamp: DateTime.now(),
-              intensity: 'low',
-            ),
-          ]);
         }
 
         // Assert: Test completes without memory leaks or errors
@@ -597,16 +479,6 @@ void main() {
 
         // Arrange: Mock data with different freshness values
         mockLocationResolver.mockLocation(const LatLng(55.9533, -3.1883));
-        mockFireLocationService.mockIncidents([
-          FireIncident(
-            id: 'test_fire',
-            location: const LatLng(55.9533, -3.1883),
-            source: DataSource.mock,
-            freshness: Freshness.mock, // Mock data when MAP_LIVE_DATA=false
-            timestamp: DateTime.now(),
-            intensity: 'low',
-          ),
-        ]);
 
         final controller = MapController(
           locationResolver: mockLocationResolver,

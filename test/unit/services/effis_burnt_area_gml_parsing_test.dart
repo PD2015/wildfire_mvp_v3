@@ -3,7 +3,6 @@
 // Part of 021-live-fire-data feature implementation.
 // Tests GML3 response parsing after discovery that JSON output
 // fails silently with bbox filters on EFFIS WFS.
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -321,7 +320,7 @@ void main() {
       final client = MockClient((request) async {
         callCount++;
         if (callCount < 3) {
-          throw const SocketException('Connection timeout');
+          throw http.ClientException('Connection timeout');
         }
         return http.Response(_sampleGmlResponse, 200);
       });
@@ -344,7 +343,7 @@ void main() {
       int callCount = 0;
       final client = MockClient((request) async {
         callCount++;
-        throw const SocketException('Connection failed');
+        throw http.ClientException('Connection failed');
       });
 
       final service = EffisBurntAreaServiceImpl(httpClient: client);

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -81,7 +80,9 @@ void main() {
         // The fake returns Edinburgh coordinates as last known position (native)
         // or current position (web, since getLastKnownPosition is skipped)
         // Note: On desktop, platform guard skips GPS, so fallback is used
-        if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
+        if (!kIsWeb &&
+            defaultTargetPlatform != TargetPlatform.android &&
+            defaultTargetPlatform != TargetPlatform.iOS) {
           // Desktop: platform guard triggers, falls back to Aviemore (DEV_MODE)
           expect(
             location.coordinates.latitude,
@@ -132,7 +133,9 @@ void main() {
 
         // With injectable GeolocatorService, GPS works on web/mobile
         // Note: On desktop, platform guard skips GPS, so fallback is used
-        if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
+        if (!kIsWeb &&
+            defaultTargetPlatform != TargetPlatform.android &&
+            defaultTargetPlatform != TargetPlatform.iOS) {
           // Desktop: platform guard triggers, falls back to Aviemore (DEV_MODE)
           expect(
             location.coordinates.latitude,
@@ -190,7 +193,9 @@ void main() {
 
           // With injectable GeolocatorService, GPS works on web/mobile
           // Note: On desktop, platform guard skips GPS, so fallback is used
-          if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
+          if (!kIsWeb &&
+              defaultTargetPlatform != TargetPlatform.android &&
+              defaultTargetPlatform != TargetPlatform.iOS) {
             // Desktop: platform guard triggers, falls back to Aviemore (DEV_MODE)
             expect(
               location.coordinates.latitude,
@@ -641,7 +646,9 @@ void main() {
           // With injectable GeolocatorService, GPS works on all platforms except desktop
           // Desktop (macOS, Windows, Linux) skips GPS and uses DEV_MODE default (Aviemore)
           // Web and mobile platforms use the injected FakeGeolocator → Glasgow
-          if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
+          if (!kIsWeb &&
+              defaultTargetPlatform != TargetPlatform.android &&
+              defaultTargetPlatform != TargetPlatform.iOS) {
             // Desktop only - GPS skipped, uses Aviemore fallback
             expect(
               location.coordinates.latitude,

@@ -14,10 +14,10 @@ class UIConstants {
   UIConstants._();
 
   /// Navigation label for bottom navigation bar
-  static const String fireRiskTitle = "Fire Risk";
+  static const String fireRiskTitle = 'Fire Risk';
 
   /// AppBar title for fire risk screen
-  static const String fireRiskAppBarTitle = "Wildfire Risk";
+  static const String fireRiskAppBarTitle = 'Wildfire Risk';
 
   /// Primary icon for fire risk navigation (Material Design warning symbol)
   static const IconData fireRiskIcon = Icons.warning_amber;
@@ -26,13 +26,13 @@ class UIConstants {
   static const IconData fireRiskIconFallback = Icons.report_outlined;
 
   /// Primary route path
-  static const String fireRiskRoute = "/";
+  static const String fireRiskRoute = '/';
 
   /// Semantic alias route for clarity
-  static const String fireRiskRouteAlias = "/fire-risk";
+  static const String fireRiskRouteAlias = '/fire-risk';
 
   /// Semantic label for screen readers (navigation)
-  static const String fireRiskNavSemantic = "Fire risk information tab";
+  static const String fireRiskNavSemantic = 'Fire risk information tab';
 
   /// Semantic description template for RiskBanner
   /// Format: "Current wildfire risk is {LEVEL}, updated {RELATIVE_TIME}. Source: {SOURCE}."
@@ -42,6 +42,6 @@ class UIConstants {
     required String relativeTime,
     required String source,
   }) {
-    return "Current wildfire risk is $level, updated $relativeTime. Source: $source.";
+    return 'Current wildfire risk is $level, updated $relativeTime. Source: $source.';
   }
 }

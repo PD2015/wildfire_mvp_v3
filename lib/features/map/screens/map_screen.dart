@@ -1,5 +1,5 @@
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
@@ -783,8 +783,10 @@ class _MapScreenState extends State<MapScreen> {
     // Note: "macOS" has two meanings:
     //   1. macOS Web (Flutter web in Safari/Chrome on Mac) → SUPPORTED ✅
     //   2. macOS Desktop (Flutter macOS native app) → NOT SUPPORTED ❌
-    final bool isMapSupported =
-        kIsWeb || (!kIsWeb && (Platform.isAndroid || Platform.isIOS));
+    final bool isMapSupported = kIsWeb ||
+        (!kIsWeb &&
+            (defaultTargetPlatform == TargetPlatform.android ||
+                defaultTargetPlatform == TargetPlatform.iOS));
 
     if (!isMapSupported) {
       return _buildUnsupportedPlatformView();
@@ -839,7 +841,7 @@ class _MapScreenState extends State<MapScreen> {
                     _selectedIncident = null;
                   });
                 },
-                child: Container(
+                child: ColoredBox(
                   color: Theme.of(
                     context,
                   ).colorScheme.scrim.withValues(alpha: 0.5),
