@@ -9,7 +9,6 @@ set -e
 EXCLUDED_FILES=(
   "lib/theme/risk_palette.dart"
   "lib/widgets/risk_banner.dart"
-  "lib/features/map/widgets/risk_result_chip.dart"
 )
 
 # Build exclusion pattern for grep

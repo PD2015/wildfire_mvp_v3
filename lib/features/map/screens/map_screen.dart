@@ -16,8 +16,6 @@ import 'package:wildfire_mvp_v3/features/map/widgets/time_filter_chips.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_type_selector.dart';
 import 'package:wildfire_mvp_v3/features/map/widgets/map_zoom_controls.dart';
 import 'package:wildfire_mvp_v3/models/fire_data_mode.dart';
-// T-V2: RiskCheckButton temporarily disabled
-// import 'package:wildfire_mvp_v3/features/map/widgets/risk_check_button.dart';
 import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/hotspot.dart';
 import 'package:wildfire_mvp_v3/models/hotspot_cluster.dart';
@@ -854,9 +852,6 @@ class _MapScreenState extends State<MapScreen> {
             ),
         ],
       ),
-      // T-V2: FAB temporarily disabled - may be confusing/unnecessary feature
-      // floatingActionButton: RiskCheckButton(controller: _controller),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
     );
   }
 
