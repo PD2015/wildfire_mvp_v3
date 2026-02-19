@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:wildfire_mvp_v3/features/help/content/help_content.dart';
+import 'package:wildfire_mvp_v3/widgets/app_navigation_tile.dart';
+import 'package:wildfire_mvp_v3/widgets/section_header.dart';
 
 /// Help & Info hub screen providing access to guidance and educational content.
 ///
@@ -31,9 +33,9 @@ class HelpInfoScreen extends StatelessWidget {
             // Generate sections dynamically from HelpContent
             for (final section in HelpContent.sections) ...[
               if (section != HelpSection.gettingStarted) const Divider(),
-              _SectionHeader(title: section.displayName),
+              SectionHeader(title: section.displayName),
               for (final doc in HelpContent.forSection(section))
-                _HelpTile(
+                AppNavigationTile(
                   icon: doc.icon,
                   title: doc.title,
                   subtitle: doc.description,
@@ -44,8 +46,8 @@ class HelpInfoScreen extends StatelessWidget {
             const Divider(),
 
             // About section (special screen, not a document)
-            const _SectionHeader(title: 'About'),
-            _HelpTile(
+            const SectionHeader(title: 'About'),
+            AppNavigationTile(
               icon: Icons.info_outline,
               title: 'About WildFire',
               subtitle: 'App version and information',
@@ -56,69 +58,6 @@ class HelpInfoScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// Section header for help groups.
-class _SectionHeader extends StatelessWidget {
-  final String title;
-
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Semantics(
-      header: true,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Text(
-          title.toUpperCase(),
-          style: theme.textTheme.titleSmall?.copyWith(
-            color: theme.colorScheme.primary,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// A list tile for help navigation.
-class _HelpTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  const _HelpTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return ListTile(
-      leading: Icon(icon, color: theme.colorScheme.onSurfaceVariant),
-      title: Text(title),
-      subtitle: Text(
-        subtitle,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: theme.colorScheme.onSurfaceVariant,
-      ),
-      onTap: onTap,
     );
   }
 }
