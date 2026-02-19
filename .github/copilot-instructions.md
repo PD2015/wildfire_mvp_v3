@@ -196,6 +196,15 @@ replaces:
 **Full strategy**: See `docs/DOCUMENTATION_STRATEGY.md`
 
 ## Recent Changes
+- **Component Cleanup & Shared Widget Extraction** (025-component-cleanup):
+  - Removed 11 dead widget files + 4 dead test files (~3,700 lines)
+  - Removed unused `LocationChipWithPanelControlled` variant (~400 lines)
+  - Extracted `SectionHeader` widget replacing private `_SectionHeader` in 2 screens
+  - Extracted `AppNavigationTile` widget replacing `_HelpTile`, `_SettingsTile`, `_LegalTile` across 4 screens
+  - Extracted `AdaptiveColorCalculator` consolidating duplicated luminance logic from `LocationChip` and `ExpandableLocationPanel`
+  - Fixed `ExpandableLocationPanel` using ad-hoc hex colors instead of BrandPalette tokens
+  - Added `.github/instructions/component-catalog.instructions.md` (auto-attached to UI files)
+  - See "Shared Widget Catalog" section and component-catalog.instructions.md for usage
 - **Live Fire Data Display** (021-live-fire-data):
   - Added `FireDataMode` enum (hotspots, burntAreas) for dual fire data layers
   - Added `HotspotTimeFilter` enum (today, thisWeek) with GWIS layer name mapping
@@ -227,6 +236,27 @@ replaces:
   - Implemented trust-building UX: combination approach with icons, place names, positive framing
   - Comprehensive test coverage: 101 tests (21 LocationCard, 26 HomeState, 24 HomeController, 30 LocationUtils)
   - See "Location Tracking and Validation Patterns" section for implementation details
+
+## Shared Widget Catalog
+
+> **Full catalog**: `.github/instructions/component-catalog.instructions.md` (auto-attached to UI files)
+
+### Key Shared Widgets
+| Widget | File | Replaces |
+|--------|------|----------|
+| `SectionHeader` | `lib/widgets/section_header.dart` | Private `_SectionHeader` in settings/help screens |
+| `AppNavigationTile` | `lib/widgets/app_navigation_tile.dart` | Private `_HelpTile`, `_SettingsTile`, `_LegalTile` |
+| `AdaptiveColorCalculator` | `lib/widgets/adaptive_color_calculator.dart` | Duplicated `_getAdaptiveColors()` in LocationChip/Panel |
+| `RiskBanner` | `lib/widgets/risk_banner.dart` | Primary risk display (sealed state) |
+| `LocationChipWithPanel` | `lib/widgets/location_chip_with_panel.dart` | Composite chip + expandable panel |
+| `FireDetailsBottomSheet` | `lib/widgets/fire_details_bottom_sheet.dart` | V2 draggable fire detail sheet |
+
+### Widget Rules
+- **NEVER create private `_SectionHeader`, `_NavigationTile`, `_LegalTile`** — use shared widgets
+- **NEVER use ad-hoc hex colors** — use `BrandPalette`, `RiskPalette`, or `Theme.of(context).colorScheme`
+- **For contrast on dynamic backgrounds** — use `AdaptiveColorCalculator.getColors()`
+- **Touch targets ≥44dp (iOS) / ≥48dp (Android)** — use `minimumSize: Size(48, 48)` on buttons
+- **All interactive elements need `Semantics` labels** — headers need `Semantics(header: true)`
 
 ## Utility Classes Reference
 
