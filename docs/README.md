@@ -55,6 +55,10 @@ We follow the [Divio Documentation System](https://documentation.divio.com/) wit
 ### Reference (Technical Details)
 **Information-oriented documentation** - Technical specifications and data.
 
+#### Project
+- [App Overview](reference/app-overview.md) - Use case, architecture, tech stack, and current state
+- [Brand Guidelines](reference/brand-guidelines.md) - Colours, typography, spacing, and marketing asset rules
+
 #### API and Data
 - [EFFIS API Endpoints](reference/EFFIS_API_ENDPOINTS.md) - EFFIS/GWIS endpoint specifications
 - [API Endpoints Summary](reference/api-endpoints-summary.md) - All API endpoints at a glance
