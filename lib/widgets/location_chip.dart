@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
-import 'package:wildfire_mvp_v3/theme/brand_palette.dart';
+import 'package:wildfire_mvp_v3/widgets/adaptive_color_calculator.dart';
 
 /// A compact, tappable chip displaying location summary.
 ///
@@ -81,42 +81,12 @@ class LocationChip extends StatelessWidget {
     };
   }
 
-  /// Calculates appropriate chip colors based on parent background
-  ///
-  /// When [embeddedInRiskBanner] is true, uses explicit white text levels
-  /// for consistent readability on all risk colors (especially yellow/orange).
-  ({Color surface, Color text, Color textMuted, Color icon})
-      _getAdaptiveColors() {
-    // When embedded in RiskBanner, use explicit white-on-dark styling
-    // for consistent contrast on all risk colors (esp. MODERATE yellow)
-    if (embeddedInRiskBanner) {
-      return (
-        surface: Colors.black.withValues(alpha: 0.15),
-        text: Colors.white.withValues(alpha: 0.95),
-        textMuted: Colors.white.withValues(alpha: 0.75),
-        icon: Colors.white.withValues(alpha: 0.85),
-      );
-    }
-
-    // Default: luminance-based adaptive colors for general use
-    final luminance = parentBackgroundColor.computeLuminance();
-    final isDark = luminance < 0.5;
-
-    if (isDark) {
-      return (
-        surface: Colors.white.withValues(alpha: 0.12),
-        text: BrandPalette.onDarkHigh,
-        textMuted: BrandPalette.onDarkHigh.withValues(alpha: 0.7),
-        icon: BrandPalette.onDarkHigh.withValues(alpha: 0.8),
-      );
-    } else {
-      return (
-        surface: Colors.black.withValues(alpha: 0.06),
-        text: BrandPalette.onLightHigh,
-        textMuted: BrandPalette.onLightMedium,
-        icon: BrandPalette.onLightMedium,
-      );
-    }
+  /// Returns adaptive colors for this chip based on parent background.
+  AdaptiveColors _getAdaptiveColors() {
+    return AdaptiveColorCalculator.getColors(
+      parentBackgroundColor: parentBackgroundColor,
+      embeddedInRiskBanner: embeddedInRiskBanner,
+    );
   }
 
   /// Builds semantic label for screen readers

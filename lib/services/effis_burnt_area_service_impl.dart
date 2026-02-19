@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
-import 'dart:io';
 import 'dart:math';
 import 'package:dartz/dartz.dart';
 import 'package:http/http.dart' as http;
@@ -154,15 +153,8 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
           await _backoff(attempt);
           continue;
         }
-      } on SocketException catch (e) {
-        lastError = ApiError(message: 'Network error: ${e.message}');
-        attempt++;
-        if (attempt <= maxRetries) {
-          await _backoff(attempt);
-          continue;
-        }
       } on http.ClientException catch (e) {
-        // Handle connection closed errors (large response, server timeout)
+        // Handle network errors, connection closed (large response, server timeout),
         // and content-type parsing issues (EFFIS returns non-standard
         // "text/xml; subtype=gml/3.1.1" which Dart's http parser rejects)
         final message = e.message;
@@ -171,18 +163,18 @@ class EffisBurntAreaServiceImpl implements EffisBurntAreaService {
           name: 'EffisBurntAreaService',
         );
 
-        // Connection closed is retriable (network instability, large payload)
-        if (message.contains('Connection closed')) {
-          lastError = ApiError(message: 'Connection interrupted: $message');
-          attempt++;
-          if (attempt <= maxRetries) {
-            await _backoff(attempt);
-            continue;
-          }
+        // Media type parsing errors are not retriable
+        if (message.contains('Invalid media type')) {
+          return Left(ApiError(message: 'HTTP client error: $message'));
         }
 
-        // Other ClientExceptions (e.g., media type parsing) are not retriable
-        return Left(ApiError(message: 'HTTP client error: $message'));
+        // All other ClientExceptions (network errors, connection issues) are retriable
+        lastError = ApiError(message: 'Network error: $message');
+        attempt++;
+        if (attempt <= maxRetries) {
+          await _backoff(attempt);
+          continue;
+        }
       } catch (e) {
         return Left(ApiError(message: 'Unexpected error: $e'));
       }

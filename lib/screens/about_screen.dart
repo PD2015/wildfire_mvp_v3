@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:wildfire_mvp_v3/content/legal_content.dart';
 import 'package:wildfire_mvp_v3/services/onboarding_prefs_impl.dart';
+import 'package:wildfire_mvp_v3/widgets/app_navigation_tile.dart';
 
 /// About screen hub linking to legal documents.
 ///
@@ -84,28 +85,28 @@ class AboutScreen extends StatelessWidget {
               ),
             ),
 
-            _LegalTile(
+            AppNavigationTile(
               icon: Icons.description_outlined,
               title: LegalContent.termsOfService.title,
               subtitle: 'App usage terms and conditions',
               onTap: () => context.push('/about/terms'),
             ),
 
-            _LegalTile(
+            AppNavigationTile(
               icon: Icons.privacy_tip_outlined,
               title: LegalContent.privacyPolicy.title,
               subtitle: 'How we handle your data',
               onTap: () => context.push('/about/privacy'),
             ),
 
-            _LegalTile(
+            AppNavigationTile(
               icon: Icons.warning_amber_outlined,
               title: LegalContent.emergencyDisclaimer.title,
               subtitle: 'Important safety information',
               onTap: () => context.push('/about/disclaimer'),
             ),
 
-            _LegalTile(
+            AppNavigationTile(
               icon: Icons.source_outlined,
               title: LegalContent.dataSources.title,
               subtitle: 'Data providers and attribution',
@@ -192,37 +193,6 @@ class AboutScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// A list tile for legal document navigation.
-class _LegalTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  const _LegalTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return ListTile(
-      leading: Icon(icon, color: theme.colorScheme.onSurfaceVariant),
-      title: Text(title),
-      subtitle: Text(subtitle, style: theme.textTheme.bodySmall),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: theme.colorScheme.onSurfaceVariant,
-      ),
-      onTap: onTap,
     );
   }
 }

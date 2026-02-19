@@ -174,7 +174,7 @@ void main() {
 
         // Also search for time-related words that appear in relative timestamps
         final timePatterns = ['ago', 'now', 'min', 'hour', 'day'];
-        bool foundTimePattern = timePatterns.any(
+        final bool foundTimePattern = timePatterns.any(
           (pattern) => find
               .textContaining(pattern, findRichText: true)
               .evaluate()
@@ -243,7 +243,7 @@ void main() {
         // RiskBanner._getSourceName() returns: EFFIS, SEPA, Cache, or Mock
         final sourcePatterns = ['EFFIS', 'SEPA', 'Cache', 'Mock'];
 
-        bool foundSource = sourcePatterns.any(
+        final bool foundSource = sourcePatterns.any(
           (pattern) => find
               .textContaining(pattern, findRichText: true)
               .evaluate()

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
-import 'dart:io';
 import 'dart:math';
 import 'package:dartz/dartz.dart';
 import 'package:http/http.dart' as http;
@@ -473,7 +472,7 @@ class EffisServiceImpl implements EffisService {
 
   /// Maps network exceptions to structured ApiError
   ApiError _mapExceptionToApiError(dynamic exception) {
-    if (exception is SocketException) {
+    if (exception is http.ClientException) {
       return ApiError(
         message: 'Network connection failed: ${exception.message}',
       );
@@ -669,7 +668,7 @@ class EffisServiceImpl implements EffisService {
       );
 
       // First try to find explicit <fwi> tags
-      RegExpMatch? fwiMatch = fwiPattern.firstMatch(responseBody);
+      final RegExpMatch? fwiMatch = fwiPattern.firstMatch(responseBody);
       if (fwiMatch != null) {
         final fwiValue = double.tryParse(fwiMatch.group(1)!);
         if (fwiValue != null) {
@@ -869,7 +868,7 @@ class EffisServiceImpl implements EffisService {
           message: 'EFFIS WFS request timed out after ${timeout.inSeconds}s',
         ),
       );
-    } on SocketException catch (e) {
+    } on http.ClientException catch (e) {
       developer.log(
         'EFFIS WFS network error: $e',
         name: 'EffisService.getActiveFires',

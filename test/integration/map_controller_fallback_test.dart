@@ -6,14 +6,12 @@ import 'package:mockito/annotations.dart';
 import 'package:wildfire_mvp_v3/config/feature_flags.dart';
 import 'package:wildfire_mvp_v3/features/map/controllers/map_controller.dart';
 import 'package:wildfire_mvp_v3/services/location_resolver.dart';
-import 'package:wildfire_mvp_v3/services/fire_location_service.dart';
 import 'package:wildfire_mvp_v3/services/fire_risk_service.dart';
 import 'package:wildfire_mvp_v3/services/effis_burnt_area_service.dart';
 import 'package:wildfire_mvp_v3/models/api_error.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
 import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart';
 import 'package:wildfire_mvp_v3/models/fire_data_mode.dart';
-import 'package:wildfire_mvp_v3/models/fire_incident.dart';
 import 'package:wildfire_mvp_v3/models/hotspot.dart';
 import 'package:wildfire_mvp_v3/models/burnt_area.dart';
 import 'package:wildfire_mvp_v3/services/hotspot_service_orchestrator.dart';
@@ -22,7 +20,6 @@ import '../helpers/mock_hotspot_orchestrator.dart';
 
 @GenerateMocks([
   LocationResolver,
-  FireLocationService,
   FireRiskService,
   EffisBurntAreaService,
 ])
@@ -51,7 +48,6 @@ void main() {
 
   group('MapController Fallback Behavior', () {
     late MockLocationResolver mockLocationResolver;
-    late MockFireLocationService mockFireLocationService;
     late MockFireRiskService mockFireRiskService;
     late MockHotspotOrchestrator mockHotspotOrchestrator;
     late MockEffisBurntAreaService mockBurntAreaService;
@@ -65,7 +61,6 @@ void main() {
 
     setUp(() {
       mockLocationResolver = MockLocationResolver();
-      mockFireLocationService = MockFireLocationService();
       mockFireRiskService = MockFireRiskService();
       mockHotspotOrchestrator = MockHotspotOrchestrator();
       mockBurntAreaService = MockEffisBurntAreaService();
@@ -82,11 +77,6 @@ void main() {
           ),
         ),
       );
-
-      // Default stub for fire location service
-      when(
-        mockFireLocationService.getActiveFires(any),
-      ).thenAnswer((_) async => const Right(<FireIncident>[]));
     });
 
     tearDown(() {

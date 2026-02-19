@@ -217,7 +217,7 @@ void main() {
           expect(button.style, isNotNull);
 
           // But the style only specifies padding, so colors come from theme
-          // (This is the pattern used in confirmation_panel.dart)
+          // (This is a common pattern for custom button padding)
           final customPadding = button.style!.padding?.resolve({});
           expect(customPadding?.vertical, equals(40)); // 20 * 2
         },

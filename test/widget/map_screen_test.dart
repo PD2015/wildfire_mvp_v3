@@ -1,3 +1,9 @@
+// NOTE: dart:io Platform is INTENTIONALLY used in this test file.
+// Tests run on the Dart VM (never on web), so dart:io is always available.
+// We need Platform.isMacOS/isLinux to detect the ACTUAL hardware and skip
+// tests that require GoogleMap native plugin (unavailable on desktop).
+// DO NOT replace with defaultTargetPlatform — it defaults to android in
+// tests and won't detect the real host OS. See copilot-instructions.md.
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -192,66 +198,6 @@ void main() {
       // We can't directly verify marker count from widget tree,
       // but we can verify the state has correct number of incidents
       expect(mockIncidents.length, 2);
-    });
-
-    testWidgets('"Check risk here" button is ≥44dp touch target (C3)', (
-      tester,
-    ) async {
-      // Skip on unsupported platforms (macOS desktop)
-      if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
-        return; // Skip test on macOS desktop
-      }
-
-      // Setup mock controller
-      final mockController = MockMapController(
-        MapSuccess(
-          incidents: const [],
-          centerLocation: const LatLng(55.9, -3.2),
-          freshness: Freshness.mock,
-          lastUpdated: DateTime.now(),
-        ),
-      );
-
-      // Build MapScreen
-      await tester.pumpWidget(
-        MaterialApp(home: MapScreen(controller: mockController)),
-      );
-
-      await tester.pumpAndSettle();
-
-      // Find FloatingActionButton (RiskCheckButton)
-      final fabFinder = find.byType(FloatingActionButton);
-      expect(fabFinder, findsOneWidget);
-
-      // Get FAB size
-      final fabSize = tester.getSize(fabFinder);
-
-      // Verify ≥44dp touch target (iOS requirement)
-      // 44dp = 44 logical pixels in Flutter
-      expect(
-        fabSize.width,
-        greaterThanOrEqualTo(44.0),
-        reason: 'FAB width must be ≥44dp for accessibility (C3)',
-      );
-      expect(
-        fabSize.height,
-        greaterThanOrEqualTo(44.0),
-        reason: 'FAB height must be ≥44dp for accessibility (C3)',
-      );
-
-      // Verify semantic label exists by finding widget with partial semantic label match
-      // The RiskCheckButton wraps FAB with Semantics(label: 'Check fire risk at this location')
-      final semanticFinder = find.byWidgetPredicate((widget) {
-        return widget is Semantics &&
-            widget.properties.label != null &&
-            widget.properties.label!.toLowerCase().contains('risk');
-      });
-      expect(
-        semanticFinder,
-        findsOneWidget,
-        reason:
-            'FAB must have descriptive semantic label containing "risk" (C3)',
-      );
     });
 
     testWidgets(
@@ -525,76 +471,6 @@ void main() {
       expect(find.text('Normal'), findsOneWidget);
     });
 
-    testWidgets('PolygonToggleChip is present and accessible', (tester) async {
-      // Skip on unsupported platforms (macOS desktop)
-      if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
-        return;
-      }
-
-      final mockController = MockMapController(
-        MapSuccess(
-          incidents: const [],
-          centerLocation: const LatLng(55.9, -3.2),
-          freshness: Freshness.mock,
-          lastUpdated: DateTime.now(),
-        ),
-      );
-
-      await tester.pumpWidget(
-        MaterialApp(home: MapScreen(controller: mockController)),
-      );
-      await tester.pumpAndSettle();
-
-      // Verify polygon toggle container exists
-      final toggleFinder = find.byKey(const Key('polygon_toggle_container'));
-      expect(
-        toggleFinder,
-        findsOneWidget,
-        reason: 'PolygonToggleChip should be present on map screen',
-      );
-
-      // Verify it shows "Hide burn areas" initially (polygons visible by default)
-      expect(
-        find.text('Hide burn areas'),
-        findsOneWidget,
-        reason: 'Polygon toggle should show "Hide burn areas" initially',
-      );
-    });
-
-    testWidgets('PolygonToggleChip toggles on tap', (tester) async {
-      // Skip on unsupported platforms (macOS desktop)
-      if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
-        return;
-      }
-
-      final mockController = MockMapController(
-        MapSuccess(
-          incidents: const [],
-          centerLocation: const LatLng(55.9, -3.2),
-          freshness: Freshness.mock,
-          lastUpdated: DateTime.now(),
-        ),
-      );
-
-      await tester.pumpWidget(
-        MaterialApp(home: MapScreen(controller: mockController)),
-      );
-      await tester.pumpAndSettle();
-
-      // Initially shows "Hide burn areas"
-      expect(find.text('Hide burn areas'), findsOneWidget);
-      expect(find.text('Show burn areas'), findsNothing);
-
-      // Tap the toggle
-      final toggleFinder = find.byKey(const Key('polygon_toggle_container'));
-      await tester.tap(toggleFinder);
-      await tester.pumpAndSettle();
-
-      // Should now show "Show burn areas"
-      expect(find.text('Show burn areas'), findsOneWidget);
-      expect(find.text('Hide burn areas'), findsNothing);
-    });
-
     testWidgets('Map controls have ≥44dp touch targets (C3)', (tester) async {
       // Skip on unsupported platforms (macOS desktop)
       if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
@@ -625,18 +501,6 @@ void main() {
           mapTypeSize.height,
           greaterThanOrEqualTo(44.0),
           reason: 'MapTypeSelector height must be ≥44dp for accessibility (C3)',
-        );
-      }
-
-      // Check PolygonToggleChip touch target
-      final toggleFinder = find.byKey(const Key('polygon_toggle_container'));
-      if (toggleFinder.evaluate().isNotEmpty) {
-        final toggleSize = tester.getSize(toggleFinder);
-        expect(
-          toggleSize.height,
-          greaterThanOrEqualTo(44.0),
-          reason:
-              'PolygonToggleChip height must be ≥44dp for accessibility (C3)',
         );
       }
     });

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -23,8 +22,11 @@ void main() {
     /// Platform guard skips GPS only on desktop platforms (not web or mobile)
     /// Web uses GPS via injectable GeolocatorService, mobile uses native GPS
     /// Only desktop (macOS/Windows/Linux) skips GPS and returns fallback
+    /// Must match production code: uses defaultTargetPlatform, not dart:io Platform
     bool isPlatformGuardActive() =>
-        !kIsWeb && !Platform.isAndroid && !Platform.isIOS;
+        !kIsWeb &&
+        defaultTargetPlatform != TargetPlatform.android &&
+        defaultTargetPlatform != TargetPlatform.iOS;
 
     /// Get expected coordinates when GPS is set up but platform guard may be active
     LatLng expectedLocationForGpsSetup(LatLng gpsCoordinates) {

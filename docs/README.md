@@ -2,188 +2,164 @@
 
 **Welcome!** This is your central hub for all WildFire MVP v3 documentation.
 
-> 📖 **New here?** Start with [Getting Started](../QUICK_START.md) or [Project README](../README.md)
+> New here? Start with [Getting Started](../QUICK_START.md) or [Project README](../README.md)
 
-## 🗂️ Documentation Categories
+## Documentation Categories
 
 We follow the [Divio Documentation System](https://documentation.divio.com/) with four types of documentation:
 
-### 📚 Guides (How-To)
-**Problem-solving documentation** - Step-by-step instructions for specific tasks
+---
+
+### Guides (How-To)
+**Problem-solving documentation** - Step-by-step instructions for specific tasks.
 
 #### Setup
 - [Google Maps Configuration](guides/setup/google-maps.md) - Complete setup for Web, iOS, Android
-- [Firebase Configuration](FIREBASE_DEPLOYMENT.md) *(to be moved)*
-- [API Keys Management](API_KEY_SETUP.md) *(to be moved)*
+- [Google Maps API Setup](guides/setup/google-maps-api-setup.md) - API key configuration and restrictions
+- [Google Maps Crash Fix](guides/setup/google-maps-crash-fix.md) - Troubleshooting native map crashes
+- [iOS Crash Fix Summary](guides/setup/ios-crash-fix-summary.md) - iOS-specific crash resolutions
+- [Dev Mode Setup](guides/setup/dev-mode.md) - Local development environment
+- [M3 Implementation Plan](guides/setup/M3_IMPLEMENTATION_PLAN.md) - Material 3 migration
+- [PWA Best Practices](guides/setup/PWA_BEST_PRACTICES.md) - Progressive Web App setup
+- [PWA Icon Fix](guides/setup/PWA_ICON_FIX.md) - PWA icon configuration
+- [PWA Updates](guides/setup/pwa-updates.md) - Service worker and caching updates
 
 #### Testing
-- [Integration Testing Guide](guides/testing/integration-tests.md) *(pending consolidation)*
-- [Preview Deployment Testing](guides/testing/preview-deployment-testing.md) - Testing web apps in deployed environments
-- [Platform-Specific Testing](guides/testing/platform-specific.md) *(pending consolidation)*
-- [Test Troubleshooting](guides/testing/troubleshooting.md) *(pending consolidation)*
+- [Integration Testing Guide](guides/testing/integration-testing.md) - Comprehensive integration test guide
+- [Integration Test Quickstart](guides/testing/integration-test-quickstart.md) - Quick-start for running tests
+- [Integration Tests (consolidated)](guides/testing/integration-tests.md) - Consolidated test patterns
+- [Preview Deployment Testing](guides/testing/preview-deployment-testing.md) - Testing deployed web apps
+- [Platform-Specific Testing](guides/testing/platform-specific.md) - Platform-specific test considerations
+- [Test Troubleshooting](guides/testing/troubleshooting.md) - Common test failure solutions
 
-#### Deployment
-- [CI/CD Workflow](CI_CD_WORKFLOW_GUIDE.md) *(to be moved)*
-- [Branching Strategy](BRANCHING_STRATEGY.md) - Feature → Staging → Production workflow
-- [Firebase Deployment](FIREBASE_DEPLOYMENT.md) *(to be moved)*
-- [iOS Build Phase Verification](guides/ci-cd/ios-build-phase-verification.md) - CI/CD job for Xcode build phase
+#### CI/CD and Deployment
+- [CI/CD Workflow Guide](guides/ci-cd/ci-cd-workflow.md) - Full CI/CD pipeline walkthrough
+- [iOS Build Phase Verification](guides/ci-cd/ios-build-phase-verification.md) - Xcode build phase CI job
+- [Branching Strategy](guides/deployment/branching-strategy.md) - Feature to Staging to Production workflow
+- [Deployment Workflow](guides/deployment/deployment-workflow.md) - Step-by-step deployment procedures
+- [3-Tier Deployment](guides/deployment/3-tier-deployment.md) - Dev / Staging / Production architecture
 
 #### Security
-- [API Key Management](guides/security/api-key-management.md) *(pending consolidation)*
-- [Pre-commit Hooks](guides/security/pre-commit-hooks.md) *(pending consolidation)*
-- [Incident Response](guides/security/incident-response.md) *(pending consolidation)*
+- [API Key Management](guides/security/api-key-management.md) - Secure key handling practices
+- [Prevent API Key Leaks](guides/security/prevent-api-key-leaks.md) - Prevention strategies and tools
+- [Gitleaks Configuration](guides/security/gitleaks-configuration.md) - Secret detection setup
+- [Security Controls](guides/security/security-controls.md) - Multi-layer security overview
 
-### 📖 Reference (Technical Details)
-**Information-oriented documentation** - Technical specifications and API documentation
+#### Development
+- [New Feature Workflow](guides/development/new-feature-workflow.md) - End-to-end feature development process
+- [VS Code Tasks](guides/development/vscode-tasks.md) - Task runner configuration
+- [Location Helper Implementation](guides/features/LOCATION_HELPER_IMPLEMENTATION.md) - Location service guide
 
-#### Architecture
-- [Feature Catalog (A1-A12)](reference/architecture/features.md) *(pending creation)*
-- [Data Sources](DATA-SOURCES.md) *(to be moved)*
-- [State Management](reference/architecture/state-management.md) *(pending creation)*
+---
 
-#### Configuration
-- [Environment Variables](reference/configuration/environment-variables.md) *(pending creation)*
-- [Feature Flags](reference/configuration/feature-flags.md) *(pending creation)*
-- [Test Regions](TEST_REGIONS.md) *(to be moved)*
+### Reference (Technical Details)
+**Information-oriented documentation** - Technical specifications and data.
 
-#### API
-- [EFFIS Service](reference/api/effis-service.md) *(pending creation)*
-- [SEPA Service](reference/api/sepa-service.md) *(pending creation)*
-- [Cache Service](reference/api/cache-service.md) *(pending creation)*
+#### Project
+- [App Overview](reference/app-overview.md) - Use case, architecture, tech stack, and current state
+- [Brand Guidelines](reference/brand-guidelines.md) - Colours, typography, spacing, and marketing asset rules
+
+#### API and Data
+- [EFFIS API Endpoints](reference/EFFIS_API_ENDPOINTS.md) - EFFIS/GWIS endpoint specifications
+- [API Endpoints Summary](reference/api-endpoints-summary.md) - All API endpoints at a glance
+- [Data Sources](reference/data-sources.md) - Fire data source documentation
+- [Data Source Attribution](reference/data-source-attribution.md) - Attribution and licensing
+- [Test Regions](reference/test-regions.md) - Geographic test data and coordinates
+
+#### Testing and Quality
+- [Test Coverage](reference/test-coverage.md) - Current test coverage metrics
+- [Integration Test Results](reference/integration-test-results.md) - Test pass/fail tracking
+- [Test Platform Compatibility](reference/test-platform-compatibility.md) - Platform support matrix
+- [Material 3 Compliance Audit](reference/material3-compliance-audit.md) - M3 design compliance
+
+#### Platform and Architecture
+- [Deployment Diagrams](reference/deployment-diagrams.md) - Infrastructure architecture visuals
+- [macOS and Web Support](reference/macos-web-support.md) - Platform compatibility notes
+- [Map Data Display Review](reference/map-data-display-review.md) - Map layer data review
+- [Tooltip Visual Examples](reference/tooltip-visual-examples.md) - UI tooltip reference
+- [UX Cues](reference/ux-cues.md) - UX design patterns and cues
+- [Project Status Review](reference/project-status-review.md) - Feature completion status
 
 #### Compliance
-- [Accessibility Statement](accessibility-statement.md) *(to be moved)*
-- [Privacy Compliance](privacy-compliance.md) *(to be moved)*
-- [Constitution Gates](reference/compliance/constitution-gates.md) *(pending creation)*
+- [Accessibility Statement](reference/compliance/accessibility-statement.md) - WCAG compliance
+- [Privacy Compliance](reference/compliance/privacy-compliance.md) - GDPR and data privacy
+- [Legal Docs TODO](reference/LEGAL_DOCS_TODO.md) - Outstanding legal requirements
 
-### 💡 Explanation (Understanding)
-**Understanding-oriented documentation** - Context, rationale, and design decisions
-
-#### Architecture Decisions (ADRs)
-- [001: Flutter Framework](explanation/architecture-decisions/001-flutter-framework.md) *(pending creation)*
-- [002: Dartz Error Handling](explanation/architecture-decisions/002-dartz-error-handling.md) *(pending creation)*
-- [003: Worktree Workflow](WORKTREE_WORKFLOW.md) *(to be moved)*
-
-#### Design Rationale
-- [Scottish Colour Palette](explanation/design-rationale/scottish-color-palette.md) *(pending creation)*
-- [Risk Level Mapping](explanation/design-rationale/risk-level-mapping.md) *(pending creation)*
-- [UX Principles](ux_cues.md) *(to be moved)*
-
-#### Context
-- [Project Context](context.md) *(to be moved)*
-- [Google Maps Integration Context](context01.md) *(to be moved)*
-
-### 🎓 Tutorials (Learning)
-**Learning-oriented documentation** - Step-by-step lessons for beginners
-
-> 🚧 **Coming soon** - Curated tutorials for new team members
-
-### 🔧 Runbooks (Operations)
-**Operational procedures** - Step-by-step guides for maintaining the system
-
-#### Monitoring
-- [EFFIS Monitoring](runbooks/effis-monitoring.md)
-
-#### Incident Response
-- [API Key Leak Response](runbooks/incident-response/api-key-leak-response.md) *(pending creation)*
-
-#### Maintenance
-- [Dependency Updates](runbooks/maintenance/dependency-updates.md) *(pending creation)*
-
-## 📊 Documentation Health
-
-Last health check: Run `./scripts/docs-health-check.sh`
-
-**Current Metrics**:
-- Total active docs: ~50 *(target: 20)*
-- Stale docs (>90 days): 0
-- Missing frontmatter: 12
-- Broken links: 1
-
-## 🔍 Quick Links
-
-### Most Used Documentation
-1. [Quick Start Guide](../QUICK_START.md)
-2. [Google Maps Setup](guides/setup/google-maps.md) *(pending consolidation)*
-3. [CI/CD Workflow](CI_CD_WORKFLOW_GUIDE.md)
-4. [Integration Testing](INTEGRATION_TESTING.md)
-5. [API Key Setup](API_KEY_SETUP.md)
-
-### Security Documentation
-- [API Key Security Checklist](API_KEY_SECURITY_CHECKLIST.md)
-- [Multi-Layer Security Controls](MULTI_LAYER_SECURITY_CONTROLS.md)
-- [Security Audit Reports](history/audits/) *(pending migration)*
-
-### Platform-Specific Guides
-- [macOS Web Support](MACOS_WEB_SUPPORT.md)
-- [iOS Testing](IOS_MANUAL_TEST_SESSION.md)
-- [Android Testing](ANDROID_TESTING_SESSION.md)
-- [Cross-Platform Testing](CROSS_PLATFORM_TESTING.md)
-
-## 📋 Documentation Standards
-
-All documentation in this project follows these standards:
-
-### Frontmatter Template
-```yaml
 ---
-title: Document Title
-category: guides/setup | reference/api | explanation/adr | tutorials | runbooks
-status: active | draft | deprecated | archived
-last_updated: YYYY-MM-DD
-owner: @username
-reviewers: [@reviewer1, @reviewer2]
-related: [path/to/related-doc.md]
+
+### Explanation (Understanding)
+**Understanding-oriented documentation** - Context, rationale, and design decisions.
+
+- [Project Context](explanation/project-context.md) - Project background and goals
+- [Google Maps Integration Context](explanation/google-maps-context.md) - Map integration rationale
+- [A11 CI/CD Review](explanation/a11-ci-cd-review.md) - CI/CD architecture decisions
+- [Worktree Workflow](explanation/worktree-workflow.md) - Git worktree usage rationale
+- [Fire Incident Map Plan](explanation/fire-incident-map-plan.md) - Map feature design and planning
+- [Web Platform Research](explanation/web-platform-research.md) - Web deployment research
+- [Onboarding Legal Draft](explanation/onboarding-legal-draft.md) - Onboarding flow planning
+- [Live Fire Data Refactor TODO](explanation/live-fire-data-refactor-todo.md) - Refactoring plan
+
 ---
-```
+
+### Tutorials (Learning)
+**Learning-oriented documentation** - Step-by-step lessons for beginners.
+
+> Coming soon - Curated tutorials for new team members.
+
+---
+
+### Runbooks (Operations)
+**Operational procedures** - Step-by-step guides for maintaining the system.
+
+- [Firebase Deployment](runbooks/firebase-deployment.md) - Deploy to Firebase Hosting
+- [EFFIS Monitoring](runbooks/effis-monitoring.md) - Monitor EFFIS service health
+- [Manual Integration Tests](runbooks/manual-integration-tests.md) - Manual test procedures
+- [Security Incident Response](runbooks/incident-response/security-incidents.md) - API key leak response
+
+---
+
+### Feature Documentation
+- [023: Settings and Help Hubs](features/023-settings-help-hubs/PLAN.md)
+
+---
+
+## Historical Documentation
+
+Historical documentation is preserved in `history/`:
+- [Session Summaries](history/sessions/) - Development session notes
+- [Deprecated Documentation](history/deprecated/) - Superseded docs (22 files)
+- [Security Audits](history/audits/) - Past security audit reports
+
+---
+
+## Documentation Standards
 
 ### File Naming
-- Use kebab-case: `google-maps-setup.md` ✅
-- Avoid UPPERCASE: `GOOGLE_MAPS_SETUP.md` ❌
-- Dates in ISO format: `2025-10-30-audit.md` ✅
+- Use kebab-case: `google-maps-setup.md`
+- Dates in ISO format: `2025-10-30-audit.md`
+- Legacy UPPERCASE files are grandfathered
 
 ### Documentation Lifecycle
-1. **Draft** - Work in progress, may have gaps
-2. **Review** - Under review, ready for feedback
-3. **Active** - Current, maintained documentation
-4. **Deprecated** - Superseded, will be archived
-5. **Archived** - Historical reference only
+1. **Draft** - Work in progress
+2. **Active** - Current, maintained
+3. **Deprecated** - Superseded, will be archived
+4. **Archived** - Historical reference in `history/`
 
-## 🤖 For AI Agents
+---
+
+## For AI Agents
 
 When creating documentation:
-- ✅ Add frontmatter with `status: draft`
-- ✅ Place in appropriate category folder
-- ✅ Link to related documentation
-- ✅ Use clear, descriptive filenames
-- ❌ Don't duplicate existing docs
-- ❌ Don't create docs in root `/docs` folder
+- Place in appropriate category folder (`guides/`, `reference/`, `explanation/`, `runbooks/`)
+- Add frontmatter with `status: draft`
+- Link to related documentation
+- Use kebab-case filenames
+- Do NOT create docs in root `docs/` folder
+- Do NOT duplicate existing docs - check `history/deprecated/` first
 
 See [Documentation Strategy](DOCUMENTATION_STRATEGY.md) for complete guidelines.
 
-## 📜 Historical Documentation
-
-Historical documentation is preserved in `history/`:
-- [Session Summaries](history/sessions/)
-- [Deprecated Documentation](history/deprecated/)
-- [Security Audits](history/audits/)
-
-## 🛠️ Maintenance
-
-- **Weekly**: Run `./scripts/docs-health-check.sh`
-- **Monthly**: Documentation sprint (consolidate/archive)
-- **Quarterly**: Full documentation audit
-
-See [Documentation Strategy](DOCUMENTATION_STRATEGY.md) for complete maintenance procedures.
-
-## 📞 Need Help?
-
-- **Can't find something?** Use GitHub search or ask in team chat
-- **Found an error?** Open an issue or submit a PR
-- **Want to contribute?** Read [Documentation Strategy](DOCUMENTATION_STRATEGY.md)
-
 ---
 
-**Last Updated**: 2025-10-30  
-**Maintained By**: Project Team  
+**Last Updated**: 2025-02-10
 **Strategy**: [DOCUMENTATION_STRATEGY.md](DOCUMENTATION_STRATEGY.md)

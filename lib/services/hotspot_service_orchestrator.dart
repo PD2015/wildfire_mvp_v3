@@ -59,9 +59,9 @@ class HotspotResult {
 ///   timeFilter: HotspotTimeFilter.today,
 /// );
 ///
-/// // Check source for UI display
+/// // Check source for UI display via MapSourceChip
 /// if (result.isMockData) {
-///   showDemoDataChip();
+///   // Show "DEMO DATA" via MapSourceChip(source: Freshness.mock)
 /// }
 /// ```
 ///

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:dartz/dartz.dart';
 import 'package:geolocator/geolocator.dart';
@@ -74,7 +73,9 @@ class LocationResolverImpl implements LocationResolver {
 
       // Only skip GPS on desktop platforms (macOS, Windows, Linux)
       // Web and mobile can attempt GPS
-      if (!kIsWeb && !Platform.isAndroid && !Platform.isIOS) {
+      if (!kIsWeb &&
+          defaultTargetPlatform != TargetPlatform.android &&
+          defaultTargetPlatform != TargetPlatform.iOS) {
         debugPrint('Platform guard: Skipping GPS on desktop');
         return await _fallbackToCache(allowDefault);
       }

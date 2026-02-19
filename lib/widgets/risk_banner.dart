@@ -374,7 +374,7 @@ class RiskBanner extends StatelessWidget {
               // Location (if locationLabel is provided)
               if (locationLabel != null) ...[
                 Text(
-                  "LOCATION:",
+                  'LOCATION:',
                   style: TextStyle(
                     color: textColor.withValues(alpha: 0.8),
                     fontSize: 12.0,
@@ -387,7 +387,7 @@ class RiskBanner extends StatelessWidget {
                     Icon(Icons.location_on, color: textColor, size: 16.0),
                     const SizedBox(width: 4.0),
                     Text(
-                      "Location: ", // Note the space after colon
+                      'Location: ', // Note the space after colon
                       style: TextStyle(
                         color: textColor.withValues(alpha: 0.8),
                         fontSize: 14.0,

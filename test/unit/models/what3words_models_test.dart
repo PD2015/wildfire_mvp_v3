@@ -289,7 +289,7 @@ void main() {
 
     group('sealed class pattern matching', () {
       test('can pattern match on error types', () {
-        What3wordsError error = const What3wordsApiError(
+        const What3wordsError error = What3wordsApiError(
           code: 'InvalidKey',
           message: 'Bad key',
         );

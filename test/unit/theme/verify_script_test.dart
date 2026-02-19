@@ -49,7 +49,7 @@ void main() {
         equals(0),
         reason: 'Ad-hoc Colors.* usage found in app chrome. '
             'Expected after T013-T017 sweep. '
-            'Excluded files (RiskPalette): risk_palette.dart, risk_banner.dart, risk_result_chip.dart',
+            'Excluded files (RiskPalette): risk_palette.dart, risk_banner.dart',
       );
     },
     skip: 'Expected to fail before T013-T017 sweep',
@@ -71,11 +71,6 @@ void main() {
         content,
         contains('risk_banner.dart'),
         reason: 'Must exclude risk_banner.dart per C4 gate',
-      );
-      expect(
-        content,
-        contains('risk_result_chip.dart'),
-        reason: 'Must exclude risk_result_chip.dart per C4 gate',
       );
     },
     skip: kIsWeb ? 'File I/O not available on web platform' : null,

@@ -8,16 +8,14 @@ import 'dart:async' as _i4;
 import 'package:dartz/dartz.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:wildfire_mvp_v3/models/api_error.dart' as _i7;
-import 'package:wildfire_mvp_v3/models/burnt_area.dart' as _i13;
-import 'package:wildfire_mvp_v3/models/fire_data_mode.dart' as _i14;
-import 'package:wildfire_mvp_v3/models/fire_incident.dart' as _i8;
-import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart' as _i9;
+import 'package:wildfire_mvp_v3/models/burnt_area.dart' as _i10;
+import 'package:wildfire_mvp_v3/models/fire_data_mode.dart' as _i12;
+import 'package:wildfire_mvp_v3/models/lat_lng_bounds.dart' as _i11;
 import 'package:wildfire_mvp_v3/models/location_models.dart' as _i5;
-import 'package:wildfire_mvp_v3/services/effis_burnt_area_service.dart' as _i12;
-import 'package:wildfire_mvp_v3/services/fire_location_service.dart' as _i6;
-import 'package:wildfire_mvp_v3/services/fire_risk_service.dart' as _i10;
+import 'package:wildfire_mvp_v3/services/effis_burnt_area_service.dart' as _i9;
+import 'package:wildfire_mvp_v3/services/fire_risk_service.dart' as _i6;
 import 'package:wildfire_mvp_v3/services/location_resolver.dart' as _i3;
-import 'package:wildfire_mvp_v3/services/models/fire_risk.dart' as _i11;
+import 'package:wildfire_mvp_v3/services/models/fire_risk.dart' as _i8;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -109,45 +107,16 @@ class MockLocationResolver extends _i1.Mock implements _i3.LocationResolver {
       ) as _i4.Future<(_i5.LatLng, String?)?>);
 }
 
-/// A class which mocks [FireLocationService].
-///
-/// See the documentation for Mockito's code generation for more information.
-class MockFireLocationService extends _i1.Mock
-    implements _i6.FireLocationService {
-  MockFireLocationService() {
-    _i1.throwOnMissingStub(this);
-  }
-
-  @override
-  _i4.Future<_i2.Either<_i7.ApiError, List<_i8.FireIncident>>> getActiveFires(
-          _i9.LatLngBounds? bounds) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #getActiveFires,
-          [bounds],
-        ),
-        returnValue:
-            _i4.Future<_i2.Either<_i7.ApiError, List<_i8.FireIncident>>>.value(
-                _FakeEither_0<_i7.ApiError, List<_i8.FireIncident>>(
-          this,
-          Invocation.method(
-            #getActiveFires,
-            [bounds],
-          ),
-        )),
-      ) as _i4.Future<_i2.Either<_i7.ApiError, List<_i8.FireIncident>>>);
-}
-
 /// A class which mocks [FireRiskService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockFireRiskService extends _i1.Mock implements _i10.FireRiskService {
+class MockFireRiskService extends _i1.Mock implements _i6.FireRiskService {
   MockFireRiskService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<_i2.Either<_i7.ApiError, _i11.FireRisk>> getCurrent({
+  _i4.Future<_i2.Either<_i7.ApiError, _i8.FireRisk>> getCurrent({
     required double? lat,
     required double? lon,
     Duration? deadline,
@@ -162,8 +131,8 @@ class MockFireRiskService extends _i1.Mock implements _i10.FireRiskService {
             #deadline: deadline,
           },
         ),
-        returnValue: _i4.Future<_i2.Either<_i7.ApiError, _i11.FireRisk>>.value(
-            _FakeEither_0<_i7.ApiError, _i11.FireRisk>(
+        returnValue: _i4.Future<_i2.Either<_i7.ApiError, _i8.FireRisk>>.value(
+            _FakeEither_0<_i7.ApiError, _i8.FireRisk>(
           this,
           Invocation.method(
             #getCurrent,
@@ -175,22 +144,22 @@ class MockFireRiskService extends _i1.Mock implements _i10.FireRiskService {
             },
           ),
         )),
-      ) as _i4.Future<_i2.Either<_i7.ApiError, _i11.FireRisk>>);
+      ) as _i4.Future<_i2.Either<_i7.ApiError, _i8.FireRisk>>);
 }
 
 /// A class which mocks [EffisBurntAreaService].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockEffisBurntAreaService extends _i1.Mock
-    implements _i12.EffisBurntAreaService {
+    implements _i9.EffisBurntAreaService {
   MockEffisBurntAreaService() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<_i2.Either<_i7.ApiError, List<_i13.BurntArea>>> getBurntAreas({
-    required _i9.LatLngBounds? bounds,
-    required _i14.BurntAreaSeasonFilter? seasonFilter,
+  _i4.Future<_i2.Either<_i7.ApiError, List<_i10.BurntArea>>> getBurntAreas({
+    required _i11.LatLngBounds? bounds,
+    required _i12.BurntAreaSeasonFilter? seasonFilter,
     Duration? timeout = const Duration(seconds: 10),
     int? maxRetries = 3,
     int? maxFeatures,
@@ -210,8 +179,8 @@ class MockEffisBurntAreaService extends _i1.Mock
           },
         ),
         returnValue:
-            _i4.Future<_i2.Either<_i7.ApiError, List<_i13.BurntArea>>>.value(
-                _FakeEither_0<_i7.ApiError, List<_i13.BurntArea>>(
+            _i4.Future<_i2.Either<_i7.ApiError, List<_i10.BurntArea>>>.value(
+                _FakeEither_0<_i7.ApiError, List<_i10.BurntArea>>(
           this,
           Invocation.method(
             #getBurntAreas,
@@ -226,5 +195,5 @@ class MockEffisBurntAreaService extends _i1.Mock
             },
           ),
         )),
-      ) as _i4.Future<_i2.Either<_i7.ApiError, List<_i13.BurntArea>>>);
+      ) as _i4.Future<_i2.Either<_i7.ApiError, List<_i10.BurntArea>>>);
 }

@@ -196,6 +196,15 @@ replaces:
 **Full strategy**: See `docs/DOCUMENTATION_STRATEGY.md`
 
 ## Recent Changes
+- **Component Cleanup & Shared Widget Extraction** (025-component-cleanup):
+  - Removed 11 dead widget files + 4 dead test files (~3,700 lines)
+  - Removed unused `LocationChipWithPanelControlled` variant (~400 lines)
+  - Extracted `SectionHeader` widget replacing private `_SectionHeader` in 2 screens
+  - Extracted `AppNavigationTile` widget replacing `_HelpTile`, `_SettingsTile`, `_LegalTile` across 4 screens
+  - Extracted `AdaptiveColorCalculator` consolidating duplicated luminance logic from `LocationChip` and `ExpandableLocationPanel`
+  - Fixed `ExpandableLocationPanel` using ad-hoc hex colors instead of BrandPalette tokens
+  - Added `.github/instructions/component-catalog.instructions.md` (auto-attached to UI files)
+  - See "Shared Widget Catalog" section and component-catalog.instructions.md for usage
 - **Live Fire Data Display** (021-live-fire-data):
   - Added `FireDataMode` enum (hotspots, burntAreas) for dual fire data layers
   - Added `HotspotTimeFilter` enum (today, thisWeek) with GWIS layer name mapping
@@ -227,6 +236,27 @@ replaces:
   - Implemented trust-building UX: combination approach with icons, place names, positive framing
   - Comprehensive test coverage: 101 tests (21 LocationCard, 26 HomeState, 24 HomeController, 30 LocationUtils)
   - See "Location Tracking and Validation Patterns" section for implementation details
+
+## Shared Widget Catalog
+
+> **Full catalog**: `.github/instructions/component-catalog.instructions.md` (auto-attached to UI files)
+
+### Key Shared Widgets
+| Widget | File | Replaces |
+|--------|------|----------|
+| `SectionHeader` | `lib/widgets/section_header.dart` | Private `_SectionHeader` in settings/help screens |
+| `AppNavigationTile` | `lib/widgets/app_navigation_tile.dart` | Private `_HelpTile`, `_SettingsTile`, `_LegalTile` |
+| `AdaptiveColorCalculator` | `lib/widgets/adaptive_color_calculator.dart` | Duplicated `_getAdaptiveColors()` in LocationChip/Panel |
+| `RiskBanner` | `lib/widgets/risk_banner.dart` | Primary risk display (sealed state) |
+| `LocationChipWithPanel` | `lib/widgets/location_chip_with_panel.dart` | Composite chip + expandable panel |
+| `FireDetailsBottomSheet` | `lib/widgets/fire_details_bottom_sheet.dart` | V2 draggable fire detail sheet |
+
+### Widget Rules
+- **NEVER create private `_SectionHeader`, `_NavigationTile`, `_LegalTile`** — use shared widgets
+- **NEVER use ad-hoc hex colors** — use `BrandPalette`, `RiskPalette`, or `Theme.of(context).colorScheme`
+- **For contrast on dynamic backgrounds** — use `AdaptiveColorCalculator.getColors()`
+- **Touch targets ≥44dp (iOS) / ≥48dp (Android)** — use `minimumSize: Size(48, 48)` on buttons
+- **All interactive elements need `Semantics` labels** — headers need `Semantics(header: true)`
 
 ## Utility Classes Reference
 
@@ -1896,40 +1926,43 @@ void main() {
 
 **Problem**: Platform-specific code (GPS, file I/O, native features) breaks on web or CI environments.
 
-**Solution**: Use `kIsWeb` and `Platform` guards to skip platform-specific logic:
+**dart:io Rule (Production vs Test)**:
+- **Production code (`lib/`)**: NEVER use `dart:io` — it doesn't exist on web. Use `defaultTargetPlatform` from `package:flutter/foundation.dart` and `http.ClientException` instead of `SocketException`.
+- **Test code (`test/`)**: `dart:io Platform` IS allowed and sometimes REQUIRED. Tests always run on the Dart VM, never on web. Tests that need to detect the **actual host OS** (e.g. skip GoogleMap native plugin tests on macOS/Linux desktop) MUST use `dart:io Platform`, because `defaultTargetPlatform` defaults to `TargetPlatform.android` in Flutter tests and won't detect the real hardware.
+- **Files intentionally using dart:io**: `test/widget/map_screen_test.dart`, `test/integration/map/complete_map_flow_test.dart`, `test/unit/theme/verify_script_test.dart`, `test/contract/effis_responses_contract_test.dart`
+
+**Solution**: Use `kIsWeb` and `defaultTargetPlatform` guards in production code:
 
 ```dart
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 
-// ✅ CORRECT: Platform guard for mobile-only features
+// ✅ CORRECT: Production code (lib/) — uses defaultTargetPlatform, NOT dart:io
 Future<LatLng> getLocation() async {
-  if (kIsWeb || (!Platform.isAndroid && !Platform.isIOS)) {
-    // Web or desktop - return default location
+  if (kIsWeb || (defaultTargetPlatform != TargetPlatform.android &&
+                 defaultTargetPlatform != TargetPlatform.iOS)) {
     return const LatLng(55.8642, -4.2518); // Scotland centroid
   }
-
-  // Mobile only - use GPS
   final position = await Geolocator.getCurrentPosition();
   return LatLng(position.latitude, position.longitude);
 }
 
-// ✅ CORRECT: Test with platform detection
-test('location resolver falls back on web', () async {
-  final location = await locationResolver.getLatLon();
-
-  if (kIsWeb) {
-    expect(location, equals(TestData.scotlandCentroid));
-  } else {
-    expect(location.latitude, closeTo(55.9, 0.1));
+// ✅ CORRECT: Test code (test/) — uses dart:io Platform for actual hardware detection
+// This is needed to skip tests requiring native plugins on desktop
+import 'dart:io' show Platform; // OK in tests — tests always run on VM
+testWidgets('renders GoogleMap', (tester) async {
+  if (!kIsWeb && (Platform.isMacOS || Platform.isLinux)) {
+    return; // Skip — GoogleMap native plugin not available on desktop
   }
+  // ... test body ...
 });
 
-// ❌ WRONG: No platform guard - will fail on web
-Future<LatLng> getLocation() async {
-  final position = await Geolocator.getCurrentPosition(); // Crashes on web
-  return LatLng(position.latitude, position.longitude);
-}
+// ❌ WRONG: dart:io in production code — breaks on web
+import 'dart:io'; // NEVER in lib/ files
+if (!Platform.isAndroid && !Platform.isIOS) { ... }
+
+// ❌ WRONG: defaultTargetPlatform in test guards for native plugin detection
+// Defaults to android in tests — won't detect actual macOS host
+if (defaultTargetPlatform == TargetPlatform.macOS) { return; } // Never triggers!
 ```
 
 ### Summary: Testing Checklist

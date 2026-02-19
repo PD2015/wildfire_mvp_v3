@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wildfire_mvp_v3/models/location_models.dart';
+import 'package:wildfire_mvp_v3/widgets/adaptive_color_calculator.dart';
 import 'package:wildfire_mvp_v3/widgets/location_mini_map_preview.dart';
 
 /// Full-featured location details panel for expanded view.
@@ -101,45 +102,12 @@ class ExpandableLocationPanel extends StatelessWidget {
     this.onClose,
   });
 
-  /// Calculates adaptive colors based on parent background luminance
-  ///
-  /// When [embeddedInRiskBanner] is true, uses explicit white text levels
-  /// for consistent readability on all risk colors (especially yellow/orange).
-  ({Color surface, Color text, Color textMuted, Color icon, Color divider})
-      _getAdaptiveColors() {
-    // When embedded in RiskBanner, use explicit white-on-dark styling
-    // for consistent contrast on all risk colors (esp. MODERATE yellow)
-    if (embeddedInRiskBanner) {
-      return (
-        surface: Colors.black.withValues(alpha: 0.15),
-        text: Colors.white.withValues(alpha: 0.95),
-        textMuted: Colors.white.withValues(alpha: 0.75),
-        icon: Colors.white.withValues(alpha: 0.85),
-        divider: Colors.white.withValues(alpha: 0.25),
-      );
-    }
-
-    // Default: luminance-based adaptive colors for general use
-    final luminance = parentBackgroundColor.computeLuminance();
-    final isDark = luminance < 0.5;
-
-    if (isDark) {
-      return (
-        surface: Colors.white.withValues(alpha: 0.1),
-        text: Colors.white,
-        textMuted: Colors.white.withValues(alpha: 0.7),
-        icon: Colors.white.withValues(alpha: 0.8),
-        divider: Colors.white.withValues(alpha: 0.2),
-      );
-    } else {
-      return (
-        surface: Colors.black.withValues(alpha: 0.05),
-        text: const Color(0xFF111111),
-        textMuted: const Color(0xFF666666),
-        icon: const Color(0xFF333333),
-        divider: Colors.black.withValues(alpha: 0.1),
-      );
-    }
+  /// Returns adaptive colors for this panel based on parent background.
+  AdaptiveColors _getAdaptiveColors() {
+    return AdaptiveColorCalculator.getColors(
+      parentBackgroundColor: parentBackgroundColor,
+      embeddedInRiskBanner: embeddedInRiskBanner,
+    );
   }
 
   /// Validates that coordinatesLabel has valid format
